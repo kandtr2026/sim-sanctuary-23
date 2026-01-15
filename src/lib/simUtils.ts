@@ -6,6 +6,12 @@ export interface NormalizedSIM {
   displayNumber: string;
   formattedNumber: string;
   price: number;
+  // Promotional pricing fields
+  originalPrice: number;  // GIÁ BÁN from sheet
+  finalPrice: number | null;  // Final_Price from sheet (null if not provided)
+  discountType: 'percent' | 'amount' | 'fixed' | null;  // Discount_Type from sheet
+  discountValue: number | null;  // Discount_Value from sheet
+  hasPromotion: boolean;  // Computed: finalPrice exists AND finalPrice < originalPrice
   prefix3: string;
   prefix4: string;
   last2: string;
@@ -259,25 +265,48 @@ export const estimatePriceByTags = (tags: string[]): number => {
 };
 
 // Normalize raw SIM data
+export interface PromotionalPricing {
+  originalPrice: number;
+  finalPrice: number | null;
+  discountType: 'percent' | 'amount' | 'fixed' | null;
+  discountValue: number | null;
+}
+
 export const normalizeSIM = (
   rawNumber: string,
   displayNumber: string | null,
   price: number,
-  id: string
+  id: string,
+  promotional?: PromotionalPricing
 ): NormalizedSIM => {
   const rawDigits = rawNumber.replace(/\D/g, '');
   const tags = detectSimTags(rawDigits);
   const { digitCounts, sumDigits } = analyzeDigits(rawDigits);
   const network = detectNetwork(rawDigits);
-  const beautyScore = calculateBeautyScore(tags, price);
-  const vip = isVIPSim(tags, price);
+  
+  // Determine effective price for scoring (use finalPrice if available, else originalPrice)
+  const effectivePrice = promotional?.finalPrice ?? promotional?.originalPrice ?? price;
+  const beautyScore = calculateBeautyScore(tags, effectivePrice);
+  const vip = isVIPSim(tags, effectivePrice);
+  
+  // Promotional pricing
+  const originalPrice = promotional?.originalPrice ?? price;
+  const finalPrice = promotional?.finalPrice ?? null;
+  const discountType = promotional?.discountType ?? null;
+  const discountValue = promotional?.discountValue ?? null;
+  const hasPromotion = finalPrice !== null && finalPrice < originalPrice;
 
   return {
     id,
     rawDigits,
     displayNumber: displayNumber || rawDigits,
     formattedNumber: formatSIMNumber(rawDigits),
-    price,
+    price: effectivePrice, // Use effective price for sorting/filtering
+    originalPrice,
+    finalPrice,
+    discountType,
+    discountValue,
+    hasPromotion,
     prefix3: rawDigits.slice(0, 3),
     prefix4: rawDigits.slice(0, 4),
     last2: rawDigits.slice(-2),

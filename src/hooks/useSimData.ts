@@ -11,6 +11,7 @@ import {
   estimatePriceByTags,
   type NormalizedSIM,
   type SortOption,
+  type PromotionalPricing,
   PRICE_RANGES
 } from '@/lib/simUtils';
 import { toast } from 'sonner';
@@ -67,11 +68,39 @@ const normalizeHeader = (header: string): string => {
     return 'DISPLAY';
   }
   
-  if (['GIÁ BÁN', 'GIA BAN', 'GIÁBAN', 'GIABAN', 'GIÁ', 'GIA', 'PRICE'].includes(cleaned)) {
-    return 'PRICE';
+  if (['GIÁ BÁN', 'GIA BAN', 'GIÁBAN', 'GIABAN', 'GIÁ', 'GIA', 'PRICE', 'ORIGINAL_PRICE'].includes(cleaned)) {
+    return 'ORIGINAL_PRICE';
+  }
+  
+  if (['FINAL_PRICE', 'GIÁ CUỐI', 'GIA CUOI', 'GIÁ KHUYẾN MÃI', 'GIA KHUYEN MAI'].includes(cleaned)) {
+    return 'FINAL_PRICE';
+  }
+  
+  if (['DISCOUNT_TYPE', 'LOẠI GIẢM GIÁ', 'LOAI GIAM GIA'].includes(cleaned)) {
+    return 'DISCOUNT_TYPE';
+  }
+  
+  if (['DISCOUNT_VALUE', 'GIÁ TRỊ GIẢM', 'GIA TRI GIAM', 'MỨC GIẢM', 'MUC GIAM'].includes(cleaned)) {
+    return 'DISCOUNT_VALUE';
   }
   
   return cleaned;
+};
+
+// Parse discount type from string
+const parseDiscountType = (value: string): 'percent' | 'amount' | 'fixed' | null => {
+  if (!value) return null;
+  const cleaned = value.trim().toLowerCase();
+  if (cleaned === 'percent' || cleaned === 'phần trăm' || cleaned === 'phan tram' || cleaned === '%') {
+    return 'percent';
+  }
+  if (cleaned === 'amount' || cleaned === 'số tiền' || cleaned === 'so tien') {
+    return 'amount';
+  }
+  if (cleaned === 'fixed' || cleaned === 'cố định' || cleaned === 'co dinh') {
+    return 'fixed';
+  }
+  return null;
 };
 
 // Parse CSV text to array of objects
@@ -220,22 +249,36 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
     rows.forEach((row, index) => {
       const rawNumber = row['RAW'] || row['DISPLAY'] || '';
       const displayNumber = row['DISPLAY'] || row['RAW'] || rawNumber;
-      const priceStr = row['PRICE'] || '0';
+      const originalPriceStr = row['ORIGINAL_PRICE'] || row['PRICE'] || '0';
+      const finalPriceStr = row['FINAL_PRICE'] || '';
+      const discountTypeStr = row['DISCOUNT_TYPE'] || '';
+      const discountValueStr = row['DISCOUNT_VALUE'] || '';
       
       const rawDigits = rawNumber.replace(/\D/g, '');
       
       // Ignore rows with less than 9 digits
       if (rawDigits.length < 9) return;
       
-      let price = parsePrice(priceStr);
+      let originalPrice = parsePrice(originalPriceStr);
+      const finalPriceRaw = parsePrice(finalPriceStr);
+      const finalPrice = finalPriceRaw > 0 ? finalPriceRaw : null;
+      const discountType = parseDiscountType(discountTypeStr);
+      const discountValue = parsePrice(discountValueStr) || null;
       
-      // Estimate price if missing or invalid
-      if (!price || price <= 0) {
-        const { tags } = normalizeSIM(rawNumber, displayNumber, 0, `temp-${index}`);
-        price = estimatePriceByTags(tags);
+      // Estimate price if original price is missing or invalid
+      if (!originalPrice || originalPrice <= 0) {
+        const tempSim = normalizeSIM(rawNumber, displayNumber, 0, `temp-${index}`);
+        originalPrice = estimatePriceByTags(tempSim.tags);
       }
       
-      const sim = normalizeSIM(rawNumber, displayNumber, price, `sim-${index}`);
+      const promotional: PromotionalPricing = {
+        originalPrice,
+        finalPrice,
+        discountType,
+        discountValue
+      };
+      
+      const sim = normalizeSIM(rawNumber, displayNumber, originalPrice, `sim-${index}`, promotional);
       sims.push(sim);
     });
     
@@ -260,18 +303,33 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
       rows.forEach((row, index) => {
         const rawNumber = row['RAW'] || row['DISPLAY'] || '';
         const displayNumber = row['DISPLAY'] || row['RAW'] || rawNumber;
-        const priceStr = row['PRICE'] || '0';
+        const originalPriceStr = row['ORIGINAL_PRICE'] || row['PRICE'] || '0';
+        const finalPriceStr = row['FINAL_PRICE'] || '';
+        const discountTypeStr = row['DISCOUNT_TYPE'] || '';
+        const discountValueStr = row['DISCOUNT_VALUE'] || '';
         const rawDigits = rawNumber.replace(/\D/g, '');
         
         if (rawDigits.length < 9) return;
         
-        let price = parsePrice(priceStr);
-        if (!price || price <= 0) {
-          const { tags } = normalizeSIM(rawNumber, displayNumber, 0, `temp-${index}`);
-          price = estimatePriceByTags(tags);
+        let originalPrice = parsePrice(originalPriceStr);
+        const finalPriceRaw = parsePrice(finalPriceStr);
+        const finalPrice = finalPriceRaw > 0 ? finalPriceRaw : null;
+        const discountType = parseDiscountType(discountTypeStr);
+        const discountValue = parsePrice(discountValueStr) || null;
+        
+        if (!originalPrice || originalPrice <= 0) {
+          const tempSim = normalizeSIM(rawNumber, displayNumber, 0, `temp-${index}`);
+          originalPrice = estimatePriceByTags(tempSim.tags);
         }
         
-        const sim = normalizeSIM(rawNumber, displayNumber, price, `sim-${index}`);
+        const promotional: PromotionalPricing = {
+          originalPrice,
+          finalPrice,
+          discountType,
+          discountValue
+        };
+        
+        const sim = normalizeSIM(rawNumber, displayNumber, originalPrice, `sim-${index}`, promotional);
         sims.push(sim);
       });
       

@@ -6,12 +6,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 interface SIMCardNewProps {
   sim: NormalizedSIM;
 }
 
 const SIMCardNew = ({ sim }: SIMCardNewProps) => {
+  // Format price for display
   const formatPrice = (price: number): string => {
     if (price >= 1000000000) {
       return `${(price / 1000000000).toFixed(1)} tỷ`;
@@ -20,6 +22,32 @@ const SIMCardNew = ({ sim }: SIMCardNewProps) => {
       return `${(price / 1000000).toFixed(0)} triệu`;
     }
     return `${price.toLocaleString('vi-VN')} đ`;
+  };
+
+  // Get discount badge text based on type and value
+  const getDiscountBadgeText = (): string | null => {
+    if (!sim.hasPromotion) return null;
+    
+    if (sim.discountType === 'percent' && sim.discountValue) {
+      return `Giảm ${sim.discountValue}%`;
+    }
+    if (sim.discountType === 'amount' && sim.discountValue) {
+      if (sim.discountValue >= 1000000) {
+        return `Giảm ${(sim.discountValue / 1000000).toFixed(0)} triệu`;
+      }
+      return `Giảm ${sim.discountValue.toLocaleString('vi-VN')}đ`;
+    }
+    if (sim.discountType === 'fixed') {
+      return 'Giá khuyến mãi';
+    }
+    // Fallback: calculate percent if we have both prices
+    if (sim.finalPrice && sim.originalPrice > 0) {
+      const percentOff = Math.round((1 - sim.finalPrice / sim.originalPrice) * 100);
+      if (percentOff > 0) {
+        return `Giảm ${percentOff}%`;
+      }
+    }
+    return 'Khuyến mãi';
   };
 
   // Highlight the last 4 digits
@@ -45,8 +73,13 @@ const SIMCardNew = ({ sim }: SIMCardNewProps) => {
     Khác: 'bg-gray-500 text-white'
   };
 
+  const discountBadgeText = getDiscountBadgeText();
+
   return (
-    <div className="sim-card group relative overflow-hidden">
+    <div className={cn(
+      "sim-card group relative overflow-hidden",
+      sim.hasPromotion && "ring-2 ring-cta/30 shadow-promo"
+    )}>
       {/* VIP Badge */}
       {sim.isVIP && (
         <div className="absolute top-2 right-2">
@@ -54,8 +87,26 @@ const SIMCardNew = ({ sim }: SIMCardNewProps) => {
         </div>
       )}
 
+      {/* Discount Badge */}
+      {discountBadgeText && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="absolute top-2 left-2 animate-badge-in">
+                <span className="badge-discount">
+                  {discountBadgeText}
+                </span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Ưu đãi áp dụng trong thời gian ngắn</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+
       {/* Network Badge */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className={cn("flex items-center gap-2 mb-3", discountBadgeText && "mt-6")}>
         <span className={`px-2 py-0.5 rounded text-xs font-medium ${networkColors[sim.network]}`}>
           {sim.network}
         </span>
@@ -94,8 +145,25 @@ const SIMCardNew = ({ sim }: SIMCardNewProps) => {
 
       {/* Price and CTA */}
       <div className="flex items-center justify-between">
-        <div>
-          <span className="text-xl font-bold text-cta">{formatPrice(sim.price)}</span>
+        <div className="flex flex-col">
+          {/* Promotional Price Display */}
+          {sim.hasPromotion && sim.finalPrice ? (
+            <>
+              {/* Original price - strikethrough, muted */}
+              <span className="text-sm text-muted-foreground line-through opacity-70">
+                {formatPrice(sim.originalPrice)}
+              </span>
+              {/* Final price - emphasized */}
+              <span className="text-xl font-bold text-cta animate-price-pulse">
+                {formatPrice(sim.finalPrice)}
+              </span>
+            </>
+          ) : (
+            /* Regular price display */
+            <span className="text-xl font-bold text-cta">
+              {formatPrice(sim.originalPrice)}
+            </span>
+          )}
         </div>
         <TooltipProvider>
           <Tooltip>
