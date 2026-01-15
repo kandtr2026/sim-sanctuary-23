@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
+import { ChevronDown, ChevronUp, Filter, AlertTriangle } from 'lucide-react';
 import { 
   PRICE_RANGES, 
-  ALL_SIM_TAGS, 
   QUICK_SUFFIXES 
 } from '@/lib/simUtils';
 import type { FilterState } from '@/hooks/useSimData';
@@ -10,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface AdvancedFilterSidebarProps {
   filters: FilterState;
@@ -22,9 +22,9 @@ interface AdvancedFilterSidebarProps {
   onUpdateFilter: <K extends keyof FilterState>(key: K, value: FilterState[K]) => void;
 }
 
-const NETWORKS = ['Mobifone', 'Viettel', 'Vinaphone', 'iTelecom'] as const;
+const NETWORKS = ['Mobifone', 'Viettel', 'Vinaphone', 'iTelecom', 'Khác'] as const;
 
-const FilterSection = ({ 
+const FilterSection = ({
   title, 
   defaultOpen = true, 
   children 
@@ -191,6 +191,11 @@ const AdvancedFilterSidebar = ({
       {/* Network Filter */}
       <FilterSection title="SIM theo mạng">
         <div className="space-y-2">
+          <p className="text-xs text-muted-foreground mb-2">
+            {filters.selectedNetworks.length === 0 
+              ? '✓ Hiển thị tất cả mạng' 
+              : 'Nhấn để bỏ chọn mạng'}
+          </p>
           {NETWORKS.map(network => (
             <button
               key={network}
@@ -202,6 +207,22 @@ const AdvancedFilterSidebar = ({
               {network}
             </button>
           ))}
+        </div>
+        
+        {/* Mobifone First Toggle */}
+        <div className="mt-3 pt-3 border-t border-border">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs text-muted-foreground">Mobifone ưu tiên</Label>
+            <Switch
+              checked={filters.mobifoneFirst}
+              onCheckedChange={(checked) => 
+                onUpdateFilter('mobifoneFirst', checked)
+              }
+            />
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Sắp xếp Mobifone lên đầu (không ẩn mạng khác)
+          </p>
         </div>
       </FilterSection>
 
@@ -272,6 +293,22 @@ const AdvancedFilterSidebar = ({
       {/* VIP Controls */}
       <FilterSection title="VIP Controls" defaultOpen={false}>
         <div className="space-y-4">
+          {/* VIP conflict warning */}
+          {filters.vipFilter === 'only' && (
+            <Alert variant="default" className="py-2">
+              <AlertDescription className="text-xs">
+                Chỉ hiển thị SIM VIP
+              </AlertDescription>
+            </Alert>
+          )}
+          {filters.vipFilter === 'hide' && (
+            <Alert variant="default" className="py-2">
+              <AlertDescription className="text-xs">
+                Đang ẩn SIM VIP
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="flex items-center justify-between">
             <Label className="text-sm">Chỉ hiển thị VIP</Label>
             <Switch
@@ -279,6 +316,7 @@ const AdvancedFilterSidebar = ({
               onCheckedChange={(checked) => 
                 onUpdateFilter('vipFilter', checked ? 'only' : 'all')
               }
+              disabled={filters.vipFilter === 'hide'}
             />
           </div>
           
@@ -289,6 +327,7 @@ const AdvancedFilterSidebar = ({
               onCheckedChange={(checked) => 
                 onUpdateFilter('vipFilter', checked ? 'hide' : 'all')
               }
+              disabled={filters.vipFilter === 'only'}
             />
           </div>
 

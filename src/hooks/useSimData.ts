@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   normalizeSIM, 
   searchSIM, 
@@ -7,21 +7,49 @@ import {
   countTags,
   getUniquePrefixes,
   parsePrice,
+  estimatePriceByTags,
   type NormalizedSIM,
   type SortOption,
   PRICE_RANGES
 } from '@/lib/simUtils';
+import { toast } from 'sonner';
 
 const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1to6-kNir9gGp9x1oWKYqALUreupHdD7E/export?format=csv&gid=139400129';
+const STORAGE_KEY = 'chonsomobifone_sim_cache';
+const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
+const FETCH_TIMEOUT = 10000; // 10 seconds
 
-// Parse CSV text to array of objects
+// Header normalization mapping
+const normalizeHeader = (header: string): string => {
+  const cleaned = header.trim().toUpperCase().replace(/\s+/g, ' ');
+  
+  // Raw number variants
+  if (['THUÊ BAO CHUẨN', 'THUE BAO CHUAN', 'THUÊBAOCHUẨN', 'THUEBAOCHUAN'].includes(cleaned)) {
+    return 'RAW';
+  }
+  
+  // Display number variants
+  if (['SỐ THUÊ BAO', 'SO THUE BAO', 'SỐTHUÊBAO', 'SOTHUEBAO', 'SỐ ĐIỆN THOẠI', 'SO DIEN THOAI'].includes(cleaned)) {
+    return 'DISPLAY';
+  }
+  
+  // Price variants
+  if (['GIÁ BÁN', 'GIA BAN', 'GIÁBAN', 'GIABAN', 'GIÁ', 'GIA', 'PRICE'].includes(cleaned)) {
+    return 'PRICE';
+  }
+  
+  return cleaned;
+};
+
+// Parse CSV text to array of objects with header normalization
 const parseCSV = (csvText: string): Record<string, string>[] => {
   const lines = csvText.split('\n').filter(line => line.trim());
   if (lines.length < 2) return [];
 
   // Parse header - handle potential BOM
   const headerLine = lines[0].replace(/^\uFEFF/, '');
-  const headers = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  const rawHeaders = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  const headers = rawHeaders.map(normalizeHeader);
   
   const rows: Record<string, string>[] = [];
   
@@ -54,32 +82,122 @@ const parseCSV = (csvText: string): Record<string, string>[] => {
   return rows;
 };
 
-// Fetch and normalize SIM data
-const fetchSimData = async (): Promise<NormalizedSIM[]> => {
-  const response = await fetch(GOOGLE_SHEET_CSV_URL);
-  if (!response.ok) {
-    throw new Error('Failed to fetch SIM data');
+// Save to localStorage cache
+const saveToCache = (data: NormalizedSIM[]) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      timestamp: Date.now(),
+      data
+    }));
+  } catch (e) {
+    console.warn('Failed to save to cache:', e);
+  }
+};
+
+// Load from localStorage cache
+const loadFromCache = (): NormalizedSIM[] | null => {
+  try {
+    const cached = localStorage.getItem(STORAGE_KEY);
+    if (cached) {
+      const { data, timestamp } = JSON.parse(cached);
+      // Check if cache is less than 1 hour old
+      if (Date.now() - timestamp < 60 * 60 * 1000) {
+        return data;
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to load from cache:', e);
+  }
+  return null;
+};
+
+// Fetch with retry and timeout
+const fetchWithRetry = async (url: string, retries = 3): Promise<Response> => {
+  const delays = [500, 1000, 2000];
+  
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+      
+      // Add cache-busting parameter
+      const bustUrl = `${url}&t=${Date.now()}`;
+      
+      const response = await fetch(bustUrl, {
+        signal: controller.signal,
+        mode: 'cors',
+        headers: {
+          'Accept': 'text/csv,*/*'
+        }
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      return response;
+    } catch (error) {
+      if (attempt < retries - 1) {
+        await new Promise(resolve => setTimeout(resolve, delays[attempt]));
+      } else {
+        throw error;
+      }
+    }
   }
   
-  const csvText = await response.text();
-  const rows = parseCSV(csvText);
-  
-  const sims: NormalizedSIM[] = [];
-  
-  rows.forEach((row, index) => {
-    // Try different column names for the phone number
-    const rawNumber = row['THUÊ BAO CHUẨN'] || row['SỐ THUÊ BAO'] || row['SO THUE BAO'] || '';
-    const displayNumber = row['SỐ THUÊ BAO'] || row['SO THUE BAO'] || rawNumber;
-    const priceStr = row['GIÁ BÁN'] || row['GIA BAN'] || row['Giá'] || '0';
+  throw new Error('All retries failed');
+};
+
+// Fetch and normalize SIM data
+const fetchSimData = async (): Promise<NormalizedSIM[]> => {
+  try {
+    const response = await fetchWithRetry(GOOGLE_SHEET_CSV_URL);
+    const csvText = await response.text();
+    const rows = parseCSV(csvText);
     
-    if (rawNumber) {
-      const price = parsePrice(priceStr);
+    const sims: NormalizedSIM[] = [];
+    
+    rows.forEach((row, index) => {
+      // Use normalized headers
+      const rawNumber = row['RAW'] || row['DISPLAY'] || '';
+      const displayNumber = row['DISPLAY'] || row['RAW'] || rawNumber;
+      const priceStr = row['PRICE'] || '0';
+      
+      // Extract digits only
+      const rawDigits = rawNumber.replace(/\D/g, '');
+      
+      // Ignore rows with less than 9 digits
+      if (rawDigits.length < 9) return;
+      
+      let price = parsePrice(priceStr);
+      
+      // Estimate price if missing or invalid
+      if (!price || price <= 0) {
+        const { tags } = normalizeSIM(rawNumber, displayNumber, 0, `temp-${index}`);
+        price = estimatePriceByTags(tags);
+      }
+      
       const sim = normalizeSIM(rawNumber, displayNumber, price, `sim-${index}`);
       sims.push(sim);
+    });
+    
+    // Save successful fetch to cache
+    if (sims.length > 0) {
+      saveToCache(sims);
     }
-  });
-  
-  return sims;
+    
+    return sims;
+  } catch (error) {
+    // Try loading from cache on failure
+    const cachedData = loadFromCache();
+    if (cachedData && cachedData.length > 0) {
+      toast.warning('Sử dụng dữ liệu đã lưu. Nhấn "Tải lại" để thử lại.');
+      return cachedData;
+    }
+    throw error;
+  }
 };
 
 // Filter state interface
@@ -89,7 +207,7 @@ export interface FilterState {
   customPriceMin: number | null;
   customPriceMax: number | null;
   selectedTags: string[];
-  selectedNetworks: string[];
+  selectedNetworks: string[]; // Empty = ALL networks (anti 0 results)
   selectedPrefixes3: string[];
   selectedPrefixes4: string[];
   selectedSuffixes: string[];
@@ -97,6 +215,7 @@ export interface FilterState {
   vipFilter: 'all' | 'only' | 'hide';
   vipThreshold: number;
   sortBy: SortOption;
+  mobifoneFirst: boolean; // Sort Mobifone higher but don't hide others
 }
 
 export const defaultFilterState: FilterState = {
@@ -105,27 +224,51 @@ export const defaultFilterState: FilterState = {
   customPriceMin: null,
   customPriceMax: null,
   selectedTags: [],
-  selectedNetworks: ['Mobifone'], // Default to Mobifone
+  selectedNetworks: [], // Default to ALL networks (anti 0 results)
   selectedPrefixes3: [],
   selectedPrefixes4: [],
   selectedSuffixes: [],
   customSuffix: '',
   vipFilter: 'all',
   vipThreshold: 50000000,
-  sortBy: 'default'
+  sortBy: 'default',
+  mobifoneFirst: true // Sort Mobifone first but show all
 };
+
+// Relax filter priority order
+const RELAX_ORDER: (keyof FilterState)[] = [
+  'customSuffix',
+  'selectedSuffixes',
+  'selectedPrefixes3',
+  'selectedPrefixes4',
+  'selectedTags',
+  'priceRanges',
+  'customPriceMin',
+  'customPriceMax',
+  'selectedNetworks',
+  'searchQuery'
+];
 
 export const useSimData = () => {
   const [filters, setFilters] = useState<FilterState>(defaultFilterState);
+  const queryClient = useQueryClient();
 
   // Fetch data with React Query
-  const { data: allSims = [], isLoading, error, refetch } = useQuery({
+  const { data: allSims = [], isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['simData'],
     queryFn: fetchSimData,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 2 * 60 * 1000, // 2 minutes
     gcTime: 30 * 60 * 1000, // 30 minutes
-    retry: 3
+    retry: 0, // We handle retries in fetchWithRetry
+    refetchInterval: AUTO_REFRESH_INTERVAL,
+    refetchIntervalInBackground: false
   });
+
+  // Force reload function
+  const forceReload = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['simData'] });
+    toast.info('Đang tải lại dữ liệu...');
+  }, [queryClient]);
 
   // Get unique prefixes
   const prefixes = useMemo(() => getUniquePrefixes(allSims), [allSims]);
@@ -134,12 +277,15 @@ export const useSimData = () => {
   const filteredSims = useMemo(() => {
     let result = [...allSims];
 
-    // Search filter
+    // Search filter (only if >= 2 digits)
     if (filters.searchQuery) {
-      result = result.filter(sim => searchSIM(sim, filters.searchQuery));
+      const digitCount = filters.searchQuery.replace(/\D/g, '').length;
+      if (digitCount >= 2) {
+        result = result.filter(sim => searchSIM(sim, filters.searchQuery));
+      }
     }
 
-    // Price range filter
+    // Price range filter (only if selected)
     if (filters.priceRanges.length > 0) {
       result = result.filter(sim => {
         return filters.priceRanges.some(rangeIndex => {
@@ -149,14 +295,14 @@ export const useSimData = () => {
       });
     }
 
-    // Custom price filter
+    // Custom price filter (only if set)
     if (filters.customPriceMin !== null || filters.customPriceMax !== null) {
       const min = filters.customPriceMin ?? 0;
       const max = filters.customPriceMax ?? Infinity;
       result = result.filter(sim => sim.price >= min && sim.price <= max);
     }
 
-    // Tag filter
+    // Tag filter (only if selected)
     if (filters.selectedTags.length > 0) {
       result = result.filter(sim => {
         return filters.selectedTags.some(tag => {
@@ -166,22 +312,22 @@ export const useSimData = () => {
       });
     }
 
-    // Network filter
+    // Network filter (only if explicitly selected - empty means ALL)
     if (filters.selectedNetworks.length > 0) {
       result = result.filter(sim => filters.selectedNetworks.includes(sim.network));
     }
 
-    // Prefix3 filter
+    // Prefix3 filter (only if selected)
     if (filters.selectedPrefixes3.length > 0) {
       result = result.filter(sim => filters.selectedPrefixes3.includes(sim.prefix3));
     }
 
-    // Prefix4 filter
+    // Prefix4 filter (only if selected)
     if (filters.selectedPrefixes4.length > 0) {
       result = result.filter(sim => filters.selectedPrefixes4.includes(sim.prefix4));
     }
 
-    // Suffix filter
+    // Suffix filter (only if selected)
     if (filters.selectedSuffixes.length > 0 || filters.customSuffix) {
       const allSuffixes = [...filters.selectedSuffixes];
       if (filters.customSuffix) {
@@ -192,7 +338,7 @@ export const useSimData = () => {
       });
     }
 
-    // VIP filter
+    // VIP filter with conflict prevention
     if (filters.vipFilter === 'only') {
       result = result.filter(sim => sim.isVIP);
     } else if (filters.vipFilter === 'hide') {
@@ -202,21 +348,182 @@ export const useSimData = () => {
     // Apply sorting
     result = sortSIMs(result, filters.sortBy);
 
+    // If mobifoneFirst is enabled, sort Mobifone to top (but keep all)
+    if (filters.mobifoneFirst && filters.sortBy === 'default') {
+      result = result.sort((a, b) => {
+        if (a.network === 'Mobifone' && b.network !== 'Mobifone') return -1;
+        if (a.network !== 'Mobifone' && b.network === 'Mobifone') return 1;
+        return 0;
+      });
+    }
+
     return result;
   }, [allSims, filters]);
 
-  // Count tags for filtered results
-  const tagCounts = useMemo(() => countTags(filteredSims), [filteredSims]);
+  // Count tags for all data (not filtered, to show totals)
+  const tagCounts = useMemo(() => countTags(allSims), [allSims]);
 
-  // Count tags for all data (for showing total)
-  const allTagCounts = useMemo(() => countTags(allSims), [allSims]);
+  // Count tags for filtered results
+  const filteredTagCounts = useMemo(() => countTags(filteredSims), [filteredSims]);
+
+  // Get active constraints for "relax mode"
+  const activeConstraints = useMemo(() => {
+    const constraints: { key: keyof FilterState; label: string; onRemove: () => void }[] = [];
+
+    if (filters.searchQuery) {
+      constraints.push({
+        key: 'searchQuery',
+        label: `Tìm: "${filters.searchQuery}"`,
+        onRemove: () => updateFilter('searchQuery', '')
+      });
+    }
+
+    if (filters.selectedSuffixes.length > 0) {
+      constraints.push({
+        key: 'selectedSuffixes',
+        label: `Đuôi số: ${filters.selectedSuffixes.join(', ')}`,
+        onRemove: () => updateFilter('selectedSuffixes', [])
+      });
+    }
+
+    if (filters.customSuffix) {
+      constraints.push({
+        key: 'customSuffix',
+        label: `Đuôi: ${filters.customSuffix}`,
+        onRemove: () => updateFilter('customSuffix', '')
+      });
+    }
+
+    if (filters.selectedPrefixes3.length > 0) {
+      constraints.push({
+        key: 'selectedPrefixes3',
+        label: `Đầu số: ${filters.selectedPrefixes3.join(', ')}`,
+        onRemove: () => updateFilter('selectedPrefixes3', [])
+      });
+    }
+
+    if (filters.selectedTags.length > 0) {
+      constraints.push({
+        key: 'selectedTags',
+        label: `Loại: ${filters.selectedTags.join(', ')}`,
+        onRemove: () => updateFilter('selectedTags', [])
+      });
+    }
+
+    if (filters.priceRanges.length > 0) {
+      constraints.push({
+        key: 'priceRanges',
+        label: `Khoảng giá đã chọn`,
+        onRemove: () => updateFilter('priceRanges', [])
+      });
+    }
+
+    if (filters.customPriceMin !== null || filters.customPriceMax !== null) {
+      const min = filters.customPriceMin ? `${(filters.customPriceMin / 1000000).toFixed(0)}tr` : '0';
+      const max = filters.customPriceMax ? `${(filters.customPriceMax / 1000000).toFixed(0)}tr` : '∞';
+      constraints.push({
+        key: 'customPriceMin',
+        label: `Giá: ${min} - ${max}`,
+        onRemove: () => {
+          updateFilter('customPriceMin', null);
+          updateFilter('customPriceMax', null);
+        }
+      });
+    }
+
+    if (filters.selectedNetworks.length > 0) {
+      constraints.push({
+        key: 'selectedNetworks',
+        label: `Mạng: ${filters.selectedNetworks.join(', ')}`,
+        onRemove: () => updateFilter('selectedNetworks', [])
+      });
+    }
+
+    return constraints;
+  }, [filters]);
+
+  // Relax filters one by one until results > 0
+  const relaxFilters = useCallback(() => {
+    const relaxedMessages: string[] = [];
+    
+    setFilters(prev => {
+      const newFilters = { ...prev };
+      
+      for (const key of RELAX_ORDER) {
+        // Check if this filter is active
+        const value = newFilters[key];
+        const isEmpty = 
+          value === '' || 
+          value === null || 
+          (Array.isArray(value) && value.length === 0);
+        
+        if (!isEmpty) {
+          // Relax this filter
+          if (Array.isArray(value)) {
+            (newFilters[key] as typeof value) = [];
+          } else if (typeof value === 'string') {
+            (newFilters[key] as string) = '';
+          } else {
+            (newFilters[key] as typeof value) = null as typeof value;
+          }
+          
+          // Map key to Vietnamese description
+          const keyLabels: Record<string, string> = {
+            searchQuery: 'Từ khóa tìm kiếm',
+            selectedSuffixes: 'Bộ lọc đuôi số',
+            customSuffix: 'Đuôi số tùy chỉnh',
+            selectedPrefixes3: 'Bộ lọc đầu số',
+            selectedPrefixes4: 'Bộ lọc đầu 4 số',
+            selectedTags: 'Bộ lọc loại số',
+            priceRanges: 'Khoảng giá',
+            customPriceMin: 'Giá tối thiểu',
+            customPriceMax: 'Giá tối đa',
+            selectedNetworks: 'Bộ lọc mạng'
+          };
+          
+          relaxedMessages.push(keyLabels[key] || key);
+          break; // Only relax one filter at a time
+        }
+      }
+      
+      return newFilters;
+    });
+
+    if (relaxedMessages.length > 0) {
+      toast.info(`Đã bỏ: ${relaxedMessages.join(', ')}`);
+    }
+  }, []);
+
+  // Auto-relax all filters at once
+  const relaxAllFilters = useCallback(() => {
+    setFilters(prev => ({
+      ...prev,
+      searchQuery: '',
+      priceRanges: [],
+      customPriceMin: null,
+      customPriceMax: null,
+      selectedTags: [],
+      selectedNetworks: [],
+      selectedPrefixes3: [],
+      selectedPrefixes4: [],
+      selectedSuffixes: [],
+      customSuffix: ''
+    }));
+    toast.success('Đã nới lỏng tất cả bộ lọc');
+  }, []);
 
   // Filter update helpers
   const updateFilter = useCallback(<K extends keyof FilterState>(
     key: K, 
     value: FilterState[K]
   ) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    setFilters(prev => {
+      // VIP conflict prevention
+      if (key === 'vipFilter') {
+        // No special handling needed since we're setting directly
+      }
+      return { ...prev, [key]: value };
+    });
   }, []);
 
   const togglePriceRange = useCallback((index: number) => {
@@ -257,6 +564,7 @@ export const useSimData = () => {
 
   const resetFilters = useCallback(() => {
     setFilters(defaultFilterState);
+    toast.info('Đã đặt lại bộ lọc');
   }, []);
 
   // Get active filter chips
@@ -308,6 +616,14 @@ export const useSimData = () => {
       });
     });
 
+    filters.selectedPrefixes3.forEach(prefix => {
+      chips.push({
+        key: `prefix3-${prefix}`,
+        label: `Đầu ${prefix}`,
+        onRemove: () => updateFilter('selectedPrefixes3', filters.selectedPrefixes3.filter(p => p !== prefix))
+      });
+    });
+
     filters.selectedSuffixes.forEach(suffix => {
       chips.push({
         key: `suffix-${suffix}`,
@@ -341,18 +657,34 @@ export const useSimData = () => {
     return chips;
   }, [filters, updateFilter, togglePriceRange, toggleTag, toggleNetwork, toggleSuffix]);
 
+  // Check if search returned 0 and might need suggestions
+  const searchSuggestion = useMemo(() => {
+    if (filteredSims.length === 0 && filters.searchQuery) {
+      const query = filters.searchQuery;
+      if (query.includes('*')) {
+        return 'Thử bỏ dấu * hoặc giảm số ký tự';
+      }
+      if (query.length > 6) {
+        return 'Thử tìm với ít số hơn (4-6 số)';
+      }
+    }
+    return null;
+  }, [filteredSims.length, filters.searchQuery]);
+
   return {
     // Data
     allSims,
     filteredSims,
     isLoading,
+    isFetching,
     error,
     refetch,
+    forceReload,
 
     // Metadata
     prefixes,
     tagCounts,
-    allTagCounts,
+    filteredTagCounts,
 
     // Filters
     filters,
@@ -363,6 +695,12 @@ export const useSimData = () => {
     toggleNetwork,
     toggleSuffix,
     resetFilters,
-    activeFilters
+    activeFilters,
+    
+    // Anti 0 results
+    activeConstraints,
+    relaxFilters,
+    relaxAllFilters,
+    searchSuggestion
   };
 };

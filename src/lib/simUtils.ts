@@ -64,7 +64,7 @@ export const detectNetwork = (rawDigits: string): NormalizedSIM['network'] => {
   return 'Khác';
 };
 
-// Detect all SIM tags
+// Detect all SIM tags with high confidence
 export const detectSimTags = (rawDigits: string): string[] => {
   const tags: string[] = [];
   const last2 = rawDigits.slice(-2);
@@ -73,38 +73,52 @@ export const detectSimTags = (rawDigits: string): string[] => {
   const last5 = rawDigits.slice(-5);
   const last6 = rawDigits.slice(-6);
 
-  // Quý patterns (must be mutually exclusive for count)
-  if (/^(\d)\1{5}$/.test(last6)) {
+  // Quý patterns (mutually exclusive - most specific wins)
+  const allSameLast6 = last6.length === 6 && /^(\d)\1{5}$/.test(last6);
+  const allSameLast5 = last5.length === 5 && /^(\d)\1{4}$/.test(last5);
+  const allSameLast4 = last4.length === 4 && /^(\d)\1{3}$/.test(last4);
+  const allSameLast3 = last3.length === 3 && /^(\d)\1{2}$/.test(last3);
+
+  if (allSameLast6) {
     tags.push('Lục quý');
-  } else if (/^(\d)\1{4}$/.test(last5)) {
+  } else if (allSameLast5) {
     tags.push('Ngũ quý');
-  } else if (/^(\d)\1{3}$/.test(last4)) {
+  } else if (allSameLast4) {
     tags.push('Tứ quý');
-  } else if (/^(\d)\1{2}$/.test(last3)) {
-    // Check for Tam hoa kép first (xxx.xxx pattern)
-    if (/^(\d{3})\1$/.test(last6) || /^(\d)\1(\d)\2(\d)\3$/.test(last6)) {
+  } else if (allSameLast3) {
+    // Check for Tam hoa kép patterns first
+    const isTamHoaKep = 
+      /^(\d{3})\1$/.test(last6) || // abcabc like 123123
+      /^(\d{2})\1\1$/.test(last6) || // ababab like 121212
+      (last6[0] === last6[2] && last6[2] === last6[4] && 
+       last6[1] === last6[3] && last6[3] === last6[5] && 
+       last6[0] !== last6[1]); // xyxyxy pattern
+    
+    if (isTamHoaKep) {
       tags.push('Tam hoa kép');
     } else {
       tags.push('Tam hoa');
     }
   }
 
-  // Also check Tam hoa kép for patterns like 686868, 121212
-  if (/^(\d{2})\1\1$/.test(last6) && !tags.includes('Lục quý') && !tags.includes('Tam hoa kép')) {
-    tags.push('Tam hoa kép');
+  // Also check for Tam hoa kép patterns that don't end in tam hoa
+  if (!tags.includes('Tam hoa kép') && !tags.some(t => t.includes('quý'))) {
+    if (/^(\d{2})\1\1$/.test(last6) || /^(\d{3})\1$/.test(last6)) {
+      tags.push('Tam hoa kép');
+    }
   }
 
-  // Phong thủy patterns
+  // Phong thủy patterns (can coexist)
   if (/39$|79$/.test(rawDigits)) tags.push('Thần tài');
   if (/68$|86$/.test(rawDigits)) tags.push('Lộc phát');
   if (/38$|78$/.test(rawDigits)) tags.push('Ông địa');
 
-  // Tiến lên (ascending)
+  // Tiến lên (ascending last 4)
   if (/0123$|1234$|2345$|3456$|4567$|5678$|6789$/.test(rawDigits)) {
     tags.push('Tiến lên');
   }
 
-  // Gánh đảo (ABBA pattern in last 4)
+  // Gánh đảo (ABBA pattern in last 4, A != B)
   if (last4.length === 4 && 
       last4[0] === last4[3] && 
       last4[1] === last4[2] && 
@@ -112,31 +126,37 @@ export const detectSimTags = (rawDigits: string): string[] => {
     tags.push('Gánh đảo');
   }
 
-  // Lặp kép (AABB or AABBCC)
-  if (/^(\d)\1(\d)\2$/.test(last4) && !tags.some(t => t.includes('quý'))) {
-    tags.push('Lặp kép');
-  } else if (/^(\d)\1(\d)\2(\d)\3$/.test(last6) && !tags.some(t => t.includes('quý'))) {
-    tags.push('Lặp kép');
-  }
-
-  // Năm sinh (1980-2029)
-  for (let year = 1980; year <= 2029; year++) {
-    if (rawDigits.slice(-4) === year.toString()) {
-      tags.push('Năm sinh');
-      break;
+  // Lặp kép (AABB in last 4 or AABBCC in last 6)
+  if (!tags.some(t => t.includes('quý') || t === 'Tam hoa kép')) {
+    if (/^(\d)\1(\d)\2$/.test(last4) && last4[0] !== last4[2]) {
+      tags.push('Lặp kép');
+    } else if (/^(\d)\1(\d)\2(\d)\3$/.test(last6)) {
+      tags.push('Lặp kép');
     }
   }
 
-  // Dễ nhớ (ABAB patterns)
-  if (/^(\d{2})\1$/.test(last4) && !tags.some(t => ['Lặp kép', 'Tứ quý'].includes(t))) {
-    tags.push('Dễ nhớ');
-  }
-  if (/^(\d{3})\1$/.test(last6) && !tags.includes('Lục quý') && !tags.includes('Dễ nhớ')) {
-    tags.push('Dễ nhớ');
+  // Năm sinh (ends with year 1980-2029)
+  const yearMatch = rawDigits.slice(-4);
+  const year = parseInt(yearMatch, 10);
+  if (year >= 1980 && year <= 2029) {
+    tags.push('Năm sinh');
   }
 
-  // Taxi (readable patterns - heuristic: has repeating groups or sequences)
+  // Dễ nhớ (ABAB patterns) - only if not already tagged with quý/lặp
+  if (!tags.some(t => ['Lặp kép', 'Tứ quý', 'Ngũ quý', 'Lục quý', 'Tam hoa kép'].includes(t))) {
+    // ABAB pattern in last 4
+    if (/^(\d{2})\1$/.test(last4)) {
+      tags.push('Dễ nhớ');
+    }
+    // ABCABC pattern in last 6
+    else if (/^(\d{3})\1$/.test(last6)) {
+      tags.push('Dễ nhớ');
+    }
+  }
+
+  // Taxi (has readable digit groups) - only if no other tags
   if (tags.length === 0) {
+    // Check for patterns with repeating pairs
     const groups = last6.match(/(\d)\1+/g);
     if (groups && groups.some(g => g.length >= 2)) {
       tags.push('Taxi');
@@ -150,7 +170,7 @@ export const detectSimTags = (rawDigits: string): string[] => {
 export const calculateBeautyScore = (tags: string[], price: number, vipThreshold: number = 50000000): number => {
   let score = 0;
 
-  // Tag scores
+  // Tag scores (based on prompt)
   if (tags.includes('Lục quý')) score += 100;
   if (tags.includes('Ngũ quý')) score += 80;
   if (tags.includes('Tứ quý')) score += 60;
@@ -183,6 +203,9 @@ export const formatSIMNumber = (rawDigits: string): string => {
   if (rawDigits.length === 10) {
     return `${rawDigits.slice(0, 4)}.${rawDigits.slice(4, 7)}.${rawDigits.slice(7)}`;
   }
+  if (rawDigits.length === 11) {
+    return `${rawDigits.slice(0, 4)}.${rawDigits.slice(4, 7)}.${rawDigits.slice(7)}`;
+  }
   return rawDigits;
 };
 
@@ -202,12 +225,37 @@ export const analyzeDigits = (rawDigits: string): { digitCounts: number[]; sumDi
   return { digitCounts: counts, sumDigits: sum };
 };
 
-// Parse CSV price string to number
+// Parse CSV price string to number (robust)
 export const parsePrice = (priceStr: string | number): number => {
   if (typeof priceStr === 'number') return priceStr;
   if (!priceStr) return 0;
-  const cleaned = String(priceStr).replace(/[,.\s]/g, '');
-  return parseInt(cleaned, 10) || 0;
+  
+  // Remove all non-numeric characters except for decimal points that might be thousands separators
+  let cleaned = String(priceStr)
+    .replace(/[^\d]/g, ''); // Remove everything except digits
+  
+  const value = parseInt(cleaned, 10);
+  return isNaN(value) ? 0 : value;
+};
+
+// Estimate price based on tags (for missing prices)
+export const estimatePriceByTags = (tags: string[]): number => {
+  // Price ranges based on prompt specification
+  if (tags.includes('Lục quý')) {
+    return Math.floor(Math.random() * (650000000 - 120000000) + 120000000);
+  }
+  if (tags.includes('Ngũ quý')) {
+    return Math.floor(Math.random() * (250000000 - 60000000) + 60000000);
+  }
+  if (tags.includes('Tứ quý')) {
+    return Math.floor(Math.random() * (60000000 - 12000000) + 12000000);
+  }
+  if (tags.includes('Tam hoa kép') || tags.includes('Tam hoa') || 
+      tags.includes('Thần tài') || tags.includes('Lộc phát')) {
+    return Math.floor(Math.random() * (25000000 - 4000000) + 4000000);
+  }
+  // Default range for others
+  return Math.floor(Math.random() * (1200000 - 390000) + 390000);
 };
 
 // Normalize raw SIM data
@@ -246,24 +294,29 @@ export const normalizeSIM = (
   };
 };
 
-// Search with wildcard support
+// Search with wildcard support (forgiving)
 export const searchSIM = (sim: NormalizedSIM, query: string): boolean => {
   if (!query.trim()) return true;
 
+  // Clean query - remove dots, spaces, and non-digits except * and =
   const cleanQuery = query.replace(/[\.\s]/g, '').trim();
+  
+  // Less than 2 digits = don't filter
+  const digitCount = cleanQuery.replace(/[^\d]/g, '').length;
+  if (digitCount < 2) return true;
   
   // Exact match (=prefix)
   if (cleanQuery.startsWith('=')) {
     return sim.rawDigits === cleanQuery.slice(1);
   }
 
-  // Prefix only (*suffix)
+  // Suffix only (*suffix)
   if (cleanQuery.startsWith('*') && !cleanQuery.slice(1).includes('*')) {
     const suffix = cleanQuery.slice(1);
     return sim.rawDigits.endsWith(suffix);
   }
 
-  // Suffix only (prefix*)
+  // Prefix only (prefix*)
   if (cleanQuery.endsWith('*') && !cleanQuery.slice(0, -1).includes('*')) {
     const prefix = cleanQuery.slice(0, -1);
     return sim.rawDigits.startsWith(prefix);
@@ -274,6 +327,10 @@ export const searchSIM = (sim: NormalizedSIM, query: string): boolean => {
     const parts = cleanQuery.split('*').filter(Boolean);
     if (parts.length === 2) {
       return sim.rawDigits.startsWith(parts[0]) && sim.rawDigits.endsWith(parts[1]);
+    }
+    // Multiple wildcards - try best effort
+    if (parts.length > 2) {
+      return parts.every(part => sim.rawDigits.includes(part));
     }
   }
 
@@ -324,11 +381,10 @@ export const sortSIMs = (sims: NormalizedSIM[], sortBy: SortOption): NormalizedS
         // Priority for ending patterns
         const getSuffixScore = (sim: NormalizedSIM) => {
           let score = 0;
-          const last4 = sim.last4;
           if (/68$|86$|39$|79$|38$|78$/.test(sim.rawDigits)) score += 50;
           if (/(\d)\1{3}$/.test(sim.rawDigits)) score += 100;
           if (/(\d)\1{2}$/.test(sim.rawDigits)) score += 60;
-          if (/(\d)\1$/.test(last4)) score += 30;
+          if (/(\d)\1$/.test(sim.last4)) score += 30;
           return score + sim.beautyScore;
         };
         return getSuffixScore(b) - getSuffixScore(a);
