@@ -13,8 +13,8 @@ import ActiveFilterChips from '@/components/ActiveFilterChips';
 import SortDropdown from '@/components/SortDropdown';
 import MobileFilterDrawer from '@/components/MobileFilterDrawer';
 import EmptyStateHelper from '@/components/EmptyStateHelper';
-import { useSimData } from '@/hooks/useSimData';
-import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff } from 'lucide-react';
+import { useSimData, getLastUpdateInfo } from '@/hooks/useSimData';
+import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff, Cloud, CloudOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const ITEMS_PER_PAGE = 20;
@@ -45,6 +45,9 @@ const Index = () => {
     relaxAllFilters,
     searchSuggestion
   } = useSimData();
+
+  // Get last update info for display
+  const lastUpdateInfo = getLastUpdateInfo();
 
   // Reset visible count when filters change
   useEffect(() => {
@@ -137,7 +140,7 @@ const Index = () => {
             <div className="bg-card rounded-xl shadow-card border border-border p-4 md:p-6 mb-6">
               {/* Header with sort and reload */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <h2 className="text-xl font-bold text-primary">SIM Số Đẹp</h2>
                   {allSims.length > 0 && (
                     <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
@@ -162,6 +165,26 @@ const Index = () => {
                   />
                 </div>
               </div>
+
+              {/* Data sync status */}
+              {allSims.length > 0 && lastUpdateInfo.timestamp && (
+                <div className={`flex items-center gap-2 text-xs mb-3 px-2 py-1 rounded ${
+                  lastUpdateInfo.isCache 
+                    ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' 
+                    : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                }`}>
+                  {lastUpdateInfo.isCache ? (
+                    <CloudOff className="w-3 h-3" />
+                  ) : (
+                    <Cloud className="w-3 h-3" />
+                  )}
+                  <span>
+                    {lastUpdateInfo.isCache ? 'Dữ liệu từ cache' : 'Dữ liệu đồng bộ từ Google Sheet'}
+                    {' • '}
+                    Cập nhật: {new Date(lastUpdateInfo.timestamp).toLocaleTimeString('vi-VN')}
+                  </span>
+                </div>
+              )}
 
               {/* Active Filters */}
               <ActiveFilterChips

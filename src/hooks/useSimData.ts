@@ -14,10 +14,65 @@ import {
 } from '@/lib/simUtils';
 import { toast } from 'sonner';
 
-const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1to6-kNir9gGp9x1oWKYqALUreupHdD7E/export?format=csv&gid=139400129';
+// DATA URLS - Primary and Fallback
+const PUBLISHED_CSV_URL = ''; // Add published 2PACX URL here if available
+const EXPORT_CSV_URL = 'https://docs.google.com/spreadsheets/d/1to6-kNir9gGp9x1oWKYqALUreupHdD7E/export?format=csv&gid=139400129';
+
+// Storage keys
+const CSV_CACHE_KEY = 'sim_csv_cache';
+const CSV_CACHE_TIME_KEY = 'sim_csv_cache_time';
 const STORAGE_KEY = 'chonsomobifone_sim_cache';
+
 const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
 const FETCH_TIMEOUT = 10000; // 10 seconds
+const MAX_CACHE_AGE = 60 * 60 * 1000; // 1 hour
+
+// Invalid CSV patterns (HTML responses, login pages, etc.)
+const INVALID_CSV_PATTERNS = [
+  '<html',
+  '<!DOCTYPE',
+  'accounts.google.com',
+  'ServiceLogin',
+  'Sign in',
+  'You need access',
+  'Request access',
+  'Access denied'
+];
+
+// Valid CSV headers to look for
+const VALID_HEADERS = [
+  'SỐ THUÊ BAO', 'SO THUE BAO', 'SỐTHUÊBAO', 'SOTHUEBAO',
+  'THUÊ BAO CHUẨN', 'THUE BAO CHUAN', 'THUÊBAOCHUẨN', 'THUEBAOCHUAN'
+];
+
+// Validate CSV text - reject HTML/login pages
+const validateCSV = (text: string): { valid: boolean; reason?: string } => {
+  const lowerText = text.toLowerCase().slice(0, 2000); // Check first 2000 chars
+  
+  // Check for invalid patterns
+  for (const pattern of INVALID_CSV_PATTERNS) {
+    if (lowerText.includes(pattern.toLowerCase())) {
+      return { valid: false, reason: `Invalid response: contains "${pattern}"` };
+    }
+  }
+  
+  // Check for valid headers
+  const hasValidHeader = VALID_HEADERS.some(header => 
+    text.toUpperCase().includes(header.toUpperCase())
+  );
+  
+  if (!hasValidHeader) {
+    return { valid: false, reason: 'Missing required CSV headers' };
+  }
+  
+  // Check for minimum content (header + at least 1 data row)
+  const lines = text.split('\n').filter(line => line.trim());
+  if (lines.length < 2) {
+    return { valid: false, reason: 'CSV has no data rows' };
+  }
+  
+  return { valid: true };
+};
 
 // Header normalization mapping
 const normalizeHeader = (header: string): string => {
@@ -82,7 +137,31 @@ const parseCSV = (csvText: string): Record<string, string>[] => {
   return rows;
 };
 
-// Save to localStorage cache
+// Save raw CSV to cache
+const saveCsvToCache = (csvText: string) => {
+  try {
+    localStorage.setItem(CSV_CACHE_KEY, csvText);
+    localStorage.setItem(CSV_CACHE_TIME_KEY, Date.now().toString());
+  } catch (e) {
+    console.warn('Failed to save CSV to cache:', e);
+  }
+};
+
+// Load raw CSV from cache
+const loadCsvFromCache = (): { csv: string; timestamp: number } | null => {
+  try {
+    const csv = localStorage.getItem(CSV_CACHE_KEY);
+    const timeStr = localStorage.getItem(CSV_CACHE_TIME_KEY);
+    if (csv && timeStr) {
+      return { csv, timestamp: parseInt(timeStr, 10) };
+    }
+  } catch (e) {
+    console.warn('Failed to load CSV from cache:', e);
+  }
+  return null;
+};
+
+// Save normalized SIMs to cache
 const saveToCache = (data: NormalizedSIM[]) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -94,15 +173,14 @@ const saveToCache = (data: NormalizedSIM[]) => {
   }
 };
 
-// Load from localStorage cache
-const loadFromCache = (): NormalizedSIM[] | null => {
+// Load normalized SIMs from cache
+const loadFromCache = (): { data: NormalizedSIM[]; timestamp: number } | null => {
   try {
     const cached = localStorage.getItem(STORAGE_KEY);
     if (cached) {
       const { data, timestamp } = JSON.parse(cached);
-      // Check if cache is less than 1 hour old
-      if (Date.now() - timestamp < 60 * 60 * 1000) {
-        return data;
+      if (Date.now() - timestamp < MAX_CACHE_AGE && data?.length > 0) {
+        return { data, timestamp };
       }
     }
   } catch (e) {
@@ -111,8 +189,8 @@ const loadFromCache = (): NormalizedSIM[] | null => {
   return null;
 };
 
-// Fetch with retry and timeout
-const fetchWithRetry = async (url: string, retries = 3): Promise<Response> => {
+// Fetch single URL with retry and timeout
+const fetchSingleUrl = async (url: string, retries = 3): Promise<string> => {
   const delays = [500, 1000, 2000];
   
   for (let attempt = 0; attempt < retries; attempt++) {
@@ -121,7 +199,10 @@ const fetchWithRetry = async (url: string, retries = 3): Promise<Response> => {
       const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
       
       // Add cache-busting parameter
-      const bustUrl = `${url}&t=${Date.now()}`;
+      const separator = url.includes('?') ? '&' : '?';
+      const bustUrl = `${url}${separator}t=${Date.now()}`;
+      
+      console.log(`[SIM] Fetching attempt ${attempt + 1}/${retries}: ${bustUrl}`);
       
       const response = await fetch(bustUrl, {
         signal: controller.signal,
@@ -137,8 +218,19 @@ const fetchWithRetry = async (url: string, retries = 3): Promise<Response> => {
         throw new Error(`HTTP ${response.status}`);
       }
       
-      return response;
+      const text = await response.text();
+      
+      // Validate CSV content
+      const validation = validateCSV(text);
+      if (!validation.valid) {
+        throw new Error(validation.reason || 'Invalid CSV response');
+      }
+      
+      console.log(`[SIM] Successfully fetched valid CSV (${text.length} chars)`);
+      return text;
+      
     } catch (error) {
+      console.warn(`[SIM] Attempt ${attempt + 1} failed:`, error);
       if (attempt < retries - 1) {
         await new Promise(resolve => setTimeout(resolve, delays[attempt]));
       } else {
@@ -150,12 +242,58 @@ const fetchWithRetry = async (url: string, retries = 3): Promise<Response> => {
   throw new Error('All retries failed');
 };
 
+// Fetch CSV with fallback strategy
+const fetchCsvWithFallback = async (): Promise<string> => {
+  const urls = [
+    PUBLISHED_CSV_URL,
+    EXPORT_CSV_URL
+  ].filter(url => url.trim()); // Filter out empty URLs
+  
+  let lastError: Error | null = null;
+  
+  for (const url of urls) {
+    try {
+      console.log(`[SIM] Trying URL: ${url}`);
+      return await fetchSingleUrl(url);
+    } catch (error) {
+      console.warn(`[SIM] Failed to fetch from ${url}:`, error);
+      lastError = error as Error;
+    }
+  }
+  
+  // All URLs failed - try cache
+  const cached = loadCsvFromCache();
+  if (cached && cached.csv) {
+    console.log(`[SIM] Using cached CSV from ${new Date(cached.timestamp).toLocaleTimeString()}`);
+    return cached.csv;
+  }
+  
+  throw lastError || new Error('Failed to fetch CSV from all sources');
+};
+
+// Last fetch timestamp for UI display
+let lastFetchTimestamp: number | null = null;
+let usingCachedData = false;
+
+// Get last updated info
+export const getLastUpdateInfo = (): { timestamp: number | null; isCache: boolean } => ({
+  timestamp: lastFetchTimestamp,
+  isCache: usingCachedData
+});
+
 // Fetch and normalize SIM data
 const fetchSimData = async (): Promise<NormalizedSIM[]> => {
+  usingCachedData = false;
+  
   try {
-    const response = await fetchWithRetry(GOOGLE_SHEET_CSV_URL);
-    const csvText = await response.text();
+    const csvText = await fetchCsvWithFallback();
+    
+    // Save raw CSV to cache on success
+    saveCsvToCache(csvText);
+    lastFetchTimestamp = Date.now();
+    
     const rows = parseCSV(csvText);
+    console.log(`[SIM] Parsed ${rows.length} rows from CSV`);
     
     const sims: NormalizedSIM[] = [];
     
@@ -183,19 +321,33 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
       sims.push(sim);
     });
     
-    // Save successful fetch to cache
+    console.log(`[SIM] Normalized ${sims.length} SIMs`);
+    
+    // Save normalized SIMs to cache
     if (sims.length > 0) {
       saveToCache(sims);
     }
     
     return sims;
+    
   } catch (error) {
-    // Try loading from cache on failure
+    console.error('[SIM] Fetch failed, trying cached normalized data:', error);
+    
+    // Try loading normalized SIMs from cache
     const cachedData = loadFromCache();
-    if (cachedData && cachedData.length > 0) {
-      toast.warning('Sử dụng dữ liệu đã lưu. Nhấn "Tải lại" để thử lại.');
-      return cachedData;
+    if (cachedData && cachedData.data.length > 0) {
+      usingCachedData = true;
+      lastFetchTimestamp = cachedData.timestamp;
+      toast.warning('Không thể tải dữ liệu mới. Đang dùng dữ liệu tạm (cache).', {
+        duration: 5000,
+        action: {
+          label: 'Tải lại',
+          onClick: () => window.location.reload()
+        }
+      });
+      return cachedData.data;
     }
+    
     throw error;
   }
 };
