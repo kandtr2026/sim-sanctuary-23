@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { ChevronDown, ChevronUp, Filter, AlertTriangle } from 'lucide-react';
 import { 
   PRICE_RANGES, 
-  QUICK_SUFFIXES 
+  QUICK_SUFFIXES,
+  type QuyType,
+  type QuyPosition
 } from '@/lib/simUtils';
 import type { FilterState } from '@/hooks/useSimData';
 import { Input } from '@/components/ui/input';
@@ -74,10 +76,36 @@ const AdvancedFilterSidebar = ({
     onUpdateFilter('customPriceMax', max);
   };
 
-  // Group tags by category
-  const quyTags = ['Lục quý', 'Ngũ quý', 'Tứ quý', 'Tam hoa', 'Tam hoa kép'];
+  // Group tags by category - separate quý types from other tags
+  const quyTypes: QuyType[] = ['Lục quý', 'Ngũ quý', 'Tứ quý'];
+  const quyPositions: QuyPosition[] = ['Đuôi', 'Giữa', 'Đầu'];
+  const otherQuyTags = ['Tam hoa', 'Tam hoa kép'];
   const phongThuyTags = ['Lộc phát', 'Thần tài', 'Ông địa'];
   const styleTags = ['Năm sinh', 'Tiến lên', 'Gánh đảo', 'Lặp kép', 'Dễ nhớ', 'Taxi', 'VIP'];
+
+  // Handle quý type selection (radio-like behavior)
+  const handleQuyTypeClick = (quyType: QuyType) => {
+    if (filters.quyType === quyType) {
+      // Deselect if clicking the same type
+      onUpdateFilter('quyType', null);
+      onUpdateFilter('quyPosition', null);
+    } else {
+      // Select new type, default to Đuôi
+      onUpdateFilter('quyType', quyType);
+      if (!filters.quyPosition) {
+        onUpdateFilter('quyPosition', 'Đuôi');
+      }
+    }
+  };
+
+  // Handle position selection (radio-like behavior within selected quy type)
+  const handlePositionClick = (position: QuyPosition) => {
+    if (filters.quyPosition === position) {
+      // Don't allow deselecting position, keep Đuôi as default
+      return;
+    }
+    onUpdateFilter('quyPosition', position);
+  };
 
   return (
     <aside className="bg-card rounded-xl shadow-card border border-border overflow-hidden">
@@ -140,19 +168,59 @@ const AdvancedFilterSidebar = ({
         </div>
       </FilterSection>
 
-      {/* Tag Filter - Quý */}
+      {/* Tag Filter - Quý with position sub-filters */}
       <FilterSection title="SIM số quý">
-        <div className="flex flex-wrap gap-2">
-          {quyTags.map(tag => (
-            <button
-              key={tag}
-              onClick={() => onToggleTag(tag)}
-              className={`filter-btn text-xs ${filters.selectedTags.includes(tag) ? 'active' : ''}`}
-            >
-              {tag}
-              <span className="ml-1 opacity-70">({tagCounts[tag] || 0})</span>
-            </button>
-          ))}
+        <div className="space-y-3">
+          {/* Main quý type buttons */}
+          <div className="flex flex-wrap gap-2">
+            {quyTypes.map(quyType => {
+              const isSelected = filters.quyType === quyType;
+              return (
+                <div key={quyType} className="flex flex-col">
+                  <button
+                    onClick={() => handleQuyTypeClick(quyType)}
+                    className={`filter-btn text-xs ${isSelected ? 'active' : ''}`}
+                  >
+                    {quyType}
+                    <span className="ml-1 opacity-70">({tagCounts[quyType] || 0})</span>
+                  </button>
+                  
+                  {/* Position sub-filters - shown when this quý type is selected */}
+                  {isSelected && (
+                    <div className="flex gap-1 mt-1.5 pl-1">
+                      {quyPositions.map(position => (
+                        <button
+                          key={position}
+                          onClick={() => handlePositionClick(position)}
+                          className={`px-2 py-0.5 text-[10px] rounded border transition-colors ${
+                            filters.quyPosition === position
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'border-border hover:border-primary text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          {position}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          
+          {/* Other quý-related tags (Tam hoa, Tam hoa kép) */}
+          <div className="flex flex-wrap gap-2 pt-2 border-t border-border/50">
+            {otherQuyTags.map(tag => (
+              <button
+                key={tag}
+                onClick={() => onToggleTag(tag)}
+                className={`filter-btn text-xs ${filters.selectedTags.includes(tag) ? 'active' : ''}`}
+              >
+                {tag}
+                <span className="ml-1 opacity-70">({tagCounts[tag] || 0})</span>
+              </button>
+            ))}
+          </div>
         </div>
       </FilterSection>
 

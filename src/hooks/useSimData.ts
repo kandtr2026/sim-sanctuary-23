@@ -9,6 +9,7 @@ import {
   getUniquePrefixes,
   parsePrice,
   estimatePriceByTags,
+  matchesQuyFilter,
   type NormalizedSIM,
   type SortOption,
   type PromotionalData,
@@ -363,6 +364,10 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
   }
 };
 
+// Quý filter types
+import type { QuyType, QuyPosition } from '@/lib/simUtils';
+export type { QuyType, QuyPosition };
+
 // Filter state interface
 export interface FilterState {
   searchQuery: string;
@@ -379,6 +384,9 @@ export interface FilterState {
   vipThreshold: number;
   sortBy: SortOption;
   mobifoneFirst: boolean;
+  // Quý position filter
+  quyType: QuyType | null;
+  quyPosition: QuyPosition | null;
 }
 
 export const defaultFilterState: FilterState = {
@@ -395,7 +403,9 @@ export const defaultFilterState: FilterState = {
   vipFilter: 'all',
   vipThreshold: 50000000,
   sortBy: 'default',
-  mobifoneFirst: true
+  mobifoneFirst: true,
+  quyType: null,
+  quyPosition: null
 };
 
 const RELAX_ORDER: (keyof FilterState)[] = [
@@ -403,6 +413,8 @@ const RELAX_ORDER: (keyof FilterState)[] = [
   'selectedSuffixes',
   'selectedPrefixes3',
   'selectedPrefixes4',
+  'quyType',
+  'quyPosition',
   'selectedTags',
   'priceRanges',
   'customPriceMin',
@@ -494,6 +506,13 @@ export const useSimData = () => {
       result = result.filter(sim => !sim.isVIP);
     }
 
+    // Quý position filter
+    if (filters.quyType) {
+      result = result.filter(sim => 
+        matchesQuyFilter(sim.rawDigits, filters.quyType, filters.quyPosition)
+      );
+    }
+
     result = sortSIMs(result, filters.sortBy);
 
     if (filters.mobifoneFirst && filters.sortBy === 'default') {
@@ -582,6 +601,18 @@ export const useSimData = () => {
       });
     }
 
+    if (filters.quyType) {
+      const posLabel = filters.quyPosition || 'Đuôi';
+      constraints.push({
+        key: 'quyType',
+        label: `${filters.quyType} ${posLabel.toLowerCase()}`,
+        onRemove: () => {
+          updateFilter('quyType', null);
+          updateFilter('quyPosition', null);
+        }
+      });
+    }
+
     return constraints;
   }, [filters]);
 
@@ -613,6 +644,8 @@ export const useSimData = () => {
             customSuffix: 'Đuôi số tùy chỉnh',
             selectedPrefixes3: 'Bộ lọc đầu số',
             selectedPrefixes4: 'Bộ lọc đầu 4 số',
+            quyType: 'Bộ lọc quý',
+            quyPosition: 'Vị trí quý',
             selectedTags: 'Bộ lọc loại số',
             priceRanges: 'Khoảng giá',
             customPriceMin: 'Giá tối thiểu',

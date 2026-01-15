@@ -29,6 +29,59 @@ export interface PromotionalData {
   discountValue?: number;
 }
 
+// Quý position types
+export type QuyType = 'Tứ quý' | 'Ngũ quý' | 'Lục quý';
+export type QuyPosition = 'Đuôi' | 'Giữa' | 'Đầu';
+
+// Helper to check if all characters are identical
+const isAllSame = (str: string): boolean => {
+  if (!str || str.length === 0) return false;
+  return /^(\d)\1*$/.test(str);
+};
+
+// Check quý pattern at specific position
+export const checkQuyPosition = (
+  rawDigits: string, 
+  quyType: QuyType, 
+  position: QuyPosition
+): boolean => {
+  if (!rawDigits || rawDigits.length === 0) return false;
+  
+  const L = rawDigits.length;
+  const k = quyType === 'Tứ quý' ? 4 : quyType === 'Ngũ quý' ? 5 : 6;
+  
+  // Safety: can't check for k digits if number is shorter
+  if (L < k) return false;
+  
+  switch (position) {
+    case 'Đầu':
+      return isAllSame(rawDigits.slice(0, k));
+    case 'Đuôi':
+      return isAllSame(rawDigits.slice(-k));
+    case 'Giữa': {
+      const midStart = Math.floor((L - k) / 2);
+      const midK = rawDigits.slice(midStart, midStart + k);
+      return midK.length === k && isAllSame(midK);
+    }
+    default:
+      return false;
+  }
+};
+
+// Check if SIM matches any quý position (for default "Đuôi" behavior)
+export const matchesQuyFilter = (
+  rawDigits: string,
+  quyType: QuyType | null,
+  position: QuyPosition | null
+): boolean => {
+  if (!quyType) return true; // No filter active
+  if (!rawDigits) return false;
+  
+  // Default to Đuôi if no position selected
+  const effectivePosition = position || 'Đuôi';
+  return checkQuyPosition(rawDigits, quyType, effectivePosition);
+};
+
 // All SIM tag types
 export const ALL_SIM_TAGS = [
   'Lục quý', 'Ngũ quý', 'Tứ quý', 'Tam hoa', 'Tam hoa kép',
