@@ -13,7 +13,7 @@ import ActiveFilterChips from '@/components/ActiveFilterChips';
 import SortDropdown from '@/components/SortDropdown';
 import MobileFilterDrawer from '@/components/MobileFilterDrawer';
 import EmptyStateHelper from '@/components/EmptyStateHelper';
-import { useSimData, getLastUpdateInfo } from '@/hooks/useSimData';
+import { useSimData, getLastUpdateInfo, getPromotionalData } from '@/hooks/useSimData';
 import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff, Cloud, CloudOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -226,7 +226,11 @@ const Index = () => {
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                     {displayedSIMs.map((sim) => (
-                      <SIMCardNew key={sim.id} sim={sim} />
+                      <SIMCardNew 
+                        key={sim.id} 
+                        sim={sim} 
+                        promotional={getPromotionalData(sim.id)} 
+                      />
                     ))}
                   </div>
 
