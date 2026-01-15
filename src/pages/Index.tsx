@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Header from '@/components/Header';
 import Navigation from '@/components/Navigation';
 import SearchBar from '@/components/SearchBar';
@@ -10,12 +10,17 @@ import IntroSection from '@/components/IntroSection';
 import FAQSection from '@/components/FAQSection';
 import Footer from '@/components/Footer';
 import { generateSampleSIMs, type SIMData } from '@/data/simData';
+import { ChevronDown, ArrowUp } from 'lucide-react';
+
+const ITEMS_PER_PAGE = 20;
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPriceRange, setSelectedPriceRange] = useState<{ min: number; max: number } | null>(null);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedNetworks, setSelectedNetworks] = useState<string[]>([]);
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const [showBackToTop, setShowBackToTop] = useState(false);
 
   const allSIMs = useMemo(() => generateSampleSIMs(), []);
 
@@ -53,6 +58,35 @@ const Index = () => {
 
     return result;
   }, [allSIMs, searchQuery, selectedPriceRange, selectedTypes, selectedNetworks]);
+
+  // Reset visible count when filters change
+  useMemo(() => {
+    setVisibleCount(ITEMS_PER_PAGE);
+  }, [searchQuery, selectedPriceRange, selectedTypes, selectedNetworks]);
+
+  const displayedSIMs = useMemo(() => {
+    return filteredSIMs.slice(0, visibleCount);
+  }, [filteredSIMs, visibleCount]);
+
+  const hasMoreItems = visibleCount < filteredSIMs.length;
+  const remainingCount = filteredSIMs.length - visibleCount;
+
+  const handleLoadMore = useCallback(() => {
+    setVisibleCount((prev) => Math.min(prev + ITEMS_PER_PAGE, filteredSIMs.length));
+  }, [filteredSIMs.length]);
+
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  // Track scroll position for back-to-top button
+  useMemo(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 500);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -96,14 +130,44 @@ const Index = () => {
                     ({filteredSIMs.length} kết quả)
                   </span>
                 </h2>
+                <span className="text-sm text-muted-foreground">
+                  Hiển thị {displayedSIMs.length} / {filteredSIMs.length}
+                </span>
               </div>
 
-              {filteredSIMs.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {filteredSIMs.map((sim) => (
-                    <SIMCard key={sim.id} sim={sim} />
-                  ))}
-                </div>
+              {displayedSIMs.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {displayedSIMs.map((sim) => (
+                      <SIMCard key={sim.id} sim={sim} />
+                    ))}
+                  </div>
+
+                  {/* Load More Button */}
+                  {hasMoreItems && (
+                    <div className="mt-6 text-center">
+                      <button
+                        onClick={handleLoadMore}
+                        className="btn-cta inline-flex items-center gap-2 px-8 py-3 text-base"
+                      >
+                        <ChevronDown className="w-5 h-5" />
+                        <span>Xem thêm {Math.min(remainingCount, ITEMS_PER_PAGE)} SIM</span>
+                      </button>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Còn {remainingCount} SIM khác
+                      </p>
+                    </div>
+                  )}
+
+                  {/* All loaded message */}
+                  {!hasMoreItems && filteredSIMs.length > ITEMS_PER_PAGE && (
+                    <div className="mt-6 text-center">
+                      <p className="text-sm text-muted-foreground">
+                        ✓ Đã hiển thị tất cả {filteredSIMs.length} SIM
+                      </p>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="text-center py-12">
                   <p className="text-muted-foreground text-lg">
@@ -137,6 +201,17 @@ const Index = () => {
       </main>
 
       <Footer />
+
+      {/* Back to Top Button */}
+      {showBackToTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-6 right-6 z-50 w-12 h-12 bg-primary text-primary-foreground rounded-full shadow-lg flex items-center justify-center hover:bg-primary/90 transition-all duration-300 animate-fade-in"
+          aria-label="Về đầu trang"
+        >
+          <ArrowUp className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 };
