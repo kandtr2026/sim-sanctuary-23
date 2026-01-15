@@ -11,7 +11,7 @@ import {
   estimatePriceByTags,
   type NormalizedSIM,
   type SortOption,
-  type PromotionalPricing,
+  type PromotionalData,
   PRICE_RANGES
 } from '@/lib/simUtils';
 import { toast } from 'sonner';
@@ -23,6 +23,14 @@ const STORAGE_KEY = 'chonsomobifone_sim_cache';
 
 const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
 const MAX_CACHE_AGE = 60 * 60 * 1000; // 1 hour
+
+// Module-level promotional data storage (keyed by SIM id)
+let promotionalDataStore = new Map<string, PromotionalData>();
+
+// Get promotional data for a SIM by id
+export const getPromotionalData = (simId: string): PromotionalData | undefined => {
+  return promotionalDataStore.get(simId);
+};
 
 // Valid CSV headers to look for
 const VALID_HEADERS = [
@@ -245,6 +253,7 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
     console.log(`[SIM] Parsed ${rows.length} rows from CSV`);
     
     const sims: NormalizedSIM[] = [];
+    const promotionalDataMap = new Map<string, PromotionalData>();
     
     rows.forEach((row, index) => {
       const rawNumber = row['RAW'] || row['DISPLAY'] || '';
@@ -261,9 +270,9 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
       
       let originalPrice = parsePrice(originalPriceStr);
       const finalPriceRaw = parsePrice(finalPriceStr);
-      const finalPrice = finalPriceRaw > 0 ? finalPriceRaw : null;
-      const discountType = parseDiscountType(discountTypeStr);
-      const discountValue = parsePrice(discountValueStr) || null;
+      const finalPrice = finalPriceRaw > 0 ? finalPriceRaw : undefined;
+      const discountType = parseDiscountType(discountTypeStr) || undefined;
+      const discountValue = parsePrice(discountValueStr) || undefined;
       
       // Estimate price if original price is missing or invalid
       if (!originalPrice || originalPrice <= 0) {
@@ -271,16 +280,22 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
         originalPrice = estimatePriceByTags(tempSim.tags);
       }
       
-      const promotional: PromotionalPricing = {
+      // Use finalPrice for sorting/filtering if available, else originalPrice
+      const effectivePrice = finalPrice ?? originalPrice;
+      const sim = normalizeSIM(rawNumber, displayNumber, effectivePrice, `sim-${index}`);
+      sims.push(sim);
+      
+      // Store promotional data separately (keyed by SIM id)
+      promotionalDataMap.set(sim.id, {
         originalPrice,
         finalPrice,
         discountType,
         discountValue
-      };
-      
-      const sim = normalizeSIM(rawNumber, displayNumber, originalPrice, `sim-${index}`, promotional);
-      sims.push(sim);
+      });
     });
+    
+    // Update module-level promotional data store
+    promotionalDataStore = promotionalDataMap;
     
     console.log(`[SIM] Normalized ${sims.length} SIMs`);
     
@@ -305,31 +320,21 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
         const displayNumber = row['DISPLAY'] || row['RAW'] || rawNumber;
         const originalPriceStr = row['ORIGINAL_PRICE'] || row['PRICE'] || '0';
         const finalPriceStr = row['FINAL_PRICE'] || '';
-        const discountTypeStr = row['DISCOUNT_TYPE'] || '';
-        const discountValueStr = row['DISCOUNT_VALUE'] || '';
         const rawDigits = rawNumber.replace(/\D/g, '');
         
         if (rawDigits.length < 9) return;
         
         let originalPrice = parsePrice(originalPriceStr);
         const finalPriceRaw = parsePrice(finalPriceStr);
-        const finalPrice = finalPriceRaw > 0 ? finalPriceRaw : null;
-        const discountType = parseDiscountType(discountTypeStr);
-        const discountValue = parsePrice(discountValueStr) || null;
+        const finalPrice = finalPriceRaw > 0 ? finalPriceRaw : undefined;
         
         if (!originalPrice || originalPrice <= 0) {
           const tempSim = normalizeSIM(rawNumber, displayNumber, 0, `temp-${index}`);
           originalPrice = estimatePriceByTags(tempSim.tags);
         }
         
-        const promotional: PromotionalPricing = {
-          originalPrice,
-          finalPrice,
-          discountType,
-          discountValue
-        };
-        
-        const sim = normalizeSIM(rawNumber, displayNumber, originalPrice, `sim-${index}`, promotional);
+        const effectivePrice = finalPrice ?? originalPrice;
+        const sim = normalizeSIM(rawNumber, displayNumber, effectivePrice, `sim-${index}`);
         sims.push(sim);
       });
       

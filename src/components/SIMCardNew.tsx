@@ -1,5 +1,5 @@
 import { Phone } from 'lucide-react';
-import type { NormalizedSIM } from '@/lib/simUtils';
+import type { NormalizedSIM, PromotionalData } from '@/lib/simUtils';
 import {
   Tooltip,
   TooltipContent,
@@ -10,11 +10,13 @@ import { cn } from '@/lib/utils';
 
 interface SIMCardNewProps {
   sim: NormalizedSIM;
+  promotional?: PromotionalData;
 }
 
-const SIMCardNew = ({ sim }: SIMCardNewProps) => {
-  // Format price for display
-  const formatPrice = (price: number): string => {
+const SIMCardNew = ({ sim, promotional }: SIMCardNewProps) => {
+  // Format price for display - with null safety
+  const formatPrice = (price: number | undefined): string => {
+    if (price === undefined || price === null) return '---';
     if (price >= 1000000000) {
       return `${(price / 1000000000).toFixed(1)} tỷ`;
     }
@@ -24,25 +26,32 @@ const SIMCardNew = ({ sim }: SIMCardNewProps) => {
     return `${price.toLocaleString('vi-VN')} đ`;
   };
 
+  // Determine if this SIM has a valid promotion
+  const hasPromotion = !!(
+    promotional?.finalPrice &&
+    promotional?.originalPrice &&
+    promotional.finalPrice < promotional.originalPrice
+  );
+
   // Get discount badge text based on type and value
   const getDiscountBadgeText = (): string | null => {
-    if (!sim.hasPromotion) return null;
+    if (!hasPromotion || !promotional) return null;
     
-    if (sim.discountType === 'percent' && sim.discountValue) {
-      return `Giảm ${sim.discountValue}%`;
+    if (promotional.discountType === 'percent' && promotional.discountValue) {
+      return `Giảm ${promotional.discountValue}%`;
     }
-    if (sim.discountType === 'amount' && sim.discountValue) {
-      if (sim.discountValue >= 1000000) {
-        return `Giảm ${(sim.discountValue / 1000000).toFixed(0)} triệu`;
+    if (promotional.discountType === 'amount' && promotional.discountValue) {
+      if (promotional.discountValue >= 1000000) {
+        return `Giảm ${(promotional.discountValue / 1000000).toFixed(0)} triệu`;
       }
-      return `Giảm ${sim.discountValue.toLocaleString('vi-VN')}đ`;
+      return `Giảm ${promotional.discountValue.toLocaleString('vi-VN')}đ`;
     }
-    if (sim.discountType === 'fixed') {
+    if (promotional.discountType === 'fixed') {
       return 'Giá khuyến mãi';
     }
     // Fallback: calculate percent if we have both prices
-    if (sim.finalPrice && sim.originalPrice > 0) {
-      const percentOff = Math.round((1 - sim.finalPrice / sim.originalPrice) * 100);
+    if (promotional.finalPrice && promotional.originalPrice > 0) {
+      const percentOff = Math.round((1 - promotional.finalPrice / promotional.originalPrice) * 100);
       if (percentOff > 0) {
         return `Giảm ${percentOff}%`;
       }
@@ -75,10 +84,15 @@ const SIMCardNew = ({ sim }: SIMCardNewProps) => {
 
   const discountBadgeText = getDiscountBadgeText();
 
+  // Use sim.price as the display price (already has effective price from useSimData)
+  // If promotional data exists, use it for original/final display
+  const displayOriginalPrice = promotional?.originalPrice ?? sim.price;
+  const displayFinalPrice = promotional?.finalPrice;
+
   return (
     <div className={cn(
       "sim-card group relative overflow-hidden",
-      sim.hasPromotion && "ring-2 ring-cta/30 shadow-promo"
+      hasPromotion && "ring-2 ring-cta/30 shadow-promo"
     )}>
       {/* VIP Badge */}
       {sim.isVIP && (
@@ -147,21 +161,21 @@ const SIMCardNew = ({ sim }: SIMCardNewProps) => {
       <div className="flex items-center justify-between">
         <div className="flex flex-col">
           {/* Promotional Price Display */}
-          {sim.hasPromotion && sim.finalPrice ? (
+          {hasPromotion && displayFinalPrice ? (
             <>
               {/* Original price - strikethrough, muted */}
               <span className="text-sm text-muted-foreground line-through opacity-70">
-                {formatPrice(sim.originalPrice)}
+                {formatPrice(displayOriginalPrice)}
               </span>
               {/* Final price - emphasized */}
               <span className="text-xl font-bold text-cta animate-price-pulse">
-                {formatPrice(sim.finalPrice)}
+                {formatPrice(displayFinalPrice)}
               </span>
             </>
           ) : (
-            /* Regular price display */
+            /* Regular price display - use sim.price which is the effective price */
             <span className="text-xl font-bold text-cta">
-              {formatPrice(sim.originalPrice)}
+              {formatPrice(sim.price)}
             </span>
           )}
         </div>
