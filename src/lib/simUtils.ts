@@ -50,15 +50,21 @@ export const checkQuyPosition = (
   const L = rawDigits.length;
   const k = quyType === 'Tứ quý' ? 4 : quyType === 'Ngũ quý' ? 5 : 6;
   
-  // Safety: can't check for k digits if number is shorter
-  if (L < k) return false;
-  
   switch (position) {
-    case 'Đầu':
-      return isAllSame(rawDigits.slice(0, k));
+    case 'Đầu': {
+      // Ignore the first digit (usually '0'), check from index 1
+      // Need at least 1 + k digits for "Đầu" check
+      if (L < 1 + k) return false;
+      const headK = rawDigits.slice(1, 1 + k);
+      return headK.length === k && isAllSame(headK);
+    }
     case 'Đuôi':
+      // Safety: can't check for k digits if number is shorter
+      if (L < k) return false;
       return isAllSame(rawDigits.slice(-k));
     case 'Giữa': {
+      // Safety: can't check for k digits if number is shorter
+      if (L < k) return false;
       const midStart = Math.floor((L - k) / 2);
       const midK = rawDigits.slice(midStart, midStart + k);
       return midK.length === k && isAllSame(midK);
