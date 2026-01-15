@@ -196,10 +196,58 @@
     color: white;
   }
 
+  /* Discount Badge */
+  .badge-discount {
+    @apply px-2 py-0.5 rounded-full text-xs font-semibold;
+    background: linear-gradient(135deg, hsl(var(--cta)) 0%, hsl(var(--cta-hover)) 100%);
+    color: white;
+    box-shadow: 0 2px 8px -2px hsl(var(--cta) / 0.4);
+  }
+
   .badge-type {
     @apply px-2 py-0.5 rounded-full text-xs font-medium;
     background: hsl(var(--primary-light));
     color: hsl(var(--primary-dark));
+  }
+
+  /* Promotional Card Glow */
+  .shadow-promo {
+    box-shadow: 
+      var(--shadow-card),
+      0 0 20px -5px hsl(var(--cta) / 0.25);
+  }
+
+  /* Badge Animation */
+  @keyframes badgeIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-badge-in {
+    animation: badgeIn 0.4s ease-out forwards;
+  }
+
+  /* Price Pulse Animation */
+  @keyframes pricePulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.85;
+    }
+  }
+
+  .animate-price-pulse {
+    animation: pricePulse 2s ease-in-out infinite;
   }
 
   /* Section Styles */
