@@ -1,6 +1,6 @@
 import { Phone } from 'lucide-react';
-import type { NormalizedSIM, PromotionalData, QuyType, QuyPosition } from '@/lib/simUtils';
-import { checkQuyPosition } from '@/lib/simUtils';
+import type { NormalizedSIM, PromotionalData, QuyType } from '@/lib/simUtils';
+import { matchesQuyType } from '@/lib/simUtils';
 import {
   Tooltip,
   TooltipContent,
@@ -9,15 +9,10 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-interface QuyFilterInfo {
-  quyType: QuyType;
-  quyPosition: QuyPosition;
-}
-
 interface SIMCardNewProps {
   sim: NormalizedSIM;
   promotional?: PromotionalData;
-  quyFilter?: QuyFilterInfo | null;
+  quyFilter?: QuyType | null;
 }
 
 const SIMCardNew = ({ sim, promotional, quyFilter }: SIMCardNewProps) => {
@@ -91,19 +86,17 @@ const SIMCardNew = ({ sim, promotional, quyFilter }: SIMCardNewProps) => {
 
   const discountBadgeText = getDiscountBadgeText();
 
-  // Compute quý position badge text at render time
-  const getQuyPositionBadge = (): string | null => {
-    if (!quyFilter?.quyType || !quyFilter?.quyPosition) return null;
+  // Compute quý badge text at render time (position-agnostic)
+  const getQuyBadge = (): string | null => {
+    if (!quyFilter) return null;
     // Verify this SIM actually matches the filter
-    if (!checkQuyPosition(sim.rawDigits, quyFilter.quyType, quyFilter.quyPosition)) {
+    if (!matchesQuyType(sim.rawDigits, quyFilter)) {
       return null;
     }
-    // Format: "Tứ quý đầu", "Ngũ quý giữa", etc.
-    const positionLower = quyFilter.quyPosition.toLowerCase();
-    return `${quyFilter.quyType} ${positionLower}`;
+    return quyFilter;
   };
 
-  const quyBadgeText = getQuyPositionBadge();
+  const quyBadgeText = getQuyBadge();
 
   // Use sim.price as the display price (already has effective price from useSimData)
   // If promotional data exists, use it for original/final display

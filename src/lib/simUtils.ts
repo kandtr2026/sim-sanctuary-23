@@ -29,8 +29,9 @@ export interface PromotionalData {
   discountValue?: number;
 }
 
-// Quý position types
+// Quý type (no position - position-agnostic)
 export type QuyType = 'Tứ quý' | 'Ngũ quý' | 'Lục quý';
+// Keep QuyPosition type for backward compatibility but it's no longer used
 export type QuyPosition = 'Đuôi' | 'Giữa' | 'Đầu';
 
 // Helper to check if all characters are identical
@@ -39,53 +40,55 @@ const isAllSame = (str: string): boolean => {
   return /^(\d)\1*$/.test(str);
 };
 
-// Check quý pattern at specific position
-export const checkQuyPosition = (
-  rawDigits: string, 
-  quyType: QuyType, 
-  position: QuyPosition
-): boolean => {
-  if (!rawDigits || rawDigits.length === 0) return false;
+// Position-agnostic: Check if rawDigits contains k consecutive same digits anywhere
+export const hasKConsecutiveSameDigits = (rawDigits: string, k: number): boolean => {
+  if (!rawDigits || rawDigits.length < k) return false;
   
-  const L = rawDigits.length;
-  const k = quyType === 'Tứ quý' ? 4 : quyType === 'Ngũ quý' ? 5 : 6;
+  // Scan the entire string for any substring of length k with all same digits
+  for (let i = 0; i <= rawDigits.length - k; i++) {
+    const substring = rawDigits.slice(i, i + k);
+    if (isAllSame(substring)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+// Check if SIM matches quý type (position-agnostic)
+export const matchesQuyType = (rawDigits: string, quyType: QuyType): boolean => {
+  if (!rawDigits) return false;
   
-  switch (position) {
-    case 'Đầu': {
-      // Ignore the first digit (usually '0'), check from index 1
-      // Need at least 1 + k digits for "Đầu" check
-      if (L < 1 + k) return false;
-      const headK = rawDigits.slice(1, 1 + k);
-      return headK.length === k && isAllSame(headK);
-    }
-    case 'Đuôi':
-      // Safety: can't check for k digits if number is shorter
-      if (L < k) return false;
-      return isAllSame(rawDigits.slice(-k));
-    case 'Giữa': {
-      // Safety: can't check for k digits if number is shorter
-      if (L < k) return false;
-      const midStart = Math.floor((L - k) / 2);
-      const midK = rawDigits.slice(midStart, midStart + k);
-      return midK.length === k && isAllSame(midK);
-    }
+  switch (quyType) {
+    case 'Lục quý':
+      return hasKConsecutiveSameDigits(rawDigits, 6);
+    case 'Ngũ quý':
+      return hasKConsecutiveSameDigits(rawDigits, 5);
+    case 'Tứ quý':
+      return hasKConsecutiveSameDigits(rawDigits, 4);
     default:
       return false;
   }
 };
 
-// Check if SIM matches any quý position (for default "Đuôi" behavior)
+// Check if SIM matches quý filter (position-agnostic, ignores position param for backward compatibility)
 export const matchesQuyFilter = (
   rawDigits: string,
   quyType: QuyType | null,
-  position: QuyPosition | null
+  _position: QuyPosition | null // Ignored - kept for backward compatibility
 ): boolean => {
   if (!quyType) return true; // No filter active
   if (!rawDigits) return false;
   
-  // Default to Đuôi if no position selected
-  const effectivePosition = position || 'Đuôi';
-  return checkQuyPosition(rawDigits, quyType, effectivePosition);
+  return matchesQuyType(rawDigits, quyType);
+};
+
+// Legacy function - kept for backward compatibility but now position-agnostic
+export const checkQuyPosition = (
+  rawDigits: string, 
+  quyType: QuyType, 
+  _position: QuyPosition // Ignored
+): boolean => {
+  return matchesQuyType(rawDigits, quyType);
 };
 
 // All SIM tag types
@@ -477,7 +480,7 @@ export const getUniquePrefixes = (sims: NormalizedSIM[]): { prefix3: string[]; p
   };
 };
 
-// Count tags in SIM list
+// Count tags in SIM list - with position-agnostic multi-category quý counting
 export const countTags = (sims: NormalizedSIM[]): Record<string, number> => {
   const counts: Record<string, number> = {};
   
@@ -486,11 +489,26 @@ export const countTags = (sims: NormalizedSIM[]): Record<string, number> => {
   });
 
   sims.forEach(sim => {
+    // Standard tag counting (non-quý tags)
     sim.tags.forEach(tag => {
-      if (counts[tag] !== undefined) {
+      if (counts[tag] !== undefined && !['Tứ quý', 'Ngũ quý', 'Lục quý'].includes(tag)) {
         counts[tag]++;
       }
     });
+    
+    // Position-agnostic quý counting (multi-category: if matches k=6, also counts for k=5 and k=4)
+    // This ensures a Lục quý SIM contributes to all three counts
+    if (hasKConsecutiveSameDigits(sim.rawDigits, 6)) {
+      counts['Lục quý']++;
+      counts['Ngũ quý']++;
+      counts['Tứ quý']++;
+    } else if (hasKConsecutiveSameDigits(sim.rawDigits, 5)) {
+      counts['Ngũ quý']++;
+      counts['Tứ quý']++;
+    } else if (hasKConsecutiveSameDigits(sim.rawDigits, 4)) {
+      counts['Tứ quý']++;
+    }
+    
     if (sim.isVIP) {
       counts['VIP']++;
     }

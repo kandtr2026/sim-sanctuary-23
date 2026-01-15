@@ -230,10 +230,7 @@ const Index = () => {
                         key={sim.id} 
                         sim={sim} 
                         promotional={getPromotionalData(sim.id)}
-                        quyFilter={filters.quyType && filters.quyPosition ? {
-                          quyType: filters.quyType,
-                          quyPosition: filters.quyPosition
-                        } : null}
+                        quyFilter={filters.quyType}
                       />
                     ))}
                   </div>

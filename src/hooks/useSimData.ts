@@ -602,10 +602,9 @@ export const useSimData = () => {
     }
 
     if (filters.quyType) {
-      const posLabel = filters.quyPosition || 'Đuôi';
       constraints.push({
         key: 'quyType',
-        label: `${filters.quyType} ${posLabel.toLowerCase()}`,
+        label: filters.quyType,
         onRemove: () => {
           updateFilter('quyType', null);
           updateFilter('quyPosition', null);
