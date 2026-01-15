@@ -1,5 +1,6 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   normalizeSIM, 
   searchSIM, 
@@ -14,30 +15,13 @@ import {
 } from '@/lib/simUtils';
 import { toast } from 'sonner';
 
-// DATA URLS - Primary and Fallback
-const PUBLISHED_CSV_URL = ''; // Add published 2PACX URL here if available
-const EXPORT_CSV_URL = 'https://docs.google.com/spreadsheets/d/1to6-kNir9gGp9x1oWKYqALUreupHdD7E/export?format=csv&gid=139400129';
-
 // Storage keys
 const CSV_CACHE_KEY = 'sim_csv_cache';
 const CSV_CACHE_TIME_KEY = 'sim_csv_cache_time';
 const STORAGE_KEY = 'chonsomobifone_sim_cache';
 
 const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
-const FETCH_TIMEOUT = 10000; // 10 seconds
 const MAX_CACHE_AGE = 60 * 60 * 1000; // 1 hour
-
-// Invalid CSV patterns (HTML responses, login pages, etc.)
-const INVALID_CSV_PATTERNS = [
-  '<html',
-  '<!DOCTYPE',
-  'accounts.google.com',
-  'ServiceLogin',
-  'Sign in',
-  'You need access',
-  'Request access',
-  'Access denied'
-];
 
 // Valid CSV headers to look for
 const VALID_HEADERS = [
@@ -45,20 +29,17 @@ const VALID_HEADERS = [
   'THUÊ BAO CHUẨN', 'THUE BAO CHUAN', 'THUÊBAOCHUẨN', 'THUEBAOCHUAN'
 ];
 
-// Validate CSV text - reject HTML/login pages
+// Validate CSV text
 const validateCSV = (text: string): { valid: boolean; reason?: string } => {
-  const lowerText = text.toLowerCase().slice(0, 2000); // Check first 2000 chars
-  
-  // Check for invalid patterns
-  for (const pattern of INVALID_CSV_PATTERNS) {
-    if (lowerText.includes(pattern.toLowerCase())) {
-      return { valid: false, reason: `Invalid response: contains "${pattern}"` };
-    }
+  // Check for HTML content
+  if (text.trim().startsWith('<') || text.toLowerCase().includes('<!doctype')) {
+    return { valid: false, reason: 'Received HTML instead of CSV' };
   }
   
   // Check for valid headers
+  const upperText = text.toUpperCase();
   const hasValidHeader = VALID_HEADERS.some(header => 
-    text.toUpperCase().includes(header.toUpperCase())
+    upperText.includes(header.toUpperCase())
   );
   
   if (!hasValidHeader) {
@@ -78,17 +59,14 @@ const validateCSV = (text: string): { valid: boolean; reason?: string } => {
 const normalizeHeader = (header: string): string => {
   const cleaned = header.trim().toUpperCase().replace(/\s+/g, ' ');
   
-  // Raw number variants
   if (['THUÊ BAO CHUẨN', 'THUE BAO CHUAN', 'THUÊBAOCHUẨN', 'THUEBAOCHUAN'].includes(cleaned)) {
     return 'RAW';
   }
   
-  // Display number variants
   if (['SỐ THUÊ BAO', 'SO THUE BAO', 'SỐTHUÊBAO', 'SOTHUEBAO', 'SỐ ĐIỆN THOẠI', 'SO DIEN THOAI'].includes(cleaned)) {
     return 'DISPLAY';
   }
   
-  // Price variants
   if (['GIÁ BÁN', 'GIA BAN', 'GIÁBAN', 'GIABAN', 'GIÁ', 'GIA', 'PRICE'].includes(cleaned)) {
     return 'PRICE';
   }
@@ -96,12 +74,11 @@ const normalizeHeader = (header: string): string => {
   return cleaned;
 };
 
-// Parse CSV text to array of objects with header normalization
+// Parse CSV text to array of objects
 const parseCSV = (csvText: string): Record<string, string>[] => {
   const lines = csvText.split('\n').filter(line => line.trim());
   if (lines.length < 2) return [];
 
-  // Parse header - handle potential BOM
   const headerLine = lines[0].replace(/^\uFEFF/, '');
   const rawHeaders = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
   const headers = rawHeaders.map(normalizeHeader);
@@ -189,88 +166,6 @@ const loadFromCache = (): { data: NormalizedSIM[]; timestamp: number } | null =>
   return null;
 };
 
-// Fetch single URL with retry and timeout
-const fetchSingleUrl = async (url: string, retries = 3): Promise<string> => {
-  const delays = [500, 1000, 2000];
-  
-  for (let attempt = 0; attempt < retries; attempt++) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-      
-      // Add cache-busting parameter
-      const separator = url.includes('?') ? '&' : '?';
-      const bustUrl = `${url}${separator}t=${Date.now()}`;
-      
-      console.log(`[SIM] Fetching attempt ${attempt + 1}/${retries}: ${bustUrl}`);
-      
-      const response = await fetch(bustUrl, {
-        signal: controller.signal,
-        mode: 'cors',
-        headers: {
-          'Accept': 'text/csv,*/*'
-        }
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      
-      const text = await response.text();
-      
-      // Validate CSV content
-      const validation = validateCSV(text);
-      if (!validation.valid) {
-        throw new Error(validation.reason || 'Invalid CSV response');
-      }
-      
-      console.log(`[SIM] Successfully fetched valid CSV (${text.length} chars)`);
-      return text;
-      
-    } catch (error) {
-      console.warn(`[SIM] Attempt ${attempt + 1} failed:`, error);
-      if (attempt < retries - 1) {
-        await new Promise(resolve => setTimeout(resolve, delays[attempt]));
-      } else {
-        throw error;
-      }
-    }
-  }
-  
-  throw new Error('All retries failed');
-};
-
-// Fetch CSV with fallback strategy
-const fetchCsvWithFallback = async (): Promise<string> => {
-  const urls = [
-    PUBLISHED_CSV_URL,
-    EXPORT_CSV_URL
-  ].filter(url => url.trim()); // Filter out empty URLs
-  
-  let lastError: Error | null = null;
-  
-  for (const url of urls) {
-    try {
-      console.log(`[SIM] Trying URL: ${url}`);
-      return await fetchSingleUrl(url);
-    } catch (error) {
-      console.warn(`[SIM] Failed to fetch from ${url}:`, error);
-      lastError = error as Error;
-    }
-  }
-  
-  // All URLs failed - try cache
-  const cached = loadCsvFromCache();
-  if (cached && cached.csv) {
-    console.log(`[SIM] Using cached CSV from ${new Date(cached.timestamp).toLocaleTimeString()}`);
-    return cached.csv;
-  }
-  
-  throw lastError || new Error('Failed to fetch CSV from all sources');
-};
-
 // Last fetch timestamp for UI display
 let lastFetchTimestamp: number | null = null;
 let usingCachedData = false;
@@ -281,12 +176,37 @@ export const getLastUpdateInfo = (): { timestamp: number | null; isCache: boolea
   isCache: usingCachedData
 });
 
+// Fetch CSV via edge function (bypasses CORS)
+const fetchCsvViaProxy = async (): Promise<string> => {
+  console.log('[SIM] Fetching via backend proxy...');
+  
+  const { data, error } = await supabase.functions.invoke('fetch-sim-data');
+  
+  if (error) {
+    console.error('[SIM] Edge function error:', error);
+    throw new Error(error.message || 'Failed to fetch from proxy');
+  }
+  
+  // The edge function returns CSV text directly
+  const csvText = typeof data === 'string' ? data : String(data);
+  
+  // Validate CSV content
+  const validation = validateCSV(csvText);
+  if (!validation.valid) {
+    throw new Error(validation.reason || 'Invalid CSV response from proxy');
+  }
+  
+  console.log(`[SIM] Received ${csvText.length} bytes via proxy`);
+  return csvText;
+};
+
 // Fetch and normalize SIM data
 const fetchSimData = async (): Promise<NormalizedSIM[]> => {
   usingCachedData = false;
   
   try {
-    const csvText = await fetchCsvWithFallback();
+    // Try fetching via edge function proxy
+    const csvText = await fetchCsvViaProxy();
     
     // Save raw CSV to cache on success
     saveCsvToCache(csvText);
@@ -298,12 +218,10 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
     const sims: NormalizedSIM[] = [];
     
     rows.forEach((row, index) => {
-      // Use normalized headers
       const rawNumber = row['RAW'] || row['DISPLAY'] || '';
       const displayNumber = row['DISPLAY'] || row['RAW'] || rawNumber;
       const priceStr = row['PRICE'] || '0';
       
-      // Extract digits only
       const rawDigits = rawNumber.replace(/\D/g, '');
       
       // Ignore rows with less than 9 digits
@@ -323,7 +241,6 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
     
     console.log(`[SIM] Normalized ${sims.length} SIMs`);
     
-    // Save normalized SIMs to cache
     if (sims.length > 0) {
       saveToCache(sims);
     }
@@ -331,7 +248,42 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
     return sims;
     
   } catch (error) {
-    console.error('[SIM] Fetch failed, trying cached normalized data:', error);
+    console.error('[SIM] Fetch failed, trying cache:', error);
+    
+    // Try loading from CSV cache first
+    const csvCache = loadCsvFromCache();
+    if (csvCache && csvCache.csv) {
+      console.log('[SIM] Using cached CSV');
+      const rows = parseCSV(csvCache.csv);
+      const sims: NormalizedSIM[] = [];
+      
+      rows.forEach((row, index) => {
+        const rawNumber = row['RAW'] || row['DISPLAY'] || '';
+        const displayNumber = row['DISPLAY'] || row['RAW'] || rawNumber;
+        const priceStr = row['PRICE'] || '0';
+        const rawDigits = rawNumber.replace(/\D/g, '');
+        
+        if (rawDigits.length < 9) return;
+        
+        let price = parsePrice(priceStr);
+        if (!price || price <= 0) {
+          const { tags } = normalizeSIM(rawNumber, displayNumber, 0, `temp-${index}`);
+          price = estimatePriceByTags(tags);
+        }
+        
+        const sim = normalizeSIM(rawNumber, displayNumber, price, `sim-${index}`);
+        sims.push(sim);
+      });
+      
+      if (sims.length > 0) {
+        usingCachedData = true;
+        lastFetchTimestamp = csvCache.timestamp;
+        toast.warning('Không thể tải dữ liệu mới. Đang dùng dữ liệu tạm (cache).', {
+          duration: 5000
+        });
+        return sims;
+      }
+    }
     
     // Try loading normalized SIMs from cache
     const cachedData = loadFromCache();
@@ -339,11 +291,7 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
       usingCachedData = true;
       lastFetchTimestamp = cachedData.timestamp;
       toast.warning('Không thể tải dữ liệu mới. Đang dùng dữ liệu tạm (cache).', {
-        duration: 5000,
-        action: {
-          label: 'Tải lại',
-          onClick: () => window.location.reload()
-        }
+        duration: 5000
       });
       return cachedData.data;
     }
@@ -355,11 +303,11 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
 // Filter state interface
 export interface FilterState {
   searchQuery: string;
-  priceRanges: number[]; // indices into PRICE_RANGES
+  priceRanges: number[];
   customPriceMin: number | null;
   customPriceMax: number | null;
   selectedTags: string[];
-  selectedNetworks: string[]; // Empty = ALL networks (anti 0 results)
+  selectedNetworks: string[];
   selectedPrefixes3: string[];
   selectedPrefixes4: string[];
   selectedSuffixes: string[];
@@ -367,7 +315,7 @@ export interface FilterState {
   vipFilter: 'all' | 'only' | 'hide';
   vipThreshold: number;
   sortBy: SortOption;
-  mobifoneFirst: boolean; // Sort Mobifone higher but don't hide others
+  mobifoneFirst: boolean;
 }
 
 export const defaultFilterState: FilterState = {
@@ -376,7 +324,7 @@ export const defaultFilterState: FilterState = {
   customPriceMin: null,
   customPriceMax: null,
   selectedTags: [],
-  selectedNetworks: [], // Default to ALL networks (anti 0 results)
+  selectedNetworks: [],
   selectedPrefixes3: [],
   selectedPrefixes4: [],
   selectedSuffixes: [],
@@ -384,10 +332,9 @@ export const defaultFilterState: FilterState = {
   vipFilter: 'all',
   vipThreshold: 50000000,
   sortBy: 'default',
-  mobifoneFirst: true // Sort Mobifone first but show all
+  mobifoneFirst: true
 };
 
-// Relax filter priority order
 const RELAX_ORDER: (keyof FilterState)[] = [
   'customSuffix',
   'selectedSuffixes',
@@ -405,31 +352,26 @@ export const useSimData = () => {
   const [filters, setFilters] = useState<FilterState>(defaultFilterState);
   const queryClient = useQueryClient();
 
-  // Fetch data with React Query
   const { data: allSims = [], isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['simData'],
     queryFn: fetchSimData,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
-    retry: 0, // We handle retries in fetchWithRetry
+    staleTime: 2 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 1,
     refetchInterval: AUTO_REFRESH_INTERVAL,
     refetchIntervalInBackground: false
   });
 
-  // Force reload function
   const forceReload = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['simData'] });
     toast.info('Đang tải lại dữ liệu...');
   }, [queryClient]);
 
-  // Get unique prefixes
   const prefixes = useMemo(() => getUniquePrefixes(allSims), [allSims]);
 
-  // Apply all filters
   const filteredSims = useMemo(() => {
     let result = [...allSims];
 
-    // Search filter (only if >= 2 digits)
     if (filters.searchQuery) {
       const digitCount = filters.searchQuery.replace(/\D/g, '').length;
       if (digitCount >= 2) {
@@ -437,7 +379,6 @@ export const useSimData = () => {
       }
     }
 
-    // Price range filter (only if selected)
     if (filters.priceRanges.length > 0) {
       result = result.filter(sim => {
         return filters.priceRanges.some(rangeIndex => {
@@ -447,14 +388,12 @@ export const useSimData = () => {
       });
     }
 
-    // Custom price filter (only if set)
     if (filters.customPriceMin !== null || filters.customPriceMax !== null) {
       const min = filters.customPriceMin ?? 0;
       const max = filters.customPriceMax ?? Infinity;
       result = result.filter(sim => sim.price >= min && sim.price <= max);
     }
 
-    // Tag filter (only if selected)
     if (filters.selectedTags.length > 0) {
       result = result.filter(sim => {
         return filters.selectedTags.some(tag => {
@@ -464,22 +403,18 @@ export const useSimData = () => {
       });
     }
 
-    // Network filter (only if explicitly selected - empty means ALL)
     if (filters.selectedNetworks.length > 0) {
       result = result.filter(sim => filters.selectedNetworks.includes(sim.network));
     }
 
-    // Prefix3 filter (only if selected)
     if (filters.selectedPrefixes3.length > 0) {
       result = result.filter(sim => filters.selectedPrefixes3.includes(sim.prefix3));
     }
 
-    // Prefix4 filter (only if selected)
     if (filters.selectedPrefixes4.length > 0) {
       result = result.filter(sim => filters.selectedPrefixes4.includes(sim.prefix4));
     }
 
-    // Suffix filter (only if selected)
     if (filters.selectedSuffixes.length > 0 || filters.customSuffix) {
       const allSuffixes = [...filters.selectedSuffixes];
       if (filters.customSuffix) {
@@ -490,17 +425,14 @@ export const useSimData = () => {
       });
     }
 
-    // VIP filter with conflict prevention
     if (filters.vipFilter === 'only') {
       result = result.filter(sim => sim.isVIP);
     } else if (filters.vipFilter === 'hide') {
       result = result.filter(sim => !sim.isVIP);
     }
 
-    // Apply sorting
     result = sortSIMs(result, filters.sortBy);
 
-    // If mobifoneFirst is enabled, sort Mobifone to top (but keep all)
     if (filters.mobifoneFirst && filters.sortBy === 'default') {
       result = result.sort((a, b) => {
         if (a.network === 'Mobifone' && b.network !== 'Mobifone') return -1;
@@ -512,13 +444,9 @@ export const useSimData = () => {
     return result;
   }, [allSims, filters]);
 
-  // Count tags for all data (not filtered, to show totals)
   const tagCounts = useMemo(() => countTags(allSims), [allSims]);
-
-  // Count tags for filtered results
   const filteredTagCounts = useMemo(() => countTags(filteredSims), [filteredSims]);
 
-  // Get active constraints for "relax mode"
   const activeConstraints = useMemo(() => {
     const constraints: { key: keyof FilterState; label: string; onRemove: () => void }[] = [];
 
@@ -594,7 +522,6 @@ export const useSimData = () => {
     return constraints;
   }, [filters]);
 
-  // Relax filters one by one until results > 0
   const relaxFilters = useCallback(() => {
     const relaxedMessages: string[] = [];
     
@@ -602,7 +529,6 @@ export const useSimData = () => {
       const newFilters = { ...prev };
       
       for (const key of RELAX_ORDER) {
-        // Check if this filter is active
         const value = newFilters[key];
         const isEmpty = 
           value === '' || 
@@ -610,7 +536,6 @@ export const useSimData = () => {
           (Array.isArray(value) && value.length === 0);
         
         if (!isEmpty) {
-          // Relax this filter
           if (Array.isArray(value)) {
             (newFilters[key] as typeof value) = [];
           } else if (typeof value === 'string') {
@@ -619,7 +544,6 @@ export const useSimData = () => {
             (newFilters[key] as typeof value) = null as typeof value;
           }
           
-          // Map key to Vietnamese description
           const keyLabels: Record<string, string> = {
             searchQuery: 'Từ khóa tìm kiếm',
             selectedSuffixes: 'Bộ lọc đuôi số',
@@ -634,7 +558,7 @@ export const useSimData = () => {
           };
           
           relaxedMessages.push(keyLabels[key] || key);
-          break; // Only relax one filter at a time
+          break;
         }
       }
       
@@ -646,7 +570,6 @@ export const useSimData = () => {
     }
   }, []);
 
-  // Auto-relax all filters at once
   const relaxAllFilters = useCallback(() => {
     setFilters(prev => ({
       ...prev,
@@ -664,18 +587,11 @@ export const useSimData = () => {
     toast.success('Đã nới lỏng tất cả bộ lọc');
   }, []);
 
-  // Filter update helpers
   const updateFilter = useCallback(<K extends keyof FilterState>(
     key: K, 
     value: FilterState[K]
   ) => {
-    setFilters(prev => {
-      // VIP conflict prevention
-      if (key === 'vipFilter') {
-        // No special handling needed since we're setting directly
-      }
-      return { ...prev, [key]: value };
-    });
+    setFilters(prev => ({ ...prev, [key]: value }));
   }, []);
 
   const togglePriceRange = useCallback((index: number) => {
@@ -719,7 +635,6 @@ export const useSimData = () => {
     toast.info('Đã đặt lại bộ lọc');
   }, []);
 
-  // Get active filter chips
   const activeFilters = useMemo(() => {
     const chips: { key: string; label: string; onRemove: () => void }[] = [];
 
@@ -809,7 +724,6 @@ export const useSimData = () => {
     return chips;
   }, [filters, updateFilter, togglePriceRange, toggleTag, toggleNetwork, toggleSuffix]);
 
-  // Check if search returned 0 and might need suggestions
   const searchSuggestion = useMemo(() => {
     if (filteredSims.length === 0 && filters.searchQuery) {
       const query = filters.searchQuery;
@@ -824,7 +738,6 @@ export const useSimData = () => {
   }, [filteredSims.length, filters.searchQuery]);
 
   return {
-    // Data
     allSims,
     filteredSims,
     isLoading,
@@ -832,13 +745,9 @@ export const useSimData = () => {
     error,
     refetch,
     forceReload,
-
-    // Metadata
     prefixes,
     tagCounts,
     filteredTagCounts,
-
-    // Filters
     filters,
     setFilters,
     updateFilter,
@@ -848,8 +757,6 @@ export const useSimData = () => {
     toggleSuffix,
     resetFilters,
     activeFilters,
-    
-    // Anti 0 results
     activeConstraints,
     relaxFilters,
     relaxAllFilters,
