@@ -1,5 +1,6 @@
 import { Phone } from 'lucide-react';
-import type { NormalizedSIM, PromotionalData } from '@/lib/simUtils';
+import type { NormalizedSIM, PromotionalData, QuyType, QuyPosition } from '@/lib/simUtils';
+import { checkQuyPosition } from '@/lib/simUtils';
 import {
   Tooltip,
   TooltipContent,
@@ -8,12 +9,18 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
+interface QuyFilterInfo {
+  quyType: QuyType;
+  quyPosition: QuyPosition;
+}
+
 interface SIMCardNewProps {
   sim: NormalizedSIM;
   promotional?: PromotionalData;
+  quyFilter?: QuyFilterInfo | null;
 }
 
-const SIMCardNew = ({ sim, promotional }: SIMCardNewProps) => {
+const SIMCardNew = ({ sim, promotional, quyFilter }: SIMCardNewProps) => {
   // Format price for display - with null safety
   const formatPrice = (price: number | undefined): string => {
     if (price === undefined || price === null) return '---';
@@ -84,6 +91,20 @@ const SIMCardNew = ({ sim, promotional }: SIMCardNewProps) => {
 
   const discountBadgeText = getDiscountBadgeText();
 
+  // Compute quý position badge text at render time
+  const getQuyPositionBadge = (): string | null => {
+    if (!quyFilter?.quyType || !quyFilter?.quyPosition) return null;
+    // Verify this SIM actually matches the filter
+    if (!checkQuyPosition(sim.rawDigits, quyFilter.quyType, quyFilter.quyPosition)) {
+      return null;
+    }
+    // Format: "Tứ quý đầu", "Ngũ quý giữa", etc.
+    const positionLower = quyFilter.quyPosition.toLowerCase();
+    return `${quyFilter.quyType} ${positionLower}`;
+  };
+
+  const quyBadgeText = getQuyPositionBadge();
+
   // Use sim.price as the display price (already has effective price from useSimData)
   // If promotional data exists, use it for original/final display
   const displayOriginalPrice = promotional?.originalPrice ?? sim.price;
@@ -119,14 +140,19 @@ const SIMCardNew = ({ sim, promotional }: SIMCardNewProps) => {
         </TooltipProvider>
       )}
 
-      {/* Network Badge */}
-      <div className={cn("flex items-center gap-2 mb-3", discountBadgeText && "mt-6")}>
+      {/* Network Badge + Quý Position Badge */}
+      <div className={cn("flex items-center gap-2 mb-3 flex-wrap", discountBadgeText && "mt-6")}>
         <span className={`px-2 py-0.5 rounded text-xs font-medium ${networkColors[sim.network]}`}>
           {sim.network}
         </span>
         {sim.beautyScore >= 50 && (
           <span className="px-2 py-0.5 rounded text-xs font-medium bg-gold/20 text-gold-dark">
             ⭐ Số đẹp
+          </span>
+        )}
+        {quyBadgeText && (
+          <span className="px-2 py-0.5 rounded text-xs font-semibold bg-primary/10 text-primary border border-primary/20 animate-fade-in">
+            {quyBadgeText}
           </span>
         )}
       </div>

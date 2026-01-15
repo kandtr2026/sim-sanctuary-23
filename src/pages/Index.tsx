@@ -229,7 +229,11 @@ const Index = () => {
                       <SIMCardNew 
                         key={sim.id} 
                         sim={sim} 
-                        promotional={getPromotionalData(sim.id)} 
+                        promotional={getPromotionalData(sim.id)}
+                        quyFilter={filters.quyType && filters.quyPosition ? {
+                          quyType: filters.quyType,
+                          quyPosition: filters.quyPosition
+                        } : null}
                       />
                     ))}
                   </div>
