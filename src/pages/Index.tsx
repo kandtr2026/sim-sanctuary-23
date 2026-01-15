@@ -12,8 +12,10 @@ import Footer from '@/components/Footer';
 import ActiveFilterChips from '@/components/ActiveFilterChips';
 import SortDropdown from '@/components/SortDropdown';
 import MobileFilterDrawer from '@/components/MobileFilterDrawer';
+import EmptyStateHelper from '@/components/EmptyStateHelper';
 import { useSimData } from '@/hooks/useSimData';
-import { ChevronDown, ArrowUp, Loader2 } from 'lucide-react';
+import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -22,9 +24,12 @@ const Index = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
 
   const {
+    allSims,
     filteredSims,
     isLoading,
+    isFetching,
     error,
+    forceReload,
     prefixes,
     tagCounts,
     filters,
@@ -34,7 +39,11 @@ const Index = () => {
     toggleNetwork,
     toggleSuffix,
     resetFilters,
-    activeFilters
+    activeFilters,
+    activeConstraints,
+    relaxFilters,
+    relaxAllFilters,
+    searchSuggestion
   } = useSimData();
 
   // Reset visible count when filters change
@@ -126,9 +135,26 @@ const Index = () => {
           {/* Center - SIM Listing */}
           <section className="lg:col-span-6">
             <div className="bg-card rounded-xl shadow-card border border-border p-4 md:p-6 mb-6">
-              {/* Header with sort */}
+              {/* Header with sort and reload */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                <h2 className="text-xl font-bold text-primary">SIM Số Đẹp</h2>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-xl font-bold text-primary">SIM Số Đẹp</h2>
+                  {allSims.length > 0 && (
+                    <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+                      {allSims.length.toLocaleString()} SIM
+                    </span>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={forceReload}
+                    disabled={isFetching}
+                    className="h-8 w-8 p-0"
+                    title="Tải lại dữ liệu"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+                  </Button>
+                </div>
                 <div className="hidden lg:block">
                   <SortDropdown
                     value={filters.sortBy}
@@ -146,17 +172,29 @@ const Index = () => {
 
               {/* Loading State */}
               {isLoading && (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                  <span className="ml-2 text-muted-foreground">Đang tải dữ liệu...</span>
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="w-10 h-10 text-primary animate-spin mb-3" />
+                  <span className="text-muted-foreground">Đang tải dữ liệu...</span>
+                  <span className="text-xs text-muted-foreground mt-1">
+                    Lần đầu có thể mất vài giây
+                  </span>
                 </div>
               )}
 
-              {/* Error State */}
-              {error && (
+              {/* Error State with Reload */}
+              {error && !isLoading && (
                 <div className="text-center py-12">
-                  <p className="text-destructive text-lg">Không thể tải dữ liệu</p>
-                  <p className="text-sm text-muted-foreground mt-2">Vui lòng thử lại sau</p>
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
+                    <WifiOff className="w-8 h-8 text-destructive" />
+                  </div>
+                  <p className="text-destructive text-lg font-medium">Không thể tải dữ liệu</p>
+                  <p className="text-sm text-muted-foreground mt-2 mb-4">
+                    Vui lòng kiểm tra kết nối mạng và thử lại
+                  </p>
+                  <Button onClick={forceReload} disabled={isFetching} className="gap-2">
+                    <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+                    Tải lại dữ liệu
+                  </Button>
                 </div>
               )}
 
@@ -196,17 +234,25 @@ const Index = () => {
                 </>
               )}
 
-              {/* Empty State */}
-              {!isLoading && !error && displayedSIMs.length === 0 && (
+              {/* Empty State with Helper */}
+              {!isLoading && !error && filteredSims.length === 0 && allSims.length > 0 && (
+                <EmptyStateHelper
+                  constraints={activeConstraints}
+                  searchSuggestion={searchSuggestion}
+                  onRelaxOne={relaxFilters}
+                  onRelaxAll={relaxAllFilters}
+                  onReset={resetFilters}
+                />
+              )}
+
+              {/* No Data State (data loaded but empty) */}
+              {!isLoading && !error && allSims.length === 0 && (
                 <div className="text-center py-12">
-                  <p className="text-muted-foreground text-lg">Không tìm thấy SIM phù hợp</p>
-                  <p className="text-sm text-meta mt-2">Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm</p>
-                  <button
-                    onClick={resetFilters}
-                    className="mt-4 text-primary underline text-sm"
-                  >
-                    Xóa tất cả bộ lọc
-                  </button>
+                  <p className="text-muted-foreground text-lg">Chưa có dữ liệu SIM</p>
+                  <Button onClick={forceReload} variant="outline" className="mt-4 gap-2">
+                    <RefreshCw className="w-4 h-4" />
+                    Tải lại
+                  </Button>
                 </div>
               )}
             </div>
