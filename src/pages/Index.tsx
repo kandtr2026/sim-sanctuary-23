@@ -29,9 +29,22 @@ const Index = () => {
 
     // Search filter
     if (searchQuery) {
-      const query = searchQuery.replace(/\*/g, '.*').replace(/\./g, '');
-      const regex = new RegExp(query, 'i');
-      result = result.filter((sim) => regex.test(sim.number));
+      // Remove dots first, then convert wildcards to regex pattern
+      const cleanQuery = searchQuery.replace(/\./g, '');
+      // Escape special regex characters except *, then convert * to .*
+      const escapedQuery = cleanQuery
+        .replace(/[+?^${}()|[\]\\]/g, '\\$&')
+        .replace(/\*/g, '.*');
+      
+      try {
+        const regex = new RegExp(escapedQuery, 'i');
+        result = result.filter((sim) => regex.test(sim.number));
+      } catch {
+        // If regex is still invalid, fall back to simple includes
+        result = result.filter((sim) => 
+          sim.number.includes(cleanQuery.replace(/\*/g, ''))
+        );
+      }
     }
 
     // Price filter
