@@ -167,13 +167,17 @@ const SIMCardNew = ({ sim, promotional, quyFilter }: SIMCardNewProps) => {
       </div>
 
       {/* SIM Number - Auto-resize based on container width */}
+      {/* Priority: displayNumber (from Google Sheet) > formattedNumber (generated) */}
       <div className="sim-number-auto mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap">
-        {formatWithHighlight(sim.formattedNumber)}
+        {formatWithHighlight(sim.displayNumber || sim.formattedNumber)}
       </div>
 
-      {/* Tags - Scaled down */}
+      {/* Tags - Scaled down, filter out duplicate "Số đẹp" since we already show ⭐ Số đẹp badge */}
       <div className="flex flex-wrap gap-0.5 mb-1.5">
-        {sim.tags.slice(0, 3).map((tag) => (
+        {sim.tags
+          .filter(tag => !['Số đẹp', 'SỐ ĐẸP', 'SO DEP', 'Số Đẹp'].includes(tag))
+          .slice(0, 3)
+          .map((tag) => (
           <span key={tag} className="badge-type-sm">
             {tag}
           </span>
