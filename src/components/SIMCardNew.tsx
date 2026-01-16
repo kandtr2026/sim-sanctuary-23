@@ -1,4 +1,5 @@
 import { Phone } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { NormalizedSIM, PromotionalData, QuyType } from '@/lib/simUtils';
 import { matchesQuyType } from '@/lib/simUtils';
 import {
@@ -13,9 +14,17 @@ interface SIMCardNewProps {
   sim: NormalizedSIM;
   promotional?: PromotionalData;
   quyFilter?: QuyType | null;
+  simId?: string; // SimID from Google Sheet
 }
 
-const SIMCardNew = ({ sim, promotional, quyFilter }: SIMCardNewProps) => {
+const SIMCardNew = ({ sim, promotional, quyFilter, simId }: SIMCardNewProps) => {
+  const navigate = useNavigate();
+
+  const handleBuyClick = () => {
+    // Use simId if provided, otherwise fall back to sim.id
+    const targetId = simId || sim.id;
+    navigate(`/mua-ngay/${encodeURIComponent(targetId)}`);
+  };
   // Format price for display - exact formatting without rounding/flooring
   const formatPrice = (price: number | undefined): string => {
     if (price === undefined || price === null || isNaN(price) || price <= 0) return 'Liên hệ';
@@ -218,19 +227,13 @@ const SIMCardNew = ({ sim, promotional, quyFilter }: SIMCardNewProps) => {
             </span>
           )}
         </div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button className="btn-cta-sm flex items-center gap-1 py-1 px-2 text-[10px]">
-                <Phone className="w-2.5 h-2.5" />
-                MUA NGAY
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Liên hệ: 0909.123.456</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <button 
+          onClick={handleBuyClick}
+          className="btn-cta-sm flex items-center gap-1 py-1 px-2 text-[10px]"
+        >
+          <Phone className="w-2.5 h-2.5" />
+          MUA NGAY
+        </button>
       </div>
     </div>
   );
