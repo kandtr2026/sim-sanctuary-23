@@ -44,16 +44,17 @@ const HeroBanner = () => {
         }}></div>
       </div>
 
-      <div className="relative px-8 py-12 md:py-16">
-        <div className="flex items-center justify-center gap-6">
+      {/* Compact padding: Mobile ~160-200px, Tablet ~200-240px, Desktop ~220-280px */}
+      <div className="relative px-4 md:px-6 py-6 md:py-8 lg:py-10">
+        <div className="flex items-center justify-center gap-4">
           <button
             onClick={prev}
-            className="hidden md:flex w-10 h-10 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 items-center justify-center text-primary-foreground transition-colors"
+            className="hidden md:flex w-8 h-8 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 items-center justify-center text-primary-foreground transition-colors"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
 
-          <div className="text-center max-w-xl">
+          <div className="text-center max-w-lg">
             {slides.map((slide, index) => (
               <div
                 key={index}
@@ -61,18 +62,18 @@ const HeroBanner = () => {
                   index === current ? 'opacity-100' : 'opacity-0 absolute inset-0 pointer-events-none'
                 }`}
               >
-                <div className="flex justify-center mb-4">
-                  <div className="w-16 h-16 rounded-full bg-gold/20 flex items-center justify-center">
-                    <slide.icon className="w-8 h-8 text-gold" />
+                <div className="flex justify-center mb-2">
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gold/20 flex items-center justify-center">
+                    <slide.icon className="w-5 h-5 md:w-6 md:h-6 text-gold" />
                   </div>
                 </div>
-                <span className="inline-block px-4 py-1 rounded-full bg-gold text-header-bg text-sm font-semibold mb-4">
+                <span className="inline-block px-3 py-0.5 rounded-full bg-gold text-header-bg text-xs font-semibold mb-2">
                   {slide.highlight}
                 </span>
-                <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-3">
+                <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-primary-foreground mb-1.5">
                   {slide.title}
                 </h2>
-                <p className="text-primary-foreground/80 text-lg">
+                <p className="text-primary-foreground/80 text-sm md:text-base">
                   {slide.subtitle}
                 </p>
               </div>
@@ -81,21 +82,21 @@ const HeroBanner = () => {
 
           <button
             onClick={next}
-            className="hidden md:flex w-10 h-10 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 items-center justify-center text-primary-foreground transition-colors"
+            className="hidden md:flex w-8 h-8 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 items-center justify-center text-primary-foreground transition-colors"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-5 h-5" />
           </button>
         </div>
 
         {/* Dots */}
-        <div className="flex justify-center gap-2 mt-6">
+        <div className="flex justify-center gap-1.5 mt-3">
           {slides.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrent(index)}
-              className={`w-2 h-2 rounded-full transition-all ${
+              className={`w-1.5 h-1.5 rounded-full transition-all ${
                 index === current
-                  ? 'w-8 bg-gold'
+                  ? 'w-6 bg-gold'
                   : 'bg-primary-foreground/30 hover:bg-primary-foreground/50'
               }`}
             />

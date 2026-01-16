@@ -98,11 +98,18 @@
 }
 
 @layer components {
-  /* SIM Number Display */
+  /* SIM Number Display - Original Size */
   .sim-number {
     @apply text-2xl md:text-3xl font-bold tracking-wide;
     color: hsl(var(--gold));
     text-shadow: 0 2px 4px hsl(0 0% 0% / 0.1);
+  }
+
+  /* SIM Number Display - Compact/Scaled (~50%) */
+  .sim-number-sm {
+    @apply text-base md:text-lg font-bold tracking-wide;
+    color: hsl(var(--gold));
+    text-shadow: 0 1px 2px hsl(0 0% 0% / 0.1);
   }
 
   .sim-number-vip {
@@ -153,7 +160,7 @@
     @apply bg-primary text-primary-foreground;
   }
 
-  /* CTA Button */
+  /* CTA Button - Original */
   .btn-cta {
     @apply px-6 py-3 rounded-lg font-semibold transition-all duration-200;
     background: linear-gradient(180deg, hsl(var(--cta)) 0%, hsl(var(--cta-hover)) 100%);
@@ -177,7 +184,31 @@
       0 2px 8px -2px hsl(14 66% 50% / 0.3);
   }
 
-  /* SIM Card */
+  /* CTA Button - Compact/Scaled (~50%) */
+  .btn-cta-sm {
+    @apply px-2 py-1 rounded-md font-semibold transition-all duration-200;
+    background: linear-gradient(180deg, hsl(var(--cta)) 0%, hsl(var(--cta-hover)) 100%);
+    color: hsl(var(--cta-foreground));
+    box-shadow: 
+      0 1px 0 hsl(14 66% 45%),
+      0 2px 6px -1px hsl(14 66% 50% / 0.4);
+  }
+
+  .btn-cta-sm:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+      0 2px 0 hsl(14 66% 45%),
+      0 4px 10px -2px hsl(14 66% 50% / 0.5);
+  }
+
+  .btn-cta-sm:active {
+    transform: translateY(0.5px);
+    box-shadow: 
+      0 0.5px 0 hsl(14 66% 45%),
+      0 1px 4px -1px hsl(14 66% 50% / 0.3);
+  }
+
+  /* SIM Card - Original */
   .sim-card {
     @apply bg-card rounded-xl p-4 transition-all duration-300;
     box-shadow: var(--shadow-card);
@@ -189,14 +220,33 @@
     box-shadow: var(--shadow-elevated);
   }
 
-  /* Badge Styles */
+  /* SIM Card - Compact/Scaled (~50% content) */
+  .sim-card-compact {
+    @apply bg-card rounded-lg p-2 transition-all duration-300;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid hsl(var(--border));
+  }
+
+  .sim-card-compact:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Badge Styles - Original */
   .badge-vip {
     @apply px-2 py-0.5 rounded-full text-xs font-semibold;
     background: linear-gradient(135deg, hsl(var(--gold)) 0%, hsl(var(--gold-dark)) 100%);
     color: white;
   }
 
-  /* Discount Badge */
+  /* Badge Styles - Compact/Scaled (~50%) */
+  .badge-vip-sm {
+    @apply px-1 py-px rounded-full text-[9px] font-semibold;
+    background: linear-gradient(135deg, hsl(var(--gold)) 0%, hsl(var(--gold-dark)) 100%);
+    color: white;
+  }
+
+  /* Discount Badge - Original */
   .badge-discount {
     @apply px-2 py-0.5 rounded-full text-xs font-semibold;
     background: linear-gradient(135deg, hsl(var(--cta)) 0%, hsl(var(--cta-hover)) 100%);
@@ -204,17 +254,40 @@
     box-shadow: 0 2px 8px -2px hsl(var(--cta) / 0.4);
   }
 
+  /* Discount Badge - Compact/Scaled (~50%) */
+  .badge-discount-sm {
+    @apply px-1 py-px rounded-full text-[9px] font-semibold;
+    background: linear-gradient(135deg, hsl(var(--cta)) 0%, hsl(var(--cta-hover)) 100%);
+    color: white;
+    box-shadow: 0 1px 4px -1px hsl(var(--cta) / 0.4);
+  }
+
+  /* Type Badge - Original */
   .badge-type {
     @apply px-2 py-0.5 rounded-full text-xs font-medium;
     background: hsl(var(--primary-light));
     color: hsl(var(--primary-dark));
   }
 
-  /* Promotional Card Glow */
+  /* Type Badge - Compact/Scaled (~50%) */
+  .badge-type-sm {
+    @apply px-1 py-px rounded-full text-[9px] font-medium;
+    background: hsl(var(--primary-light));
+    color: hsl(var(--primary-dark));
+  }
+
+  /* Promotional Card Glow - Original */
   .shadow-promo {
     box-shadow: 
       var(--shadow-card),
       0 0 20px -5px hsl(var(--cta) / 0.25);
+  }
+
+  /* Promotional Card Glow - Compact */
+  .shadow-promo-sm {
+    box-shadow: 
+      var(--shadow-soft),
+      0 0 10px -3px hsl(var(--cta) / 0.2);
   }
 
   /* Badge Animation */
