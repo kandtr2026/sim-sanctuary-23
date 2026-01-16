@@ -226,7 +226,7 @@ const Index = () => {
                 </>
               )}
 
-              {/* Empty State with Helper */}
+              {/* Empty State with Helper and Suggestions */}
               {!isLoading && !error && filteredSims.length === 0 && allSims.length > 0 && (
                 <EmptyStateHelper
                   constraints={activeConstraints}
@@ -234,6 +234,10 @@ const Index = () => {
                   onRelaxOne={relaxFilters}
                   onRelaxAll={relaxAllFilters}
                   onReset={resetFilters}
+                  allSims={allSims}
+                  searchQuery={filters.searchQuery}
+                  filters={filters}
+                  quyFilter={filters.quyType}
                 />
               )}
 
