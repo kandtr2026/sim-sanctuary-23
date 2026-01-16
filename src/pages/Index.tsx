@@ -17,7 +17,7 @@ import { useSimData, getLastUpdateInfo, getPromotionalData } from '@/hooks/useSi
 import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff, Cloud, CloudOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const ITEMS_PER_PAGE = 100;
+const ITEMS_PER_PAGE = 60;
 
 const Index = () => {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
@@ -118,9 +118,9 @@ const Index = () => {
         </div>
 
         {/* Main 3-Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Sidebar - Filters (Desktop) */}
-          <aside className="hidden lg:block lg:col-span-3">
+        <div className="flex gap-6">
+          {/* Left Sidebar - Filters (Desktop) - Fixed narrow width */}
+          <aside className="hidden lg:block w-[160px] flex-shrink-0">
             <div className="lg:sticky lg:top-20">
               <AdvancedFilterSidebar
                 filters={filters}
@@ -136,7 +136,7 @@ const Index = () => {
           </aside>
 
           {/* Center - SIM Listing */}
-          <section className="lg:col-span-6">
+          <section className="flex-1 min-w-0">
             <div className="bg-card rounded-xl shadow-card border border-border p-4 md:p-6 mb-6">
               {/* Header with sort and reload */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
@@ -224,7 +224,7 @@ const Index = () => {
               {/* SIM Grid */}
               {!isLoading && !error && displayedSIMs.length > 0 && (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
                     {displayedSIMs.map((sim) => (
                       <SIMCardNew 
                         key={sim.id} 
@@ -287,7 +287,7 @@ const Index = () => {
           </section>
 
           {/* Right Sidebar */}
-          <aside className="lg:col-span-3">
+          <aside className="hidden lg:block w-[220px] flex-shrink-0">
             <div className="lg:sticky lg:top-20">
               <RightSidebar />
             </div>
