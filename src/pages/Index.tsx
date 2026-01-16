@@ -16,6 +16,7 @@ import EmptyStateHelper from '@/components/EmptyStateHelper';
 import { useSimData, getLastUpdateInfo, getPromotionalData } from '@/hooks/useSimData';
 import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff, Cloud, CloudOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getSimilarSims } from '@/lib/similarSimSuggestions';
 
 const ITEMS_PER_PAGE = 100;
 
@@ -48,6 +49,19 @@ const Index = () => {
 
   // Get last update info for display
   const lastUpdateInfo = getLastUpdateInfo();
+
+  // Check if we're in no-results-with-suggestions state
+  const similarSims = useMemo(() => {
+    if (filteredSims.length > 0 || allSims.length === 0) return [];
+    return getSimilarSims({
+      allSims,
+      searchQuery: filters.searchQuery,
+      activeFilters: filters,
+      limit: 100
+    });
+  }, [allSims, filteredSims.length, filters]);
+
+  const isNoResultsWithSuggestions = filteredSims.length === 0 && similarSims.length > 0 && !isLoading && !error;
 
   // Reset visible count when filters change
   useEffect(() => {
@@ -84,10 +98,12 @@ const Index = () => {
       <Navigation />
 
       <main className="container mx-auto px-4 pt-3 pb-6">
-        {/* Hero Banner - Compact, near menu */}
-        <section className="mb-4">
-          <HeroBanner />
-        </section>
+        {/* Hero Banner - Compact, near menu - Hidden when no results with suggestions */}
+        {!isNoResultsWithSuggestions && (
+          <section className="mb-4">
+            <HeroBanner />
+          </section>
+        )}
 
         {/* Search Section - Below banner */}
         <section id="sim-so" className="mb-5">
@@ -238,6 +254,7 @@ const Index = () => {
                   searchQuery={filters.searchQuery}
                   filters={filters}
                   quyFilter={filters.quyType}
+                  precomputedSuggestions={similarSims}
                 />
               )}
 
