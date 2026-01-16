@@ -112,12 +112,27 @@
     text-shadow: 0 1px 2px hsl(0 0% 0% / 0.1);
   }
 
-  /* SIM Number Display - Auto-resize based on container */
+  /* SIM Number Display - Auto-resize based on container (optimized for 4 columns) */
   .sim-number-auto {
-    @apply font-bold tracking-wide;
-    font-size: clamp(14px, 2.5vw, 22px);
+    @apply font-bold;
+    font-size: clamp(18px, 1.6vw, 32px);
+    line-height: 1.1;
+    letter-spacing: 0.02em;
     color: hsl(var(--gold));
     text-shadow: 0 1px 2px hsl(0 0% 0% / 0.1);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Price Display - Auto-resize */
+  .price-auto {
+    font-size: clamp(14px, 1.2vw, 20px);
+  }
+
+  /* Badge Text - Auto-resize */
+  .badge-auto {
+    font-size: clamp(11px, 0.9vw, 14px);
   }
 
   .sim-number-vip {

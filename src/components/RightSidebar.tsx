@@ -90,7 +90,7 @@ const RightSidebar = () => {
           ĐƠN HÀNG GẦN ĐÂY
         </h3>
         
-        <div className="space-y-2 max-h-[320px] overflow-y-auto">
+        <div className="space-y-2">
           {orders.map((order, index) => (
             <div
               key={`${order.phone}-${index}`}

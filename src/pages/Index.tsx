@@ -17,7 +17,7 @@ import { useSimData, getLastUpdateInfo, getPromotionalData } from '@/hooks/useSi
 import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff, Cloud, CloudOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const ITEMS_PER_PAGE = 60;
+const ITEMS_PER_PAGE = 100;
 
 const Index = () => {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
@@ -118,21 +118,19 @@ const Index = () => {
         </div>
 
         {/* Main 3-Column Layout */}
-        <div className="flex gap-6">
-          {/* Left Sidebar - Filters (Desktop) - Fixed narrow width */}
+        <div className="flex gap-4 lg:gap-6">
+          {/* Left Sidebar - Filters (Desktop) - Scrolls with page */}
           <aside className="hidden lg:block w-[160px] flex-shrink-0">
-            <div className="lg:sticky lg:top-20">
-              <AdvancedFilterSidebar
-                filters={filters}
-                tagCounts={tagCounts}
-                prefixes={prefixes}
-                onTogglePriceRange={togglePriceRange}
-                onToggleTag={toggleTag}
-                onToggleNetwork={toggleNetwork}
-                onToggleSuffix={toggleSuffix}
-                onUpdateFilter={updateFilter}
-              />
-            </div>
+            <AdvancedFilterSidebar
+              filters={filters}
+              tagCounts={tagCounts}
+              prefixes={prefixes}
+              onTogglePriceRange={togglePriceRange}
+              onToggleTag={toggleTag}
+              onToggleNetwork={toggleNetwork}
+              onToggleSuffix={toggleSuffix}
+              onUpdateFilter={updateFilter}
+            />
           </aside>
 
           {/* Center - SIM Listing */}
@@ -224,7 +222,7 @@ const Index = () => {
               {/* SIM Grid */}
               {!isLoading && !error && displayedSIMs.length > 0 && (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-4">
                     {displayedSIMs.map((sim) => (
                       <SIMCardNew 
                         key={sim.id} 
@@ -286,11 +284,9 @@ const Index = () => {
             </div>
           </section>
 
-          {/* Right Sidebar */}
+          {/* Right Sidebar - Scrolls with page */}
           <aside className="hidden lg:block w-[220px] flex-shrink-0">
-            <div className="lg:sticky lg:top-20">
-              <RightSidebar />
-            </div>
+            <RightSidebar />
           </aside>
         </div>
 
