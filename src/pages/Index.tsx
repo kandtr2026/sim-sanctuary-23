@@ -138,23 +138,8 @@ const Index = () => {
             <div className="bg-card rounded-xl shadow-card border border-border p-4 md:p-6 mb-6">
               {/* Header with sort and reload */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-3 flex-wrap">
                   <h2 className="text-xl font-bold text-primary">SIM Số Đẹp</h2>
-                  {allSims.length > 0 && (
-                    <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
-                      {allSims.length.toLocaleString()} SIM
-                    </span>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={forceReload}
-                    disabled={isFetching}
-                    className="h-8 w-8 p-0"
-                    title="Tải lại dữ liệu"
-                  >
-                    <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-                  </Button>
                 </div>
                 <div className="hidden lg:block">
                   <SortDropdown
@@ -164,25 +149,6 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* Data sync status */}
-              {allSims.length > 0 && lastUpdateInfo.timestamp && (
-                <div className={`flex items-center gap-2 text-xs mb-3 px-2 py-1 rounded ${
-                  lastUpdateInfo.isCache 
-                    ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' 
-                    : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                }`}>
-                  {lastUpdateInfo.isCache ? (
-                    <CloudOff className="w-3 h-3" />
-                  ) : (
-                    <Cloud className="w-3 h-3" />
-                  )}
-                  <span>
-                    {lastUpdateInfo.isCache ? 'Dữ liệu từ cache' : 'Dữ liệu đồng bộ từ Google Sheet'}
-                    {' • '}
-                    Cập nhật: {new Date(lastUpdateInfo.timestamp).toLocaleTimeString('vi-VN')}
-                  </span>
-                </div>
-              )}
 
               {/* Active Filters */}
               <ActiveFilterChips

@@ -16,15 +16,31 @@ interface SIMCardNewProps {
 }
 
 const SIMCardNew = ({ sim, promotional, quyFilter }: SIMCardNewProps) => {
-  // Format price for display - with null safety
+  // Format price for display - exact formatting without rounding/flooring
   const formatPrice = (price: number | undefined): string => {
-    if (price === undefined || price === null) return '---';
+    if (price === undefined || price === null || isNaN(price) || price <= 0) return 'Liên hệ';
+    
+    // Billions (tỷ)
     if (price >= 1000000000) {
-      return `${(price / 1000000000).toFixed(1)} tỷ`;
+      const billions = price / 1000000000;
+      const rounded = Math.round(billions * 10) / 10; // Round to 1 decimal
+      if (Number.isInteger(rounded)) {
+        return `${rounded} tỷ`;
+      }
+      return `${rounded.toString().replace('.', ',')} tỷ`;
     }
+    
+    // Millions (triệu)
     if (price >= 1000000) {
-      return `${(price / 1000000).toFixed(0)} triệu`;
+      const millions = price / 1000000;
+      const rounded = Math.round(millions * 10) / 10; // Round to 1 decimal
+      if (Number.isInteger(rounded)) {
+        return `${rounded} triệu`;
+      }
+      return `${rounded.toString().replace('.', ',')} triệu`;
     }
+    
+    // Thousands - use dot separator for Vietnamese format
     return `${price.toLocaleString('vi-VN')} đ`;
   };
 
