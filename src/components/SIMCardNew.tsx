@@ -150,8 +150,8 @@ const SIMCardNew = ({ sim, promotional, quyFilter }: SIMCardNewProps) => {
         )}
       </div>
 
-      {/* SIM Number - Scaled down */}
-      <div className="sim-number-sm mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap">
+      {/* SIM Number - Auto-resize based on container width */}
+      <div className="sim-number-auto mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap">
         {formatWithHighlight(sim.formattedNumber)}
       </div>
 

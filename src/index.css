@@ -112,6 +112,14 @@
     text-shadow: 0 1px 2px hsl(0 0% 0% / 0.1);
   }
 
+  /* SIM Number Display - Auto-resize based on container */
+  .sim-number-auto {
+    @apply font-bold tracking-wide;
+    font-size: clamp(14px, 2.5vw, 22px);
+    color: hsl(var(--gold));
+    text-shadow: 0 1px 2px hsl(0 0% 0% / 0.1);
+  }
+
   .sim-number-vip {
     @apply font-extrabold;
     color: hsl(var(--gold-dark));
