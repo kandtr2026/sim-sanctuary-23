@@ -105,23 +105,23 @@ const SIMCardNew = ({ sim, promotional, quyFilter }: SIMCardNewProps) => {
 
   return (
     <div className={cn(
-      "sim-card group relative overflow-hidden",
-      hasPromotion && "ring-2 ring-cta/30 shadow-promo"
+      "sim-card-compact group relative overflow-hidden",
+      hasPromotion && "ring-1 ring-cta/30 shadow-promo-sm"
     )}>
-      {/* VIP Badge */}
+      {/* VIP Badge - Scaled down */}
       {sim.isVIP && (
-        <div className="absolute top-2 right-2">
-          <span className="badge-vip">VIP</span>
+        <div className="absolute top-1 right-1">
+          <span className="badge-vip-sm">VIP</span>
         </div>
       )}
 
-      {/* Discount Badge */}
+      {/* Discount Badge - Scaled down */}
       {discountBadgeText && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="absolute top-2 left-2 animate-badge-in">
-                <span className="badge-discount">
+              <div className="absolute top-1 left-1 animate-badge-in">
+                <span className="badge-discount-sm">
                   {discountBadgeText}
                 </span>
               </div>
@@ -133,32 +133,32 @@ const SIMCardNew = ({ sim, promotional, quyFilter }: SIMCardNewProps) => {
         </TooltipProvider>
       )}
 
-      {/* Network Badge + Quý Position Badge */}
-      <div className={cn("flex items-center gap-2 mb-3 flex-wrap", discountBadgeText && "mt-6")}>
-        <span className={`px-2 py-0.5 rounded text-xs font-medium ${networkColors[sim.network]}`}>
+      {/* Network Badge + Quý Position Badge - Scaled down */}
+      <div className={cn("flex items-center gap-1 mb-1.5 flex-wrap", discountBadgeText && "mt-4")}>
+        <span className={`px-1.5 py-px rounded text-[10px] font-medium ${networkColors[sim.network]}`}>
           {sim.network}
         </span>
         {sim.beautyScore >= 50 && (
-          <span className="px-2 py-0.5 rounded text-xs font-medium bg-gold/20 text-gold-dark">
+          <span className="px-1.5 py-px rounded text-[10px] font-medium bg-gold/20 text-gold-dark">
             ⭐ Số đẹp
           </span>
         )}
         {quyBadgeText && (
-          <span className="px-2 py-0.5 rounded text-xs font-semibold bg-primary/10 text-primary border border-primary/20 animate-fade-in">
+          <span className="px-1.5 py-px rounded text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20 animate-fade-in">
             {quyBadgeText}
           </span>
         )}
       </div>
 
-      {/* SIM Number */}
-      <div className="sim-number mb-3 group-hover:gold-glow transition-all">
+      {/* SIM Number - Scaled down */}
+      <div className="sim-number-sm mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap">
         {formatWithHighlight(sim.formattedNumber)}
       </div>
 
-      {/* Tags */}
-      <div className="flex flex-wrap gap-1 mb-3">
+      {/* Tags - Scaled down */}
+      <div className="flex flex-wrap gap-0.5 mb-1.5">
         {sim.tags.slice(0, 3).map((tag) => (
-          <span key={tag} className="badge-type">
+          <span key={tag} className="badge-type-sm">
             {tag}
           </span>
         ))}
@@ -166,7 +166,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter }: SIMCardNewProps) => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="badge-type cursor-help">+{sim.tags.length - 3}</span>
+                <span className="badge-type-sm cursor-help">+{sim.tags.length - 3}</span>
               </TooltipTrigger>
               <TooltipContent>
                 <p>{sim.tags.slice(3).join(', ')}</p>
@@ -176,24 +176,24 @@ const SIMCardNew = ({ sim, promotional, quyFilter }: SIMCardNewProps) => {
         )}
       </div>
 
-      {/* Price and CTA */}
+      {/* Price and CTA - Scaled down */}
       <div className="flex items-center justify-between">
         <div className="flex flex-col">
           {/* Promotional Price Display */}
           {hasPromotion && displayFinalPrice ? (
             <>
               {/* Original price - strikethrough, muted */}
-              <span className="text-sm text-muted-foreground line-through opacity-70">
+              <span className="text-[10px] text-muted-foreground line-through opacity-70">
                 {formatPrice(displayOriginalPrice)}
               </span>
               {/* Final price - emphasized */}
-              <span className="text-xl font-bold text-cta animate-price-pulse">
+              <span className="text-sm font-bold text-cta animate-price-pulse">
                 {formatPrice(displayFinalPrice)}
               </span>
             </>
           ) : (
             /* Regular price display - use sim.price which is the effective price */
-            <span className="text-xl font-bold text-cta">
+            <span className="text-sm font-bold text-cta">
               {formatPrice(sim.price)}
             </span>
           )}
@@ -201,8 +201,8 @@ const SIMCardNew = ({ sim, promotional, quyFilter }: SIMCardNewProps) => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button className="btn-cta flex items-center gap-2 py-2 px-4 text-sm">
-                <Phone className="w-4 h-4" />
+              <button className="btn-cta-sm flex items-center gap-1 py-1 px-2 text-[10px]">
+                <Phone className="w-2.5 h-2.5" />
                 MUA NGAY
               </button>
             </TooltipTrigger>

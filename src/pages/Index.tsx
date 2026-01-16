@@ -83,18 +83,18 @@ const Index = () => {
       <Header />
       <Navigation />
 
-      <main className="container mx-auto px-4 py-6">
-        {/* Search Section */}
-        <section id="sim-so" className="mb-6">
+      <main className="container mx-auto px-4 pt-3 pb-6">
+        {/* Hero Banner - Compact, near menu */}
+        <section className="mb-4">
+          <HeroBanner />
+        </section>
+
+        {/* Search Section - Below banner */}
+        <section id="sim-so" className="mb-5">
           <SearchBarAdvanced
             value={filters.searchQuery}
             onChange={(value) => updateFilter('searchQuery', value)}
           />
-        </section>
-
-        {/* Hero Banner */}
-        <section className="mb-6">
-          <HeroBanner />
         </section>
 
         {/* Mobile Filter Button */}

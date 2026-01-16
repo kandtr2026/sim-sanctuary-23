@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, ClipboardEvent, ChangeEvent } from 'react';
 import { Search, HelpCircle, X } from 'lucide-react';
 import {
   Tooltip,
@@ -12,6 +12,11 @@ interface SearchBarAdvancedProps {
   onChange: (value: string) => void;
   debounceMs?: number;
 }
+
+// Sanitize input: only allow digits 0-9 and wildcard *
+const sanitizeInput = (value: string): string => {
+  return value.replace(/[^0-9*]/g, '');
+};
 
 const SearchBarAdvanced = ({ value, onChange, debounceMs = 300 }: SearchBarAdvancedProps) => {
   const [inputValue, setInputValue] = useState(value);
@@ -37,6 +42,20 @@ const SearchBarAdvanced = ({ value, onChange, debounceMs = 300 }: SearchBarAdvan
     onChange('');
   }, [onChange]);
 
+  // Handle typing - sanitize on every change
+  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    const sanitized = sanitizeInput(e.target.value);
+    setInputValue(sanitized);
+  }, []);
+
+  // Handle paste - sanitize pasted content
+  const handlePaste = useCallback((e: ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedText = e.clipboardData.getData('text');
+    const sanitized = sanitizeInput(pastedText);
+    setInputValue(sanitized);
+  }, []);
+
   return (
     <div className="relative">
       <div className="relative">
@@ -44,7 +63,11 @@ const SearchBarAdvanced = ({ value, onChange, debounceMs = 300 }: SearchBarAdvan
         <input
           type="text"
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={handleChange}
+          onPaste={handlePaste}
+          inputMode="numeric"
+          pattern="[0-9*]*"
+          autoComplete="off"
           placeholder="Nhập số cần tìm... (VD: 0903*, *8888, 090*6789)"
           className="w-full pl-12 pr-20 py-4 rounded-xl border-2 border-border bg-card text-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
         />
