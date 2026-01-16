@@ -69,7 +69,11 @@ const validateCSV = (text: string): { valid: boolean; reason?: string } => {
 const normalizeHeader = (header: string): string => {
   const cleaned = header.trim().toUpperCase().replace(/\s+/g, ' ');
   
-  if (['THUÊ BAO CHUẨN', 'THUE BAO CHUAN', 'THUÊBAOCHUẨN', 'THUEBAOCHUAN'].includes(cleaned)) {
+  if (['SIMID', 'SIM ID', 'SIM_ID'].includes(cleaned)) {
+    return 'SIMID';
+  }
+  
+  if (['THUÊ BAO CHUẨN', 'THUE BAO CHUAN', 'THUÊBAOCHUẨN', 'THUEBAOCHUAN', 'SỐ THUÊ BAO CHUẨN', 'SO THUE BAO CHUAN'].includes(cleaned)) {
     return 'RAW';
   }
   
@@ -257,6 +261,8 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
     const promotionalDataMap = new Map<string, PromotionalData>();
     
     rows.forEach((row, index) => {
+      // Use SimID from Google Sheet if available, otherwise generate one
+      const sheetSimId = row['SIMID'] || '';
       const rawNumber = row['RAW'] || row['DISPLAY'] || '';
       const displayNumber = row['DISPLAY'] || row['RAW'] || rawNumber;
       const originalPriceStr = row['ORIGINAL_PRICE'] || row['PRICE'] || '0';
@@ -283,7 +289,9 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
       
       // Use finalPrice for sorting/filtering if available, else originalPrice
       const effectivePrice = finalPrice ?? originalPrice;
-      const sim = normalizeSIM(rawNumber, displayNumber, effectivePrice, `sim-${index}`);
+      // Use Google Sheet SimID if available, otherwise fallback to index-based id
+      const simId = sheetSimId.trim() || `sim-${index}`;
+      const sim = normalizeSIM(rawNumber, displayNumber, effectivePrice, simId);
       sims.push(sim);
       
       // Store promotional data separately (keyed by SIM id)
@@ -317,6 +325,7 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
       const sims: NormalizedSIM[] = [];
       
       rows.forEach((row, index) => {
+        const sheetSimId = row['SIMID'] || '';
         const rawNumber = row['RAW'] || row['DISPLAY'] || '';
         const displayNumber = row['DISPLAY'] || row['RAW'] || rawNumber;
         const originalPriceStr = row['ORIGINAL_PRICE'] || row['PRICE'] || '0';
@@ -335,7 +344,8 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
         }
         
         const effectivePrice = finalPrice ?? originalPrice;
-        const sim = normalizeSIM(rawNumber, displayNumber, effectivePrice, `sim-${index}`);
+        const simId = sheetSimId.trim() || `sim-${index}`;
+        const sim = normalizeSIM(rawNumber, displayNumber, effectivePrice, simId);
         sims.push(sim);
       });
       
