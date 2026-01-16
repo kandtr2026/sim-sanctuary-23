@@ -17,7 +17,7 @@ import { useSimData, getLastUpdateInfo, getPromotionalData } from '@/hooks/useSi
 import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff, Cloud, CloudOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 100;
 
 const Index = () => {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
@@ -224,7 +224,7 @@ const Index = () => {
               {/* SIM Grid */}
               {!isLoading && !error && displayedSIMs.length > 0 && (
                 <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
                     {displayedSIMs.map((sim) => (
                       <SIMCardNew 
                         key={sim.id} 
