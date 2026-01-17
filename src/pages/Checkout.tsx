@@ -51,11 +51,12 @@ const parseCSVAndFindSim = (csvText: string, targetSimId: string): CheckoutSimDa
     return -1;
   };
 
-  const simIdIdx = getHeaderIndex(['SIMID', 'SIM ID']);
-  const rawIdx = getHeaderIndex(['THUÊ BAO CHUẨN', 'THUE BAO CHUAN', 'SỐ THUÊ BAO CHUẨN']);
-  const displayIdx = getHeaderIndex(['SỐ THUÊ BAO', 'SO THUE BAO']);
-  const priceIdx = getHeaderIndex(['GIÁ BÁN', 'GIA BAN']);
-  const finalPriceIdx = getHeaderIndex(['FINAL_PRICE', 'GIÁ CUỐI']);
+  // Map headers exactly as specified: SimID → simId, SỐ THUÊ BAO → displayNumber, SỐ THUÊ BAO CHUẨN → rawDigits
+  const simIdIdx = getHeaderIndex(['SIMID', 'SIM ID', 'SimID']);
+  const displayIdx = getHeaderIndex(['SỐ THUÊ BAO', 'SO THUE BAO']); // This is the formatted number with dots
+  const rawIdx = getHeaderIndex(['SỐ THUÊ BAO CHUẨN', 'THUÊ BAO CHUẨN', 'THUE BAO CHUAN', 'SO THUE BAO CHUAN']); // Raw digits
+  const finalPriceIdx = getHeaderIndex(['FINAL_PRICE', 'Final_Price']); // Priority price column
+  const priceIdx = getHeaderIndex(['GIÁ BÁN', 'GIA BAN']); // Fallback price
   const discountTypeIdx = getHeaderIndex(['DISCOUNT_TYPE']);
   const discountValueIdx = getHeaderIndex(['DISCOUNT_VALUE']);
   const khoIdx = getHeaderIndex(['KHO']);
@@ -82,18 +83,23 @@ const parseCSVAndFindSim = (csvText: string, targetSimId: string): CheckoutSimDa
     const rowSimId = simIdIdx >= 0 ? values[simIdIdx]?.trim() : '';
     
     if (rowSimId === targetSimId) {
-      const rawNumber = rawIdx >= 0 ? values[rawIdx] || '' : '';
-      const displayNumber = displayIdx >= 0 ? values[displayIdx] || rawNumber : rawNumber;
+      // Get displayNumber exactly as-is from "SỐ THUÊ BAO" column (keeps dots)
+      const displayNumber = displayIdx >= 0 ? (values[displayIdx] || '').trim() : '';
+      // Get rawDigits from "SỐ THUÊ BAO CHUẨN" column (digits only)
+      const rawNumber = rawIdx >= 0 ? (values[rawIdx] || '').trim() : '';
       const rawDigits = rawNumber.replace(/\D/g, '') || displayNumber.replace(/\D/g, '');
       
-      const originalPriceStr = priceIdx >= 0 ? values[priceIdx] || '0' : '0';
-      const finalPriceStr = finalPriceIdx >= 0 ? values[finalPriceIdx] || '' : '';
+      // Price: prioritize Final_Price, fallback to GIÁ BÁN
+      const finalPriceStr = finalPriceIdx >= 0 ? (values[finalPriceIdx] || '').trim() : '';
+      const originalPriceStr = priceIdx >= 0 ? (values[priceIdx] || '').trim() : '';
+      const effectivePrice = parsePrice(finalPriceStr) || parsePrice(originalPriceStr) || 0;
       
       return {
         simId: rowSimId,
         rawDigits,
-        displayNumber: displayNumber || rawDigits,
-        originalPriceVnd: parsePrice(originalPriceStr),
+        // displayNumber: exact string from "SỐ THUÊ BAO" with dots preserved
+        displayNumber: displayNumber || rawNumber || rawDigits,
+        originalPriceVnd: parsePrice(originalPriceStr) || effectivePrice,
         finalPriceVnd: parsePrice(finalPriceStr) || undefined,
         discountType: discountTypeIdx >= 0 ? values[discountTypeIdx] : undefined,
         discountValue: discountValueIdx >= 0 ? parsePrice(values[discountValueIdx]) || undefined : undefined,
