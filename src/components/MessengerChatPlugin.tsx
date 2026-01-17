@@ -14,7 +14,8 @@ declare global {
       };
     };
     fbAsyncInit?: () => void;
-    __openMessengerChat?: () => void;
+    __openMessengerChat?: () => boolean;
+    __messengerReady?: boolean;
   }
 }
 
@@ -30,18 +31,26 @@ const MessengerChatPlugin = () => {
       document.body.insertBefore(fbRoot, document.body.firstChild);
     }
 
+    // Create chat plugin container if not exists
+    if (!document.querySelector('.fb-customerchat')) {
+      const chatDiv = document.createElement('div');
+      chatDiv.className = 'fb-customerchat';
+      chatDiv.setAttribute('attribution', 'biz_inbox');
+      chatDiv.setAttribute('page_id', PAGE_ID);
+      chatDiv.setAttribute('theme_color', '#0068ff');
+      chatDiv.setAttribute('greeting_dialog_display', 'hide');
+      chatDiv.setAttribute('logged_in_greeting', GREETING_MESSAGE);
+      chatDiv.setAttribute('logged_out_greeting', GREETING_MESSAGE);
+      document.body.appendChild(chatDiv);
+    }
+
     // Define global function to open chat
     window.__openMessengerChat = () => {
       if (window.FB?.CustomerChat?.show) {
         window.FB.CustomerChat.show(true);
-      } else {
-        // Retry after a short delay if SDK not ready
-        setTimeout(() => {
-          if (window.FB?.CustomerChat?.show) {
-            window.FB.CustomerChat.show(true);
-          }
-        }, 500);
+        return true;
       }
+      return false;
     };
 
     // Initialize Facebook SDK
@@ -55,6 +64,8 @@ const MessengerChatPlugin = () => {
       if (window.FB?.XFBML?.parse) {
         window.FB.XFBML.parse();
       }
+      
+      window.__messengerReady = true;
     };
 
     // Load Facebook SDK asynchronously
@@ -70,21 +81,12 @@ const MessengerChatPlugin = () => {
     // Cleanup
     return () => {
       delete window.__openMessengerChat;
+      delete window.__messengerReady;
     };
   }, []);
 
-  return (
-    <div
-      className="fb-customerchat"
-      // @ts-ignore - Facebook SDK attributes
-      attribution="biz_inbox"
-      page_id={PAGE_ID}
-      theme_color="#0068ff"
-      greeting_dialog_display="hide"
-      logged_in_greeting={GREETING_MESSAGE}
-      logged_out_greeting={GREETING_MESSAGE}
-    />
-  );
+  // Return null - no UI rendered
+  return null;
 };
 
 export default MessengerChatPlugin;
