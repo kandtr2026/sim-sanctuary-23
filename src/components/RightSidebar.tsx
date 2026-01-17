@@ -54,7 +54,12 @@ const RightSidebar = () => {
           </a>
 
           {/* Zalo */}
-          <button className="w-full flex items-center gap-3 p-4 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
+          <a
+            href="https://zalo.me/0896888666?text=%F0%9F%91%8B%20Xin%20ch%C3%A0o%2C%20t%C3%B4i%20%C4%91ang%20quan%20t%C3%A2m%20%C4%91%E1%BA%BFn%20sim%20s%E1%BB%91%20%C4%91%E1%BA%B9p%20tr%C3%AAn%20website%20v%C3%A0%20mu%E1%BB%91n%20%C4%91%C6%B0%E1%BB%A3c%20t%C6%B0%20v%E1%BA%A5n."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center gap-3 p-4 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+          >
             <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
               <span className="text-white font-bold text-lg">Z</span>
             </div>
@@ -62,7 +67,7 @@ const RightSidebar = () => {
               <p className="text-sm text-muted-foreground">Zalo</p>
               <p className="text-base font-semibold text-blue-600">Chat ngay</p>
             </div>
-          </button>
+          </a>
 
           {/* Chat tư vấn */}
           <button className="w-full flex items-center gap-3 p-4 rounded-lg bg-primary hover:bg-primary-dark transition-colors">
