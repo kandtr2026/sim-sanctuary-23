@@ -63,7 +63,7 @@ const EmptyStateHelper = ({
       {/* Similar SIM Suggestions - Show FIRST when available */}
       {hasSuggestions && (
         <div className="mb-4">
-          {/* Compact Notice Banner */}
+          {/* Compact Notice Banner - Yellow background */}
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
             <div className="flex items-center gap-2 flex-wrap">
               <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
@@ -71,14 +71,14 @@ const EmptyStateHelper = ({
                 {isOrFallback
                   ? `Không có kết quả khớp cả 2 điều kiện`
                   : displayQuery 
-                    ? `SIM dạng "${displayQuery}" chưa có kết quả`
-                    : 'Không tìm thấy SIM phù hợp'}
+                    ? `SIM dạng "${displayQuery}" chưa được cập nhật lên web`
+                    : 'Không tìm thấy SIM phù hợp với bộ lọc'}
               </span>
               <span className="text-xs text-amber-700">—</span>
               <span className="text-xs text-amber-700">
                 {isOrFallback 
                   ? 'Hiển thị kết quả khớp 1 trong 2 điều kiện.'
-                  : 'Dưới đây là các số tương tự để bạn tham khảo.'}
+                  : 'Dưới đây là các SỐ TƯƠNG TỰ để bạn tham khảo.'}
               </span>
               <span className="text-xs text-amber-600 flex items-center gap-1 ml-auto">
                 <Phone className="w-3 h-3" />
@@ -121,8 +121,8 @@ const EmptyStateHelper = ({
           <h4 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-primary" />
             {isOrFallback 
-              ? `Kết quả gần đúng (${precomputedSuggestions.length.toLocaleString()} SIM)`
-              : `Gợi ý số tương tự (${precomputedSuggestions.length.toLocaleString()} SIM)`}
+              ? `KẾT QUẢ TƯƠNG TỰ (${precomputedSuggestions.length.toLocaleString()} SIM)`
+              : `SỐ TƯƠNG TỰ (${precomputedSuggestions.length.toLocaleString()} SIM)`}
           </h4>
           
           {/* SIM Grid - Same layout as main listing */}
@@ -168,7 +168,7 @@ const EmptyStateHelper = ({
               <div className="flex-1">
                 <h3 className="text-base font-semibold text-amber-800 mb-1">
                   {displayQuery 
-                    ? `SIM dạng "${displayQuery}" chưa có kết quả`
+                    ? `SIM dạng "${displayQuery}" chưa được cập nhật lên web`
                     : 'Không tìm thấy SIM phù hợp với bộ lọc'}
                 </h3>
                 <p className="text-sm text-amber-700 mb-2">
