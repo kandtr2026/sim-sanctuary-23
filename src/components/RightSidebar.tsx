@@ -70,11 +70,9 @@ const RightSidebar = () => {
           </a>
 
           {/* Chat tư vấn - Messenger */}
-          <a
-            href="https://business.facebook.com/latest/inbox/all/?asset_id=111745910591052"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full flex items-center gap-3 p-4 rounded-lg bg-primary hover:bg-primary-dark transition-colors"
+          <button
+            onClick={() => window.__openMessengerChat?.()}
+            className="w-full flex items-center gap-3 p-4 rounded-lg bg-primary hover:bg-primary-dark transition-colors cursor-pointer"
           >
             <div className="w-12 h-12 rounded-full bg-primary-dark flex items-center justify-center">
               {/* Messenger icon SVG */}
@@ -86,7 +84,7 @@ const RightSidebar = () => {
               <p className="text-sm text-primary-foreground/80">Tư vấn viên</p>
               <p className="text-base font-semibold text-primary-foreground">Chat tư vấn</p>
             </div>
-          </a>
+          </button>
 
           {/* Khiếu nại */}
           <button className="w-full flex items-center gap-3 p-3 rounded-lg border-2 border-border hover:border-primary transition-colors">
