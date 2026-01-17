@@ -2,9 +2,10 @@ import { useState, useCallback } from 'react';
 import Header from '@/components/Header';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import { Calculator, Phone, MessageCircle, ChevronDown, ChevronUp, Star, TrendingUp } from 'lucide-react';
+import { Calculator, Phone, Star, TrendingUp, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import {
   Accordion,
   AccordionContent,
@@ -14,27 +15,14 @@ import {
 import {
   normalizePhone,
   validatePhone,
-  analyzePatterns,
-  priceFromScore,
+  valuateSim,
   formatCurrencyVND,
-  getScoreDescription,
   formatPhoneDisplay,
+  type ValuationOutput,
+  type Carrier,
 } from '@/lib/simValuation';
 
 type ValuationState = 'idle' | 'loading' | 'success' | 'error';
-
-interface ValuationResult {
-  phone: string;
-  phoneFormatted: string;
-  score: number;
-  scoreDescription: string;
-  reasons: string[];
-  price: {
-    min: number;
-    max: number;
-    mid: number;
-  };
-}
 
 const faqData = [
   {
@@ -64,11 +52,21 @@ const faqData = [
   },
 ];
 
+const carrierColors: Record<Carrier, string> = {
+  Viettel: 'bg-red-500/10 text-red-600 border-red-200',
+  Vina: 'bg-blue-500/10 text-blue-600 border-blue-200',
+  Mobi: 'bg-purple-500/10 text-purple-600 border-purple-200',
+  Vietnamobile: 'bg-yellow-500/10 text-yellow-700 border-yellow-200',
+  iTel: 'bg-green-500/10 text-green-600 border-green-200',
+  Gmobile: 'bg-orange-500/10 text-orange-600 border-orange-200',
+  Unknown: 'bg-gray-500/10 text-gray-600 border-gray-200',
+};
+
 const DinhGiaSim = () => {
   const [phone, setPhone] = useState('');
   const [state, setState] = useState<ValuationState>('idle');
   const [error, setError] = useState('');
-  const [result, setResult] = useState<ValuationResult | null>(null);
+  const [result, setResult] = useState<ValuationOutput | null>(null);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     // Chỉ cho phép nhập số, tự động loại bỏ ký tự khác
@@ -95,18 +93,9 @@ const DinhGiaSim = () => {
 
     try {
       const normalized = normalizePhone(phone);
-      const analysis = analyzePatterns(normalized);
-      const price = priceFromScore(analysis.score);
+      const valuation = valuateSim(normalized);
 
-      setResult({
-        phone: normalized,
-        phoneFormatted: formatPhoneDisplay(normalized),
-        score: analysis.score,
-        scoreDescription: getScoreDescription(analysis.score),
-        reasons: analysis.reasons,
-        price,
-      });
-
+      setResult(valuation);
       setState('success');
     } catch {
       setError('Có lỗi xảy ra khi định giá. Vui lòng thử lại.');
@@ -205,18 +194,44 @@ const DinhGiaSim = () => {
             {/* Banner kết quả */}
             <div className="bg-primary-light rounded-xl p-6 mb-6 border border-primary/20">
               <div className="text-center">
+                {/* Nhà mạng */}
+                <div className="flex justify-center mb-3">
+                  <Badge 
+                    variant="outline" 
+                    className={`text-sm px-3 py-1 ${carrierColors[result.carrier]}`}
+                  >
+                    <Smartphone className="w-3.5 h-3.5 mr-1.5" />
+                    Nhà mạng ước tính: {result.carrier}
+                  </Badge>
+                </div>
+
                 <p className="text-xl md:text-2xl font-bold text-primary-dark mb-2">
-                  SIM {result.phoneFormatted} được định giá:
+                  SIM {formatPhoneDisplay(result.phone)} được định giá:
                 </p>
                 <p className="text-3xl md:text-4xl font-extrabold text-gold gold-glow mb-3">
-                  {formatCurrencyVND(result.price.mid)} VNĐ
+                  {formatCurrencyVND(result.price)} VNĐ
                 </p>
                 <p className="text-muted-foreground">
                   Khoảng giá tham khảo:{' '}
                   <span className="font-medium text-foreground">
-                    {formatCurrencyVND(result.price.min)} – {formatCurrencyVND(result.price.max)} VNĐ
+                    {formatCurrencyVND(result.range[0])} – {formatCurrencyVND(result.range[1])} VNĐ
                   </span>
                 </p>
+
+                {/* Tags */}
+                {result.tags.length > 0 && (
+                  <div className="flex flex-wrap justify-center gap-2 mt-4">
+                    {result.tags.map((tag, idx) => (
+                      <Badge 
+                        key={idx} 
+                        variant="secondary"
+                        className="text-xs bg-gold/10 text-gold border-gold/20"
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -229,13 +244,13 @@ const DinhGiaSim = () => {
                   Lý do nổi bật
                 </h3>
                 <ul className="space-y-2">
-                  {result.reasons.slice(0, 6).map((reason, idx) => (
+                  {result.highlights.slice(0, 6).map((highlight, idx) => (
                     <li
                       key={idx}
                       className="flex items-start gap-2 text-muted-foreground"
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></span>
-                      <span>{reason}</span>
+                      <span>{highlight}</span>
                     </li>
                   ))}
                 </ul>
@@ -254,16 +269,18 @@ const DinhGiaSim = () => {
                   </div>
                   <p
                     className={`text-lg font-semibold ${
-                      result.score >= 80
+                      result.score >= 90
                         ? 'text-gold'
-                        : result.score >= 66
+                        : result.score >= 80
+                        ? 'text-primary'
+                        : result.score >= 65
                         ? 'text-primary'
                         : result.score >= 50
                         ? 'text-foreground'
                         : 'text-muted-foreground'
                     }`}
                   >
-                    {result.scoreDescription}
+                    SIM {result.tierLabel}
                   </p>
                 </div>
               </div>
