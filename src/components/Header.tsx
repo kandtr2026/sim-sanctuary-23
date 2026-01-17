@@ -23,16 +23,21 @@ const Header = () => {
         {/* Contact */}
         <div className="flex items-center gap-4">
           <a 
-            href="tel:0909888888" 
-            className="flex items-center gap-2 text-gold font-bold text-lg hover:text-gold-light transition-colors"
+            href="tel:+84938868868" 
+            className="flex items-center gap-2 font-bold text-lg hover:opacity-80 transition-colors"
           >
-            <Phone className="w-5 h-5" />
-            <span>0909.888.888</span>
+            <Phone className="w-5 h-5 text-gold" />
+            <span className="text-red-500">0938.868.868</span>
           </a>
-          <button className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-primary-foreground px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:-translate-y-0.5">
+          <a 
+            href="https://zalo.me/0896888666?text=%F0%9F%91%8B%20Xin%20ch%C3%A0o%2C%20t%C3%B4i%20%C4%91ang%20quan%20t%C3%A2m%20%C4%91%E1%BA%BFn%20sim%20s%E1%BB%91%20%C4%91%E1%BA%B9p%20tr%C3%AAn%20website%20v%C3%A0%20mu%E1%BB%91n%20%C4%91%C6%B0%E1%BB%A3c%20t%C6%B0%20v%E1%BA%A5n."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-primary-foreground px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:-translate-y-0.5"
+          >
             <MessageCircle className="w-4 h-4" />
             <span className="hidden sm:inline">Chat tư vấn</span>
-          </button>
+          </a>
         </div>
       </div>
     </header>
