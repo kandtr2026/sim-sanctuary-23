@@ -2,32 +2,80 @@ const ZALO_URL = "https://zalo.me/0896888666?text=%F0%9F%91%8B%20Xin%20ch%C3%A0o
 
 const ZaloFloatingButton = () => {
   return (
-    <a
-      href={ZALO_URL}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="Chat Zalo"
-      className="fixed flex items-center justify-center bg-[#0068ff] hover:bg-[#0054cc] text-white font-bold rounded-full shadow-lg transition-transform duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#0068ff] focus:ring-offset-2"
-      style={{
-        width: 'clamp(48px, 4.5vw, 60px)',
-        height: 'clamp(48px, 4.5vw, 60px)',
-        bottom: 'clamp(16px, 2.5vw, 24px)',
-        right: 'clamp(16px, 2.5vw, 24px)',
-        zIndex: 9999,
-        fontSize: 'clamp(10px, 1.2vw, 14px)',
-      }}
-    >
-      <svg
-        viewBox="0 0 48 48"
-        fill="currentColor"
+    <>
+      {/* Scoped keyframes for pulse animation */}
+      <style>{`
+        @keyframes zalo-pulse {
+          0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 4px 14px rgba(0, 104, 255, 0.3);
+          }
+          50% {
+            transform: scale(1.03);
+            box-shadow: 0 6px 20px rgba(0, 104, 255, 0.45);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .zalo-floating-btn {
+            animation: none !important;
+          }
+        }
+      `}</style>
+      <a
+        href={ZALO_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Chat Zalo"
+        className="zalo-floating-btn fixed flex items-center justify-center bg-white hover:bg-gray-50 rounded-full shadow-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#0068ff] focus:ring-offset-2"
         style={{
-          width: 'clamp(28px, 2.8vw, 36px)',
-          height: 'clamp(28px, 2.8vw, 36px)',
+          width: 'clamp(52px, 5vw, 64px)',
+          height: 'clamp(52px, 5vw, 64px)',
+          bottom: 'clamp(16px, 2.5vw, 24px)',
+          right: 'clamp(16px, 2.5vw, 24px)',
+          zIndex: 9999,
+          animation: 'zalo-pulse 2.5s ease-in-out infinite',
         }}
       >
-        <path d="M24 4C12.954 4 4 12.954 4 24c0 5.573 2.274 10.614 5.945 14.24L8.28 43.6a1 1 0 001.36 1.28l6.24-3.12C18.56 43.2 21.2 44 24 44c11.046 0 20-8.954 20-20S35.046 4 24 4zm8.4 26.4c-.36.88-2.08 1.72-2.88 1.8-.72.08-1.6.12-5.2-1.12-4.32-1.48-7.08-5.92-7.28-6.2-.2-.28-1.68-2.24-1.68-4.28s1.04-3.04 1.44-3.48c.36-.4.8-.52 1.08-.52h.8c.24 0 .56-.04.88.68.36.8 1.2 2.92 1.28 3.12.12.24.2.48.04.76-.12.28-.2.44-.4.68-.2.24-.4.52-.6.72-.2.2-.4.44-.16.84.24.4 1.04 1.72 2.24 2.8 1.56 1.36 2.84 1.8 3.28 2 .4.2.64.16.88-.08.24-.28 1-1.16 1.28-1.56.28-.4.52-.32.88-.2.36.16 2.28 1.08 2.68 1.28.4.2.64.28.76.44.08.16.08.92-.28 1.8z"/>
-      </svg>
-    </a>
+        {/* Zalo Logo SVG - Blue text with chat bubble */}
+        <svg
+          viewBox="0 0 48 48"
+          style={{
+            width: 'clamp(32px, 3.2vw, 42px)',
+            height: 'clamp(32px, 3.2vw, 42px)',
+          }}
+        >
+          {/* Chat bubble background */}
+          <path
+            d="M24 4C12.954 4 4 12.954 4 24c0 5.573 2.274 10.614 5.945 14.24L8.28 43.6a1 1 0 001.36 1.28l6.24-3.12C18.56 43.2 21.2 44 24 44c11.046 0 20-8.954 20-20S35.046 4 24 4z"
+            fill="#0068ff"
+          />
+          {/* Zalo text */}
+          <text
+            x="24"
+            y="28"
+            textAnchor="middle"
+            fill="white"
+            fontSize="13"
+            fontWeight="bold"
+            fontFamily="Arial, sans-serif"
+            style={{ letterSpacing: '-0.5px' }}
+          >
+            Zalo
+          </text>
+        </svg>
+
+        {/* Red notification dot */}
+        <span
+          className="absolute bg-red-500 rounded-full border-2 border-white"
+          style={{
+            width: 'clamp(10px, 1.2vw, 14px)',
+            height: 'clamp(10px, 1.2vw, 14px)',
+            top: 'clamp(2px, 0.4vw, 4px)',
+            right: 'clamp(2px, 0.4vw, 4px)',
+          }}
+        />
+      </a>
+    </>
   );
 };
 
