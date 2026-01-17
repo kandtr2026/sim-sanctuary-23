@@ -3,7 +3,7 @@ import { Menu, X } from 'lucide-react';
 
 const menuItems = [
   { label: 'SIM SỐ', href: '#sim-so' },
-  { label: 'SIM PHONG THỦY', href: '#phong-thuy' },
+  { label: 'SIM PHONG THỦY', href: '/sim-phong-thuy' },
   { label: 'SIM TRẢ GÓP', href: '#tra-gop' },
   { label: 'ĐỊNH GIÁ SIM', href: '/dinh-gia-sim' },
   { label: 'THANH TOÁN', href: '#thanh-toan' },
