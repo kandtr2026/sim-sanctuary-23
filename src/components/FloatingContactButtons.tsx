@@ -11,6 +11,8 @@ const handleOpenMessengerChat = (e: React.MouseEvent) => {
   if (!opened) {
     window.open(MESSENGER_FALLBACK_URL, '_blank', 'noopener,noreferrer');
   }
+  // Show quick templates panel
+  window.__showMessengerTemplates?.();
 };
 
 const FloatingContactButtons = () => {
