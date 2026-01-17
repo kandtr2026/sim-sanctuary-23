@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 import FloatingContactButtons from "./components/FloatingContactButtons";
+import MessengerChatPlugin from "./components/MessengerChatPlugin";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
         <FloatingContactButtons />
+        <MessengerChatPlugin />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
