@@ -9,15 +9,17 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { createHighlightedNumber } from '@/lib/highlightUtils';
 
 interface SIMCardNewProps {
   sim: NormalizedSIM;
   promotional?: PromotionalData;
   quyFilter?: QuyType | null;
   simId?: string; // SimID from Google Sheet
+  searchQuery?: string; // For highlighting matched digits
 }
 
-const SIMCardNew = ({ sim, promotional, quyFilter, simId }: SIMCardNewProps) => {
+const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SIMCardNewProps) => {
   const navigate = useNavigate();
 
   const handleBuyClick = () => {
@@ -86,9 +88,17 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId }: SIMCardNewProps) => 
     return 'Khuyến mãi';
   };
 
-  // Highlight the last 4 digits
-  const formatWithHighlight = (formatted: string): React.ReactNode => {
-    const parts = formatted.split('.');
+  // Highlight based on search query, or fallback to last 4 digits highlight
+  const formatWithHighlight = (displayNumber: string): React.ReactNode => {
+    // If there's a search query with 2+ digits, use search highlighting
+    const queryDigits = searchQuery.replace(/[^\d]/g, '');
+    if (queryDigits.length >= 2) {
+      const spans = createHighlightedNumber(displayNumber, sim.rawDigits, searchQuery);
+      return <>{spans}</>;
+    }
+    
+    // Default: highlight last segment (after last dot)
+    const parts = displayNumber.split('.');
     if (parts.length === 3) {
       return (
         <>
@@ -98,7 +108,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId }: SIMCardNewProps) => 
         </>
       );
     }
-    return formatted;
+    return displayNumber;
   };
 
   const networkColors: Record<string, string> = {

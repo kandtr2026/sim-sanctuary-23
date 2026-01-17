@@ -17,6 +17,7 @@ import { useSimData, getLastUpdateInfo, getPromotionalData } from '@/hooks/useSi
 import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff, Cloud, CloudOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getSimilarSims } from '@/lib/similarSimSuggestions';
+import type { NormalizedSIM } from '@/lib/simUtils';
 
 const ITEMS_PER_PAGE = 100;
 
@@ -50,8 +51,48 @@ const Index = () => {
   // Get last update info for display
   const lastUpdateInfo = getLastUpdateInfo();
 
+  // Compute OR-fallback when main search returns 0 results with prefix*suffix pattern
+  const orFallbackSims = useMemo(() => {
+    if (filteredSims.length > 0 || allSims.length === 0) return [];
+    
+    const query = filters.searchQuery.replace(/[\.\s]/g, '').trim();
+    
+    // Only apply OR fallback for prefix*suffix pattern
+    if (!query.includes('*')) return [];
+    
+    const parts = query.split('*').filter(Boolean);
+    if (parts.length !== 2 || query.startsWith('*') || query.endsWith('*')) return [];
+    
+    const prefix = parts[0];
+    const suffix = parts[1];
+    
+    const matchBoth: NormalizedSIM[] = [];
+    const matchPrefix: NormalizedSIM[] = [];
+    const matchSuffix: NormalizedSIM[] = [];
+    
+    for (const sim of allSims) {
+      if (!sim.rawDigits) continue;
+      
+      const hasP = sim.rawDigits.startsWith(prefix);
+      const hasS = sim.rawDigits.endsWith(suffix);
+      
+      if (hasP && hasS) {
+        matchBoth.push(sim);
+      } else if (hasP) {
+        matchPrefix.push(sim);
+      } else if (hasS) {
+        matchSuffix.push(sim);
+      }
+    }
+    
+    // Combine: both first, then prefix, then suffix
+    return [...matchBoth, ...matchPrefix, ...matchSuffix].slice(0, 200);
+  }, [allSims, filteredSims.length, filters.searchQuery]);
+
   // Check if we're in no-results-with-suggestions state
   const similarSims = useMemo(() => {
+    // If we have OR fallback results, use those instead of similarity suggestions
+    if (orFallbackSims.length > 0) return [];
     if (filteredSims.length > 0 || allSims.length === 0) return [];
     return getSimilarSims({
       allSims,
@@ -59,9 +100,13 @@ const Index = () => {
       activeFilters: filters,
       limit: 100
     });
-  }, [allSims, filteredSims.length, filters]);
+  }, [allSims, filteredSims.length, filters, orFallbackSims.length]);
 
-  const isNoResultsWithSuggestions = filteredSims.length === 0 && similarSims.length > 0 && !isLoading && !error;
+  // Combined suggestions: OR fallback takes priority over similarity suggestions
+  const combinedSuggestions = orFallbackSims.length > 0 ? orFallbackSims : similarSims;
+  const isOrFallback = orFallbackSims.length > 0;
+
+  const isNoResultsWithSuggestions = filteredSims.length === 0 && combinedSuggestions.length > 0 && !isLoading && !error;
 
   // Reset visible count when filters change
   useEffect(() => {
@@ -211,6 +256,7 @@ const Index = () => {
                         sim={sim} 
                         promotional={getPromotionalData(sim.id)}
                         quyFilter={filters.quyType}
+                        searchQuery={filters.searchQuery}
                       />
                     ))}
                   </div>
@@ -254,7 +300,8 @@ const Index = () => {
                   searchQuery={filters.searchQuery}
                   filters={filters}
                   quyFilter={filters.quyType}
-                  precomputedSuggestions={similarSims}
+                  precomputedSuggestions={combinedSuggestions}
+                  isOrFallback={isOrFallback}
                 />
               )}
 
