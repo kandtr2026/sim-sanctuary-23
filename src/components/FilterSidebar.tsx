@@ -1,6 +1,9 @@
 import { useState } from 'react';
-import { priceRanges, simTypes, networks } from '@/data/simData';
+import { priceRanges, simTypes } from '@/data/simData';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+
+// Networks displayed in filter UI (hiding: Viettel, iTelecom, Khác)
+const networksUI = ['Mobifone', 'Vinaphone', 'Gmobile'];
 
 interface FilterSidebarProps {
   selectedPriceRange: { min: number; max: number } | null;
@@ -127,7 +130,7 @@ const FilterSidebar = ({
         </button>
         {expandedSections.network && (
           <div className="px-4 pb-4 space-y-2">
-            {networks.map((network) => (
+            {networksUI.map((network) => (
               <button
                 key={network}
                 onClick={() => toggleNetwork(network)}
