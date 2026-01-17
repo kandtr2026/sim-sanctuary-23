@@ -148,11 +148,12 @@ export const createHighlightedNumber = (
       );
     }
     
-    // Highlighted part
+    // Highlighted part - RED color as requested (#d32f2f)
     spans.push(
       React.createElement('span', { 
         key: `highlight-${i}`, 
-        className: 'text-primary font-bold underline underline-offset-2 decoration-primary/50' 
+        className: 'font-bold',
+        style: { color: '#d32f2f' }
       }, displayNumber.slice(range.start, range.end))
     );
     
