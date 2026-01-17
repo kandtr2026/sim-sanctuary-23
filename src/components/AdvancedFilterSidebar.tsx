@@ -23,7 +23,8 @@ interface AdvancedFilterSidebarProps {
   onUpdateFilter: <K extends keyof FilterState>(key: K, value: FilterState[K]) => void;
 }
 
-const NETWORKS = ['Mobifone', 'Viettel', 'Vinaphone', 'iTelecom', 'Khác'] as const;
+// Networks displayed in filter UI (hiding: Viettel, iTelecom, Khác)
+const NETWORKS_UI = ['Mobifone', 'Vinaphone', 'Gmobile'] as const;
 
 const FilterSection = ({
   title, 
@@ -232,7 +233,7 @@ const AdvancedFilterSidebar = ({
               ? '✓ Hiển thị tất cả mạng' 
               : 'Nhấn để bỏ chọn mạng'}
           </p>
-          {NETWORKS.map(network => (
+          {NETWORKS_UI.map(network => (
             <button
               key={network}
               onClick={() => onToggleNetwork(network)}
