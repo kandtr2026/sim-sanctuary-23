@@ -2,6 +2,7 @@ import { Phone } from 'lucide-react';
 
 const ZALO_URL = "https://zalo.me/0896888666?text=%F0%9F%91%8B%20Xin%20ch%C3%A0o%2C%20t%C3%B4i%20%C4%91ang%20quan%20t%C3%A2m%20%C4%91%E1%BA%BFn%20sim%20s%E1%BB%91%20%C4%91%E1%BA%B9p%20tr%C3%AAn%20website%20v%C3%A0%20mu%E1%BB%91n%20%C4%91%C6%B0%E1%BB%A3c%20t%C6%B0%20v%E1%BA%A5n.";
 const CALL_URL = "tel:+84938868868";
+const MESSENGER_URL = "https://business.facebook.com/latest/inbox/all/?asset_id=111745910591052";
 
 const FloatingContactButtons = () => {
   return (
@@ -33,7 +34,7 @@ const FloatingContactButtons = () => {
         }
       `}</style>
 
-      {/* Container for both buttons - stacked vertically */}
+      {/* Container for all buttons - stacked vertically */}
       <div
         className="fixed flex flex-col items-center"
         style={{
@@ -43,7 +44,34 @@ const FloatingContactButtons = () => {
           gap: 'clamp(10px, 1.2vw, 14px)',
         }}
       >
-        {/* CALL Button - on top */}
+        {/* MESSENGER Button - on top */}
+        <a
+          href={MESSENGER_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Chat Messenger"
+          className="floating-contact-btn flex items-center justify-center rounded-full shadow-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#0084ff] focus:ring-offset-2"
+          style={{
+            width: 'clamp(48px, 4.5vw, 60px)',
+            height: 'clamp(48px, 4.5vw, 60px)',
+            animation: 'floating-bounce 1.4s ease-in-out infinite',
+            background: 'linear-gradient(135deg, #0084ff 0%, #00c6ff 100%)',
+          }}
+        >
+          {/* Messenger Logo SVG */}
+          <svg
+            viewBox="0 0 24 24"
+            fill="white"
+            style={{
+              width: 'clamp(26px, 2.6vw, 34px)',
+              height: 'clamp(26px, 2.6vw, 34px)',
+            }}
+          >
+            <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.19 5.44 3.14 7.17.16.13.26.35.27.57l.05 1.78c.04.57.61.94 1.13.71l1.98-.87c.17-.08.36-.1.53-.06.91.25 1.87.38 2.9.38 5.64 0 10-4.13 10-9.7C22 6.13 17.64 2 12 2zm5.89 7.73l-2.88 4.57c-.46.73-1.44.91-2.13.4l-2.29-1.72a.54.54 0 00-.65 0l-3.09 2.35c-.41.31-.95-.18-.68-.62l2.88-4.57c.46-.73 1.44-.91 2.13-.4l2.29 1.72a.54.54 0 00.65 0l3.09-2.35c.41-.31.95.18.68.62z"/>
+          </svg>
+        </a>
+
+        {/* CALL Button - middle */}
         <a
           href={CALL_URL}
           aria-label="Gọi điện tư vấn"
@@ -51,7 +79,7 @@ const FloatingContactButtons = () => {
           style={{
             width: 'clamp(48px, 4.5vw, 60px)',
             height: 'clamp(48px, 4.5vw, 60px)',
-            animation: 'floating-bounce 1.4s ease-in-out infinite',
+            animation: 'floating-bounce 1.4s ease-in-out infinite 0.1s',
           }}
         >
           <Phone 

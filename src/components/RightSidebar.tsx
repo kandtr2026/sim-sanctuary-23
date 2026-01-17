@@ -69,16 +69,24 @@ const RightSidebar = () => {
             </div>
           </a>
 
-          {/* Chat tư vấn */}
-          <button className="w-full flex items-center gap-3 p-4 rounded-lg bg-primary hover:bg-primary-dark transition-colors">
+          {/* Chat tư vấn - Messenger */}
+          <a
+            href="https://business.facebook.com/latest/inbox/all/?asset_id=111745910591052"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center gap-3 p-4 rounded-lg bg-primary hover:bg-primary-dark transition-colors"
+          >
             <div className="w-12 h-12 rounded-full bg-primary-dark flex items-center justify-center">
-              <MessageCircle className="w-6 h-6 text-primary-foreground" />
+              {/* Messenger icon SVG */}
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-primary-foreground">
+                <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.19 5.44 3.14 7.17.16.13.26.35.27.57l.05 1.78c.04.57.61.94 1.13.71l1.98-.87c.17-.08.36-.1.53-.06.91.25 1.87.38 2.9.38 5.64 0 10-4.13 10-9.7C22 6.13 17.64 2 12 2zm5.89 7.73l-2.88 4.57c-.46.73-1.44.91-2.13.4l-2.29-1.72a.54.54 0 00-.65 0l-3.09 2.35c-.41.31-.95-.18-.68-.62l2.88-4.57c.46-.73 1.44-.91 2.13-.4l2.29 1.72a.54.54 0 00.65 0l3.09-2.35c.41-.31.95.18.68.62z"/>
+              </svg>
             </div>
             <div className="text-left">
               <p className="text-sm text-primary-foreground/80">Tư vấn viên</p>
               <p className="text-base font-semibold text-primary-foreground">Chat tư vấn</p>
             </div>
-          </button>
+          </a>
 
           {/* Khiếu nại */}
           <button className="w-full flex items-center gap-3 p-3 rounded-lg border-2 border-border hover:border-primary transition-colors">
