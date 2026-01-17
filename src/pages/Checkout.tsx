@@ -343,9 +343,9 @@ const Checkout = () => {
             THÔNG TIN SIM
           </h2>
           
-          {/* SIM Number */}
+          {/* SIM Number - prioritize displayNumber (from Sheet "SỐ THUÊ BAO"), keep dots as-is */}
           <div className="text-2xl font-bold text-primary mb-3 tracking-wide">
-            {simWithTags.displayNumber}
+            {simWithTags.displayNumber || simWithTags.rawDigits?.replace(/(\d{4})(\d{3})(\d{3})/, '$1.$2.$3') || simWithTags.simId}
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-sm">
