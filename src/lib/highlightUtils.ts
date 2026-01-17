@@ -66,11 +66,12 @@ export const findHighlightRanges = (rawDigits: string, query: string): Highlight
     ranges.push({ start, end: rawDigits.length });
   }
   
-  // Contains highlight (first occurrence)
+  // Contains highlight (ALL occurrences, not just first)
   if (containsSearch) {
-    const idx = rawDigits.indexOf(containsSearch);
-    if (idx !== -1) {
+    let idx = 0;
+    while ((idx = rawDigits.indexOf(containsSearch, idx)) !== -1) {
       ranges.push({ start: idx, end: idx + containsSearch.length });
+      idx += containsSearch.length; // Move past current match to find next
     }
   }
   
@@ -148,12 +149,11 @@ export const createHighlightedNumber = (
       );
     }
     
-    // Highlighted part - RED color as requested (#d32f2f)
+    // Highlighted part - RED color + font-semibold as requested
     spans.push(
       React.createElement('span', { 
         key: `highlight-${i}`, 
-        className: 'font-bold',
-        style: { color: '#d32f2f' }
+        className: 'font-semibold text-red-600'
       }, displayNumber.slice(range.start, range.end))
     );
     
