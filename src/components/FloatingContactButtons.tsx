@@ -2,7 +2,7 @@ import { Phone } from 'lucide-react';
 
 const ZALO_URL = "https://zalo.me/0896888666?text=%F0%9F%91%8B%20Xin%20ch%C3%A0o%2C%20t%C3%B4i%20%C4%91ang%20quan%20t%C3%A2m%20%C4%91%E1%BA%BFn%20sim%20s%E1%BB%91%20%C4%91%E1%BA%B9p%20tr%C3%AAn%20website%20v%C3%A0%20mu%E1%BB%91n%20%C4%91%C6%B0%E1%BB%A3c%20t%C6%B0%20v%E1%BA%A5n.";
 const CALL_URL = "tel:+84938868868";
-const MESSENGER_URL = "https://business.facebook.com/latest/inbox/all/?asset_id=111745910591052";
+const MESSENGER_URL = "https://m.me/111745910591052?ref=Ch%C3%A0o%20shop%20%2C%20t%C3%B4i%20c%E1%BA%A7n%20t%C6%B0%20v%E1%BA%A5n%20v%E1%BB%81%20sim%20s%E1%BB%91%20%C4%91%E1%BA%B9p%20...";
 
 const FloatingContactButtons = () => {
   return (
