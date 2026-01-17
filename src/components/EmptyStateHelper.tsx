@@ -23,6 +23,7 @@ interface EmptyStateHelperProps {
   filters?: FilterState;
   quyFilter?: FilterState['quyType'];
   precomputedSuggestions?: NormalizedSIM[];
+  isOrFallback?: boolean; // True when showing OR-fallback results instead of similarity suggestions
 }
 
 const ITEMS_PER_PAGE = 100;
@@ -38,7 +39,8 @@ const EmptyStateHelper = ({
   searchQuery = '',
   filters,
   quyFilter,
-  precomputedSuggestions = []
+  precomputedSuggestions = [],
+  isOrFallback = false
 }: EmptyStateHelperProps) => {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
@@ -66,12 +68,18 @@ const EmptyStateHelper = ({
             <div className="flex items-center gap-2 flex-wrap">
               <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
               <span className="text-sm font-medium text-amber-800">
-                {displayQuery 
-                  ? `SIM dạng "${displayQuery}" chưa có kết quả`
-                  : 'Không tìm thấy SIM phù hợp'}
+                {isOrFallback
+                  ? `Không có kết quả khớp cả 2 điều kiện`
+                  : displayQuery 
+                    ? `SIM dạng "${displayQuery}" chưa có kết quả`
+                    : 'Không tìm thấy SIM phù hợp'}
               </span>
               <span className="text-xs text-amber-700">—</span>
-              <span className="text-xs text-amber-700">Dưới đây là các số tương tự để bạn tham khảo.</span>
+              <span className="text-xs text-amber-700">
+                {isOrFallback 
+                  ? 'Hiển thị kết quả khớp 1 trong 2 điều kiện.'
+                  : 'Dưới đây là các số tương tự để bạn tham khảo.'}
+              </span>
               <span className="text-xs text-amber-600 flex items-center gap-1 ml-auto">
                 <Phone className="w-3 h-3" />
                 Hotline: <strong className="text-primary">0933.686.666</strong>
@@ -112,7 +120,9 @@ const EmptyStateHelper = ({
           {/* Title for suggestions */}
           <h4 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-primary" />
-            Gợi ý số tương tự ({precomputedSuggestions.length.toLocaleString()} SIM)
+            {isOrFallback 
+              ? `Kết quả gần đúng (${precomputedSuggestions.length.toLocaleString()} SIM)`
+              : `Gợi ý số tương tự (${precomputedSuggestions.length.toLocaleString()} SIM)`}
           </h4>
           
           {/* SIM Grid - Same layout as main listing */}
@@ -123,6 +133,7 @@ const EmptyStateHelper = ({
                 sim={sim}
                 promotional={getPromotionalData(sim.id)}
                 quyFilter={quyFilter}
+                searchQuery={searchQuery}
               />
             ))}
           </div>
