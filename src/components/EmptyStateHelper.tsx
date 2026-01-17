@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import SIMCardNew from '@/components/SIMCardNew';
 import { getPromotionalData } from '@/hooks/useSimData';
 import type { NormalizedSIM } from '@/lib/simUtils';
+import { getSuggestionHighlightDigits } from '@/lib/highlightUtils';
 import type { FilterState } from '@/hooks/useSimData';
 
 interface Constraint {
@@ -136,15 +137,21 @@ const EmptyStateHelper = ({
           
           {/* SIM Grid - Same layout as main listing */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {similarSims.map((sim) => (
-              <SIMCardNew
-                key={sim.id}
-                sim={sim}
-                promotional={getPromotionalData(sim.id)}
-                quyFilter={quyFilter}
-                searchQuery={normalizedSearchDigits}
-              />
-            ))}
+            {similarSims.map((sim) => {
+              // Compute smart highlight for suggestion: find longest matching suffix/substring
+              const candidateDigits = String(sim.rawDigits || sim.displayNumber || '').replace(/[^0-9]/g, '');
+              const suggestHighlight = getSuggestionHighlightDigits(normalizedSearchDigits, candidateDigits);
+              
+              return (
+                <SIMCardNew
+                  key={sim.id}
+                  sim={sim}
+                  promotional={getPromotionalData(sim.id)}
+                  quyFilter={quyFilter}
+                  searchQuery={suggestHighlight}
+                />
+              );
+            })}
           </div>
 
           {/* Load more button */}

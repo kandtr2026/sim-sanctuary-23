@@ -9,6 +9,53 @@ interface HighlightRange {
 }
 
 /**
+ * Get the best highlight digits for a suggestion card.
+ * Finds longest common suffix (min 2, prefer 4/3/2) or fallback to last N digits of query that appear in candidate.
+ */
+export const getSuggestionHighlightDigits = (
+  normalizedSearchDigits: string,
+  candidateDigits: string
+): string => {
+  if (!normalizedSearchDigits || normalizedSearchDigits.length < 2 || !candidateDigits) {
+    return '';
+  }
+
+  // 1. Try longest common suffix (prefer 4, then 3, then 2)
+  for (let len = Math.min(normalizedSearchDigits.length, 4); len >= 2; len--) {
+    const querySuffix = normalizedSearchDigits.slice(-len);
+    if (candidateDigits.endsWith(querySuffix)) {
+      return querySuffix;
+    }
+  }
+
+  // 2. Fallback: check if last 4/3/2 digits of query appear anywhere in candidate
+  for (let len = Math.min(normalizedSearchDigits.length, 4); len >= 2; len--) {
+    const queryTail = normalizedSearchDigits.slice(-len);
+    if (candidateDigits.includes(queryTail)) {
+      return queryTail;
+    }
+  }
+
+  // 3. Try prefix match (first 3-4 digits)
+  for (let len = Math.min(normalizedSearchDigits.length, 4); len >= 3; len--) {
+    const queryPrefix = normalizedSearchDigits.slice(0, len);
+    if (candidateDigits.startsWith(queryPrefix)) {
+      return queryPrefix;
+    }
+  }
+
+  // 4. Try any substring match (longest first)
+  for (let len = Math.min(normalizedSearchDigits.length, 4); len >= 2; len--) {
+    const queryPart = normalizedSearchDigits.slice(0, len);
+    if (candidateDigits.includes(queryPart)) {
+      return queryPart;
+    }
+  }
+
+  return '';
+};
+
+/**
  * Parse search query to extract prefix and suffix parts
  */
 export const parseSearchQuery = (query: string): { prefix: string; suffix: string; containsSearch: string } => {
