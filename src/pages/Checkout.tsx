@@ -20,6 +20,7 @@ interface CheckoutSimData {
   simId: string;
   rawDigits: string;
   displayNumber: string;
+  formattedNumber?: string;
   originalPriceVnd: number;
   finalPriceVnd?: number;
   discountType?: string;
@@ -140,13 +141,14 @@ const Checkout = () => {
     staleTime: 5 * 60 * 1000
   });
 
-  // Get tags from normalized SIM
+  // Get tags and formattedNumber from normalized SIM
   const simWithTags = useMemo(() => {
     if (!simData) return null;
     const normalized = normalizeSIM(simData.rawDigits, simData.displayNumber, simData.originalPriceVnd, simData.simId);
     return {
       ...simData,
-      tags: normalized.tags
+      tags: normalized.tags,
+      formattedNumber: normalized.formattedNumber
     };
   }, [simData]);
 
@@ -345,7 +347,7 @@ const Checkout = () => {
           
           {/* SIM Number - prioritize displayNumber (from Sheet "SỐ THUÊ BAO"), keep dots as-is */}
           <div className="text-2xl font-bold text-primary mb-3 tracking-wide">
-            {simWithTags.displayNumber || simWithTags.rawDigits?.replace(/(\d{4})(\d{3})(\d{3})/, '$1.$2.$3') || simWithTags.simId}
+            {simWithTags.displayNumber || simWithTags.formattedNumber || simWithTags.rawDigits?.replace(/(\d{4})(\d{3})(\d{3})/, '$1.$2.$3') || simWithTags.simId}
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-sm">
