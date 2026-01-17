@@ -90,10 +90,12 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
 
   // Highlight based on search query, or fallback to last 4 digits highlight
   const formatWithHighlight = (displayNumber: string): React.ReactNode => {
+    const highlightQuery = String(searchQuery || '').replace(/[^\d*]/g, '');
+
     // If there's a search query with 2+ digits, use search highlighting
-    const queryDigits = searchQuery.replace(/[^\d]/g, '');
+    const queryDigits = highlightQuery.replace(/[^\d]/g, '');
     if (queryDigits.length >= 2) {
-      const spans = createHighlightedNumber(displayNumber, sim.rawDigits, searchQuery);
+      const spans = createHighlightedNumber(displayNumber, sim.rawDigits, highlightQuery);
       return <>{spans}</>;
     }
     

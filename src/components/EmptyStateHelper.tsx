@@ -44,6 +44,15 @@ const EmptyStateHelper = ({
 }: EmptyStateHelperProps) => {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
+  // Digits-only query for highlighting (ignore quotes/spaces/dots/non-digits)
+  const normalizedSearchDigits = String(searchQuery || '').replace(/[^0-9]/g, '');
+
+  // Dev-only debug (enable via: localStorage.setItem('debug_highlight','1'))
+  if (import.meta.env.DEV && typeof window !== 'undefined' && window.localStorage?.getItem('debug_highlight') === '1') {
+    // eslint-disable-next-line no-console
+    console.log('[highlight] EmptyStateHelper', { normalizedSearchDigits, rawSearchQuery: searchQuery });
+  }
+
   // Use precomputed suggestions from parent
   const similarSims = precomputedSuggestions.slice(0, visibleCount);
   const hasMoreSuggestions = precomputedSuggestions.length > visibleCount;
@@ -133,7 +142,7 @@ const EmptyStateHelper = ({
                 sim={sim}
                 promotional={getPromotionalData(sim.id)}
                 quyFilter={quyFilter}
-                searchQuery={searchQuery}
+                searchQuery={normalizedSearchDigits}
               />
             ))}
           </div>
