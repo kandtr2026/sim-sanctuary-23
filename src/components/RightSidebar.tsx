@@ -77,6 +77,8 @@ const RightSidebar = () => {
               if (!opened) {
                 window.open('https://m.me/111745910591052?ref=Ch%C3%A0o%20shop%2C%20t%C3%B4i%20c%E1%BA%A7n%20t%C6%B0%20v%E1%BA%A5n%20sim%20s%E1%BB%91%20%C4%91%E1%BA%B9p', '_blank', 'noopener,noreferrer');
               }
+              // Show quick templates panel
+              window.__showMessengerTemplates?.();
             }}
             className="w-full flex items-center gap-3 p-4 rounded-lg bg-primary hover:bg-primary-dark transition-colors cursor-pointer"
           >

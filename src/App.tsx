@@ -8,6 +8,7 @@ import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 import FloatingContactButtons from "./components/FloatingContactButtons";
 import MessengerChatPlugin from "./components/MessengerChatPlugin";
+import MessengerQuickTemplates from "./components/MessengerQuickTemplates";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
         </Routes>
         <FloatingContactButtons />
         <MessengerChatPlugin />
+        <MessengerQuickTemplates />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
