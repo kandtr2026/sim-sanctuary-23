@@ -40,8 +40,18 @@ const parseCSVAndFindSim = (csvText: string, targetSimId: string): CheckoutSimDa
   const headerLine = lines[0].replace(/^\uFEFF/, '');
   const rawHeaders = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
   
-  // Find header indices
-  const getHeaderIndex = (names: string[]): number => {
+  // Find header indices - use exact match first, then partial match
+  const getHeaderIndexExact = (names: string[]): number => {
+    for (const name of names) {
+      const idx = rawHeaders.findIndex(h => 
+        h.toUpperCase().replace(/\s+/g, ' ').trim() === name.toUpperCase()
+      );
+      if (idx !== -1) return idx;
+    }
+    return -1;
+  };
+  
+  const getHeaderIndexPartial = (names: string[]): number => {
     for (const name of names) {
       const idx = rawHeaders.findIndex(h => 
         h.toUpperCase().replace(/\s+/g, ' ').includes(name.toUpperCase())
@@ -51,17 +61,19 @@ const parseCSVAndFindSim = (csvText: string, targetSimId: string): CheckoutSimDa
     return -1;
   };
 
-  // Map headers exactly as specified: SimID → simId, SỐ THUÊ BAO → displayNumber, SỐ THUÊ BAO CHUẨN → rawDigits
-  const simIdIdx = getHeaderIndex(['SIMID', 'SIM ID', 'SimID']);
-  const displayIdx = getHeaderIndex(['SỐ THUÊ BAO', 'SO THUE BAO']); // This is the formatted number with dots
-  const rawIdx = getHeaderIndex(['SỐ THUÊ BAO CHUẨN', 'THUÊ BAO CHUẨN', 'THUE BAO CHUAN', 'SO THUE BAO CHUAN']); // Raw digits
-  const finalPriceIdx = getHeaderIndex(['FINAL_PRICE', 'Final_Price']); // Priority price column
-  const priceIdx = getHeaderIndex(['GIÁ BÁN', 'GIA BAN']); // Fallback price
-  const discountTypeIdx = getHeaderIndex(['DISCOUNT_TYPE']);
-  const discountValueIdx = getHeaderIndex(['DISCOUNT_VALUE']);
-  const khoIdx = getHeaderIndex(['KHO']);
-  const tinhTrangIdx = getHeaderIndex(['TÌNH TRẠNG', 'TINH TRANG']);
-  const trangThaiIdx = getHeaderIndex(['TRẠNG THÁI', 'TRANG THAI']);
+  // Map headers: SimID → simId, SỐ THUÊ BAO → displayNumber (exact match to avoid confusion with CHUẨN)
+  const simIdIdx = getHeaderIndexPartial(['SIMID', 'SIM ID', 'SimID']);
+  // CRITICAL: "SỐ THUÊ BAO" must be exact match to not accidentally match "SỐ THUÊ BAO CHUẨN"
+  const displayIdx = getHeaderIndexExact(['SỐ THUÊ BAO', 'SO THUE BAO']);
+  // rawIdx can use partial match for "CHUẨN" variants
+  const rawIdx = getHeaderIndexPartial(['SỐ THUÊ BAO CHUẨN', 'THUÊ BAO CHUẨN', 'THUE BAO CHUAN', 'SO THUE BAO CHUAN']);
+  const finalPriceIdx = getHeaderIndexPartial(['FINAL_PRICE', 'Final_Price']);
+  const priceIdx = getHeaderIndexPartial(['GIÁ BÁN', 'GIA BAN']);
+  const discountTypeIdx = getHeaderIndexPartial(['DISCOUNT_TYPE']);
+  const discountValueIdx = getHeaderIndexPartial(['DISCOUNT_VALUE']);
+  const khoIdx = getHeaderIndexPartial(['KHO']);
+  const tinhTrangIdx = getHeaderIndexPartial(['TÌNH TRẠNG', 'TINH TRANG']);
+  const trangThaiIdx = getHeaderIndexPartial(['TRẠNG THÁI', 'TRANG THAI']);
 
   for (let i = 1; i < lines.length; i++) {
     const values: string[] = [];
