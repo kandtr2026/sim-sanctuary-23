@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Header from '@/components/Header';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import { Calculator, Phone, Star, TrendingUp, Smartphone } from 'lucide-react';
+import { Calculator, Phone, Star, TrendingUp, Smartphone, ExternalLink, Loader2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -15,14 +15,16 @@ import {
 import {
   normalizePhone,
   validatePhone,
-  valuateSim,
+  valuateSimAsync,
   formatCurrencyVND,
   formatPhoneDisplay,
   type ValuationOutput,
   type Carrier,
 } from '@/lib/simValuation';
+import { getSimilarSims, type SimItem } from '@/lib/simInventorySheet';
 
 type ValuationState = 'idle' | 'loading' | 'success' | 'error';
+type SimilarState = 'idle' | 'loading' | 'success' | 'empty' | 'error';
 
 const faqData = [
   {
@@ -33,7 +35,7 @@ const faqData = [
   {
     question: 'Những yếu tố nào ảnh hưởng lớn nhất đến giá SIM?',
     answer:
-      'Các yếu tố quan trọng bao gồm: Đầu số (090/091 thường có giá cao hơn), dạng số (tứ quý, tam hoa, sảnh tiến...), tính dễ nhớ, ý nghĩa phong thủy, và độ hiếm trên thị trường.',
+      'Các yếu tố quan trọng bao gồm: Đuôi số (chiếm ~70% giá trị), dạng số (tứ quý, tam hoa, sảnh tiến...), đầu số/nhà mạng, tính dễ nhớ, và ý nghĩa phong thủy.',
   },
   {
     question: 'Vì sao cùng một số SIM nhưng giá thị trường có thể khác nhau?',
@@ -67,9 +69,12 @@ const DinhGiaSim = () => {
   const [state, setState] = useState<ValuationState>('idle');
   const [error, setError] = useState('');
   const [result, setResult] = useState<ValuationOutput | null>(null);
+  
+  // Similar SIMs state
+  const [similarState, setSimilarState] = useState<SimilarState>('idle');
+  const [similarSims, setSimilarSims] = useState<SimItem[]>([]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    // Chỉ cho phép nhập số, tự động loại bỏ ký tự khác
     const value = e.target.value.replace(/[^\d]/g, '');
     setPhone(value);
     setError('');
@@ -87,16 +92,35 @@ const DinhGiaSim = () => {
 
     setState('loading');
     setError('');
-
-    // Simulate processing delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    setSimilarState('idle');
+    setSimilarSims([]);
 
     try {
       const normalized = normalizePhone(phone);
-      const valuation = valuateSim(normalized);
+      const valuation = await valuateSimAsync(normalized);
 
       setResult(valuation);
       setState('success');
+      
+      // Load similar SIMs
+      setSimilarState('loading');
+      try {
+        const similar = await getSimilarSims({
+          phone: valuation.phone,
+          carrier: valuation.carrier,
+          tags: valuation.tags,
+          range: valuation.range,
+        });
+        
+        if (similar.length > 0) {
+          setSimilarSims(similar);
+          setSimilarState('success');
+        } else {
+          setSimilarState('empty');
+        }
+      } catch {
+        setSimilarState('error');
+      }
     } catch {
       setError('Có lỗi xảy ra khi định giá. Vui lòng thử lại.');
       setState('error');
@@ -178,7 +202,8 @@ const DinhGiaSim = () => {
               >
                 {state === 'loading' ? (
                   <>
-                    <span className="animate-pulse">Đang định giá...</span>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <span>Đang định giá...</span>
                   </>
                 ) : (
                   'Định giá SIM'
@@ -217,6 +242,23 @@ const DinhGiaSim = () => {
                     {formatCurrencyVND(result.range[0])} – {formatCurrencyVND(result.range[1])} VNĐ
                   </span>
                 </p>
+
+                {/* Market basis indicator */}
+                <div className="flex justify-center mt-3">
+                  <Badge 
+                    variant="outline" 
+                    className={`text-xs ${
+                      result.marketBasis === 'inventory-calibrated' 
+                        ? 'bg-green-500/10 text-green-600 border-green-200' 
+                        : 'bg-gray-500/10 text-gray-600 border-gray-200'
+                    }`}
+                  >
+                    <Info className="w-3 h-3 mr-1" />
+                    {result.marketBasis === 'inventory-calibrated' 
+                      ? 'Đã hiệu chỉnh theo kho SIM' 
+                      : 'Định giá theo thuật toán'}
+                  </Badge>
+                </div>
 
                 {/* Tags */}
                 {result.tags.length > 0 && (
@@ -287,7 +329,7 @@ const DinhGiaSim = () => {
             </div>
 
             {/* CTA Tư vấn */}
-            <div className="bg-card rounded-xl shadow-card border border-border p-5">
+            <div className="bg-card rounded-xl shadow-card border border-border p-5 mb-6">
               <p className="text-center text-muted-foreground mb-4">
                 Bạn muốn chốt giá hoặc cần tư vấn kỹ hơn?
               </p>
@@ -309,6 +351,99 @@ const DinhGiaSim = () => {
                   Nhận tư vấn
                 </a>
               </div>
+            </div>
+
+            {/* Similar SIMs Section */}
+            <div className="bg-card rounded-xl shadow-card border border-border p-6">
+              <h3 className="text-xl font-bold text-primary mb-6 flex items-center gap-3">
+                <span className="w-1 h-8 bg-primary rounded-full"></span>
+                SIM tương tự
+              </h3>
+
+              {similarState === 'loading' && (
+                <div className="flex items-center justify-center py-8 text-muted-foreground">
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  <span>Đang tìm SIM tương tự…</span>
+                </div>
+              )}
+
+              {similarState === 'empty' && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Chưa tìm được SIM phù hợp. Vui lòng liên hệ tư vấn.</p>
+                </div>
+              )}
+
+              {similarState === 'error' && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Không thể tải danh sách SIM tương tự.</p>
+                </div>
+              )}
+
+              {similarState === 'success' && similarSims.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {similarSims.map((sim, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-background rounded-lg border border-border p-4 hover:border-primary/50 transition-colors"
+                    >
+                      {/* Phone number */}
+                      <p className="text-lg font-bold text-primary mb-1">
+                        {formatPhoneDisplay(sim.phone)}
+                      </p>
+                      
+                      {/* Carrier */}
+                      <Badge 
+                        variant="outline" 
+                        className={`text-xs mb-2 ${carrierColors[sim.carrier]}`}
+                      >
+                        {sim.carrier}
+                      </Badge>
+                      
+                      {/* Price */}
+                      <p className="text-xl font-extrabold text-gold mb-2">
+                        {formatCurrencyVND(sim.price)} đ
+                      </p>
+                      
+                      {/* Tags */}
+                      {sim.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-3">
+                          {sim.tags.slice(0, 3).map((tag, tagIdx) => (
+                            <Badge 
+                              key={tagIdx}
+                              variant="secondary"
+                              className="text-xs bg-muted"
+                            >
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Action button */}
+                      {sim.url ? (
+                        <a
+                          href={sim.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center w-full gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary-dark text-primary-foreground text-sm font-semibold transition-colors"
+                        >
+                          Mua ngay
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full rounded-full"
+                          disabled
+                        >
+                          Liên hệ tư vấn
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
         )}
