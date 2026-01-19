@@ -55,45 +55,12 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
     return `${price.toLocaleString('vi-VN')} đ`;
   };
 
-  // Determine if this SIM has a valid promotion
-  // Only based on Final_Price < GIÁ BÁN (originalPrice), no VIP/tag dependency
-  const hasPromotion = !!(
-    promotional?.finalPrice &&
-    promotional.finalPrice > 0 &&
-    promotional?.originalPrice &&
-    promotional.originalPrice > 0 &&
-    promotional.finalPrice < promotional.originalPrice
-  );
-
-  // Calculate discount amount for badge: (GIÁ BÁN − Final_Price)
-  const getDiscountBadgeText = (): string | null => {
-    if (!hasPromotion || !promotional) return null;
-    
-    const discountAmount = promotional.originalPrice - promotional.finalPrice!;
-    
-    if (discountAmount >= 1000000000) {
-      // Billions
-      const billions = discountAmount / 1000000000;
-      const rounded = Math.round(billions * 10) / 10;
-      if (Number.isInteger(rounded)) {
-        return `Giảm ${rounded} tỷ`;
-      }
-      return `Giảm ${rounded.toString().replace('.', ',')} tỷ`;
-    }
-    
-    if (discountAmount >= 1000000) {
-      // Millions
-      const millions = discountAmount / 1000000;
-      const rounded = Math.round(millions * 10) / 10;
-      if (Number.isInteger(rounded)) {
-        return `Giảm ${rounded} triệu`;
-      }
-      return `Giảm ${rounded.toString().replace('.', ',')} triệu`;
-    }
-    
-    // Thousands
-    return `Giảm ${discountAmount.toLocaleString('vi-VN')}đ`;
-  };
+  // Giá hiển thị:
+  // - Nếu Google Sheet có Final_Price hợp lệ (>0) thì useSimData đã set vào sim.price
+  // - Nếu không có Final_Price thì sim.price = GIÁ BÁN (hoặc giá ước tính)
+  // => KHÔNG tính discount/badge ở frontend.
+  const hasPromotion = false;
+  const getDiscountBadgeText = (): string | null => null;
 
   // Highlight based on search query, or fallback to last 4 digits highlight
   const formatWithHighlight = (displayNumber: string): React.ReactNode => {
@@ -142,10 +109,9 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
 
   const quyBadgeText = getQuyBadge();
 
-  // Use sim.price as the display price (already has effective price from useSimData)
-  // If promotional data exists, use it for original/final display
+  // sim.price đã được useSimData set theo ưu tiên: Final_Price (>0) -> GIÁ BÁN
   const displayOriginalPrice = promotional?.originalPrice ?? sim.price;
-  const displayFinalPrice = promotional?.finalPrice;
+  const displayFinalPrice = undefined;
 
   return (
     <div className={cn(

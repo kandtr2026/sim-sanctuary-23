@@ -1,9 +1,9 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  normalizeSIM, 
-  searchSIM, 
+import {
+  normalizeSIM,
+  searchSIM,
   sortSIMs,
   countTags,
   getUniquePrefixes,
@@ -33,6 +33,13 @@ export const getPromotionalData = (simId: string): PromotionalData | undefined =
   return promotionalDataStore.get(simId);
 };
 
+// Parse VND-like numbers safely (handles commas, spaces, currency symbols, etc.)
+// Example: "1,200,000" -> 1200000
+const safeParseVnd = (v: unknown): number => {
+  const n = Number(String(v ?? '').replace(/[^\d]/g, ''));
+  return Number.isFinite(n) ? n : 0;
+};
+
 // Valid CSV headers to look for
 const VALID_HEADERS = [
   'SỐ THUÊ BAO', 'SO THUE BAO', 'SỐTHUÊBAO', 'SOTHUEBAO',
@@ -45,23 +52,23 @@ const validateCSV = (text: string): { valid: boolean; reason?: string } => {
   if (text.trim().startsWith('<') || text.toLowerCase().includes('<!doctype')) {
     return { valid: false, reason: 'Received HTML instead of CSV' };
   }
-  
+
   // Check for valid headers
   const upperText = text.toUpperCase();
-  const hasValidHeader = VALID_HEADERS.some(header => 
+  const hasValidHeader = VALID_HEADERS.some(header =>
     upperText.includes(header.toUpperCase())
   );
-  
+
   if (!hasValidHeader) {
     return { valid: false, reason: 'Missing required CSV headers' };
   }
-  
+
   // Check for minimum content (header + at least 1 data row)
   const lines = text.split('\n').filter(line => line.trim());
   if (lines.length < 2) {
     return { valid: false, reason: 'CSV has no data rows' };
   }
-  
+
   return { valid: true };
 };
 
@@ -70,36 +77,36 @@ const normalizeHeader = (header: string): string => {
   // Aggressive trimming and cleaning to handle CSV quirks
   const cleaned = header.trim().toUpperCase().replace(/\s+/g, ' ').replace(/_/g, ' ').trim();
   const underscored = header.trim().toUpperCase().replace(/\s+/g, '_').trim();
-  
+
   if (['SIMID', 'SIM ID', 'SIM_ID'].includes(cleaned) || underscored === 'SIMID') {
     return 'SIMID';
   }
-  
+
   if (['THUÊ BAO CHUẨN', 'THUE BAO CHUAN', 'THUÊBAOCHUẨN', 'THUEBAOCHUAN', 'SỐ THUÊ BAO CHUẨN', 'SO THUE BAO CHUAN'].includes(cleaned)) {
     return 'RAW';
   }
-  
+
   if (['SỐ THUÊ BAO', 'SO THUE BAO', 'SỐTHUÊBAO', 'SOTHUEBAO', 'SỐ ĐIỆN THOẠI', 'SO DIEN THOAI'].includes(cleaned)) {
     return 'DISPLAY';
   }
-  
+
   if (['GIÁ BÁN', 'GIA BAN', 'GIÁBAN', 'GIABAN', 'GIÁ', 'GIA', 'PRICE', 'ORIGINAL PRICE', 'ORIGINAL_PRICE'].includes(cleaned) || underscored === 'ORIGINAL_PRICE') {
     return 'ORIGINAL_PRICE';
   }
-  
+
   // Match FINAL_PRICE with various formats (underscores, spaces, etc.)
   if (['FINAL PRICE', 'FINALPRICE', 'FINAL_PRICE', 'GIÁ CUỐI', 'GIA CUOI', 'GIÁ KHUYẾN MÃI', 'GIA KHUYEN MAI'].includes(cleaned) || underscored === 'FINAL_PRICE') {
     return 'FINAL_PRICE';
   }
-  
+
   if (['DISCOUNT TYPE', 'DISCOUNT_TYPE', 'LOẠI GIẢM GIÁ', 'LOAI GIAM GIA'].includes(cleaned) || underscored === 'DISCOUNT_TYPE') {
     return 'DISCOUNT_TYPE';
   }
-  
+
   if (['DISCOUNT VALUE', 'DISCOUNT_VALUE', 'GIÁ TRỊ GIẢM', 'GIA TRI GIAM', 'MỨC GIẢM', 'MUC GIAM'].includes(cleaned) || underscored === 'DISCOUNT_VALUE') {
     return 'DISCOUNT_VALUE';
   }
-  
+
   return cleaned;
 };
 
@@ -282,11 +289,13 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
       // Ignore rows with less than 9 digits
       if (rawDigits.length < 9) return;
       
-      let originalPrice = parsePrice(originalPriceStr);
-      const finalPriceRaw = parsePrice(finalPriceStr);
+      // Prefer safe VND parsing for sheet values (handles commas/spaces/etc.)
+      let originalPrice = safeParseVnd(originalPriceStr);
+      const finalPriceRaw = safeParseVnd(finalPriceStr);
       const finalPrice = finalPriceRaw > 0 ? finalPriceRaw : undefined;
+
       const discountType = parseDiscountType(discountTypeStr) || undefined;
-      const discountValue = parsePrice(discountValueStr) || undefined;
+      const discountValue = safeParseVnd(discountValueStr) || undefined;
       
       // Count SIMs with actual discount (finalPrice < originalPrice)
       if (finalPrice && finalPrice > 0 && finalPrice < originalPrice) {
@@ -346,8 +355,8 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
         
         if (rawDigits.length < 9) return;
         
-        let originalPrice = parsePrice(originalPriceStr);
-        const finalPriceRaw = parsePrice(finalPriceStr);
+        let originalPrice = safeParseVnd(originalPriceStr);
+        const finalPriceRaw = safeParseVnd(finalPriceStr);
         const finalPrice = finalPriceRaw > 0 ? finalPriceRaw : undefined;
         
         if (!originalPrice || originalPrice <= 0) {
