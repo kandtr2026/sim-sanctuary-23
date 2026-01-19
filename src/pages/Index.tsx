@@ -198,10 +198,7 @@ const Index = () => {
           <section className="flex-1 min-w-0">
             <div className="bg-card rounded-xl shadow-card border border-border p-4 md:p-6 mb-6">
               {/* Header with sort and reload */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-              <div className="flex items-center gap-3 flex-wrap">
-                  <h2 className="text-xl font-bold text-primary">SIM Số Đẹp</h2>
-                </div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-4 mb-4">
                 <div className="hidden lg:block">
                   <SortDropdown
                     value={filters.sortBy}
@@ -214,8 +211,9 @@ const Index = () => {
               {/* Active Filters */}
               <ActiveFilterChips
                 chips={activeFilters}
-                resultCount={filteredSims.length}
+                resultCount={0}
                 onResetAll={resetFilters}
+                hideResultCount={true}
               />
 
               {/* Loading State */}

@@ -10,10 +10,12 @@ interface ActiveFilterChipsProps {
   chips: FilterChip[];
   resultCount: number;
   onResetAll: () => void;
+  hideResultCount?: boolean;
 }
 
-const ActiveFilterChips = ({ chips, resultCount, onResetAll }: ActiveFilterChipsProps) => {
+const ActiveFilterChips = ({ chips, resultCount, onResetAll, hideResultCount = false }: ActiveFilterChipsProps) => {
   if (chips.length === 0) {
+    if (hideResultCount) return null;
     return (
       <div className="flex items-center justify-between py-2">
         <span className="text-sm text-muted-foreground">
@@ -25,9 +27,11 @@ const ActiveFilterChips = ({ chips, resultCount, onResetAll }: ActiveFilterChips
 
   return (
     <div className="flex flex-wrap items-center gap-2 py-2">
-      <span className="text-sm text-muted-foreground whitespace-nowrap">
-        <strong className="text-primary">{resultCount.toLocaleString()}</strong> kết quả
-      </span>
+      {!hideResultCount && (
+        <span className="text-sm text-muted-foreground whitespace-nowrap">
+          <strong className="text-primary">{resultCount.toLocaleString()}</strong> kết quả
+        </span>
+      )}
       
       <div className="flex flex-wrap gap-2 flex-1">
         {chips.map(chip => (
