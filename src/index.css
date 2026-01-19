@@ -186,9 +186,10 @@
     color: hsl(0 0% 6%);
   }
 
-  /* Filter Button - Compact/Scaled (~50%) for sidebar */
+  /* Filter Button - Compact/Scaled for sidebar with fluid typography */
   .filter-btn-sm {
-    @apply px-1.5 py-1 rounded-md border text-[10px] font-medium transition-all duration-200;
+    @apply px-1.5 py-1 rounded-md border font-medium transition-all duration-200;
+    font-size: clamp(15px, 1.4vw, 20px);
     border-color: hsl(var(--gold));
     color: hsl(var(--gold));
     background: transparent;
