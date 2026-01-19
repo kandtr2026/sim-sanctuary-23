@@ -145,23 +145,26 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
       {hasDiscount && (
         <>
           <style>{`
-            @keyframes flashSaleBlink {
-              0%, 100% { opacity: 1; transform: scale(1); }
-              50% { opacity: 0.15; transform: scale(1.08); }
-            }
-            .flash-sale-icon {
-              animation: flashSaleBlink 0.6s ease-in-out infinite;
-              background: transparent !important;
-              border: none !important;
-              box-shadow: none !important;
-              outline: none !important;
-              padding: 0 !important;
+            @keyframes flashBlink {
+              0%   { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 0px rgba(255,255,255,0)); }
+              50%  { opacity: 0.25; transform: scale(1.18); filter: drop-shadow(0 0 10px rgba(255,255,255,0.9)); }
+              100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 0px rgba(255,255,255,0)); }
             }
           `}</style>
-          <img 
-            src="/flash-sale.png" 
-            alt="Flash Sale" 
-            className="flash-sale-icon absolute top-1 left-1 w-12 h-12 object-contain pointer-events-none z-10 block"
+          <img
+            src="/flash-sale.png"
+            alt="Flash Sale"
+            className="absolute top-2 left-2 z-20"
+            style={{
+              width: '56px',
+              height: 'auto',
+              background: 'transparent',
+              border: 'none',
+              padding: 0,
+              boxShadow: 'none',
+              animation: 'flashBlink 0.45s infinite ease-in-out',
+              pointerEvents: 'none'
+            }}
           />
         </>
       )}
