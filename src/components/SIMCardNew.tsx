@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { createHighlightedNumber } from '@/lib/highlightUtils';
-import flashSaleIcon from '@/assets/flash-sale.png';
+// Flash sale icon is now served from public folder as '/flash-sale.png'
 
 interface SIMCardNewProps {
   sim: NormalizedSIM;
@@ -147,10 +147,10 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
           <style>{`
             @keyframes flashSaleBlink {
               0%, 100% { opacity: 1; transform: scale(1); }
-              50% { opacity: 0.2; transform: scale(1.12); }
+              50% { opacity: 0.15; transform: scale(1.08); }
             }
             .flash-sale-icon {
-              animation: flashSaleBlink 0.5s ease-in-out infinite;
+              animation: flashSaleBlink 0.6s ease-in-out infinite;
               background: transparent !important;
               border: none !important;
               box-shadow: none !important;
@@ -159,9 +159,9 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
             }
           `}</style>
           <img 
-            src={flashSaleIcon} 
+            src="/flash-sale.png" 
             alt="Flash Sale" 
-            className="flash-sale-icon absolute top-1 left-1 w-10 h-10 object-contain pointer-events-none z-10 block"
+            className="flash-sale-icon absolute top-1 left-1 w-12 h-12 object-contain pointer-events-none z-10 block"
           />
         </>
       )}
