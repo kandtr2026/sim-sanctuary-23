@@ -554,6 +554,24 @@ export const useSimData = () => {
       });
     }
 
+    // Ưu tiên SIM có giảm giá thật lên đầu (stable sort - giữ nguyên thứ tự trong từng nhóm)
+    const discountedSims: NormalizedSIM[] = [];
+    const normalSims: NormalizedSIM[] = [];
+    
+    result.forEach(sim => {
+      const promoData = getPromotionalData(sim.id);
+      const originalPrice = promoData?.originalPrice;
+      const hasRealDiscount = originalPrice && originalPrice > 0 && sim.price > 0 && originalPrice > sim.price;
+      
+      if (hasRealDiscount) {
+        discountedSims.push(sim);
+      } else {
+        normalSims.push(sim);
+      }
+    });
+    
+    result = [...discountedSims, ...normalSims];
+
     return result;
   }, [allSims, filters]);
 
