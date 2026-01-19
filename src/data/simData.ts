@@ -15,17 +15,19 @@ export const detectSIMTypes = (number: string): string[] => {
   const last6 = digits.slice(-6);
   const types: string[] = [];
 
-  // Lục quý (6 same digits at end)
+  // Lục quý (6 same digits at end) - independent check
   if (/(\d)\1{5}$/.test(digits)) types.push('Lục quý');
-  // Ngũ quý (5 same digits at end)
-  else if (/(\d)\1{4}$/.test(digits)) types.push('Ngũ quý');
-  // Tứ quý (4 same digits at end)
-  else if (/(\d)\1{3}$/.test(digits)) types.push('Tứ quý');
+  // Ngũ quý (5 same digits at end) - independent check
+  if (/(\d)\1{4}$/.test(digits) && !types.includes('Lục quý')) types.push('Ngũ quý');
+  // Tứ quý (4 same digits at end) - independent check
+  if (/(\d)\1{3}$/.test(digits) && !types.includes('Lục quý') && !types.includes('Ngũ quý')) types.push('Tứ quý');
 
   // Tam hoa kép (ABC ABC at end)
   if (/(\d{3})\1$/.test(digits)) types.push('Tam hoa kép');
-  // Tam hoa (AAA at end)
-  else if (/(\d)\1{2}$/.test(digits)) types.push('Tam hoa');
+  
+  // Tam hoa - detect 3 identical consecutive digits ANYWHERE in the number
+  // This allows Tam hoa to coexist with Tứ quý/Ngũ quý/Lục quý
+  if (/(\d)\1{2}/.test(digits)) types.push('Tam hoa');
 
   // Lộc phát patterns
   if (/68$|86$|688$|868$|886$|6868$/.test(digits)) types.push('Lộc phát');
@@ -39,7 +41,7 @@ export const detectSIMTypes = (number: string): string[] => {
   if (last4.length === 4 && last4[0] === last4[3] && last4[1] === last4[2] && last4[0] !== last4[1]) types.push('Gánh đảo');
 
   // Lặp kép (AABB at end)
-  if (/(\d)\1(\d)\2$/.test(digits) && !types.includes('Tứ quý')) types.push('Lặp kép');
+  if (/(\d)\1(\d)\2$/.test(digits) && !types.includes('Tứ quý') && !types.includes('Ngũ quý') && !types.includes('Lục quý')) types.push('Lặp kép');
 
   // Năm sinh (1980-2010 anywhere)
   for (let year = 1980; year <= 2010; year++) {
@@ -50,7 +52,7 @@ export const detectSIMTypes = (number: string): string[] => {
   }
 
   // Dễ nhớ (repeating patterns like ABAB)
-  if (/(\d{2})\1$/.test(last4) && !types.includes('Lặp kép') && !types.includes('Tứ quý')) {
+  if (/(\d{2})\1$/.test(last4) && !types.includes('Lặp kép') && !types.includes('Tứ quý') && !types.includes('Ngũ quý') && !types.includes('Lục quý')) {
     types.push('Dễ nhớ');
   }
 
