@@ -67,9 +67,11 @@ const validateCSV = (text: string): { valid: boolean; reason?: string } => {
 
 // Header normalization mapping
 const normalizeHeader = (header: string): string => {
-  const cleaned = header.trim().toUpperCase().replace(/\s+/g, ' ');
+  // Aggressive trimming and cleaning to handle CSV quirks
+  const cleaned = header.trim().toUpperCase().replace(/\s+/g, ' ').replace(/_/g, ' ').trim();
+  const underscored = header.trim().toUpperCase().replace(/\s+/g, '_').trim();
   
-  if (['SIMID', 'SIM ID', 'SIM_ID'].includes(cleaned)) {
+  if (['SIMID', 'SIM ID', 'SIM_ID'].includes(cleaned) || underscored === 'SIMID') {
     return 'SIMID';
   }
   
@@ -81,19 +83,20 @@ const normalizeHeader = (header: string): string => {
     return 'DISPLAY';
   }
   
-  if (['GIÁ BÁN', 'GIA BAN', 'GIÁBAN', 'GIABAN', 'GIÁ', 'GIA', 'PRICE', 'ORIGINAL_PRICE'].includes(cleaned)) {
+  if (['GIÁ BÁN', 'GIA BAN', 'GIÁBAN', 'GIABAN', 'GIÁ', 'GIA', 'PRICE', 'ORIGINAL PRICE', 'ORIGINAL_PRICE'].includes(cleaned) || underscored === 'ORIGINAL_PRICE') {
     return 'ORIGINAL_PRICE';
   }
   
-  if (['FINAL_PRICE', 'GIÁ CUỐI', 'GIA CUOI', 'GIÁ KHUYẾN MÃI', 'GIA KHUYEN MAI'].includes(cleaned)) {
+  // Match FINAL_PRICE with various formats (underscores, spaces, etc.)
+  if (['FINAL PRICE', 'FINALPRICE', 'FINAL_PRICE', 'GIÁ CUỐI', 'GIA CUOI', 'GIÁ KHUYẾN MÃI', 'GIA KHUYEN MAI'].includes(cleaned) || underscored === 'FINAL_PRICE') {
     return 'FINAL_PRICE';
   }
   
-  if (['DISCOUNT_TYPE', 'LOẠI GIẢM GIÁ', 'LOAI GIAM GIA'].includes(cleaned)) {
+  if (['DISCOUNT TYPE', 'DISCOUNT_TYPE', 'LOẠI GIẢM GIÁ', 'LOAI GIAM GIA'].includes(cleaned) || underscored === 'DISCOUNT_TYPE') {
     return 'DISCOUNT_TYPE';
   }
   
-  if (['DISCOUNT_VALUE', 'GIÁ TRỊ GIẢM', 'GIA TRI GIAM', 'MỨC GIẢM', 'MUC GIAM'].includes(cleaned)) {
+  if (['DISCOUNT VALUE', 'DISCOUNT_VALUE', 'GIÁ TRỊ GIẢM', 'GIA TRI GIAM', 'MỨC GIẢM', 'MUC GIAM'].includes(cleaned) || underscored === 'DISCOUNT_VALUE') {
     return 'DISCOUNT_VALUE';
   }
   
@@ -122,7 +125,8 @@ const parseCSV = (csvText: string): Record<string, string>[] => {
   if (lines.length < 2) return [];
 
   const headerLine = lines[0].replace(/^\uFEFF/, '');
-  const rawHeaders = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  // Trim all headers properly to avoid key mismatch (e.g., "Final_Price " vs "Final_Price")
+  const rawHeaders = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, '').trim());
   const headers = rawHeaders.map(normalizeHeader);
   
   const rows: Record<string, string>[] = [];
@@ -260,6 +264,9 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
     const sims: NormalizedSIM[] = [];
     const promotionalDataMap = new Map<string, PromotionalData>();
     
+    // Track discount count for verification
+    let discountCount = 0;
+    
     rows.forEach((row, index) => {
       // Use SimID from Google Sheet if available, otherwise generate one
       const sheetSimId = row['SIMID'] || '';
@@ -280,6 +287,11 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
       const finalPrice = finalPriceRaw > 0 ? finalPriceRaw : undefined;
       const discountType = parseDiscountType(discountTypeStr) || undefined;
       const discountValue = parsePrice(discountValueStr) || undefined;
+      
+      // Count SIMs with actual discount (finalPrice < originalPrice)
+      if (finalPrice && finalPrice > 0 && finalPrice < originalPrice) {
+        discountCount++;
+      }
       
       // Estimate price if original price is missing or invalid
       if (!originalPrice || originalPrice <= 0) {
@@ -306,7 +318,7 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
     // Update module-level promotional data store
     promotionalDataStore = promotionalDataMap;
     
-    console.log(`[SIM] Normalized ${sims.length} SIMs`);
+    console.log(`[SIM] Normalized ${sims.length} SIMs, ${discountCount} with discounts`);
     
     if (sims.length > 0) {
       saveToCache(sims);
