@@ -156,25 +156,19 @@ export const detectSimTags = (rawDigits: string): string[] => {
   } else if (allSameLast4) {
     tags.push('Tứ quý');
   } else if (allSameLast3) {
-    // Check for Tam hoa kép patterns first
-    const isTamHoaKep = 
-      /^(\d{3})\1$/.test(last6) || // abcabc like 123123
-      /^(\d{2})\1\1$/.test(last6) || // ababab like 121212
-      (last6[0] === last6[2] && last6[2] === last6[4] && 
-       last6[1] === last6[3] && last6[3] === last6[5] && 
-       last6[0] !== last6[1]); // xyxyxy pattern
-    
-    if (isTamHoaKep) {
-      tags.push('Tam hoa kép');
-    } else {
-      tags.push('Tam hoa');
-    }
+    tags.push('Tam hoa');
   }
 
-  // Also check for Tam hoa kép patterns that don't end in tam hoa
-  if (!tags.includes('Tam hoa kép') && !tags.some(t => t.includes('quý'))) {
-    if (/^(\d{2})\1\1$/.test(last6) || /^(\d{3})\1$/.test(last6)) {
-      tags.push('Tam hoa kép');
+  // Tam hoa kép = 2 distinct triple digits anywhere in 10 digits
+  // Find all triple occurrences (ddd) and check if there are at least 2 different digits
+  if (!tags.some(t => t.includes('quý'))) {
+    const tripleMatches = rawDigits.match(/(\d)\1{2}/g);
+    if (tripleMatches && tripleMatches.length >= 2) {
+      // Extract the digit from each triple and put into a Set for distinct count
+      const distinctTripleDigits = new Set(tripleMatches.map(m => m[0]));
+      if (distinctTripleDigits.size >= 2) {
+        tags.push('Tam hoa kép');
+      }
     }
   }
 
