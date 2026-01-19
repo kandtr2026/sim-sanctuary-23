@@ -109,9 +109,12 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
 
   const quyBadgeText = getQuyBadge();
 
-  // sim.price đã được useSimData set theo ưu tiên: Final_Price (>0) -> GIÁ BÁN
-  const displayOriginalPrice = promotional?.originalPrice ?? sim.price;
-  const displayFinalPrice = undefined;
+  // sim.price = giá hiển thị chính (Final_Price nếu hợp lệ, ngược lại GIÁ BÁN)
+  // promotional?.originalPrice = GIÁ BÁN gốc từ Google Sheet
+  // Hiển thị giá gạch ngang khi: originalPrice tồn tại, > 0, và > sim.price
+  const originalPrice = promotional?.originalPrice;
+  const hasDiscount = originalPrice && originalPrice > 0 && sim.price > 0 && originalPrice > sim.price;
+
 
   return (
     <div className={cn(
@@ -193,24 +196,16 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
       {/* Price and CTA - Scaled down */}
       <div className="flex items-center justify-between">
         <div className="flex flex-col">
-          {/* Promotional Price Display */}
-          {hasPromotion && displayFinalPrice ? (
-            <>
-              {/* Original price - strikethrough, muted */}
-              <span className="text-[10px] text-muted-foreground line-through opacity-70">
-                {formatPrice(displayOriginalPrice)}
-              </span>
-              {/* Final price - emphasized */}
-              <span className="text-sm font-bold text-cta animate-price-pulse">
-                {formatPrice(displayFinalPrice)}
-              </span>
-            </>
-          ) : (
-            /* Regular price display - use sim.price which is the effective price */
-            <span className="text-sm font-bold text-cta">
-              {formatPrice(sim.price)}
+          {/* Hiển thị giá gốc gạch ngang khi có giảm giá */}
+          {hasDiscount && (
+            <span className="text-[10px] text-muted-foreground line-through opacity-70">
+              {formatPrice(originalPrice)}
             </span>
           )}
+          {/* Giá chính (Final_Price hoặc GIÁ BÁN) */}
+          <span className="text-sm font-bold text-cta">
+            {formatPrice(sim.price)}
+          </span>
         </div>
         <button 
           onClick={handleBuyClick}
