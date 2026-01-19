@@ -4,9 +4,9 @@ const Footer = () => {
   return (
     <footer className="bg-header-bg text-header-foreground">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6 items-start justify-items-start">
           {/* Brand */}
-          <div className="w-full min-w-0">
+          <div className="w-full min-w-0 lg:pr-4">
             <h3 className="text-xl font-bold mb-4">
               <span className="text-gold">CHONSO</span>
               <span className="text-primary">MOBIFONE</span>
@@ -22,7 +22,7 @@ const Footer = () => {
           </div>
 
           {/* Policies */}
-          <div className="w-full min-w-0">
+          <div className="w-full min-w-0 lg:px-2">
             <h4 className="text-lg font-bold mb-4 text-gold uppercase">CHÍNH SÁCH</h4>
             <ul className="space-y-2 text-sm text-header-foreground/70">
               <li><a href="#" className="hover:text-gold transition-colors">Chính sách bảo mật</a></li>
@@ -34,7 +34,7 @@ const Footer = () => {
           </div>
 
           {/* Store Locations */}
-          <div className="w-full min-w-0">
+          <div className="w-full min-w-0 lg:px-2">
             <h4 className="text-lg font-bold mb-4 text-gold uppercase">ĐỊA CHỈ CỬA HÀNG</h4>
             <ul className="space-y-3 text-sm text-header-foreground/70">
               <li className="flex items-start gap-2">
@@ -45,7 +45,7 @@ const Footer = () => {
           </div>
 
           {/* Contact */}
-          <div className="w-full min-w-0">
+          <div className="w-full min-w-0 lg:pl-4">
             <h4 className="text-lg font-bold mb-4 text-gold uppercase">LIÊN HỆ</h4>
             <ul className="space-y-3 text-sm text-header-foreground/70">
               <li className="flex items-center gap-2">
