@@ -55,12 +55,23 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
     return `${price.toLocaleString('vi-VN')} đ`;
   };
 
-  // Giá hiển thị:
-  // - Nếu Google Sheet có Final_Price hợp lệ (>0) thì useSimData đã set vào sim.price
-  // - Nếu không có Final_Price thì sim.price = GIÁ BÁN (hoặc giá ước tính)
-  // => KHÔNG tính discount/badge ở frontend.
-  const hasPromotion = false;
-  const getDiscountBadgeText = (): string | null => null;
+  // Format discount amount for badge (e.g., "Giảm 10 triệu")
+  const formatDiscountAmount = (amount: number): string => {
+    if (amount >= 1000000) {
+      const millions = amount / 1000000;
+      const rounded = Math.round(millions * 10) / 10;
+      if (Number.isInteger(rounded)) {
+        return `Giảm ${rounded} triệu`;
+      }
+      return `Giảm ${rounded.toString().replace('.', ',')} triệu`;
+    }
+    // Dưới 1 triệu: làm tròn lên 1 triệu hoặc hiển thị theo nghìn
+    if (amount >= 500000) {
+      return 'Giảm 1 triệu';
+    }
+    const thousands = Math.round(amount / 1000);
+    return `Giảm ${thousands}k`;
+  };
 
   // Highlight based on search query, or fallback to last 4 digits highlight
   const formatWithHighlight = (displayNumber: string): React.ReactNode => {
@@ -95,7 +106,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
     Khác: 'bg-gray-500 text-white'
   };
 
-  const discountBadgeText = getDiscountBadgeText();
+  // Discount badge text is now computed from promotional data
 
   // Compute quý badge text at render time (position-agnostic)
   const getQuyBadge = (): string | null => {
@@ -111,15 +122,16 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
 
   // sim.price = giá hiển thị chính (Final_Price nếu hợp lệ, ngược lại GIÁ BÁN)
   // promotional?.originalPrice = GIÁ BÁN gốc từ Google Sheet
-  // Hiển thị giá gạch ngang khi: originalPrice tồn tại, > 0, và > sim.price
+  // Hiển thị giá gạch ngang và badge giảm giá khi: originalPrice tồn tại, > 0, và > sim.price
   const originalPrice = promotional?.originalPrice;
   const hasDiscount = originalPrice && originalPrice > 0 && sim.price > 0 && originalPrice > sim.price;
-
+  const discountAmount = hasDiscount ? originalPrice - sim.price : 0;
+  const discountBadgeText = hasDiscount ? formatDiscountAmount(discountAmount) : null;
 
   return (
     <div className={cn(
       "sim-card-compact group relative overflow-hidden",
-      hasPromotion && "ring-1 ring-cta/30 shadow-promo-sm"
+      hasDiscount && "ring-1 ring-cta/30 shadow-promo-sm"
     )}>
       {/* VIP Badge - Scaled down */}
       {sim.isVIP && (
