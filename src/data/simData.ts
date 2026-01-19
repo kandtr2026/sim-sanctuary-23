@@ -22,12 +22,23 @@ export const detectSIMTypes = (number: string): string[] => {
   // Tứ quý (4 same digits at end) - independent check
   if (/(\d)\1{3}$/.test(digits) && !types.includes('Lục quý') && !types.includes('Ngũ quý')) types.push('Tứ quý');
 
-  // Tam hoa kép (ABC ABC at end)
-  if (/(\d{3})\1$/.test(digits)) types.push('Tam hoa kép');
+  // Tam hoa / Tam hoa kép detection
+  // Find all triple identical consecutive digits (xxx) anywhere in the number
+  // Count distinct digits that form triples
+  const tripleMatches = digits.match(/(\d)\1{2}/g) || [];
+  const distinctTripleDigits = new Set<string>();
+  for (const match of tripleMatches) {
+    distinctTripleDigits.add(match[0]); // Add the digit that forms the triple
+  }
   
-  // Tam hoa - detect 3 identical consecutive digits ANYWHERE in the number
-  // This allows Tam hoa to coexist with Tứ quý/Ngũ quý/Lục quý
-  if (/(\d)\1{2}/.test(digits)) types.push('Tam hoa');
+  // Apply tagging logic:
+  // - If 2+ distinct triple digits → "Tam hoa kép" only
+  // - If exactly 1 distinct triple digit → "Tam hoa" only
+  if (distinctTripleDigits.size >= 2) {
+    types.push('Tam hoa kép');
+  } else if (distinctTripleDigits.size === 1) {
+    types.push('Tam hoa');
+  }
 
   // Lộc phát patterns
   if (/68$|86$|688$|868$|886$|6868$/.test(digits)) types.push('Lộc phát');
