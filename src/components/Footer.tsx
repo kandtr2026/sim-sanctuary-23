@@ -17,13 +17,13 @@ const Footer = () => {
             </p>
             <div className="flex items-center gap-2 text-gold">
               <Phone className="w-4 h-4" />
-              <span className="font-bold">0909.888.888</span>
+              <span className="font-bold">0938.868.868</span>
             </div>
           </div>
 
           {/* Policies */}
           <div>
-            <h4 className="text-lg font-semibold mb-4 text-primary">Chính Sách</h4>
+            <h4 className="text-lg font-bold mb-4 text-gold uppercase">CHÍNH SÁCH</h4>
             <ul className="space-y-2 text-sm text-header-foreground/70">
               <li><a href="#" className="hover:text-gold transition-colors">Chính sách bảo mật</a></li>
               <li><a href="#" className="hover:text-gold transition-colors">Điều khoản sử dụng</a></li>
@@ -35,30 +35,22 @@ const Footer = () => {
 
           {/* Store Locations */}
           <div>
-            <h4 className="text-lg font-semibold mb-4 text-primary">Hệ Thống Cửa Hàng</h4>
+            <h4 className="text-lg font-bold mb-4 text-gold uppercase">ĐỊA CHỈ CỬA HÀNG</h4>
             <ul className="space-y-3 text-sm text-header-foreground/70">
               <li className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 mt-0.5 text-gold flex-shrink-0" />
-                <span><strong>Hà Nội:</strong> 123 Cầu Giấy, Q. Cầu Giấy</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 mt-0.5 text-gold flex-shrink-0" />
-                <span><strong>TP.HCM:</strong> 456 Nguyễn Văn Linh, Q.7</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 mt-0.5 text-gold flex-shrink-0" />
-                <span><strong>Đà Nẵng:</strong> 789 Nguyễn Văn Thoại</span>
+                <span>43A Đường số 9 Phường Tân Hưng TPHCM</span>
               </li>
             </ul>
           </div>
 
           {/* Contact */}
           <div>
-            <h4 className="text-lg font-semibold mb-4 text-primary">Liên Hệ</h4>
+            <h4 className="text-lg font-bold mb-4 text-gold uppercase">LIÊN HỆ</h4>
             <ul className="space-y-3 text-sm text-header-foreground/70">
               <li className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-gold" />
-                <span>Hotline: 0909.888.888</span>
+                <span>Hotline: 0938.868.868</span>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-gold" />
