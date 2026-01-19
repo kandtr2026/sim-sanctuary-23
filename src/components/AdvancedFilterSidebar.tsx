@@ -164,7 +164,7 @@ const AdvancedFilterSidebar = ({
       <FilterSection title="SIM số quý">
         <div className="space-y-1.5">
           {/* Main quý type buttons - no position sub-filters */}
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-col gap-1">
             {quyTypes.map(quyType => {
               const isSelected = filters.quyType === quyType;
               return (
@@ -180,7 +180,7 @@ const AdvancedFilterSidebar = ({
           </div>
           
           {/* Other quý-related tags (Tam hoa, Tam hoa kép) */}
-          <div className="flex flex-wrap gap-1 pt-1.5 border-t border-border/50">
+          <div className="flex flex-col gap-1 pt-1.5 border-t border-border/50">
             {otherQuyTags.map(tag => (
               <button
                 key={tag}
@@ -196,7 +196,7 @@ const AdvancedFilterSidebar = ({
 
       {/* Tag Filter - Phong thủy */}
       <FilterSection title="SIM phong thủy">
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-col gap-1">
           {phongThuyTags.map(tag => (
             <button
               key={tag}
