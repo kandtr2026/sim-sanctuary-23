@@ -206,24 +206,29 @@ export const detectSimTags = (rawDigits: string): string[] => {
     tags.push('Năm sinh');
   }
 
-  // Dễ nhớ (ABAB patterns) - only if not already tagged with quý/lặp
-  if (!tags.some(t => ['Lặp kép', 'Tứ quý', 'Ngũ quý', 'Lục quý', 'Tam hoa kép'].includes(t))) {
+  // Taxi = ABABAB or ABCABC on last 6 digits
+  const tail6 = rawDigits.slice(-6);
+  // Taxi 2: ABABAB (ab.ab.ab) - positions 0,2,4 same AND 1,3,5 same AND different digits
+  const isTaxi2 = tail6.length === 6 &&
+    tail6[0] === tail6[2] && tail6[2] === tail6[4] &&
+    tail6[1] === tail6[3] && tail6[3] === tail6[5] &&
+    tail6[0] !== tail6[1];
+  // Taxi 3: ABCABC (abc.abc) - first 3 = last 3, and block is NOT all same digit
+  const block3a = tail6.slice(0, 3);
+  const block3b = tail6.slice(3, 6);
+  const isAllSameDigit = block3a[0] === block3a[1] && block3a[1] === block3a[2];
+  const isTaxi3 = tail6.length === 6 &&
+    block3a === block3b &&
+    !isAllSameDigit;
+  if (isTaxi2 || isTaxi3) {
+    tags.push('Taxi');
+  }
+
+  // Dễ nhớ (ABAB patterns) - only if not already tagged with quý/lặp/Taxi
+  if (!tags.some(t => ['Lặp kép', 'Tứ quý', 'Ngũ quý', 'Lục quý', 'Tam hoa kép', 'Taxi'].includes(t))) {
     // ABAB pattern in last 4
     if (/^(\d{2})\1$/.test(last4)) {
       tags.push('Dễ nhớ');
-    }
-    // ABCABC pattern in last 6
-    else if (/^(\d{3})\1$/.test(last6)) {
-      tags.push('Dễ nhớ');
-    }
-  }
-
-  // Taxi (has readable digit groups) - only if no other tags
-  if (tags.length === 0) {
-    // Check for patterns with repeating pairs
-    const groups = last6.match(/(\d)\1+/g);
-    if (groups && groups.some(g => g.length >= 2)) {
-      tags.push('Taxi');
     }
   }
 
