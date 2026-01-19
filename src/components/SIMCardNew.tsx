@@ -143,11 +143,27 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
 
       {/* Flash Sale Icon - Only shown for discounted SIMs */}
       {hasDiscount && (
-        <img 
-          src={flashSaleIcon} 
-          alt="Flash Sale" 
-          className="absolute top-1 left-1 w-10 h-10 object-contain pointer-events-none z-10"
-        />
+        <>
+          <style>{`
+            @keyframes flashSaleBlink {
+              0%, 100% { opacity: 1; transform: scale(1); }
+              50% { opacity: 0.2; transform: scale(1.12); }
+            }
+            .flash-sale-icon {
+              animation: flashSaleBlink 0.5s ease-in-out infinite;
+              background: transparent !important;
+              border: none !important;
+              box-shadow: none !important;
+              outline: none !important;
+              padding: 0 !important;
+            }
+          `}</style>
+          <img 
+            src={flashSaleIcon} 
+            alt="Flash Sale" 
+            className="flash-sale-icon absolute top-1 left-1 w-10 h-10 object-contain pointer-events-none z-10 block"
+          />
+        </>
       )}
 
       {/* Network Badge + Quý Position Badge - Responsive scaling */}
