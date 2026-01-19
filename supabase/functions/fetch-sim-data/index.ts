@@ -6,7 +6,7 @@ const corsHeaders = {
 };
 
 // Google Sheets CSV URL
-const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1to6-kNir9gGp9x1oWKYqALUreupHdD7E/export?format=csv&gid=139400129';
+const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y/export?format=csv&gid=139400129';
 
 // Invalid CSV patterns (HTML responses, login pages, etc.)
 const INVALID_CSV_PATTERNS = [
