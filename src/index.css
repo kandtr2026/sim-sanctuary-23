@@ -3,82 +3,83 @@
 @tailwind utilities;
 
 /* CHONSOMOBIFONE.COM - Premium SIM Selling Design System */
+/* RED – GOLD – BLACK Theme */
 
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
-    /* Background & Layout */
-    --background: 40 33% 97%; /* #FAF9F6 warm off-white */
-    --background-secondary: 130 18% 94%; /* #EEF3EF light sage */
-    --foreground: 0 0% 17%; /* #2B2B2B dark charcoal */
+    /* Background & Layout - Dark Theme */
+    --background: 0 0% 6%; /* #0F0F0F base black */
+    --background-secondary: 0 0% 10%; /* #1A1A1A dark gray */
+    --foreground: 0 0% 100%; /* #FFFFFF white text */
 
-    /* Cards & Surfaces */
-    --card: 0 0% 100%; /* Pure white */
-    --card-foreground: 0 0% 17%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 17%;
+    /* Cards & Surfaces - Dark Gray */
+    --card: 0 0% 10%; /* #1A1A1A dark gray */
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 100%;
 
-    /* Brand Colors */
-    --primary: 155 22% 47%; /* #5F8F7A sage green */
+    /* Brand Colors - Primary Red */
+    --primary: 358 82% 43%; /* #C4161C primary red */
     --primary-foreground: 0 0% 100%;
-    --primary-light: 155 22% 92%;
-    --primary-dark: 155 25% 35%;
+    --primary-light: 358 82% 55%;
+    --primary-dark: 358 82% 35%;
 
     /* Accent Gold */
-    --gold: 40 50% 54%; /* #C9A24D champagne gold */
-    --gold-light: 40 50% 70%;
-    --gold-dark: 40 55% 40%;
+    --gold: 44 99% 48%; /* #F5B301 accent gold */
+    --gold-light: 44 99% 60%;
+    --gold-dark: 44 99% 40%;
 
-    /* CTA Terracotta */
-    --cta: 14 66% 62%; /* #E07A5F terracotta */
+    /* CTA - Using Primary Red */
+    --cta: 358 82% 43%; /* #C4161C primary red */
     --cta-foreground: 0 0% 100%;
-    --cta-hover: 14 66% 55%;
+    --cta-hover: 358 82% 38%;
 
     /* Secondary & Muted */
-    --secondary: 130 18% 94%;
-    --secondary-foreground: 0 0% 17%;
-    --muted: 0 0% 90%; /* #E5E5E5 */
-    --muted-foreground: 0 0% 44%; /* #6F6F6F */
-    --meta: 0 0% 60%; /* #9A9A9A */
+    --secondary: 0 0% 16%; /* #2A2A2A */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 16%; /* #2A2A2A */
+    --muted-foreground: 0 0% 70%; /* #B3B3B3 */
+    --meta: 0 0% 70%; /* #B3B3B3 */
 
     /* UI Elements */
-    --accent: 155 22% 47%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
+    --accent: 44 99% 48%; /* Gold accent */
+    --accent-foreground: 0 0% 6%;
+    --destructive: 358 82% 43%;
     --destructive-foreground: 0 0% 100%;
-    --border: 30 10% 90%;
-    --input: 30 10% 90%;
-    --ring: 155 22% 47%;
+    --border: 0 0% 20%;
+    --input: 0 0% 16%;
+    --ring: 44 99% 48%;
 
     --radius: 0.75rem;
 
     /* Header */
-    --header-bg: 0 0% 17%;
+    --header-bg: 0 0% 6%;
     --header-foreground: 0 0% 100%;
 
-    /* Shadows */
-    --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.08);
-    --shadow-card: 0 4px 16px -4px hsl(0 0% 0% / 0.1);
-    --shadow-elevated: 0 8px 24px -8px hsl(0 0% 0% / 0.12);
-    --shadow-glow-gold: 0 0 20px -5px hsl(40 50% 54% / 0.3);
-    --shadow-glow-primary: 0 0 20px -5px hsl(155 22% 47% / 0.3);
+    /* Shadows - Adjusted for dark theme */
+    --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.4);
+    --shadow-card: 0 4px 16px -4px hsl(0 0% 0% / 0.5);
+    --shadow-elevated: 0 8px 24px -8px hsl(0 0% 0% / 0.6);
+    --shadow-glow-gold: 0 0 20px -5px hsl(44 99% 48% / 0.4);
+    --shadow-glow-primary: 0 0 20px -5px hsl(358 82% 43% / 0.4);
 
-    /* Sidebar */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 17%;
-    --sidebar-primary: 155 22% 47%;
+    /* Sidebar - Dark Theme */
+    --sidebar-background: 0 0% 10%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 358 82% 43%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 130 18% 94%;
-    --sidebar-accent-foreground: 0 0% 17%;
-    --sidebar-border: 30 10% 90%;
-    --sidebar-ring: 155 22% 47%;
+    --sidebar-accent: 0 0% 16%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 44 99% 48%;
   }
 
   .dark {
-    /* Keep same colors - no dark mode per requirements */
-    --background: 40 33% 97%;
-    --foreground: 0 0% 17%;
+    /* Same as root - dark theme by default */
+    --background: 0 0% 6%;
+    --foreground: 0 0% 100%;
   }
 }
 
@@ -102,14 +103,14 @@
   .sim-number {
     @apply text-2xl md:text-3xl font-bold tracking-wide;
     color: hsl(var(--gold));
-    text-shadow: 0 2px 4px hsl(0 0% 0% / 0.1);
+    text-shadow: 0 2px 4px hsl(0 0% 0% / 0.3);
   }
 
   /* SIM Number Display - Compact/Scaled (~50%) */
   .sim-number-sm {
     @apply text-base md:text-lg font-bold tracking-wide;
     color: hsl(var(--gold));
-    text-shadow: 0 1px 2px hsl(0 0% 0% / 0.1);
+    text-shadow: 0 1px 2px hsl(0 0% 0% / 0.3);
   }
 
   /* SIM Number Display - Auto-resize based on container (optimized for 4 columns) */
@@ -119,7 +120,7 @@
     line-height: 1.1;
     letter-spacing: 0.02em;
     color: hsl(var(--gold));
-    text-shadow: 0 1px 2px hsl(0 0% 0% / 0.1);
+    text-shadow: 0 1px 2px hsl(0 0% 0% / 0.3);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -146,7 +147,7 @@
     background: linear-gradient(180deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%);
     box-shadow: 
       0 2px 0 hsl(var(--primary-dark)),
-      0 4px 8px -2px hsl(0 0% 0% / 0.2),
+      0 4px 8px -2px hsl(0 0% 0% / 0.4),
       inset 0 1px 0 hsl(var(--primary-light) / 0.3);
   }
 
@@ -154,7 +155,7 @@
     transform: translateY(-1px);
     box-shadow: 
       0 3px 0 hsl(var(--primary-dark)),
-      0 6px 12px -2px hsl(0 0% 0% / 0.25),
+      0 6px 12px -2px hsl(0 0% 0% / 0.5),
       inset 0 1px 0 hsl(var(--primary-light) / 0.4);
   }
 
@@ -162,90 +163,96 @@
     transform: translateY(1px);
     box-shadow: 
       0 1px 0 hsl(var(--primary-dark)),
-      0 2px 4px -2px hsl(0 0% 0% / 0.2),
+      0 2px 4px -2px hsl(0 0% 0% / 0.4),
       inset 0 1px 0 hsl(var(--primary-light) / 0.2);
   }
 
   /* Filter Button */
   .filter-btn {
     @apply px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-200;
-    border-color: hsl(var(--primary));
-    color: hsl(var(--primary));
+    border-color: hsl(var(--gold));
+    color: hsl(var(--gold));
+    background: transparent;
   }
 
   .filter-btn:hover {
-    @apply bg-primary text-primary-foreground;
+    background: hsl(var(--gold) / 0.1);
     transform: translateY(-2px);
     box-shadow: var(--shadow-card);
   }
 
   .filter-btn.active {
-    @apply bg-primary text-primary-foreground;
+    background: hsl(var(--gold));
+    color: hsl(0 0% 6%);
   }
 
   /* Filter Button - Compact/Scaled (~50%) for sidebar */
   .filter-btn-sm {
     @apply px-1.5 py-1 rounded-md border text-[10px] font-medium transition-all duration-200;
-    border-color: hsl(var(--primary));
-    color: hsl(var(--primary));
+    border-color: hsl(var(--gold));
+    color: hsl(var(--gold));
+    background: transparent;
   }
 
   .filter-btn-sm:hover {
-    @apply bg-primary text-primary-foreground;
+    background: hsl(var(--gold) / 0.1);
     transform: translateY(-1px);
     box-shadow: var(--shadow-soft);
   }
 
   .filter-btn-sm.active {
-    @apply bg-primary text-primary-foreground;
+    background: hsl(var(--gold));
+    color: hsl(0 0% 6%);
   }
 
   /* CTA Button - Original */
   .btn-cta {
     @apply px-6 py-3 rounded-lg font-semibold transition-all duration-200;
-    background: linear-gradient(180deg, hsl(var(--cta)) 0%, hsl(var(--cta-hover)) 100%);
-    color: hsl(var(--cta-foreground));
+    background: linear-gradient(180deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%);
+    color: hsl(var(--primary-foreground));
     box-shadow: 
-      0 2px 0 hsl(14 66% 45%),
-      0 4px 12px -2px hsl(14 66% 50% / 0.4);
+      0 2px 0 hsl(358 82% 30%),
+      0 4px 12px -2px hsl(358 82% 43% / 0.5);
   }
 
   .btn-cta:hover {
     transform: translateY(-2px);
+    background: linear-gradient(180deg, hsl(var(--primary-light)) 0%, hsl(var(--primary)) 100%);
     box-shadow: 
-      0 4px 0 hsl(14 66% 45%),
-      0 8px 20px -4px hsl(14 66% 50% / 0.5);
+      0 4px 0 hsl(358 82% 30%),
+      0 8px 20px -4px hsl(358 82% 43% / 0.6);
   }
 
   .btn-cta:active {
     transform: translateY(1px);
     box-shadow: 
-      0 1px 0 hsl(14 66% 45%),
-      0 2px 8px -2px hsl(14 66% 50% / 0.3);
+      0 1px 0 hsl(358 82% 30%),
+      0 2px 8px -2px hsl(358 82% 43% / 0.4);
   }
 
   /* CTA Button - Compact/Scaled (~50%) */
   .btn-cta-sm {
     @apply px-2 py-1 rounded-md font-semibold transition-all duration-200;
-    background: linear-gradient(180deg, hsl(var(--cta)) 0%, hsl(var(--cta-hover)) 100%);
-    color: hsl(var(--cta-foreground));
+    background: linear-gradient(180deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%);
+    color: hsl(var(--primary-foreground));
     box-shadow: 
-      0 1px 0 hsl(14 66% 45%),
-      0 2px 6px -1px hsl(14 66% 50% / 0.4);
+      0 1px 0 hsl(358 82% 30%),
+      0 2px 6px -1px hsl(358 82% 43% / 0.5);
   }
 
   .btn-cta-sm:hover {
     transform: translateY(-1px);
+    background: linear-gradient(180deg, hsl(var(--primary-light)) 0%, hsl(var(--primary)) 100%);
     box-shadow: 
-      0 2px 0 hsl(14 66% 45%),
-      0 4px 10px -2px hsl(14 66% 50% / 0.5);
+      0 2px 0 hsl(358 82% 30%),
+      0 4px 10px -2px hsl(358 82% 43% / 0.6);
   }
 
   .btn-cta-sm:active {
     transform: translateY(0.5px);
     box-shadow: 
-      0 0.5px 0 hsl(14 66% 45%),
-      0 1px 4px -1px hsl(14 66% 50% / 0.3);
+      0 0.5px 0 hsl(358 82% 30%),
+      0 1px 4px -1px hsl(358 82% 43% / 0.4);
   }
 
   /* SIM Card - Original */
@@ -258,6 +265,7 @@
   .sim-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-elevated);
+    border-color: hsl(var(--gold) / 0.3);
   }
 
   /* SIM Card - Compact/Scaled (~50% content) */
@@ -270,64 +278,67 @@
   .sim-card-compact:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-card);
+    border-color: hsl(var(--gold) / 0.3);
   }
 
   /* Badge Styles - Original */
   .badge-vip {
     @apply px-2 py-0.5 rounded-full text-xs font-semibold;
     background: linear-gradient(135deg, hsl(var(--gold)) 0%, hsl(var(--gold-dark)) 100%);
-    color: white;
+    color: hsl(0 0% 6%);
   }
 
   /* Badge Styles - Compact/Scaled (~50%) */
   .badge-vip-sm {
     @apply px-1 py-px rounded-full text-[9px] font-semibold;
     background: linear-gradient(135deg, hsl(var(--gold)) 0%, hsl(var(--gold-dark)) 100%);
-    color: white;
+    color: hsl(0 0% 6%);
   }
 
   /* Discount Badge - Original */
   .badge-discount {
     @apply px-2 py-0.5 rounded-full text-xs font-semibold;
-    background: linear-gradient(135deg, hsl(var(--cta)) 0%, hsl(var(--cta-hover)) 100%);
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%);
     color: white;
-    box-shadow: 0 2px 8px -2px hsl(var(--cta) / 0.4);
+    box-shadow: 0 2px 8px -2px hsl(var(--primary) / 0.5);
   }
 
   /* Discount Badge - Compact/Scaled (~50%) */
   .badge-discount-sm {
     @apply px-1 py-px rounded-full text-[9px] font-semibold;
-    background: linear-gradient(135deg, hsl(var(--cta)) 0%, hsl(var(--cta-hover)) 100%);
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%);
     color: white;
-    box-shadow: 0 1px 4px -1px hsl(var(--cta) / 0.4);
+    box-shadow: 0 1px 4px -1px hsl(var(--primary) / 0.5);
   }
 
   /* Type Badge - Original */
   .badge-type {
     @apply px-2 py-0.5 rounded-full text-xs font-medium;
-    background: hsl(var(--primary-light));
-    color: hsl(var(--primary-dark));
+    background: hsl(var(--secondary));
+    color: hsl(var(--gold));
+    border: 1px solid hsl(var(--gold) / 0.3);
   }
 
   /* Type Badge - Compact/Scaled (~50%) */
   .badge-type-sm {
     @apply px-1 py-px rounded-full text-[9px] font-medium;
-    background: hsl(var(--primary-light));
-    color: hsl(var(--primary-dark));
+    background: hsl(var(--secondary));
+    color: hsl(var(--gold));
+    border: 1px solid hsl(var(--gold) / 0.3);
   }
 
   /* Promotional Card Glow - Original */
   .shadow-promo {
     box-shadow: 
       var(--shadow-card),
-      0 0 20px -5px hsl(var(--cta) / 0.25);
+      0 0 20px -5px hsl(var(--primary) / 0.35);
   }
 
   /* Promotional Card Glow - Compact */
   .shadow-promo-sm {
     box-shadow: 
       var(--shadow-soft),
-      0 0 10px -3px hsl(var(--cta) / 0.2);
+      0 0 10px -3px hsl(var(--primary) / 0.3);
   }
 
   /* Badge Animation */
@@ -366,13 +377,13 @@
   /* Section Styles */
   .section-title {
     @apply text-lg font-bold mb-4 pb-2 border-b-2;
-    color: hsl(var(--primary));
-    border-color: hsl(var(--primary));
+    color: hsl(var(--gold));
+    border-color: hsl(var(--gold));
   }
 
   /* Gold Glow Effect */
   .gold-glow {
-    text-shadow: 0 0 10px hsl(var(--gold) / 0.4);
+    text-shadow: 0 0 10px hsl(var(--gold) / 0.5);
   }
 
   /* Shimmer Effect on Hover */
@@ -388,7 +399,7 @@
     background: linear-gradient(
       90deg,
       transparent 0%,
-      hsl(0 0% 100% / 0.2) 50%,
+      hsl(var(--gold) / 0.2) 50%,
       transparent 100%
     );
     background-size: 200% 100%;
@@ -425,11 +436,11 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--primary) / 0.5);
+    background: hsl(var(--gold) / 0.5);
     border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--primary) / 0.7);
+    background: hsl(var(--gold) / 0.7);
   }
 }
