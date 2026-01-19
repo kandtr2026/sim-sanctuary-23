@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { createHighlightedNumber } from '@/lib/highlightUtils';
+import flashSaleIcon from '@/assets/flash-sale.png';
 
 interface SIMCardNewProps {
   sim: NormalizedSIM;
@@ -140,27 +141,18 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
         </div>
       )}
 
-      {/* Discount Badge - Scaled down */}
-      {discountBadgeText && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="absolute top-1 left-1 animate-badge-in">
-                <span className="badge-discount-sm bg-white text-black">
-                  {discountBadgeText}
-                </span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Ưu đãi áp dụng trong thời gian ngắn</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+      {/* Flash Sale Icon - Only shown for discounted SIMs */}
+      {hasDiscount && (
+        <img 
+          src={flashSaleIcon} 
+          alt="Flash Sale" 
+          className="absolute top-1 left-1 w-10 h-10 object-contain pointer-events-none z-10"
+        />
       )}
 
       {/* Network Badge + Quý Position Badge - Responsive scaling */}
-      <div className={cn("flex items-center gap-1 mb-1.5 flex-wrap max-w-full", discountBadgeText && "mt-4")}>
-        <span 
+      <div className={cn("flex items-center gap-1 mb-1.5 flex-wrap max-w-full", hasDiscount && "mt-8")}>
+        <span
           className="px-1.5 py-px rounded font-medium bg-white text-black"
           style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
         >
