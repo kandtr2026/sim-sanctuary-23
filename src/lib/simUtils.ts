@@ -17,7 +17,7 @@ export interface NormalizedSIM {
   sumDigits: number;
   tags: string[];
   isVIP: boolean;
-  network: 'Mobifone' | 'Viettel' | 'Vinaphone' | 'iTelecom' | 'Khác';
+  network: 'Mobifone' | 'Vinaphone' | 'Gmobile' | 'Khác';
   beautyScore: number;
 }
 
@@ -102,32 +102,22 @@ export const ALL_SIM_TAGS = [
 export type SIMTag = typeof ALL_SIM_TAGS[number];
 
 // Network detection by prefix
-const NETWORK_PREFIXES = {
-  Mobifone: {
-    prefix3: ['090', '093', '089', '070', '076', '077', '078', '079'],
-    prefix4: [] as string[]
-  },
-  Viettel: {
-    prefix3: ['096', '097', '098', '086'],
-    prefix4: ['032', '033', '034', '035', '036', '037', '038', '039']
-  },
-  Vinaphone: {
-    prefix3: ['091', '094', '088'],
-    prefix4: ['081', '082', '083', '084', '085']
-  },
-  iTelecom: {
-    prefix3: ['087'],
-    prefix4: []
-  }
+// Only detect Mobifone, Vinaphone, and Gmobile as per requirements
+const NETWORK_PREFIXES: Record<string, string[]> = {
+  Mobifone: ['090', '093', '089', '070', '076', '077', '078', '079'],
+  Vinaphone: ['091', '094', '088', '081', '082', '083', '084', '085'],
+  Gmobile: ['099', '059']
 };
 
 export const detectNetwork = (rawDigits: string): NormalizedSIM['network'] => {
-  const prefix3 = rawDigits.slice(0, 3);
-  const prefix4 = rawDigits.slice(0, 4);
+  // Normalize: remove all non-digit characters
+  const normalized = rawDigits.replace(/\D/g, '');
+  
+  // Extract first 3 digits as prefix
+  const prefix3 = normalized.slice(0, 3);
 
   for (const [network, prefixes] of Object.entries(NETWORK_PREFIXES)) {
-    if (prefixes.prefix3.includes(prefix3) || 
-        prefixes.prefix4.some(p => prefix4.startsWith(p))) {
+    if (prefixes.includes(prefix3)) {
       return network as NormalizedSIM['network'];
     }
   }
