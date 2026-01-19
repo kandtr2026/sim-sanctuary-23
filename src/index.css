@@ -308,9 +308,8 @@
   /* Discount Badge - Compact/Scaled (~50%) */
   .badge-discount-sm {
     @apply px-1 py-px rounded-full text-[9px] font-semibold;
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%);
-    color: white;
-    box-shadow: 0 1px 4px -1px hsl(var(--primary) / 0.5);
+    background: white;
+    color: black;
   }
 
   /* Type Badge - Original */
