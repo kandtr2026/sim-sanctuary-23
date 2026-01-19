@@ -4,25 +4,25 @@ const Footer = () => {
   return (
     <footer className="bg-header-bg text-header-foreground">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 items-start">
           {/* Brand */}
-          <div>
+          <div className="w-full min-w-0">
             <h3 className="text-xl font-bold mb-4">
               <span className="text-gold">CHONSO</span>
               <span className="text-primary">MOBIFONE</span>
               <span>.COM</span>
             </h3>
-            <p className="text-header-foreground/70 text-sm leading-relaxed mb-4">
+            <p className="text-header-foreground/70 text-sm leading-relaxed mb-4 break-words">
               Kho SIM số đẹp uy tín hàng đầu Việt Nam. Chuyên SIM Mobifone, SIM phong thủy, SIM tài lộc với giá tốt nhất thị trường.
             </p>
             <div className="flex items-center gap-2 text-gold">
-              <Phone className="w-4 h-4" />
+              <Phone className="w-4 h-4 flex-shrink-0" />
               <span className="font-bold">0938.868.868</span>
             </div>
           </div>
 
           {/* Policies */}
-          <div>
+          <div className="w-full min-w-0">
             <h4 className="text-lg font-bold mb-4 text-gold uppercase">CHÍNH SÁCH</h4>
             <ul className="space-y-2 text-sm text-header-foreground/70">
               <li><a href="#" className="hover:text-gold transition-colors">Chính sách bảo mật</a></li>
@@ -34,30 +34,30 @@ const Footer = () => {
           </div>
 
           {/* Store Locations */}
-          <div>
+          <div className="w-full min-w-0">
             <h4 className="text-lg font-bold mb-4 text-gold uppercase">ĐỊA CHỈ CỬA HÀNG</h4>
             <ul className="space-y-3 text-sm text-header-foreground/70">
               <li className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 mt-0.5 text-gold flex-shrink-0" />
-                <span>43A Đường số 9 Phường Tân Hưng TPHCM</span>
+                <span className="break-words">43A Đường số 9 Phường Tân Hưng TPHCM</span>
               </li>
             </ul>
           </div>
 
           {/* Contact */}
-          <div>
+          <div className="w-full min-w-0">
             <h4 className="text-lg font-bold mb-4 text-gold uppercase">LIÊN HỆ</h4>
             <ul className="space-y-3 text-sm text-header-foreground/70">
               <li className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-gold" />
+                <Phone className="w-4 h-4 text-gold flex-shrink-0" />
                 <span>Hotline: 0938.868.868</span>
               </li>
               <li className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-gold" />
-                <span>hotro@chonsomobifone.com</span>
+                <Mail className="w-4 h-4 text-gold flex-shrink-0" />
+                <span className="break-words">hotro@chonsomobifone.com</span>
               </li>
               <li className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-gold" />
+                <Clock className="w-4 h-4 text-gold flex-shrink-0" />
                 <span>8:00 - 21:00 hàng ngày</span>
               </li>
             </ul>
