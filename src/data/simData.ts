@@ -54,9 +54,18 @@ export const detectSIMTypes = (number: string): string[] => {
     types.push('Dễ nhớ');
   }
 
-  // Taxi số (sequential or easy to remember)
-  if (/(\d)\1{2}/.test(digits) && types.length === 0) {
-    types.push('Dễ nhớ');
+  // Taxi = ABABAB or ABCABC on last 6 digits
+  const tail6 = digits.slice(-6);
+  const isTaxi2 = tail6.length === 6 && 
+    tail6[0] === tail6[2] && tail6[2] === tail6[4] &&
+    tail6[1] === tail6[3] && tail6[3] === tail6[5] &&
+    tail6[0] !== tail6[1];
+  const block3 = tail6.slice(0, 3);
+  const isTaxi3 = tail6.length === 6 && 
+    block3 === tail6.slice(3, 6) &&
+    !(block3[0] === block3[1] && block3[1] === block3[2]);
+  if (isTaxi2 || isTaxi3) {
+    types.push('Taxi');
   }
 
   if (types.length === 0) types.push('SIM thường');
