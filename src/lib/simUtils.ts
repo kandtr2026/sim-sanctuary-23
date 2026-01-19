@@ -137,7 +137,6 @@ export const detectSimTags = (rawDigits: string): string[] => {
   const allSameLast6 = last6.length === 6 && /^(\d)\1{5}$/.test(last6);
   const allSameLast5 = last5.length === 5 && /^(\d)\1{4}$/.test(last5);
   const allSameLast4 = last4.length === 4 && /^(\d)\1{3}$/.test(last4);
-  const allSameLast3 = last3.length === 3 && /^(\d)\1{2}$/.test(last3);
 
   if (allSameLast6) {
     tags.push('Lục quý');
@@ -145,20 +144,25 @@ export const detectSimTags = (rawDigits: string): string[] => {
     tags.push('Ngũ quý');
   } else if (allSameLast4) {
     tags.push('Tứ quý');
-  } else if (allSameLast3) {
-    tags.push('Tam hoa');
   }
 
-  // Tam hoa kép = 2 distinct triple digits anywhere in 10 digits
-  // Find all triple occurrences (ddd) and check if there are at least 2 different digits
+  // Tam hoa / Tam hoa kép detection (mutually exclusive)
+  // Find all triple identical consecutive digits (xxx) anywhere in the number
+  // Count distinct digits that form triples
   if (!tags.some(t => t.includes('quý'))) {
-    const tripleMatches = rawDigits.match(/(\d)\1{2}/g);
-    if (tripleMatches && tripleMatches.length >= 2) {
-      // Extract the digit from each triple and put into a Set for distinct count
-      const distinctTripleDigits = new Set(tripleMatches.map(m => m[0]));
-      if (distinctTripleDigits.size >= 2) {
-        tags.push('Tam hoa kép');
-      }
+    const tripleMatches = rawDigits.match(/(\d)\1{2}/g) || [];
+    const distinctTripleDigits = new Set<string>();
+    for (const match of tripleMatches) {
+      distinctTripleDigits.add(match[0]); // Add the digit that forms the triple
+    }
+    
+    // Apply tagging logic:
+    // - If 2+ distinct triple digits → "Tam hoa kép" ONLY
+    // - If exactly 1 distinct triple digit → "Tam hoa" ONLY
+    if (distinctTripleDigits.size >= 2) {
+      tags.push('Tam hoa kép');
+    } else if (distinctTripleDigits.size === 1) {
+      tags.push('Tam hoa');
     }
   }
 
