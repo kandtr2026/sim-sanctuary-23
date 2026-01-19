@@ -106,17 +106,20 @@ const AdvancedFilterSidebar = ({
       {/* Price Filter */}
       <FilterSection title="SIM theo giá">
         <div className="space-y-1">
-          {PRICE_RANGES.map((range, index) => (
-            <button
-              key={range.label}
-              onClick={() => onTogglePriceRange(index)}
-              className={`filter-btn-sm w-full text-left ${
-                filters.priceRanges.includes(index) ? 'active' : ''
-              }`}
-            >
-              {range.label}
-            </button>
-          ))}
+          {PRICE_RANGES.map((range, index) => {
+            const displayLabel = range.label.replace(/\btriệu\b/gi, 'Tr');
+            return (
+              <button
+                key={range.label}
+                onClick={() => onTogglePriceRange(index)}
+                className={`filter-btn-sm w-full text-left ${
+                  filters.priceRanges.includes(index) ? 'active' : ''
+                }`}
+              >
+                {displayLabel}
+              </button>
+            );
+          })}
         </div>
 
         <div className="mt-2">
