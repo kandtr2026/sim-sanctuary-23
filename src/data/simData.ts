@@ -718,15 +718,15 @@ export const formatPrice = (price: number): string => {
 };
 
 export const priceRanges = [
-  { label: '500K – 1 triệu', min: 500000, max: 1000000 },
-  { label: '1 – 3 triệu', min: 1000000, max: 3000000 },
-  { label: '3 – 5 triệu', min: 3000000, max: 5000000 },
-  { label: '5 – 10 triệu', min: 5000000, max: 10000000 },
-  { label: '10 – 50 triệu', min: 10000000, max: 50000000 },
-  { label: '50 – 100 triệu', min: 50000000, max: 100000000 },
-  { label: '100 – 200 triệu', min: 100000000, max: 200000000 },
-  { label: '200 – 500 triệu', min: 200000000, max: 500000000 },
-  { label: 'Trên 500 triệu', min: 500000000, max: Infinity },
+  { label: '500K – 1 Tr', min: 500000, max: 1000000 },
+  { label: '1 – 3 Tr', min: 1000000, max: 3000000 },
+  { label: '3 – 5 Tr', min: 3000000, max: 5000000 },
+  { label: '5 – 10 Tr', min: 5000000, max: 10000000 },
+  { label: '10 – 50 Tr', min: 10000000, max: 50000000 },
+  { label: '50 – 100 Tr', min: 50000000, max: 100000000 },
+  { label: '100 – 200 Tr', min: 100000000, max: 200000000 },
+  { label: '200 – 500 Tr', min: 200000000, max: 500000000 },
+  { label: 'Trên 500 Tr', min: 500000000, max: Infinity },
 ];
 
 export const simTypes = [
