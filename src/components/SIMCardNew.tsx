@@ -146,7 +146,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="absolute top-1 left-1 animate-badge-in">
-                <span className="badge-discount-sm text-black border border-white">
+                <span className="badge-discount-sm bg-white text-black">
                   {discountBadgeText}
                 </span>
               </div>
@@ -161,7 +161,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
       {/* Network Badge + Quý Position Badge - Responsive scaling */}
       <div className={cn("flex items-center gap-1 mb-1.5 flex-wrap max-w-full", discountBadgeText && "mt-4")}>
         <span 
-          className={`px-1.5 py-px rounded font-medium border border-white ${networkColors[sim.network].replace('text-white', 'text-black').replace('text-primary-foreground', 'text-black')}`}
+          className="px-1.5 py-px rounded font-medium bg-white text-black"
           style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
         >
           {sim.network}
