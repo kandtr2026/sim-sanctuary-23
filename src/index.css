@@ -269,11 +269,12 @@
     border-color: hsl(var(--gold) / 0.3);
   }
 
-  /* SIM Card - Compact/Scaled (~50% content) */
+  /* SIM Card - Compact/Scaled (~50% content) with flex-col for bottom alignment */
   .sim-card-compact {
-    @apply bg-card rounded-lg p-2 transition-all duration-300;
+    @apply bg-card rounded-lg p-2 transition-all duration-300 flex flex-col;
     box-shadow: var(--shadow-soft);
     border: 1px solid hsl(var(--border));
+    min-height: 140px; /* Consistent card height */
   }
 
   .sim-card-compact:hover {

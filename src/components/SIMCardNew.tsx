@@ -158,36 +158,52 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
         </TooltipProvider>
       )}
 
-      {/* Network Badge + Quý Position Badge - Scaled down */}
-      <div className={cn("flex items-center gap-1 mb-1.5 flex-wrap", discountBadgeText && "mt-4")}>
-        <span className={`px-1.5 py-px rounded text-[10px] font-medium ${networkColors[sim.network]}`}>
+      {/* Network Badge + Quý Position Badge - Responsive scaling */}
+      <div className={cn("flex items-center gap-1 mb-1.5 flex-wrap max-w-full", discountBadgeText && "mt-4")}>
+        <span 
+          className={`px-1.5 py-px rounded font-medium ${networkColors[sim.network]}`}
+          style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+        >
           {sim.network}
         </span>
         {sim.beautyScore >= 50 && (
-          <span className="px-1.5 py-px rounded text-[10px] font-medium bg-gold/20 text-gold-dark">
+          <span 
+            className="px-1.5 py-px rounded font-medium bg-gold/20 text-gold-dark"
+            style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+          >
             ⭐ Số đẹp
           </span>
         )}
         {quyBadgeText && (
-          <span className="px-1.5 py-px rounded text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20 animate-fade-in">
+          <span 
+            className="px-1.5 py-px rounded font-semibold bg-primary/10 text-primary border border-primary/20 animate-fade-in"
+            style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+          >
             {quyBadgeText}
           </span>
         )}
       </div>
 
-      {/* SIM Number - Auto-resize based on container width */}
+      {/* SIM Number - Auto-resize based on container width with clamp() */}
       {/* Priority: displayNumber (from Google Sheet) > formattedNumber (generated) */}
-      <div className="sim-number-auto mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap">
+      <div 
+        className="sim-number-auto mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis"
+        style={{ fontSize: 'clamp(14px, 3.5vw, 22px)' }}
+      >
         {formatWithHighlight(sim.displayNumber || sim.formattedNumber)}
       </div>
 
-      {/* Tags - Scaled down, filter out duplicate "Số đẹp" since we already show ⭐ Số đẹp badge */}
-      <div className="flex flex-wrap gap-0.5 mb-1.5">
+      {/* Tags - Responsive scaling, filter out duplicate "Số đẹp" since we already show ⭐ Số đẹp badge */}
+      <div className="flex flex-wrap gap-0.5 mb-1.5 max-w-full overflow-hidden">
         {sim.tags
           .filter(tag => !['Số đẹp', 'SỐ ĐẸP', 'SO DEP', 'Số Đẹp'].includes(tag))
           .slice(0, 3)
           .map((tag) => (
-          <span key={tag} className="badge-type-sm">
+          <span 
+            key={tag} 
+            className="badge-type-sm"
+            style={{ fontSize: 'clamp(8px, 1.6vw, 11px)' }}
+          >
             {tag}
           </span>
         ))}
@@ -195,7 +211,12 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="badge-type-sm cursor-help">+{sim.tags.length - 3}</span>
+                <span 
+                  className="badge-type-sm cursor-help"
+                  style={{ fontSize: 'clamp(8px, 1.6vw, 11px)' }}
+                >
+                  +{sim.tags.length - 3}
+                </span>
               </TooltipTrigger>
               <TooltipContent>
                 <p>{sim.tags.slice(3).join(', ')}</p>
@@ -205,25 +226,35 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
         )}
       </div>
 
-      {/* Price and CTA - Scaled down */}
-      <div className="flex items-center justify-between">
+      {/* Price and CTA - Aligned bottom with mt-auto, responsive scaling */}
+      <div className="flex items-center justify-between mt-auto pt-1">
         <div className="flex flex-col">
           {/* Hiển thị giá gốc gạch ngang khi có giảm giá */}
           {hasDiscount && (
-            <span className="text-[10px] text-muted-foreground line-through opacity-70">
+            <span 
+              className="text-muted-foreground line-through opacity-70"
+              style={{ fontSize: 'clamp(8px, 1.6vw, 11px)' }}
+            >
               {formatPrice(originalPrice)}
             </span>
           )}
-          {/* Giá chính (Final_Price hoặc GIÁ BÁN) */}
-          <span className="text-sm font-bold text-cta">
+          {/* Giá chính (Final_Price hoặc GIÁ BÁN) - ~50% larger, white color */}
+          <span 
+            className="font-bold"
+            style={{ 
+              fontSize: 'clamp(14px, 3vw, 21px)', 
+              color: '#FFFFFF' 
+            }}
+          >
             {formatPrice(sim.price)}
           </span>
         </div>
         <button 
           onClick={handleBuyClick}
-          className="btn-cta-sm flex items-center gap-1 py-1 px-2 text-[10px]"
+          className="btn-cta-sm flex items-center gap-1 py-1 px-2"
+          style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
         >
-          <Phone className="w-2.5 h-2.5" />
+          <Phone style={{ width: 'clamp(8px, 1.8vw, 12px)', height: 'clamp(8px, 1.8vw, 12px)' }} />
           MUA NGAY
         </button>
       </div>
