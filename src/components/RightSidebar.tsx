@@ -39,16 +39,16 @@ const RightSidebar = () => {
         <div className="space-y-3">
           {/* Hotline */}
           <a
-            href="tel:0909888888"
-            className="flex items-center gap-3 p-4 rounded-lg bg-primary-light hover:bg-primary group transition-colors"
+            href="tel:+84938868868"
+            className="flex items-center gap-3 p-4 rounded-lg bg-black border-2 border-yellow-400 hover:bg-gray-900 transition-colors"
           >
-            <div className="w-12 h-12 rounded-full bg-primary group-hover:bg-primary-dark flex items-center justify-center transition-colors">
-              <Phone className="w-6 h-6 text-primary-foreground" />
+            <div className="w-12 h-12 rounded-full bg-yellow-400 flex items-center justify-center">
+              <Phone className="w-6 h-6 text-black" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground group-hover:text-primary-foreground/80 transition-colors">Hotline</p>
-              <p className="text-lg font-bold text-primary-dark group-hover:text-primary-foreground transition-colors">
-                0909.888.888
+              <p className="text-sm text-white">Hotline</p>
+              <p className="text-lg font-bold text-white">
+                0938.868.868
               </p>
             </div>
           </a>
@@ -58,14 +58,14 @@ const RightSidebar = () => {
             href="https://zalo.me/0896888666?text=%F0%9F%91%8B%20Xin%20ch%C3%A0o%2C%20t%C3%B4i%20%C4%91ang%20quan%20t%C3%A2m%20%C4%91%E1%BA%BFn%20sim%20s%E1%BB%91%20%C4%91%E1%BA%B9p%20tr%C3%AAn%20website%20v%C3%A0%20mu%E1%BB%91n%20%C4%91%C6%B0%E1%BB%A3c%20t%C6%B0%20v%E1%BA%A5n."
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center gap-3 p-4 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+            className="w-full flex items-center gap-3 p-4 rounded-lg bg-black border-2 border-yellow-400 hover:bg-gray-900 transition-colors"
           >
-            <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
-              <span className="text-white font-bold text-lg">Z</span>
+            <div className="w-12 h-12 rounded-full bg-yellow-400 flex items-center justify-center">
+              <span className="text-black font-bold text-lg">Z</span>
             </div>
             <div className="text-left">
-              <p className="text-sm text-muted-foreground">Zalo</p>
-              <p className="text-base font-semibold text-blue-600">Chat ngay</p>
+              <p className="text-sm text-white">Zalo</p>
+              <p className="text-base font-semibold text-white">Chat ngay</p>
             </div>
           </a>
 
@@ -77,20 +77,19 @@ const RightSidebar = () => {
               if (!opened) {
                 window.open('https://m.me/111745910591052?ref=Ch%C3%A0o%20shop%2C%20t%C3%B4i%20c%E1%BA%A7n%20t%C6%B0%20v%E1%BA%A5n%20sim%20s%E1%BB%91%20%C4%91%E1%BA%B9p', '_blank', 'noopener,noreferrer');
               }
-              // Show quick templates panel
               window.__showMessengerTemplates?.();
             }}
-            className="w-full flex items-center gap-3 p-4 rounded-lg bg-primary hover:bg-primary-dark transition-colors cursor-pointer"
+            className="w-full flex items-center gap-3 p-4 rounded-lg bg-black border-2 border-yellow-400 hover:bg-gray-900 transition-colors cursor-pointer"
           >
-            <div className="w-12 h-12 rounded-full bg-primary-dark flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-yellow-400 flex items-center justify-center">
               {/* Messenger icon SVG */}
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-primary-foreground">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-black">
                 <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.19 5.44 3.14 7.17.16.13.26.35.27.57l.05 1.78c.04.57.61.94 1.13.71l1.98-.87c.17-.08.36-.1.53-.06.91.25 1.87.38 2.9.38 5.64 0 10-4.13 10-9.7C22 6.13 17.64 2 12 2zm5.89 7.73l-2.88 4.57c-.46.73-1.44.91-2.13.4l-2.29-1.72a.54.54 0 00-.65 0l-3.09 2.35c-.41.31-.95-.18-.68-.62l2.88-4.57c.46-.73 1.44-.91 2.13-.4l2.29 1.72a.54.54 0 00.65 0l3.09-2.35c.41-.31.95.18.68.62z"/>
               </svg>
             </div>
             <div className="text-left">
-              <p className="text-sm text-primary-foreground/80">Tư vấn viên</p>
-              <p className="text-base font-semibold text-primary-foreground">Chat tư vấn</p>
+              <p className="text-sm text-white">Tư vấn viên</p>
+              <p className="text-base font-semibold text-white">Chat tư vấn</p>
             </div>
           </button>
 
