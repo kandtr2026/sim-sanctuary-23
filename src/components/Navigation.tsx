@@ -6,7 +6,7 @@ const menuItems = [
   { label: 'SIM PHONG THỦY', href: '/sim-phong-thuy' },
   { label: 'SIM TRẢ GÓP', href: '#tra-gop' },
   { label: 'ĐỊNH GIÁ SIM', href: '/dinh-gia-sim' },
-  { label: 'THANH TOÁN', href: '#thanh-toan' },
+  { label: 'THANH TOÁN', href: '/thanh-toan' },
   { label: 'TIN TỨC', href: '#tin-tuc' },
 ];
 
