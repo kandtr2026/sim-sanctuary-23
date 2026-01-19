@@ -43,14 +43,14 @@ const FilterSection = ({
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-3 text-left hover:bg-background-secondary transition-colors"
       >
-        <span className="font-semibold text-white text-[15px] uppercase tracking-wide">{title}</span>
+        <span className="font-semibold text-white uppercase tracking-wide" style={{ fontSize: 'clamp(14px, 1.2vw, 18px)' }}>{title}</span>
         {isOpen ? (
           <ChevronUp className="w-4 h-4 text-primary" />
         ) : (
           <ChevronDown className="w-4 h-4 text-primary" />
         )}
       </button>
-      {isOpen && <div className="px-3 pb-3 text-[15px]">{children}</div>}
+      {isOpen && <div className="px-3 pb-3">{children}</div>}
     </div>
   );
 };
@@ -100,7 +100,7 @@ const AdvancedFilterSidebar = ({
     <aside className="bg-card rounded-lg shadow-card border border-border overflow-hidden">
       <div className="bg-primary/5 p-3 border-b border-border flex items-center gap-2">
         <Filter className="w-5 h-5 text-primary" />
-        <span className="font-bold text-white text-[15px]">BỘ LỌC TÌM KIẾM</span>
+        <span className="font-bold text-white" style={{ fontSize: 'clamp(14px, 1.2vw, 18px)' }}>BỘ LỌC TÌM KIẾM</span>
       </div>
 
       {/* Price Filter */}
