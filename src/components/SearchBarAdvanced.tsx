@@ -59,7 +59,7 @@ const SearchBarAdvanced = ({ value, onChange, debounceMs = 300 }: SearchBarAdvan
   return (
     <div className="relative">
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-8 h-8 text-muted-foreground" />
         <input
           type="text"
           value={inputValue}
@@ -69,7 +69,8 @@ const SearchBarAdvanced = ({ value, onChange, debounceMs = 300 }: SearchBarAdvan
           pattern="[0-9*]*"
           autoComplete="off"
           placeholder="Nhập số cần tìm... (VD: 0903*, *8888, 090*6789)"
-          className="w-full pl-12 pr-20 py-4 rounded-xl border-2 border-border bg-card text-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+          className="w-full pl-18 pr-24 py-6 rounded-xl border-2 border-border bg-card text-2xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+          style={{ paddingLeft: '4.5rem' }}
         />
         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
           {inputValue && (
