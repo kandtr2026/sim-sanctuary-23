@@ -171,7 +171,6 @@ const AdvancedFilterSidebar = ({
                   className={`filter-btn-sm ${isSelected ? 'active' : ''}`}
                 >
                   {quyType}
-                  <span className="ml-0.5 opacity-70">({tagCounts[quyType] || 0})</span>
                 </button>
               );
             })}
@@ -186,7 +185,6 @@ const AdvancedFilterSidebar = ({
                 className={`filter-btn-sm ${filters.selectedTags.includes(tag) ? 'active' : ''}`}
               >
                 {tag}
-                <span className="ml-0.5 opacity-70">({tagCounts[tag] || 0})</span>
               </button>
             ))}
           </div>
@@ -203,7 +201,6 @@ const AdvancedFilterSidebar = ({
               className={`filter-btn-sm ${filters.selectedTags.includes(tag) ? 'active' : ''}`}
             >
               {tag}
-              <span className="ml-0.5 opacity-70">({tagCounts[tag] || 0})</span>
             </button>
           ))}
         </div>
@@ -219,7 +216,6 @@ const AdvancedFilterSidebar = ({
               className={`filter-btn-sm ${filters.selectedTags.includes(tag) ? 'active' : ''}`}
             >
               {tag}
-              <span className="ml-0.5 opacity-70">({tagCounts[tag] || 0})</span>
             </button>
           ))}
         </div>
