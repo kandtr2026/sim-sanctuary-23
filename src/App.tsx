@@ -8,7 +8,7 @@ import Checkout from "./pages/Checkout";
 import DinhGiaSim from "./pages/DinhGiaSim";
 import SimPhongThuy from "./pages/SimPhongThuy";
 import SimTraGop from "./pages/SimTraGop";
-import ThanhToan from "./pages/ThanhToan";
+import ThanhToan from "./pages/thanh-toan";
 import TinTuc from "./pages/TinTuc";
 import TinTucBai1 from "./pages/TinTucBai1";
 import TinTucBai2 from "./pages/TinTucBai2";
