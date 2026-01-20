@@ -248,15 +248,16 @@ const Index = () => {
               {/* SIM Grid */}
               {!isLoading && !error && displayedSIMs.length > 0 && (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-4">
+                  <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-4">
                     {displayedSIMs.map((sim) => (
-                      <SIMCardNew 
-                        key={sim.id} 
-                        sim={sim} 
-                        promotional={getPromotionalData(sim.id)}
-                        quyFilter={filters.quyType}
-                        searchQuery={filters.searchQuery}
-                      />
+                      <div key={sim.id} className="min-w-0">
+                        <SIMCardNew 
+                          sim={sim} 
+                          promotional={getPromotionalData(sim.id)}
+                          quyFilter={filters.quyType}
+                          searchQuery={filters.searchQuery}
+                        />
+                      </div>
                     ))}
                   </div>
 

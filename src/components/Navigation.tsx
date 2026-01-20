@@ -48,7 +48,7 @@ const Navigation = () => {
                 key={item.label}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className="block px-4 py-3 rounded-lg bg-primary-light text-primary-dark font-medium hover:bg-primary hover:text-primary-foreground transition-colors"
+                className="block px-4 py-3 rounded-lg bg-yellow-500 text-white font-medium hover:bg-yellow-600 transition-colors"
               >
                 {item.label}
               </a>
