@@ -7,7 +7,7 @@ const menuItems = [
   { label: 'SIM TRẢ GÓP', href: '/sim-tra-gop' },
   { label: 'ĐỊNH GIÁ SIM', href: '/dinh-gia-sim' },
   { label: 'THANH TOÁN', href: '/thanh-toan' },
-  { label: 'TIN TỨC', href: '#tin-tuc' },
+  { label: 'TIN TỨC', href: '/tin-tuc' },
 ];
 
 const Navigation = () => {

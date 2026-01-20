@@ -9,6 +9,7 @@ import DinhGiaSim from "./pages/DinhGiaSim";
 import SimPhongThuy from "./pages/SimPhongThuy";
 import SimTraGop from "./pages/SimTraGop";
 import ThanhToan from "./pages/ThanhToan";
+import TinTuc from "./pages/TinTuc";
 import NotFound from "./pages/NotFound";
 import FloatingContactButtons from "./components/FloatingContactButtons";
 import MessengerChatPlugin from "./components/MessengerChatPlugin";
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/sim-phong-thuy" element={<SimPhongThuy />} />
           <Route path="/sim-tra-gop" element={<SimTraGop />} />
           <Route path="/thanh-toan" element={<ThanhToan />} />
+          <Route path="/tin-tuc" element={<TinTuc />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
