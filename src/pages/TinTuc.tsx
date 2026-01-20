@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 const articles = [
   { title: 'Ý NGHĨA SỐ ĐIỆN THOẠI - Sim số như thế nào là sim đẹp?', href: '/tin-tuc/y-nghia-sim-so-dep' },
   { title: 'SỐ TỔNG ĐÀI CÁC NHÀ MẠNG MỚI NHẤT - Mobifone / Gmobile / Vina / Viettel', href: '/tin-tuc/so-tong-dai-cac-nha-mang' },
-  { title: 'Ý NGHĨA CÁC CON SỐ TỪ 1 - 9 CÓ THỂ BẠN CHƯA BIẾT', href: null },
+  { title: 'Ý NGHĨA CÁC CON SỐ TỪ 1 - 9 CÓ THỂ BẠN CHƯA BIẾT', href: '/tin-tuc/y-nghia-cac-con-so-1-9' },
   { title: 'CÁCH XEM SIM PHONG THUỶ HỢP TUỔI', href: null },
   { title: 'CÁCH TRÁNH MẤT TIỀN OAN KHI MUA SIM SỐ ĐẸP', href: null },
 ];
