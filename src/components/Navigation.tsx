@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
 
 const menuItems = [
-  { label: 'SIM SỐ', href: '/#sim-so' },
+  { label: 'SIM SỐ', href: '/' },
   { label: 'SIM PHONG THỦY', href: '/sim-phong-thuy' },
   { label: 'SIM TRẢ GÓP', href: '/sim-tra-gop' },
   { label: 'ĐỊNH GIÁ SIM', href: '/dinh-gia-sim' },
@@ -13,21 +12,6 @@ const menuItems = [
 
 const Navigation = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const handleMenuClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (href === '/#sim-so') {
-      e.preventDefault();
-      if (location.pathname === '/') {
-        // Already on home, just scroll
-        document.getElementById('sim-so')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else {
-        // Navigate to home with hash
-        navigate('/#sim-so');
-      }
-    }
-  };
 
   return (
     <nav className="bg-card sticky top-0 z-50 shadow-soft border-b border-border">
@@ -38,7 +22,6 @@ const Navigation = () => {
             <a
               key={item.label}
               href={item.href}
-              onClick={(e) => handleMenuClick(e, item.href)}
               className="menu-pill shimmer-hover relative text-primary-foreground text-sm"
             >
               {item.label}
@@ -64,10 +47,7 @@ const Navigation = () => {
               <a
                 key={item.label}
                 href={item.href}
-                onClick={(e) => {
-                  handleMenuClick(e, item.href);
-                  setMobileOpen(false);
-                }}
+                onClick={() => setMobileOpen(false)}
                 className="block px-4 py-3 rounded-lg bg-primary-light text-primary-dark font-medium hover:bg-primary hover:text-primary-foreground transition-colors"
               >
                 {item.label}
