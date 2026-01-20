@@ -8,7 +8,7 @@ const articles = [
   { title: 'SỐ TỔNG ĐÀI CÁC NHÀ MẠNG MỚI NHẤT - Mobifone / Gmobile / Vina / Viettel', href: '/tin-tuc/so-tong-dai-cac-nha-mang' },
   { title: 'Ý NGHĨA CÁC CON SỐ TỪ 1 - 9 CÓ THỂ BẠN CHƯA BIẾT', href: '/tin-tuc/y-nghia-cac-con-so-1-9' },
   { title: 'CÁCH XEM SIM PHONG THUỶ HỢP TUỔI', href: '/tin-tuc/cach-xem-sim-phong-thuy-hop-tuoi' },
-  { title: 'CÁCH TRÁNH MẤT TIỀN OAN KHI MUA SIM SỐ ĐẸP', href: null },
+  { title: 'CÁCH TRÁNH MẤT TIỀN OAN KHI MUA SIM SỐ ĐẸP', href: '/tin-tuc/cach-tranh-mat-tien-oan-khi-mua-sim-so-dep' },
 ];
 
 const TinTuc = () => {
