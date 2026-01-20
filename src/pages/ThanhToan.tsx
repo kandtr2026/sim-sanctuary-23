@@ -1,8 +1,33 @@
 import Header from '@/components/Header';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import { Copy, Check } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from '@/hooks/use-toast';
+import qrTechcombank from '@/assets/qr-techcombank.png';
 
 const ThanhToan = () => {
+  const [copied, setCopied] = useState(false);
+  
+  const accountNumber = "5286797979";
+  
+  const handleCopyAccountNumber = async () => {
+    try {
+      await navigator.clipboard.writeText(accountNumber);
+      setCopied(true);
+      toast({
+        title: "Đã copy số tài khoản",
+        duration: 2000,
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast({
+        title: "Không thể copy",
+        variant: "destructive",
+        duration: 2000,
+      });
+    }
+  };
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -66,6 +91,54 @@ const ThanhToan = () => {
             <p className="text-foreground/90">
               CHONSOMOBIFONE sẽ không chịu trách nhiệm nếu Quý khách gửi tiền mua sim vào số tài khoản không nằm trong danh sách dưới đây:
             </p>
+          </div>
+          {/* Section 4: Bank Account */}
+          <div className="mt-8">
+            <h2 className="text-xl font-bold text-primary mb-4">4. Tài khoản thanh toán</h2>
+            <div className="bg-muted/30 rounded-xl border border-border p-4 md:p-6">
+              <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
+                {/* QR Code - Left on desktop, Top on mobile */}
+                <div className="flex-shrink-0">
+                  <img 
+                    src={qrTechcombank} 
+                    alt="QR Techcombank" 
+                    className="w-48 h-48 md:w-56 md:h-56 rounded-xl object-contain"
+                  />
+                </div>
+                
+                {/* Account Info - Right on desktop, Bottom on mobile */}
+                <div className="flex-1 text-center md:text-left space-y-3">
+                  <div>
+                    <p className="text-sm text-foreground/70">Tên tài khoản</p>
+                    <p className="text-lg font-semibold text-foreground">NGUYỄN HOÀI THƯƠNG</p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm text-foreground/70">Số tài khoản</p>
+                    <div className="flex items-center gap-3 justify-center md:justify-start">
+                      <p className="text-xl font-bold text-gold">{accountNumber}</p>
+                      <button
+                        onClick={handleCopyAccountNumber}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-medium rounded-lg transition-colors"
+                      >
+                        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        {copied ? "Đã copy" : "Copy số TK"}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm text-foreground/70">Ngân hàng</p>
+                    <p className="text-lg font-semibold text-foreground">TECHCOMBANK</p>
+                  </div>
+                  
+                  <div className="pt-2">
+                    <p className="text-sm text-foreground/70">Nội dung chuyển khoản (ví dụ)</p>
+                    <p className="text-base text-foreground/80 italic">NGUYEN VAN A + 0901231234</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>
