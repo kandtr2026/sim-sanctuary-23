@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import ZaloChatCard from '@/components/ZaloChatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -103,12 +104,135 @@ const SimPhongThuy = () => {
 
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          {/* Page Title */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-primary flex items-center justify-center gap-2">
-              <Sparkles className="w-8 h-8" />
-              SIM Phong Thuỷ
+          {/* Article Content Section */}
+          <div className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8 mb-8">
+            {/* Title */}
+            <h1 className="text-2xl md:text-3xl font-bold text-gold mb-6">
+              Sim Phong Thủy: "Vật Phẩm Hộ Thân" Thời Công Nghệ – Lợi Hay Hại?
             </h1>
+
+            {/* Introduction */}
+            <div className="space-y-4 text-foreground/90 mb-8">
+              <p>
+                Trong thời đại số, số điện thoại không chỉ dùng để liên lạc mà còn được xem là "lá bùa bình an", là bộ mặt của chủ sở hữu. Một chiếc Sim Phong Thủy phù hợp được tin rằng sẽ mang lại may mắn, tài lộc và sự hanh thông. Vậy thực hư giá trị của sim phong thủy là gì?
+              </p>
+            </div>
+
+            {/* Section 1 */}
+            <div className="mb-8">
+              <h2 className="text-xl font-bold text-primary mb-4">1. Tại sao phải mua Sim Phong Thủy?</h2>
+              <div className="space-y-4 text-foreground/90">
+                <p>
+                  Nhiều người thắc mắc: "Tại sao phải bỏ ra số tiền lớn để mua một dãy số, trong khi sim nào cũng nghe gọi được?". Câu trả lời nằm ở 3 yếu tố cốt lõi:
+                </p>
+                <ul className="list-disc list-inside space-y-2 ml-4">
+                  <li>
+                    <strong>Cân bằng năng lượng:</strong> Theo thuyết Ngũ hành, mỗi người có một bản mệnh riêng (Kim, Mộc, Thủy, Hỏa, Thổ). Một chiếc sim có các con số tương sinh sẽ giúp cân bằng năng lượng, xua đuổi vận xui.
+                  </li>
+                  <li>
+                    <strong>Tạo dựng niềm tin và sự tự tin:</strong> Khi sở hữu một số điện thoại đẹp, hợp mệnh, chủ nhân sẽ cảm thấy an tâm và tự tin hơn trong các cuộc đàm phán, giao dịch quan trọng.
+                  </li>
+                  <li>
+                    <strong>Đánh dấu thương hiệu cá nhân:</strong> Sim phong thủy thường đi kèm với các bộ số dễ nhớ, đẳng cấp, giúp đối tác và khách hàng ấn tượng ngay từ lần đầu nhìn thấy.
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Section 2 */}
+            <div className="mb-8">
+              <h2 className="text-xl font-bold text-primary mb-4">2. Điểm lợi khi sử dụng Sim Phong Thủy</h2>
+              <p className="text-foreground/90 mb-4">
+                Sử dụng một chiếc sim hợp phong thủy mang lại những giá trị vô hình nhưng cực kỳ mạnh mẽ:
+              </p>
+              <ul className="list-disc list-inside space-y-2 ml-4 text-foreground/90">
+                <li>
+                  <strong>Kích tài lộc, thúc công danh:</strong> Những dãy số bổ trợ cho cung Quan Lộc hoặc Tài Bạch giúp sự nghiệp thăng tiến, kinh doanh hồng phát.
+                </li>
+                <li>
+                  <strong>Cải thiện các mối quan hệ:</strong> Một chiếc sim có ngũ hành tương sinh với chủ nhân giúp gia đạo êm ấm, kết nối tốt hơn với bạn bè và đồng nghiệp.
+                </li>
+                <li>
+                  <strong>Hóa giải vận hạn:</strong> Trong những năm hạn, một chiếc sim phong thủy được tính toán kỹ lưỡng theo bát tự (giờ, ngày, tháng, năm sinh) có tác dụng như một vật phẩm hộ thân, giúp giảm nhẹ tai ương.
+                </li>
+              </ul>
+            </div>
+
+            {/* Section 3 */}
+            <div className="mb-8">
+              <h2 className="text-xl font-bold text-primary mb-4">3. Sim Phong Thủy có "điểm hại" hay không?</h2>
+              <p className="text-foreground/90 mb-4">
+                Thực tế, sim phong thủy không gây hại trực tiếp, nhưng những hiểu lầm dưới đây có thể dẫn đến hệ lụy không tốt:
+              </p>
+              <ul className="list-disc list-inside space-y-2 ml-4 text-foreground/90">
+                <li>
+                  <strong>Dùng sai số, phản tác dụng:</strong> Nếu bạn chọn nhầm sim có ngũ hành xung khắc với bản mệnh (ví dụ: người mệnh Hỏa dùng sim quá nhiều hành Thủy), có thể khiến tinh thần bất an, công việc gặp trắc trở.
+                </li>
+                <li>
+                  <strong>Quá phụ thuộc vào sim:</strong> Sim phong thủy là công cụ hỗ trợ (trợ lực), không phải là phép màu thay thế cho sự nỗ lực. Nếu chỉ mua sim rồi ngồi chờ tài lộc mà không làm việc, bạn sẽ lãng phí tài chính.
+                </li>
+                <li>
+                  <strong>Bị lừa đảo bởi các "thầy phong thủy" giả danh:</strong> Nhiều người bỏ ra số tiền cực lớn để mua những chiếc sim được thổi phồng giá trị nhưng thực chất không hề hợp mệnh.
+                </li>
+              </ul>
+            </div>
+
+            {/* Section 4 */}
+            <div className="mb-8">
+              <h2 className="text-xl font-bold text-primary mb-4">4. Cách chọn Sim Phong Thủy chuẩn xác nhất</h2>
+              <p className="text-foreground/90 mb-4">
+                Để một chiếc sim thực sự phát huy tác dụng, bạn cần lưu ý các tiêu chí:
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-border">
+                  <thead>
+                    <tr className="bg-muted">
+                      <th className="border border-border px-4 py-2 text-left font-bold text-foreground">Tiêu chí</th>
+                      <th className="border border-border px-4 py-2 text-left font-bold text-foreground">Mô tả</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-foreground/90">
+                    <tr>
+                      <td className="border border-border px-4 py-2 font-medium">Cân bằng Âm Dương</td>
+                      <td className="border border-border px-4 py-2">Tỷ lệ số chẵn (Âm) và số lẻ (Dương) nên cân bằng (5/5 hoặc 4/6).</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-border px-4 py-2 font-medium">Ngũ hành tương sinh</td>
+                      <td className="border border-border px-4 py-2">Các con số trong sim phải thuộc hành tương sinh hoặc tương hỗ với mệnh của chủ nhân.</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-border px-4 py-2 font-medium">Cửu tinh đồ pháp</td>
+                      <td className="border border-border px-4 py-2">Ưu tiên các số chứa con số 8 hoặc 9 (con số của thời kỳ Hạ Nguyên - vận 8 và vận 9).</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-border px-4 py-2 font-medium">Tổng số nút cao</td>
+                      <td className="border border-border px-4 py-2">Tổng các con số cộng lại có số đuôi từ 7 đến 10 là đại cát.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Conclusion */}
+            <div className="mb-8 p-4 bg-muted/50 rounded-lg border border-border">
+              <p className="text-foreground/90">
+                <strong className="text-gold">Lời kết:</strong> Sim phong thủy giống như một người bạn đồng hành thầm lặng. Khi chọn đúng, nó sẽ tiếp thêm sức mạnh tinh thần và mở ra nhiều cơ hội mới. Hãy là người tiêu dùng thông thái, chọn sim dựa trên sự hiểu biết và đơn vị tư vấn tâm huyết.
+              </p>
+            </div>
+
+            {/* Zalo Chat Card */}
+            <div className="mt-8 max-w-sm">
+              <h3 className="text-lg font-semibold text-foreground mb-3">Liên hệ tư vấn</h3>
+              <ZaloChatCard />
+            </div>
+          </div>
+
+          {/* Tool Section */}
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-primary flex items-center justify-center gap-2">
+              <Sparkles className="w-8 h-8" />
+              Tra cứu SIM Phong Thuỷ
+            </h2>
             <p className="text-muted-foreground mt-2">
               Tìm SIM số đẹp phù hợp với mệnh của bạn
             </p>
