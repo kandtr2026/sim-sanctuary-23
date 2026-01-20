@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Checkout from "./pages/Checkout";
 import DinhGiaSim from "./pages/DinhGiaSim";
 import SimPhongThuy from "./pages/SimPhongThuy";
+import SimTraGop from "./pages/SimTraGop";
 import ThanhToan from "./pages/ThanhToan";
 import NotFound from "./pages/NotFound";
 import FloatingContactButtons from "./components/FloatingContactButtons";
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/mua-ngay/:simId" element={<Checkout />} />
           <Route path="/dinh-gia-sim" element={<DinhGiaSim />} />
           <Route path="/sim-phong-thuy" element={<SimPhongThuy />} />
+          <Route path="/sim-tra-gop" element={<SimTraGop />} />
           <Route path="/thanh-toan" element={<ThanhToan />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

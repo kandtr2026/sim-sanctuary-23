@@ -4,7 +4,7 @@ import { Menu, X } from 'lucide-react';
 const menuItems = [
   { label: 'SIM SỐ', href: '#sim-so' },
   { label: 'SIM PHONG THỦY', href: '/sim-phong-thuy' },
-  { label: 'SIM TRẢ GÓP', href: '#tra-gop' },
+  { label: 'SIM TRẢ GÓP', href: '/sim-tra-gop' },
   { label: 'ĐỊNH GIÁ SIM', href: '/dinh-gia-sim' },
   { label: 'THANH TOÁN', href: '/thanh-toan' },
   { label: 'TIN TỨC', href: '#tin-tuc' },
