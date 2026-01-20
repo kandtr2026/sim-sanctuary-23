@@ -80,7 +80,7 @@ const ThanhToan = () => {
             <p className="text-foreground/90">43A Đường số 9 Phường Tân Hưng TPHCM</p>
             <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
               <p className="text-sm text-foreground/80">
-                <span className="font-semibold text-gold">Lưu ý:</span> Khách hàng cần chuẩn bị trước thông tin cá nhân (trên CMND) để được vào tên chính chủ sở hữu sim.
+                <span className="font-semibold text-gold">Lưu ý:</span> Khách hàng cần chuẩn bị trước thông tin cá nhân (trên CCCD thẻ cứng) để được vào tên chính chủ sở hữu sim.
               </p>
             </div>
           </div>
