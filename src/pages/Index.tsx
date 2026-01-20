@@ -18,6 +18,7 @@ import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff, Cloud, CloudOff } fr
 import { Button } from '@/components/ui/button';
 import { getSimilarSims } from '@/lib/similarSimSuggestions';
 import type { NormalizedSIM } from '@/lib/simUtils';
+import { useLocation } from 'react-router-dom';
 
 const ITEMS_PER_PAGE = 100;
 
@@ -136,6 +137,16 @@ const Index = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Handle hash scroll for #sim-so
+  const location = useLocation();
+  useEffect(() => {
+    if (location.hash === '#sim-so') {
+      setTimeout(() => {
+        document.getElementById('sim-so')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [location.hash]);
 
   return (
     <div className="min-h-screen bg-background">
