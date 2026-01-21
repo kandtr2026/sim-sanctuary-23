@@ -136,7 +136,7 @@ export const detectSimTags = (rawDigits: string): string[] => {
   // Quý patterns (mutually exclusive - most specific wins)
   const allSameLast6 = last6.length === 6 && /^(\d)\1{5}$/.test(last6);
   const allSameLast5 = last5.length === 5 && /^(\d)\1{4}$/.test(last5);
-  const allSameLast4 = last4.length === 4 && /^(\d)\1{3}$/.test(last4);
+  const allSameLast4 = rawDigits.length === 10 && last4.length === 4 && /^(\d)\1{3}$/.test(last4);
 
   if (allSameLast6) {
     tags.push('Lục quý');
@@ -160,9 +160,13 @@ export const detectSimTags = (rawDigits: string): string[] => {
     // - If 2+ distinct triple digits → "Tam hoa kép" ONLY
     // - If exactly 1 distinct triple digit → "Tam hoa" ONLY
     if (distinctTripleDigits.size >= 2) {
+      // keep Tam hoa kép logic unchanged
       tags.push('Tam hoa kép');
     } else if (distinctTripleDigits.size === 1) {
-      tags.push('Tam hoa');
+      // redefine Tam hoa: only if sim is 10 digits and the last 3 digits are identical
+      if (rawDigits.length === 10 && last3[0] === last3[1] && last3[1] === last3[2] && !tags.some(t => t.includes('quý'))) {
+        tags.push('Tam hoa');
+      }
     }
   }
 
