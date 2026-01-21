@@ -217,8 +217,8 @@ const Index = () => {
                 hideResultCount={true}
               />
 
-              {/* Loading State */}
-              {isLoading && (
+              {/* Loading State - only show full-screen when no data yet */}
+              {isLoading && filteredSims.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Loader2 className="w-10 h-10 text-primary animate-spin mb-3" />
                   <span className="text-muted-foreground">Đang tải dữ liệu...</span>
