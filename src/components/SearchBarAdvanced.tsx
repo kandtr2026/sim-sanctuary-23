@@ -61,12 +61,12 @@ const SearchBarAdvanced = ({ value, onChange, debounceMs = 300 }: SearchBarAdvan
       <div className="relative">
         <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-8 h-8 text-muted-foreground" />
         <input
-          type="text"
+          type="tel"
+          inputMode="tel"
+          pattern="[0-9*]*"
           value={inputValue}
           onChange={handleChange}
           onPaste={handlePaste}
-          inputMode="numeric"
-          pattern="[0-9*]*"
           autoComplete="off"
           placeholder="Nhập số cần tìm... (VD: 0903*, *8888, 090*6789)"
           className="w-full pl-18 pr-24 py-6 rounded-xl border-2 border-border bg-card text-2xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
