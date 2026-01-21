@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import Header from '@/components/Header';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import { Calculator, Phone, Star, TrendingUp, Smartphone, ExternalLink, Loader2, Info } from 'lucide-react';
+import { Calculator, Phone, TrendingUp, Smartphone, ExternalLink, Loader2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,29 @@ type SimilarState = 'idle' | 'loading' | 'success' | 'empty' | 'error';
 
 // Helper: chỉ giữ digits
 const toDigits = (s: string): string => s.replace(/\D/g, '');
+
+// Helper: tạo các biến thể chuẩn hóa (84xxx vs 0xxx)
+const normalizeVariants = (digits: string): string[] => {
+  const variants = new Set<string>();
+  variants.add(digits);
+  
+  if (digits.startsWith('84') && digits.length >= 11) {
+    // 84xxxxxxxxx -> 0xxxxxxxxx
+    variants.add('0' + digits.slice(2));
+  } else if (digits.startsWith('0') && digits.length >= 10) {
+    // 0xxxxxxxxx -> 84xxxxxxxxx
+    variants.add('84' + digits.slice(1));
+  }
+  
+  return Array.from(variants);
+};
+
+// Helper: lấy digits từ item inventory
+const getItemDigits = (item: SimItem): string => {
+  // Ưu tiên các field có thể có
+  const raw = item.phone || '';
+  return toDigits(raw);
+};
 
 // Result type cho lookup
 interface LookupResult {
@@ -82,9 +105,28 @@ const DinhGiaSim = () => {
   const [error, setError] = useState('');
   const [result, setResult] = useState<LookupResult | null>(null);
   
+  // State lưu số đã submit (digits only)
+  const [lastSubmittedDigits, setLastSubmittedDigits] = useState<string>('');
+  
+  // Inventory state
+  const [inventory, setInventory] = useState<SimItem[]>([]);
+  const [inventoryLoaded, setInventoryLoaded] = useState(false);
+  
   // Similar SIMs state
   const [similarState, setSimilarState] = useState<SimilarState>('idle');
   const [similarSims, setSimilarSims] = useState<SimItem[]>([]);
+
+  // Load inventory on mount
+  useEffect(() => {
+    let mounted = true;
+    loadSimInventory().then((data) => {
+      if (mounted) {
+        setInventory(data);
+        setInventoryLoaded(true);
+      }
+    });
+    return () => { mounted = false; };
+  }, []);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^\d]/g, '');
@@ -102,72 +144,91 @@ const DinhGiaSim = () => {
       return;
     }
 
+    const digitsInput = toDigits(phone);
+    
+    // Lưu số đã submit
+    setLastSubmittedDigits(digitsInput);
     setState('loading');
     setError('');
-    setSimilarState('idle');
+    setResult(null);
+    
+    // Ngay lập tức chạy gợi ý tương tự
+    setSimilarState('loading');
     setSimilarSims([]);
-
+    
     try {
       const normalized = normalizePhone(phone);
-      const inputDigits = toDigits(normalized);
+      const tags = extractTagsFromPhone(normalized);
+      const carrier = detectCarrier(normalized);
       
-      // Load inventory và tìm exact match
-      const inventory = await loadSimInventory();
-      const foundItem = inventory.find((item) => toDigits(item.phone) === inputDigits);
+      const similar = await getSimilarSims({
+        phone: normalized,
+        carrier: carrier,
+        tags: tags,
+        range: [2000000, 20000000] as [number, number],
+      });
       
-      let lookupResult: LookupResult;
-      
-      if (foundItem) {
-        // Tìm thấy trong kho → dùng giá kho
-        lookupResult = {
-          found: true,
-          phone: normalized,
-          carrier: foundItem.carrier,
-          price: foundItem.price,
-          tags: foundItem.tags,
-        };
+      if (similar.length > 0) {
+        setSimilarSims(similar);
+        setSimilarState('success');
       } else {
-        // Không tìm thấy → hiển thị thông báo liên hệ
-        const tags = extractTagsFromPhone(normalized);
-        const carrier = detectCarrier(normalized);
-        lookupResult = {
-          found: false,
-          phone: normalized,
-          carrier: carrier,
-          price: 0,
-          tags: tags,
-          message: 'Vui lòng liên hệ 0938.868.868 để biết thêm chi tiết . Cảm ơn !',
-        };
-      }
-      
-      setResult(lookupResult);
-      setState('success');
-      
-      // ALWAYS load similar SIMs
-      setSimilarState('loading');
-      try {
-        const priceForSimilar = lookupResult.found ? lookupResult.price : 5000000; // fallback 5M
-        const similar = await getSimilarSims({
-          phone: lookupResult.phone,
-          carrier: lookupResult.carrier,
-          tags: lookupResult.tags,
-          range: [priceForSimilar * 0.5, priceForSimilar * 2] as [number, number],
-        });
-        
-        if (similar.length > 0) {
-          setSimilarSims(similar);
-          setSimilarState('success');
-        } else {
-          setSimilarState('empty');
-        }
-      } catch {
-        setSimilarState('error');
+        setSimilarState('empty');
       }
     } catch {
-      setError('Có lỗi xảy ra khi định giá. Vui lòng thử lại.');
-      setState('error');
+      setSimilarState('error');
     }
   }, [phone]);
+
+  // Effect: Đối chiếu số với inventory khi inventory load xong hoặc lastSubmittedDigits thay đổi
+  useEffect(() => {
+    // Chưa submit gì thì không làm gì
+    if (!lastSubmittedDigits) return;
+    
+    // Inventory chưa load xong => giữ loading
+    if (!inventoryLoaded) {
+      setState('loading');
+      return;
+    }
+    
+    // Inventory đã load, tiến hành đối chiếu
+    const variants = normalizeVariants(lastSubmittedDigits);
+    
+    let foundItem: SimItem | null = null;
+    for (const item of inventory) {
+      const digitsItem = getItemDigits(item);
+      if (variants.includes(digitsItem)) {
+        foundItem = item;
+        break;
+      }
+    }
+    
+    const normalized = normalizePhone(lastSubmittedDigits);
+    
+    if (foundItem) {
+      // Tìm thấy trong kho => dùng giá kho
+      setResult({
+        found: true,
+        phone: normalized,
+        carrier: foundItem.carrier,
+        price: foundItem.price,
+        tags: foundItem.tags,
+      });
+      setState('success');
+    } else {
+      // Không tìm thấy => hiển thị thông báo liên hệ
+      const tags = extractTagsFromPhone(normalized);
+      const carrier = detectCarrier(normalized);
+      setResult({
+        found: false,
+        phone: normalized,
+        carrier: carrier,
+        price: 0,
+        tags: tags,
+        message: 'Vui lòng liên hệ 0938.868.868 để biết thêm chi tiết . Cảm ơn !',
+      });
+      setState('success');
+    }
+  }, [lastSubmittedDigits, inventory, inventoryLoaded]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -355,10 +416,10 @@ const DinhGiaSim = () => {
                   </ul>
                 </div>
 
-                {/* Điểm đánh giá */}
+                {/* Giá kho */}
                 <div className="bg-card rounded-xl shadow-card border border-border p-5">
                   <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-                    <Star className="w-5 h-5 text-gold" />
+                    <Info className="w-5 h-5 text-gold" />
                     Thông tin kho
                   </h3>
                   <div className="text-center py-4">
