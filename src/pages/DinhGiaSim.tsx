@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Header from '@/components/Header';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -20,7 +20,9 @@ import {
   detectCarrier,
   type Carrier,
 } from '@/lib/simValuation';
-import { loadSimInventory, getSimilarSims, extractTagsFromPhone, type SimItem } from '@/lib/simInventorySheet';
+import { getSimilarSims, extractTagsFromPhone, type SimItem } from '@/lib/simInventorySheet';
+import { useSimData } from '@/hooks/useSimData';
+import { type NormalizedSIM } from '@/lib/simUtils';
 
 type ValuationState = 'idle' | 'loading' | 'success' | 'error';
 type SimilarState = 'idle' | 'loading' | 'success' | 'empty' | 'error';
@@ -29,26 +31,19 @@ type SimilarState = 'idle' | 'loading' | 'success' | 'empty' | 'error';
 const toDigits = (s: string): string => s.replace(/\D/g, '');
 
 // Helper: tạo các biến thể chuẩn hóa (84xxx vs 0xxx)
-const normalizeVariants = (digits: string): string[] => {
-  const variants = new Set<string>();
-  variants.add(digits);
+const variants = (digits: string): string[] => {
+  const result = new Set<string>();
+  result.add(digits);
   
   if (digits.startsWith('84') && digits.length >= 11) {
     // 84xxxxxxxxx -> 0xxxxxxxxx
-    variants.add('0' + digits.slice(2));
+    result.add('0' + digits.slice(2));
   } else if (digits.startsWith('0') && digits.length >= 10) {
     // 0xxxxxxxxx -> 84xxxxxxxxx
-    variants.add('84' + digits.slice(1));
+    result.add('84' + digits.slice(1));
   }
   
-  return Array.from(variants);
-};
-
-// Helper: lấy digits từ item inventory
-const getItemDigits = (item: SimItem): string => {
-  // Ưu tiên các field có thể có
-  const raw = item.phone || '';
-  return toDigits(raw);
+  return Array.from(result);
 };
 
 // Result type cho lookup
@@ -108,25 +103,12 @@ const DinhGiaSim = () => {
   // State lưu số đã submit (digits only)
   const [lastSubmittedDigits, setLastSubmittedDigits] = useState<string>('');
   
-  // Inventory state
-  const [inventory, setInventory] = useState<SimItem[]>([]);
-  const [inventoryLoaded, setInventoryLoaded] = useState(false);
+  // Dùng đúng kho từ trang chủ
+  const { allSims, isLoading: inventoryLoading } = useSimData();
   
   // Similar SIMs state
   const [similarState, setSimilarState] = useState<SimilarState>('idle');
   const [similarSims, setSimilarSims] = useState<SimItem[]>([]);
-
-  // Load inventory on mount
-  useEffect(() => {
-    let mounted = true;
-    loadSimInventory().then((data) => {
-      if (mounted) {
-        setInventory(data);
-        setInventoryLoaded(true);
-      }
-    });
-    return () => { mounted = false; };
-  }, []);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^\d]/g, '');
@@ -179,39 +161,38 @@ const DinhGiaSim = () => {
     }
   }, [phone]);
 
-  // Effect: Đối chiếu số với inventory khi inventory load xong hoặc lastSubmittedDigits thay đổi
+  // Effect: Đối chiếu số với kho khi allSims load xong hoặc lastSubmittedDigits thay đổi
   useEffect(() => {
     // Chưa submit gì thì không làm gì
     if (!lastSubmittedDigits) return;
     
-    // Inventory chưa load xong => giữ loading
-    if (!inventoryLoaded) {
+    // Inventory chưa load xong hoặc rỗng => giữ loading, KHÔNG kết luận "không có"
+    if (inventoryLoading || allSims.length === 0) {
       setState('loading');
       return;
     }
     
     // Inventory đã load, tiến hành đối chiếu
-    const variants = normalizeVariants(lastSubmittedDigits);
+    const inputVariants = variants(lastSubmittedDigits);
     
-    let foundItem: SimItem | null = null;
-    for (const item of inventory) {
-      const digitsItem = getItemDigits(item);
-      if (variants.includes(digitsItem)) {
-        foundItem = item;
-        break;
-      }
-    }
+    // Tìm trong kho
+    const foundSim = allSims.find((sim: NormalizedSIM) => {
+      // Ưu tiên rawDigits, fallback sang formattedNumber
+      const simDigits = sim.rawDigits || toDigits(sim.formattedNumber || '');
+      return inputVariants.includes(simDigits);
+    });
     
     const normalized = normalizePhone(lastSubmittedDigits);
     
-    if (foundItem) {
+    if (foundSim) {
       // Tìm thấy trong kho => dùng giá kho
+      const carrier = (foundSim.network as Carrier) || detectCarrier(normalized);
       setResult({
         found: true,
         phone: normalized,
-        carrier: foundItem.carrier,
-        price: foundItem.price,
-        tags: foundItem.tags,
+        carrier: carrier,
+        price: foundSim.price,
+        tags: foundSim.tags || [],
       });
       setState('success');
     } else {
@@ -228,7 +209,7 @@ const DinhGiaSim = () => {
       });
       setState('success');
     }
-  }, [lastSubmittedDigits, inventory, inventoryLoaded]);
+  }, [lastSubmittedDigits, allSims, inventoryLoading]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
