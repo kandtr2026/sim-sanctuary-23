@@ -18,8 +18,10 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
       <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <input
-            type="text"
+        <input
+            type="tel"
+            inputMode="tel"
+            pattern="[0-9*]*"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Nhập số cần tìm..."
