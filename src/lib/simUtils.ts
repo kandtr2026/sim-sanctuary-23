@@ -127,16 +127,17 @@ export const detectNetwork = (rawDigits: string): NormalizedSIM['network'] => {
 // Detect all SIM tags with high confidence
 export const detectSimTags = (rawDigits: string): string[] => {
   const tags: string[] = [];
-  const last2 = rawDigits.slice(-2);
-  const last3 = rawDigits.slice(-3);
-  const last4 = rawDigits.slice(-4);
-  const last5 = rawDigits.slice(-5);
-  const last6 = rawDigits.slice(-6);
+  const digitsOnly = rawDigits.replace(/\D/g, '');
+  const last2 = digitsOnly.slice(-2);
+  const last3 = digitsOnly.slice(-3);
+  const last4 = digitsOnly.slice(-4);
+  const last5 = digitsOnly.slice(-5);
+  const last6 = digitsOnly.slice(-6);
 
   // Quý patterns (mutually exclusive - most specific wins)
   const allSameLast6 = last6.length === 6 && /^(\d)\1{5}$/.test(last6);
   const allSameLast5 = last5.length === 5 && /^(\d)\1{4}$/.test(last5);
-  const allSameLast4 = rawDigits.length === 10 && last4.length === 4 && /^(\d)\1{3}$/.test(last4);
+  const allSameLast4 = digitsOnly.length === 10 && last4.length === 4 && /^(\d)\1{3}$/.test(last4);
 
   if (allSameLast6) {
     tags.push('Lục quý');
