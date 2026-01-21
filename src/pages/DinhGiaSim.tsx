@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import Header from '@/components/Header';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -15,16 +15,28 @@ import {
 import {
   normalizePhone,
   validatePhone,
-  valuateSimAsync,
   formatCurrencyVND,
   formatPhoneDisplay,
-  type ValuationOutput,
+  detectCarrier,
   type Carrier,
 } from '@/lib/simValuation';
-import { getSimilarSims, type SimItem } from '@/lib/simInventorySheet';
+import { loadSimInventory, getSimilarSims, extractTagsFromPhone, type SimItem } from '@/lib/simInventorySheet';
 
 type ValuationState = 'idle' | 'loading' | 'success' | 'error';
 type SimilarState = 'idle' | 'loading' | 'success' | 'empty' | 'error';
+
+// Helper: chỉ giữ digits
+const toDigits = (s: string): string => s.replace(/\D/g, '');
+
+// Result type cho lookup
+interface LookupResult {
+  found: boolean;
+  phone: string;
+  carrier: Carrier;
+  price: number;
+  tags: string[];
+  message?: string;
+}
 
 const faqData = [
   {
@@ -68,7 +80,7 @@ const DinhGiaSim = () => {
   const [phone, setPhone] = useState('');
   const [state, setState] = useState<ValuationState>('idle');
   const [error, setError] = useState('');
-  const [result, setResult] = useState<ValuationOutput | null>(null);
+  const [result, setResult] = useState<LookupResult | null>(null);
   
   // Similar SIMs state
   const [similarState, setSimilarState] = useState<SimilarState>('idle');
@@ -97,19 +109,49 @@ const DinhGiaSim = () => {
 
     try {
       const normalized = normalizePhone(phone);
-      const valuation = await valuateSimAsync(normalized);
-
-      setResult(valuation);
+      const inputDigits = toDigits(normalized);
+      
+      // Load inventory và tìm exact match
+      const inventory = await loadSimInventory();
+      const foundItem = inventory.find((item) => toDigits(item.phone) === inputDigits);
+      
+      let lookupResult: LookupResult;
+      
+      if (foundItem) {
+        // Tìm thấy trong kho → dùng giá kho
+        lookupResult = {
+          found: true,
+          phone: normalized,
+          carrier: foundItem.carrier,
+          price: foundItem.price,
+          tags: foundItem.tags,
+        };
+      } else {
+        // Không tìm thấy → hiển thị thông báo liên hệ
+        const tags = extractTagsFromPhone(normalized);
+        const carrier = detectCarrier(normalized);
+        lookupResult = {
+          found: false,
+          phone: normalized,
+          carrier: carrier,
+          price: 0,
+          tags: tags,
+          message: 'Vui lòng liên hệ 0938.868.868 để biết thêm chi tiết . Cảm ơn !',
+        };
+      }
+      
+      setResult(lookupResult);
       setState('success');
       
-      // Load similar SIMs
+      // ALWAYS load similar SIMs
       setSimilarState('loading');
       try {
+        const priceForSimilar = lookupResult.found ? lookupResult.price : 5000000; // fallback 5M
         const similar = await getSimilarSims({
-          phone: valuation.phone,
-          carrier: valuation.carrier,
-          tags: valuation.tags,
-          range: valuation.range,
+          phone: lookupResult.phone,
+          carrier: lookupResult.carrier,
+          tags: lookupResult.tags,
+          range: [priceForSimilar * 0.5, priceForSimilar * 2] as [number, number],
         });
         
         if (similar.length > 0) {
@@ -226,39 +268,49 @@ const DinhGiaSim = () => {
                     className={`text-sm px-3 py-1 ${carrierColors[result.carrier]}`}
                   >
                     <Smartphone className="w-3.5 h-3.5 mr-1.5" />
-                    Nhà mạng ước tính: {result.carrier}
+                    Nhà mạng: {result.carrier}
                   </Badge>
                 </div>
 
                 <p className="text-xl md:text-2xl font-bold text-primary-dark mb-2">
                   SIM {formatPhoneDisplay(result.phone)} được định giá:
                 </p>
-                <p className="text-3xl md:text-4xl font-extrabold text-gold gold-glow mb-3">
-                  {formatCurrencyVND(result.price)} VNĐ
-                </p>
-                <p className="text-muted-foreground">
-                  Khoảng giá tham khảo:{' '}
-                  <span className="font-medium text-foreground">
-                    {formatCurrencyVND(result.range[0])} – {formatCurrencyVND(result.range[1])} VNĐ
-                  </span>
-                </p>
-
-                {/* Market basis indicator */}
-                <div className="flex justify-center mt-3">
-                  <Badge 
-                    variant="outline" 
-                    className={`text-xs ${
-                      result.marketBasis === 'inventory-calibrated' 
-                        ? 'bg-green-500/10 text-green-600 border-green-200' 
-                        : 'bg-gray-500/10 text-gray-600 border-gray-200'
-                    }`}
-                  >
-                    <Info className="w-3 h-3 mr-1" />
-                    {result.marketBasis === 'inventory-calibrated' 
-                      ? 'Đã hiệu chỉnh theo kho SIM' 
-                      : 'Định giá theo thuật toán'}
-                  </Badge>
-                </div>
+                
+                {result.found ? (
+                  <>
+                    <p className="text-3xl md:text-4xl font-extrabold text-gold gold-glow mb-3">
+                      {formatCurrencyVND(result.price)} VNĐ
+                    </p>
+                    
+                    {/* Market basis indicator */}
+                    <div className="flex justify-center mt-3">
+                      <Badge 
+                        variant="outline" 
+                        className="text-xs bg-green-500/10 text-green-600 border-green-200"
+                      >
+                        <Info className="w-3 h-3 mr-1" />
+                        Giá chính xác từ kho SIM
+                      </Badge>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-lg md:text-xl font-semibold text-foreground mb-3 px-4">
+                      {result.message}
+                    </p>
+                    
+                    {/* Indicator */}
+                    <div className="flex justify-center mt-3">
+                      <Badge 
+                        variant="outline" 
+                        className="text-xs bg-orange-500/10 text-orange-600 border-orange-200"
+                      >
+                        <Info className="w-3 h-3 mr-1" />
+                        Số không có trong kho
+                      </Badge>
+                    </div>
+                  </>
+                )}
 
                 {/* Tags */}
                 {result.tags.length > 0 && (
@@ -277,56 +329,49 @@ const DinhGiaSim = () => {
               </div>
             </div>
 
-            {/* Chi tiết đánh giá */}
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
-              {/* Lý do nổi bật */}
-              <div className="bg-card rounded-xl shadow-card border border-border p-5">
-                <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-primary" />
-                  Lý do nổi bật
-                </h3>
-                <ul className="space-y-2">
-                  {result.highlights.slice(0, 6).map((highlight, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-start gap-2 text-muted-foreground"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></span>
-                      <span>{highlight}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            {/* Chi tiết đánh giá - chỉ hiển thị khi tìm thấy */}
+            {result.found && (
+              <div className="grid md:grid-cols-2 gap-6 mb-6">
+                {/* Lý do nổi bật */}
+                <div className="bg-card rounded-xl shadow-card border border-border p-5">
+                  <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-primary" />
+                    Đặc điểm nổi bật
+                  </h3>
+                  <ul className="space-y-2">
+                    {result.tags.length > 0 ? (
+                      result.tags.map((tag, idx) => (
+                        <li
+                          key={idx}
+                          className="flex items-start gap-2 text-muted-foreground"
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></span>
+                          <span>{tag}</span>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="text-muted-foreground">Số SIM thường</li>
+                    )}
+                  </ul>
+                </div>
 
-              {/* Điểm đánh giá */}
-              <div className="bg-card rounded-xl shadow-card border border-border p-5">
-                <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-                  <Star className="w-5 h-5 text-gold" />
-                  Điểm đánh giá
-                </h3>
-                <div className="text-center py-4">
-                  <div className="text-5xl md:text-6xl font-extrabold text-primary mb-2">
-                    {result.score}
-                    <span className="text-2xl text-muted-foreground">/100</span>
+                {/* Điểm đánh giá */}
+                <div className="bg-card rounded-xl shadow-card border border-border p-5">
+                  <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
+                    <Star className="w-5 h-5 text-gold" />
+                    Thông tin kho
+                  </h3>
+                  <div className="text-center py-4">
+                    <div className="text-2xl md:text-3xl font-extrabold text-primary mb-2">
+                      {formatCurrencyVND(result.price)}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Giá niêm yết trong kho SIM
+                    </p>
                   </div>
-                  <p
-                    className={`text-lg font-semibold ${
-                      result.score >= 90
-                        ? 'text-gold'
-                        : result.score >= 80
-                        ? 'text-primary'
-                        : result.score >= 65
-                        ? 'text-primary'
-                        : result.score >= 50
-                        ? 'text-foreground'
-                        : 'text-muted-foreground'
-                    }`}
-                  >
-                    SIM {result.tierLabel}
-                  </p>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* CTA Tư vấn */}
             <div className="bg-card rounded-xl shadow-card border border-border p-5 mb-6">
@@ -335,7 +380,7 @@ const DinhGiaSim = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <a
-                  href="https://zalo.me/0896888666?text=%F0%9F%91%8B%20Xin%20ch%C3%A0o%2C%20t%C3%B4i%20mu%E1%BB%91n%20%C4%91%C6%B0%E1%BB%A3c%20t%C6%B0%20v%E1%BA%A5n%20v%E1%BB%81%20%C4%91%E1%BB%8Bnh%20gi%C3%A1%20SIM"
+                  href="https://zalo.me/0938868868?text=%F0%9F%91%8B%20Xin%20ch%C3%A0o%2C%20t%C3%B4i%20mu%E1%BB%91n%20%C4%91%C6%B0%E1%BB%A3c%20t%C6%B0%20v%E1%BA%A5n%20v%E1%BB%81%20%C4%91%E1%BB%8Bnh%20gi%C3%A1%20SIM"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white font-semibold transition-colors"
@@ -344,7 +389,7 @@ const DinhGiaSim = () => {
                   Chat Zalo
                 </a>
                 <a
-                  href="tel:0909888888"
+                  href="tel:0938868868"
                   className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-primary hover:bg-primary-dark text-primary-foreground font-semibold transition-colors"
                 >
                   <Phone className="w-5 h-5" />
