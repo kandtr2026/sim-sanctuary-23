@@ -54,7 +54,7 @@ export const hasKConsecutiveSameDigits = (rawDigits: string, k: number): boolean
   return false;
 };
 
-// Check if SIM matches quý type (position-agnostic)
+// Check if SIM matches quý type (position-agnostic for Lục/Ngũ, suffix-only for Tứ)
 export const matchesQuyType = (rawDigits: string, quyType: QuyType): boolean => {
   if (!rawDigits) return false;
   
@@ -64,7 +64,8 @@ export const matchesQuyType = (rawDigits: string, quyType: QuyType): boolean => 
     case 'Ngũ quý':
       return hasKConsecutiveSameDigits(rawDigits, 5);
     case 'Tứ quý':
-      return hasKConsecutiveSameDigits(rawDigits, 4);
+      // Tứ quý: chỉ khi đúng 10 số và 4 số ĐUÔI giống nhau
+      return rawDigits.length === 10 && /^(\d)\1{3}$/.test(rawDigits.slice(-4));
     default:
       return false;
   }
@@ -494,16 +495,26 @@ export const countTags = (sims: NormalizedSIM[]): Record<string, number> => {
       }
     });
     
-    // Position-agnostic quý counting (multi-category: if matches k=6, also counts for k=5 and k=4)
-    // This ensures a Lục quý SIM contributes to all three counts
+    // Position-agnostic quý counting for Lục/Ngũ; suffix-only for Tứ quý
+    // Lục quý & Ngũ quý: position-agnostic (anywhere in string)
+    // Tứ quý: chỉ khi đúng 10 số và 4 số ĐUÔI giống nhau
     if (hasKConsecutiveSameDigits(sim.rawDigits, 6)) {
       counts['Lục quý']++;
       counts['Ngũ quý']++;
-      counts['Tứ quý']++;
+      // Tứ quý chỉ được đếm nếu đuôi 4 số giống nhau
+      if (sim.rawDigits.length === 10 && /^(\d)\1{3}$/.test(sim.rawDigits.slice(-4))) {
+        counts['Tứ quý']++;
+      }
     } else if (hasKConsecutiveSameDigits(sim.rawDigits, 5)) {
       counts['Ngũ quý']++;
-      counts['Tứ quý']++;
-    } else if (hasKConsecutiveSameDigits(sim.rawDigits, 4)) {
+      // Tứ quý chỉ được đếm nếu đuôi 4 số giống nhau
+      if (sim.rawDigits.length === 10 && /^(\d)\1{3}$/.test(sim.rawDigits.slice(-4))) {
+        counts['Tứ quý']++;
+      }
+    } else if (
+      sim.rawDigits.length === 10 &&
+      /^(\d)\1{3}$/.test(sim.rawDigits.slice(-4))
+    ) {
       counts['Tứ quý']++;
     }
     
