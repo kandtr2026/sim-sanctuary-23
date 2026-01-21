@@ -17,6 +17,120 @@ import {
 } from '@/lib/simUtils';
 import { toast } from 'sonner';
 
+// Seed data: 100 SIMs for instant rendering (from local data)
+const SEED_RAW_DATA = [
+  { number: '0938868868', price: 1000000000 },
+  { number: '0909686686', price: 788000000 },
+  { number: '0901123456', price: 639000000 },
+  { number: '0933686666', price: 513000000 },
+  { number: '0933116666', price: 499000000 },
+  { number: '0901556666', price: 399000000 },
+  { number: '0933636666', price: 419000000 },
+  { number: '0909272727', price: 386000000 },
+  { number: '0899898999', price: 372000000 },
+  { number: '0899889888', price: 372000000 },
+  { number: '0933356666', price: 368000000 },
+  { number: '0937686666', price: 339000000 },
+  { number: '0937796666', price: 339000000 },
+  { number: '0933936666', price: 319000000 },
+  { number: '0932626666', price: 278000000 },
+  { number: '0938856666', price: 268000000 },
+  { number: '0903933339', price: 249000000 },
+  { number: '0932636666', price: 249000000 },
+  { number: '0899888989', price: 225000000 },
+  { number: '0934918888', price: 219000000 },
+  { number: '0934115115', price: 199000000 },
+  { number: '0764666888', price: 160000000 },
+  { number: '0899899988', price: 156000000 },
+  { number: '0899899898', price: 156000000 },
+  { number: '0899899889', price: 156000000 },
+  { number: '0899898998', price: 156000000 },
+  { number: '0899889898', price: 156000000 },
+  { number: '0899888998', price: 156000000 },
+  { number: '0899886888', price: 156000000 },
+  { number: '0902573333', price: 150000000 },
+  { number: '0995848888', price: 150000000 },
+  { number: '0777629999', price: 139000000 },
+  { number: '0707779779', price: 139000000 },
+  { number: '0773118888', price: 120000000 },
+  { number: '0901191111', price: 120000000 },
+  { number: '0896888666', price: 120000000 },
+  { number: '0899866886', price: 110000000 },
+  { number: '0899888686', price: 110000000 },
+  { number: '0938999995', price: 113000000 },
+  { number: '0903389888', price: 99000000 },
+  { number: '0995846666', price: 99000000 },
+  { number: '0901339779', price: 98000000 },
+  { number: '0898868886', price: 88000000 },
+  { number: '0995848484', price: 88000000 },
+  { number: '0995807777', price: 88000000 },
+  { number: '0995801234', price: 80000000 },
+  { number: '0909682999', price: 79000000 },
+  { number: '0902386999', price: 79000000 },
+  { number: '0898868688', price: 75000000 },
+  { number: '0995899998', price: 75000000 },
+  { number: '0995898898', price: 72000000 },
+  { number: '0815090909', price: 69000000 },
+  { number: '0899922888', price: 68000000 },
+  { number: '0899868666', price: 68000000 },
+  { number: '0899911888', price: 68000000 },
+  { number: '0995899888', price: 68000000 },
+  { number: '0995892222', price: 68000000 },
+  { number: '0995845678', price: 68000000 },
+  { number: '0901322888', price: 62000000 },
+  { number: '0898866686', price: 62000000 },
+  { number: '0933698698', price: 62000000 },
+  { number: '0794181818', price: 62000000 },
+  { number: '0995812345', price: 60000000 },
+  { number: '0931111789', price: 59000000 },
+  { number: '0995855888', price: 55000000 },
+  { number: '0995897979', price: 55000000 },
+  { number: '0899896999', price: 52000000 },
+  { number: '0899893999', price: 52000000 },
+  { number: '0899897999', price: 52000000 },
+  { number: '0899119888', price: 52000000 },
+  { number: '0899907999', price: 50000000 },
+  { number: '0899906999', price: 50000000 },
+  { number: '0899905999', price: 50000000 },
+  { number: '0899903999', price: 50000000 },
+  { number: '0899902999', price: 50000000 },
+  { number: '0899901999', price: 50000000 },
+  { number: '0899885999', price: 50000000 },
+  { number: '0899883999', price: 50000000 },
+  { number: '0899855999', price: 50000000 },
+  { number: '0899133999', price: 50000000 },
+  { number: '0899115888', price: 50000000 },
+  { number: '0899122999', price: 50000000 },
+  { number: '0899116999', price: 50000000 },
+  { number: '0899113888', price: 50000000 },
+  { number: '0899877888', price: 50000000 },
+  { number: '0899113999', price: 50000000 },
+  { number: '0899935999', price: 50000000 },
+  { number: '0899927999', price: 50000000 },
+  { number: '0899923999', price: 50000000 },
+  { number: '0899917999', price: 50000000 },
+  { number: '0899916999', price: 50000000 },
+  { number: '0899915999', price: 50000000 },
+  { number: '0899913999', price: 50000000 },
+  { number: '0899912999', price: 50000000 },
+  { number: '0899139888', price: 50000000 },
+  { number: '0899112999', price: 50000000 },
+  { number: '0899895999', price: 50000000 },
+  { number: '0899892999', price: 50000000 },
+  { number: '0899891999', price: 50000000 },
+];
+
+// Build seed SIMs from local data for instant rendering
+const buildSeedSims = (): NormalizedSIM[] => {
+  return SEED_RAW_DATA.map((item, index) => {
+    const rawNumber = String(item.number);
+    return normalizeSIM(rawNumber, rawNumber, item.price, `seed-${index}`);
+  });
+};
+
+// Pre-built seed data (computed once at module load)
+const SEED_SIMS = buildSeedSims();
+
 // Storage keys
 const CSV_CACHE_KEY = 'sim_csv_cache';
 const CSV_CACHE_TIME_KEY = 'sim_csv_cache_time';
@@ -465,7 +579,9 @@ export const useSimData = () => {
     gcTime: 30 * 60 * 1000,
     retry: 1,
     refetchInterval: AUTO_REFRESH_INTERVAL,
-    refetchIntervalInBackground: false
+    refetchIntervalInBackground: false,
+    // Seed data for instant rendering - prevents loading screen on first load
+    placeholderData: SEED_SIMS
   });
 
   const forceReload = useCallback(() => {
