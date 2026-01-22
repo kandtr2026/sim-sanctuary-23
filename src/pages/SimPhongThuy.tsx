@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/accordion';
 import { Search, Copy, AlertCircle, Sparkles, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { loadSimInventory, type SimItem } from '@/lib/simInventorySheet';
 
 // ===================== DATA: 80 QUẺ =====================
 type HexagramLevel = 'Đại cát' | 'Cát' | 'Bình thường' | 'Hung' | 'Đại hung';
@@ -160,32 +161,94 @@ const getLevelBadgeClass = (level: HexagramLevel): string => {
   }
 };
 
-// Generate similar suggestions
-const generateSimilarSuggestions = (suffix: string, len: 4 | 6): string[] => {
-  const suggestions: string[] = [];
-  const prefixes = ['090', '093', '089', '070', '076', '077', '078', '079'];
-  
-  if (len === 4) {
-    // Keep last 2 digits, randomize first 2
-    const last2 = suffix.slice(-2);
-    for (let i = 0; i < 10; i++) {
-      const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-      const mid = String(Math.floor(Math.random() * 100)).padStart(2, '0');
-      const first2 = String(Math.floor(Math.random() * 100)).padStart(2, '0');
-      suggestions.push(`${prefix}.${mid}${first2}.${last2}${String(Math.floor(Math.random() * 100)).padStart(2, '0')}`);
+// Format phone number for display (e.g., 0901234567 -> 090.123.4567)
+const formatPhoneDisplay = (phone: string): string => {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 10) {
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  }
+  return phone;
+};
+
+// Format price to VND
+const formatPriceVND = (price: number): string => {
+  return price.toLocaleString('vi-VN') + 'đ';
+};
+
+// Find similar SIMs from real inventory
+const findSimilarSimsFromInventory = (
+  inventory: SimItem[],
+  suffix: string,
+  len: 4 | 6
+): SimItem[] => {
+  if (!inventory || inventory.length === 0) return [];
+
+  const results: SimItem[] = [];
+  const usedPhones = new Set<string>();
+
+  // Priority 1: Match exact suffix (4 or 6 digits)
+  for (const sim of inventory) {
+    if (sim.phone.endsWith(suffix) && sim.price > 0) {
+      if (!usedPhones.has(sim.phone)) {
+        results.push(sim);
+        usedPhones.add(sim.phone);
+      }
     }
-  } else {
-    // Keep last 3 digits, randomize rest
+    if (results.length >= 12) break;
+  }
+
+  // Priority 2: Match last 3 digits if not enough
+  if (results.length < 8) {
     const last3 = suffix.slice(-3);
-    for (let i = 0; i < 10; i++) {
-      const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-      const mid = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
-      suggestions.push(`${prefix}.${mid}.${last3}${String(Math.floor(Math.random() * 10))}`);
+    for (const sim of inventory) {
+      if (sim.phone.endsWith(last3) && sim.price > 0) {
+        if (!usedPhones.has(sim.phone)) {
+          results.push(sim);
+          usedPhones.add(sim.phone);
+        }
+      }
+      if (results.length >= 12) break;
     }
   }
-  
-  // Deduplicate and limit
-  return [...new Set(suggestions)].slice(0, 10);
+
+  // Priority 3: Match last 2 digits if still not enough
+  if (results.length < 8) {
+    const last2 = suffix.slice(-2);
+    for (const sim of inventory) {
+      if (sim.phone.endsWith(last2) && sim.price > 0) {
+        if (!usedPhones.has(sim.phone)) {
+          results.push(sim);
+          usedPhones.add(sim.phone);
+        }
+      }
+      if (results.length >= 12) break;
+    }
+  }
+
+  // Priority 4: Match similar patterns (repeating digits, sequences)
+  if (results.length < 8) {
+    // Check if suffix has repeating pattern
+    const hasRepeating = /(\d)\1{2,}/.test(suffix);
+    const hasSequence = /0123|1234|2345|3456|4567|5678|6789|7890|9876|8765|7654|6543|5432|4321|3210/.test(suffix);
+    
+    if (hasRepeating || hasSequence) {
+      for (const sim of inventory) {
+        const simSuffix = sim.phone.slice(-len);
+        const simHasRepeating = /(\d)\1{2,}/.test(simSuffix);
+        const simHasSequence = /0123|1234|2345|3456|4567|5678|6789|7890|9876|8765|7654|6543|5432|4321|3210/.test(simSuffix);
+        
+        if ((hasRepeating && simHasRepeating) || (hasSequence && simHasSequence)) {
+          if (!usedPhones.has(sim.phone) && sim.price > 0) {
+            results.push(sim);
+            usedPhones.add(sim.phone);
+          }
+        }
+        if (results.length >= 12) break;
+      }
+    }
+  }
+
+  return results.slice(0, 12);
 };
 
 // Card style classes - Ruby red gradient with radial highlight and golden glow border
@@ -198,10 +261,17 @@ const cardStyle = {
 
 const SimPhongThuy = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [inputValue, setInputValue] = useState('');
   const [suffixLength, setSuffixLength] = useState<'4' | '6'>('4');
   const [result, setResult] = useState<{ suffix: string; que: number; hexagram: Hexagram } | null>(null);
   const [error, setError] = useState('');
+  const [inventory, setInventory] = useState<SimItem[]>([]);
+
+  // Load inventory on mount
+  useEffect(() => {
+    loadSimInventory().then(setInventory);
+  }, []);
 
   // Parse URL params on load
   useEffect(() => {
@@ -262,11 +332,16 @@ const SimPhongThuy = () => {
     });
   };
 
-  // Similar suggestions
+  // Navigate to checkout when clicking a SIM
+  const handleSimClick = (sim: SimItem) => {
+    navigate(`/thanh-toan?sim=${encodeURIComponent(sim.phone)}&price=${sim.price}`);
+  };
+
+  // Similar suggestions from real inventory
   const similarSuggestions = useMemo(() => {
-    if (!result) return [];
-    return generateSimilarSuggestions(result.suffix, parseInt(suffixLength) as 4 | 6);
-  }, [result, suffixLength]);
+    if (!result || inventory.length === 0) return [];
+    return findSimilarSimsFromInventory(inventory, result.suffix, parseInt(suffixLength) as 4 | 6);
+  }, [result, suffixLength, inventory]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950">
@@ -455,31 +530,33 @@ const SimPhongThuy = () => {
             </div>
           )}
 
-          {/* Similar Suggestions */}
+          {/* Similar Suggestions - Real SIMs from inventory */}
           {result && similarSuggestions.length > 0 && (
             <div className={`${cardBaseClass} mt-6 md:mt-8`} style={cardStyle}>
               <h2 className="text-lg font-semibold mb-5" style={{ color: '#F7C55A', textShadow: '0 0 8px rgba(247, 197, 90, 0.4)' }}>Gợi ý số tương tự</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {similarSuggestions.map((phone, idx) => (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {similarSuggestions.map((sim, idx) => (
                   <div
                     key={idx}
-                    className="rounded-lg p-3 text-center cursor-pointer transition-all hover:scale-[1.02]"
+                    className="rounded-lg p-3 text-center cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg"
                     style={{ 
                       background: 'rgba(255, 255, 255, 0.06)', 
                       backdropFilter: 'blur(6px)',
                       border: '1px solid rgba(245, 194, 107, 0.25)'
                     }}
-                    onClick={() => {
-                      setInputValue(phone);
-                      performLookup(phone, suffixLength);
-                    }}
+                    onClick={() => handleSimClick(sim)}
                   >
-                    <p className="font-mono text-sm" style={{ color: '#F7C55A' }}>{phone}</p>
+                    <p className="font-mono text-sm font-semibold" style={{ color: '#F7C55A' }}>
+                      {formatPhoneDisplay(sim.phone)}
+                    </p>
+                    <p className="text-xs mt-1 font-medium" style={{ color: '#ff6b6b' }}>
+                      {formatPriceVND(sim.price)}
+                    </p>
                   </div>
                 ))}
               </div>
               <p className="text-xs mt-4 text-center" style={{ color: 'rgba(237, 237, 237, 0.5)' }}>
-                Click vào số để tra cứu. Đây là số gợi ý mô phỏng, không phải số thực trong kho.
+                Click vào số để xem chi tiết và đặt mua
               </p>
             </div>
           )}
