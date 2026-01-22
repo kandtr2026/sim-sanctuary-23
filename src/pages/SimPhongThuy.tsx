@@ -142,7 +142,7 @@ const faqData = [
   }
 ];
 
-// Level badge colors - Brighter, more vibrant
+// Level badge colors - Vibrant with glow
 const getLevelBadgeClass = (level: HexagramLevel): string => {
   switch (level) {
     case 'Đại cát':
@@ -188,8 +188,13 @@ const generateSimilarSuggestions = (suffix: string, len: 4 | 6): string[] => {
   return [...new Set(suggestions)].slice(0, 10);
 };
 
-// Card style classes - Brighter ruby red with golden glow
-const cardBaseClass = "relative rounded-2xl border border-[#f5c26b] bg-[linear-gradient(135deg,#7a0f14_0%,#a4161a_45%,#c81d25_100%)] shadow-[0_0_20px_rgba(245,194,107,0.35),inset_0_0_12px_rgba(245,194,107,0.2)]";
+// Card style classes - Ruby red gradient with radial highlight and golden glow border
+const cardBaseClass = "relative rounded-2xl p-6 md:p-8";
+const cardStyle = {
+  background: 'radial-gradient(ellipse at 50% 30%, rgba(180, 40, 50, 0.5) 0%, transparent 60%), linear-gradient(135deg, #5a0a0e 0%, #8b1a1a 40%, #6d1515 70%, #4a0d0d 100%)',
+  border: '1px solid rgba(245, 194, 107, 0.45)',
+  boxShadow: '0 0 25px rgba(245, 194, 107, 0.25), inset 0 1px 0 rgba(245, 194, 107, 0.1)',
+};
 
 const SimPhongThuy = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -272,19 +277,19 @@ const SimPhongThuy = () => {
         <div className="max-w-4xl mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-[#ffd36a] mb-3 flex items-center justify-center gap-2 [text-shadow:0_0_10px_rgba(255,211,106,0.6)]">
-              <Sparkles className="w-7 h-7 text-[#ffd36a]" />
+            <h1 className="text-2xl md:text-3xl font-bold mb-3 flex items-center justify-center gap-2" style={{ color: '#F7C55A', textShadow: '0 0 12px rgba(247, 197, 90, 0.6)' }}>
+              <Sparkles className="w-7 h-7" style={{ color: '#F7C55A' }} />
               Bói 4 Số Đuôi / 6 Số Đuôi SIM
             </h1>
-            <p className="text-gray-300 text-sm md:text-base">
+            <p style={{ color: 'rgba(237, 237, 237, 0.65)' }} className="text-sm md:text-base">
               Tra cứu ý nghĩa số đuôi SIM theo 80 quẻ Kinh Dịch
             </p>
           </div>
 
           {/* Card 1: Input Form */}
-          <div className={`${cardBaseClass} p-6 md:p-8 mb-6 md:mb-8`}>
-            <h2 className="text-lg md:text-xl font-semibold text-[#ffd36a] mb-6 flex items-center gap-2 [text-shadow:0_0_8px_rgba(255,211,106,0.4)]">
-              <Search className="w-5 h-5 text-[#ffd36a]" />
+          <div className={cardBaseClass} style={cardStyle}>
+            <h2 className="text-lg md:text-xl font-semibold mb-6 flex items-center gap-2" style={{ color: '#EDEDED' }}>
+              <Search className="w-5 h-5" style={{ color: '#F7C55A' }} />
               Nhập số cần tra cứu
             </h2>
             
@@ -292,7 +297,7 @@ const SimPhongThuy = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                 {/* Input */}
                 <div className="md:col-span-2 space-y-2">
-                  <Label htmlFor="phone" className="text-[#f5f5f5] text-sm">
+                  <Label htmlFor="phone" style={{ color: '#EDEDED' }} className="text-sm">
                     Số điện thoại hoặc số đuôi
                   </Label>
                   <Input
@@ -301,21 +306,21 @@ const SimPhongThuy = () => {
                     placeholder="VD: 0909.123.456 hoặc 3456"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    className="bg-black/40 border-[#f5c26b]/40 text-white placeholder:text-gray-400 focus:border-[#f5c26b] focus:ring-[#f5c26b]/30"
+                    className="bg-black/50 border-[rgba(245,194,107,0.3)] text-white placeholder:text-gray-500 focus:border-[#F7C55A] focus:ring-[#F7C55A]/30"
                   />
-                  <p className="text-xs text-gray-300/70">
+                  <p style={{ color: 'rgba(237, 237, 237, 0.5)' }} className="text-xs">
                     Có thể nhập 4 số, 6 số, hoặc số điện thoại đầy đủ (có thể có dấu chấm/khoảng trắng)
                   </p>
                 </div>
 
                 {/* Suffix Length */}
                 <div className="space-y-2">
-                  <Label className="text-[#f5f5f5] text-sm">Độ dài tra cứu</Label>
+                  <Label style={{ color: '#EDEDED' }} className="text-sm">Độ dài tra cứu</Label>
                   <Select value={suffixLength} onValueChange={(v) => setSuffixLength(v as '4' | '6')}>
-                    <SelectTrigger className="bg-black/40 border-[#f5c26b]/40 text-white focus:border-[#f5c26b] focus:ring-[#f5c26b]/30">
+                    <SelectTrigger className="bg-black/50 border-[rgba(245,194,107,0.3)] text-white focus:border-[#F7C55A] focus:ring-[#F7C55A]/30">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-neutral-900 border-[#f5c26b]/40">
+                    <SelectContent className="bg-neutral-900 border-[rgba(245,194,107,0.3)]">
                       <SelectItem value="4" className="text-white hover:bg-neutral-800">4 số cuối</SelectItem>
                       <SelectItem value="6" className="text-white hover:bg-neutral-800">6 số cuối</SelectItem>
                     </SelectContent>
@@ -334,7 +339,11 @@ const SimPhongThuy = () => {
               {/* Submit */}
               <Button 
                 type="submit" 
-                className="w-full md:w-auto bg-[linear-gradient(135deg,#ff3b3b,#ff7a18)] hover:brightness-110 text-white border-0 shadow-[0_6px_20px_rgba(255,90,50,0.45)]"
+                className="w-full md:w-auto text-white border-0"
+                style={{ 
+                  background: 'linear-gradient(135deg, #ff3b3b, #ff7a18)', 
+                  boxShadow: '0 6px 20px rgba(255, 90, 50, 0.45)' 
+                }}
               >
                 <Search className="w-4 h-4 mr-2" />
                 Tra cứu
@@ -344,20 +353,24 @@ const SimPhongThuy = () => {
 
           {/* Card 2: Result Section */}
           {result && (
-            <div className={`${cardBaseClass} p-6 md:p-8 mb-6 md:mb-8`}>
+            <div className={`${cardBaseClass} mt-6 md:mt-8`} style={cardStyle}>
               {/* Header with Copy Link */}
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg md:text-xl font-semibold text-[#ffd36a] flex items-center gap-2 [text-shadow:0_0_8px_rgba(255,211,106,0.4)]">
-                  <Sparkles className="w-5 h-5 text-[#ffd36a]" />
+                <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2" style={{ color: '#EDEDED' }}>
+                  <Sparkles className="w-5 h-5" style={{ color: '#F7C55A' }} />
                   Kết quả tra cứu
                 </h2>
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={handleCopyLink}
-                  className="bg-[linear-gradient(135deg,#ff3b3b,#ff7a18)] border-0 text-white hover:brightness-110 shadow-[0_4px_15px_rgba(255,90,50,0.4)]"
+                  className="bg-black/40 hover:bg-black/60 text-white"
+                  style={{ 
+                    border: '1px solid rgba(245, 194, 107, 0.45)',
+                    boxShadow: '0 0 10px rgba(245, 194, 107, 0.2)'
+                  }}
                 >
-                  <Copy className="w-4 h-4 mr-2" />
+                  <Copy className="w-4 h-4 mr-2" style={{ color: '#F7C55A' }} />
                   Copy link
                 </Button>
               </div>
@@ -366,38 +379,60 @@ const SimPhongThuy = () => {
                 {/* Result Grid */}
                 <div className="grid grid-cols-2 gap-4 md:gap-6">
                   {/* Suffix Display */}
-                  <div className="text-center p-4 bg-[rgba(255,255,255,0.06)] backdrop-blur-sm rounded-xl border border-[#f5c26b]/30">
-                    <p className="text-xs md:text-sm text-[#f5f5f5]/70 mb-2">Số cuối tra cứu</p>
-                    <p className="text-2xl md:text-4xl font-bold text-[#ffd36a] tracking-wider [text-shadow:0_0_10px_rgba(255,211,106,0.6)]">{result.suffix}</p>
+                  <div 
+                    className="text-center p-4 rounded-xl"
+                    style={{ 
+                      background: 'rgba(255, 255, 255, 0.06)', 
+                      backdropFilter: 'blur(6px)',
+                      border: '1px solid rgba(245, 194, 107, 0.25)'
+                    }}
+                  >
+                    <p className="text-xs md:text-sm mb-2" style={{ color: 'rgba(237, 237, 237, 0.65)' }}>Số cuối tra cứu</p>
+                    <p className="text-2xl md:text-4xl font-bold tracking-wider" style={{ color: '#F7C55A', textShadow: '0 0 10px rgba(247, 197, 90, 0.6)' }}>{result.suffix}</p>
                   </div>
 
                   {/* Que Number */}
-                  <div className="text-center p-4 bg-[rgba(255,255,255,0.06)] backdrop-blur-sm rounded-xl border border-[#f5c26b]/30">
-                    <p className="text-xs md:text-sm text-[#f5f5f5]/70 mb-2">Quẻ số</p>
-                    <p className="text-2xl md:text-4xl font-bold text-[#ff6b6b] [text-shadow:0_0_10px_rgba(255,107,107,0.5)]">{result.que}</p>
+                  <div 
+                    className="text-center p-4 rounded-xl"
+                    style={{ 
+                      background: 'rgba(255, 255, 255, 0.06)', 
+                      backdropFilter: 'blur(6px)',
+                      border: '1px solid rgba(245, 194, 107, 0.25)'
+                    }}
+                  >
+                    <p className="text-xs md:text-sm mb-2" style={{ color: 'rgba(237, 237, 237, 0.65)' }}>Quẻ số</p>
+                    <p className="text-2xl md:text-4xl font-bold" style={{ color: '#ff6b6b', textShadow: '0 0 10px rgba(255, 107, 107, 0.5)' }}>{result.que}</p>
                   </div>
                 </div>
 
                 {/* Hexagram Title - Luận giải */}
-                <div className="bg-[rgba(255,255,255,0.06)] backdrop-blur-sm rounded-xl p-5 border border-[#f5c26b]/30">
-                  <p className="text-xs md:text-sm text-[#f5f5f5]/70 mb-3 text-center">Luận giải</p>
-                  <p className="text-base md:text-lg text-center text-[#f5f5f5] italic">
+                <div 
+                  className="rounded-xl p-5"
+                  style={{ 
+                    background: 'rgba(255, 255, 255, 0.06)', 
+                    backdropFilter: 'blur(6px)',
+                    border: '1px solid rgba(245, 194, 107, 0.25)'
+                  }}
+                >
+                  <p className="text-xs md:text-sm mb-3 text-center" style={{ color: 'rgba(237, 237, 237, 0.65)' }}>Luận giải</p>
+                  <p className="text-base md:text-lg text-center italic" style={{ color: '#f5f5f5' }}>
                     "{result.hexagram.title}"
                   </p>
                 </div>
 
                 {/* Level Badge - Đánh giá */}
                 <div className="text-center">
-                  <p className="text-xs md:text-sm text-[#f5f5f5]/70 mb-3">Đánh giá</p>
+                  <p className="text-xs md:text-sm mb-3" style={{ color: 'rgba(237, 237, 237, 0.65)' }}>Đánh giá</p>
                   <Badge className={`text-sm md:text-base px-5 py-2 border font-semibold ${getLevelBadgeClass(result.hexagram.level)}`}>
                     {result.hexagram.level}
                   </Badge>
                 </div>
 
                 {/* Disclaimer */}
-                <div className="text-center py-4 border-t border-[#f5c26b]/20">
-                  <p className="text-xs text-[#f5f5f5]/60">
-                    ⚠️ Nội dung chỉ mang tính tham khảo, giải trí
+                <div className="text-center py-4" style={{ borderTop: '1px solid rgba(245, 194, 107, 0.2)' }}>
+                  <p className="text-xs flex items-center justify-center gap-2" style={{ color: 'rgba(237, 237, 237, 0.6)' }}>
+                    <AlertCircle className="w-4 h-4" style={{ color: '#F7C55A' }} />
+                    Nội dung chỉ mang tính tham khảo, giải trí
                   </p>
                 </div>
 
@@ -406,7 +441,11 @@ const SimPhongThuy = () => {
                   <Button 
                     variant="outline" 
                     onClick={handleCopyLink}
-                    className="bg-[linear-gradient(135deg,#ff3b3b,#ff7a18)] border-0 text-white hover:brightness-110 shadow-[0_6px_20px_rgba(255,90,50,0.45)]"
+                    className="text-white border-0"
+                    style={{ 
+                      background: 'linear-gradient(135deg, #ff3b3b, #ff7a18)', 
+                      boxShadow: '0 6px 20px rgba(255, 90, 50, 0.45)' 
+                    }}
                   >
                     <Share2 className="w-4 h-4 mr-2" />
                     Chia sẻ kết quả
@@ -418,43 +457,48 @@ const SimPhongThuy = () => {
 
           {/* Similar Suggestions */}
           {result && similarSuggestions.length > 0 && (
-            <div className={`${cardBaseClass} p-6 md:p-8 mb-6 md:mb-8`}>
-              <h2 className="text-lg font-semibold text-[#ffd36a] mb-5 [text-shadow:0_0_8px_rgba(255,211,106,0.4)]">Gợi ý số tương tự</h2>
+            <div className={`${cardBaseClass} mt-6 md:mt-8`} style={cardStyle}>
+              <h2 className="text-lg font-semibold mb-5" style={{ color: '#F7C55A', textShadow: '0 0 8px rgba(247, 197, 90, 0.4)' }}>Gợi ý số tương tự</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {similarSuggestions.map((phone, idx) => (
                   <div
                     key={idx}
-                    className="bg-[rgba(255,255,255,0.06)] backdrop-blur-sm rounded-lg p-3 text-center hover:bg-[rgba(255,255,255,0.12)] hover:border-[#ffd36a]/50 border border-[#f5c26b]/30 transition-all cursor-pointer"
+                    className="rounded-lg p-3 text-center cursor-pointer transition-all hover:scale-[1.02]"
+                    style={{ 
+                      background: 'rgba(255, 255, 255, 0.06)', 
+                      backdropFilter: 'blur(6px)',
+                      border: '1px solid rgba(245, 194, 107, 0.25)'
+                    }}
                     onClick={() => {
                       setInputValue(phone);
                       performLookup(phone, suffixLength);
                     }}
                   >
-                    <p className="font-mono text-sm text-[#ffd36a]">{phone}</p>
+                    <p className="font-mono text-sm" style={{ color: '#F7C55A' }}>{phone}</p>
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-[#f5f5f5]/60 mt-4 text-center">
+              <p className="text-xs mt-4 text-center" style={{ color: 'rgba(237, 237, 237, 0.5)' }}>
                 Click vào số để tra cứu. Đây là số gợi ý mô phỏng, không phải số thực trong kho.
               </p>
             </div>
           )}
 
           {/* Zalo Contact */}
-          <div className="mb-8 max-w-sm mx-auto">
+          <div className="my-8 max-w-sm mx-auto">
             <ZaloChatCard />
           </div>
 
           {/* FAQ Section */}
-          <div className={`${cardBaseClass} p-6 md:p-8 mb-8`}>
-            <h2 className="text-lg font-semibold text-[#ffd36a] mb-5 [text-shadow:0_0_8px_rgba(255,211,106,0.4)]">Câu hỏi thường gặp</h2>
+          <div className={cardBaseClass} style={cardStyle}>
+            <h2 className="text-lg font-semibold mb-5" style={{ color: '#F7C55A', textShadow: '0 0 8px rgba(247, 197, 90, 0.4)' }}>Câu hỏi thường gặp</h2>
             <Accordion type="single" collapsible className="w-full">
               {faqData.map((faq, index) => (
-                <AccordionItem key={index} value={`faq-${index}`} className="border-[#f5c26b]/20">
-                  <AccordionTrigger className="text-left text-[#f5f5f5] hover:text-[#ffd36a] hover:no-underline">
+                <AccordionItem key={index} value={`faq-${index}`} style={{ borderColor: 'rgba(245, 194, 107, 0.2)' }}>
+                  <AccordionTrigger className="text-left hover:no-underline" style={{ color: '#EDEDED' }}>
                     {faq.question}
                   </AccordionTrigger>
-                  <AccordionContent className="text-[#f5f5f5]/70">
+                  <AccordionContent style={{ color: 'rgba(237, 237, 237, 0.7)' }}>
                     {faq.answer}
                   </AccordionContent>
                 </AccordionItem>
@@ -463,9 +507,16 @@ const SimPhongThuy = () => {
           </div>
 
           {/* Disclaimer */}
-          <div className="bg-[rgba(255,255,255,0.06)] backdrop-blur-sm rounded-xl p-5 text-center border border-[#f5c26b]/30">
-            <p className="text-sm text-[#f5f5f5]/80">
-              <strong className="text-[#ffd36a]">Lưu ý:</strong> Kết quả bói số đuôi SIM dựa trên 80 quẻ Kinh Dịch, chỉ mang tính chất tham khảo và giải trí. 
+          <div 
+            className="rounded-xl p-5 text-center mt-8"
+            style={{ 
+              background: 'rgba(255, 255, 255, 0.06)', 
+              backdropFilter: 'blur(6px)',
+              border: '1px solid rgba(245, 194, 107, 0.25)'
+            }}
+          >
+            <p className="text-sm" style={{ color: 'rgba(237, 237, 237, 0.8)' }}>
+              <strong style={{ color: '#F7C55A' }}>Lưu ý:</strong> Kết quả bói số đuôi SIM dựa trên 80 quẻ Kinh Dịch, chỉ mang tính chất tham khảo và giải trí. 
               Việc lựa chọn SIM nên kết hợp nhiều yếu tố phong thủy khác như ngũ hành, bát tự, tổng số nút...
             </p>
           </div>
