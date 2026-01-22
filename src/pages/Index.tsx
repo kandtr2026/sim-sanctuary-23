@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import Header from '@/components/Header';
 import Navigation from '@/components/Navigation';
 import SearchBarAdvanced from '@/components/SearchBarAdvanced';
-import HeroBanner from '@/components/HeroBanner';
+
 import AdvancedFilterSidebar from '@/components/AdvancedFilterSidebar';
 import SIMCardNew from '@/components/SIMCardNew';
 import RightSidebar from '@/components/RightSidebar';
@@ -147,7 +147,13 @@ const Index = () => {
         {/* Hero Banner - Compact, near menu - Hidden when no results with suggestions */}
         {!isNoResultsWithSuggestions && (
           <section className="mb-4">
-            <HeroBanner />
+            <div className="rounded-xl overflow-hidden">
+              <img 
+                src="/home-banner.png" 
+                alt="CHONSOMOBIFONE.COM banner" 
+                className="w-full h-full object-cover"
+              />
+            </div>
           </section>
         )}
 
