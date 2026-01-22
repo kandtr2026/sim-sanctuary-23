@@ -332,11 +332,17 @@ const SimPhongThuy = () => {
     });
   };
 
-  // Lookup when clicking a SIM suggestion (set input + perform lookup)
+  // Navigate to checkout when clicking a SIM suggestion
   const handleSimClick = (sim: SimItem) => {
-    const digits = sim.phone.replace(/\D/g, '');
-    setInputValue(digits);
-    performLookup(digits, suffixLength);
+    const phoneDigits = sim.phone.replace(/\D/g, '');
+    const params = new URLSearchParams({
+      sim: phoneDigits,
+      price: String(sim.price)
+    });
+    if (sim.url) {
+      params.set('url', sim.url);
+    }
+    navigate(`/mua-ngay/${encodeURIComponent(phoneDigits)}?${params.toString()}`);
   };
 
   // Similar suggestions from real inventory
@@ -558,7 +564,7 @@ const SimPhongThuy = () => {
                 ))}
               </div>
               <p className="text-xs mt-4 text-center" style={{ color: 'rgba(237, 237, 237, 0.5)' }}>
-                Click vào số để xem và tra cứu. Giá hiển thị là giá tham khảo từ kho.
+                Click vào số để xem chi tiết và đặt mua. Giá hiển thị là giá tham khảo từ kho.
               </p>
             </div>
           )}
