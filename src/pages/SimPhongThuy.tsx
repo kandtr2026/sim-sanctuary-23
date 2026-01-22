@@ -27,10 +27,10 @@ import { toast } from 'sonner';
 // ===================== CSV URL (BẮT BUỘC DÙNG ĐÚNG) =====================
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y/export?format=csv&gid=139400129';
 
-// Proxy URL for CORS fallback
-const getProxyUrl = () => {
+// Edge function URL for fetching SIM data (bypass CORS)
+const getEdgeFunctionUrl = () => {
   const projectId = 'pfeyyyvhzsuoccwoweco';
-  return `https://${projectId}.supabase.co/functions/v1/sheet-proxy`;
+  return `https://${projectId}.supabase.co/functions/v1/fetch-sim-data`;
 };
 
 // ===================== INVENTORY ITEM TYPE =====================
@@ -225,14 +225,15 @@ const normalizePhoneToDigits = (value: string): string => {
 
 /**
  * Parse price từ nhiều định dạng
+ * Xử lý: "  1,000,000,000 ", "18.000.000đ", "18000000", "  990,000,000 "
  */
 const parsePriceToNumber = (value: string): number => {
   if (!value) return 0;
   const str = String(value).trim();
-  // Loại bỏ tất cả dấu chấm/phẩy ngăn cách hàng nghìn, đ, vnđ
-  const cleaned = str.replace(/[.,\s]/g, '').replace(/[đdvnĐVN]/gi, '');
+  // Loại bỏ tất cả dấu chấm, phẩy, khoảng trắng, đ, vnđ, và các ký tự khác
+  const cleaned = str.replace(/[.,\s]/g, '').replace(/[đdvnĐVN"']/gi, '');
   const num = parseInt(cleaned, 10);
-  return isNaN(num) ? 0 : num;
+  return isNaN(num) || num <= 0 ? 0 : num;
 };
 
 /**
@@ -267,56 +268,56 @@ const parseCSVRows = (csvText: string): Record<string, string>[] => {
 
 /**
  * Fetch và parse inventory từ CSV
- * Layer 1: Direct fetch
- * Layer 2: Supabase Edge Function proxy (CORS fallback)
+ * Sử dụng Supabase Edge Function để bypass CORS
  * TUYỆT ĐỐI không random, không mock
  */
 const fetchInventory = async (): Promise<InventoryItem[]> => {
   let csvText: string | null = null;
   
-  // Layer 1: Try direct fetch
+  // Primary: Use Edge Function (reliable, bypasses CORS)
   try {
     if (import.meta.env.DEV) {
-      console.log('[SimPhongThuy] Trying direct CSV fetch...');
+      console.log('[SimPhongThuy] Fetching via edge function...');
     }
-    const response = await fetch(CSV_URL, {
-      method: 'GET',
-      headers: { 'Accept': 'text/csv' },
+    const edgeFunctionUrl = getEdgeFunctionUrl();
+    const response = await fetch(edgeFunctionUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
     });
     
     if (response.ok) {
       csvText = await response.text();
       if (import.meta.env.DEV) {
-        console.log('[SimPhongThuy] Direct fetch success:', csvText.length, 'bytes');
+        console.log('[SimPhongThuy] Edge function success:', csvText.length, 'bytes');
       }
+    } else {
+      console.error('[SimPhongThuy] Edge function error:', response.status);
     }
   } catch (err) {
-    if (import.meta.env.DEV) {
-      console.warn('[SimPhongThuy] Direct fetch failed (CORS?):', err);
-    }
+    console.error('[SimPhongThuy] Edge function fetch failed:', err);
   }
   
-  // Layer 2: Fallback to proxy
+  // Fallback: Try direct fetch (may fail due to CORS)
   if (!csvText) {
     try {
       if (import.meta.env.DEV) {
-        console.log('[SimPhongThuy] Trying proxy fetch...');
+        console.log('[SimPhongThuy] Trying direct CSV fetch...');
       }
-      const proxyUrl = getProxyUrl();
-      const targetUrl = encodeURIComponent(CSV_URL);
-      const response = await fetch(`${proxyUrl}?url=${targetUrl}`, {
+      const response = await fetch(CSV_URL, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Accept': 'text/csv' },
       });
       
       if (response.ok) {
         csvText = await response.text();
         if (import.meta.env.DEV) {
-          console.log('[SimPhongThuy] Proxy fetch success:', csvText.length, 'bytes');
+          console.log('[SimPhongThuy] Direct fetch success:', csvText.length, 'bytes');
         }
       }
     } catch (err) {
-      console.error('[SimPhongThuy] Proxy fetch failed:', err);
+      if (import.meta.env.DEV) {
+        console.warn('[SimPhongThuy] Direct fetch failed (CORS?):', err);
+      }
     }
   }
   
@@ -361,16 +362,17 @@ const fetchInventory = async (): Promise<InventoryItem[]> => {
     ['phone', 'số', 'so', 'sim', 'sodienthoai', 'số điện thoại'].includes(k.toLowerCase().trim())
   );
   
-  // Price column: ưu tiên "GIÁ BÁN", fallback "Final_Price"
-  const priceSellKey = keys.find((k) => {
-    const lower = k.toLowerCase().replace(/\s+/g, '');
-    return lower === 'giábán' || lower === 'giaban' || lower === 'giá bán';
-  });
+  // Price column: ưu tiên "Final_Price" (giá sau discount), fallback "GIÁ BÁN"
   const priceFinalKey = keys.find((k) => {
     const lower = k.toLowerCase().replace(/\s+/g, '');
     return lower === 'final_price' || lower === 'finalprice';
   });
-  const priceKey = priceSellKey || priceFinalKey || keys.find((k) =>
+  const priceSellKey = keys.find((k) => {
+    const lower = k.toLowerCase().replace(/\s+/g, '');
+    return lower === 'giábán' || lower === 'giaban' || lower === 'giá bán';
+  });
+  // Ưu tiên Final_Price (giá đã giảm) > GIÁ BÁN
+  const priceKey = priceFinalKey || priceSellKey || keys.find((k) =>
     ['price', 'giá', 'gia'].includes(k.toLowerCase().trim())
   );
   
