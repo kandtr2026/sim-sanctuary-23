@@ -23,7 +23,22 @@ import {
 } from '@/components/ui/accordion';
 import { Search, Copy, AlertCircle, Sparkles, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { loadSimInventory, type SimItem } from '@/lib/simInventorySheet';
+
+// ===================== CSV URL (BẮT BUỘC DÙNG ĐÚNG) =====================
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y/export?format=csv&gid=139400129';
+
+// Proxy URL for CORS fallback
+const getProxyUrl = () => {
+  const projectId = 'pfeyyyvhzsuoccwoweco';
+  return `https://${projectId}.supabase.co/functions/v1/sheet-proxy`;
+};
+
+// ===================== INVENTORY ITEM TYPE =====================
+interface InventoryItem {
+  phone: string;      // Formatted phone (may have dots)
+  digits: string;     // Normalized digits only
+  price: number;
+}
 
 // ===================== DATA: 80 QUẺ =====================
 type HexagramLevel = 'Đại cát' | 'Cát' | 'Bình thường' | 'Hung' | 'Đại hung';
@@ -160,11 +175,11 @@ const getLevelBadgeClass = (level: HexagramLevel): string => {
   }
 };
 
-// Format phone number for display (e.g., 0901234567 -> 090.123.4567)
+// Format phone number for display (e.g., 0909272727 -> 0909.27.27.27)
 const formatPhoneDisplay = (phone: string): string => {
   const digits = phone.replace(/\D/g, '');
   if (digits.length === 10) {
-    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+    return `${digits.slice(0, 4)}.${digits.slice(4, 6)}.${digits.slice(6, 8)}.${digits.slice(8)}`;
   }
   return phone;
 };
@@ -174,112 +189,229 @@ const formatPriceVND = (price: number): string => {
   return price.toLocaleString('vi-VN') + 'đ';
 };
 
-// Find similar SIMs from real inventory (Google Sheet)
-// NO random generation - only real SIMs with valid prices
-interface SuggestedSim {
-  phone: string;
-  price: number;
-  url?: string;
-}
-
-const findSimilarSimsFromInventory = (
-  inventory: SimItem[],
-  suffix: string,
-  len: 4 | 6
-): SuggestedSim[] => {
-  if (!inventory || inventory.length === 0 || !suffix) return [];
-
-  const results: SuggestedSim[] = [];
-  const usedPhones = new Set<string>();
-  const maxResults = 8;
-
-  // Normalize phone to digits only
-  const normalizeToDigits = (phone: string): string => {
-    return phone.replace(/\D/g, '');
-  };
-
-  // Calculate character match percentage from right to left
-  const calcMatchPercent = (simSuffix: string, querySuffix: string): number => {
-    if (simSuffix.length !== querySuffix.length) return 0;
-    let matches = 0;
-    for (let i = simSuffix.length - 1; i >= 0; i--) {
-      if (simSuffix[i] === querySuffix[i]) matches++;
+// ===================== PARSE CSV CHUẨN =====================
+/**
+ * Chuẩn hoá phone TRIỆT ĐỂ:
+ * - Xử lý dạng "0909.27.27.27", "0909272727", "9.09272727E+9" (scientific notation)
+ * - Loại bỏ mọi ký tự không phải số
+ * - Nếu dài 9 và không bắt đầu bằng 0 -> thêm '0' đầu
+ */
+const normalizePhoneToDigits = (value: string): string => {
+  let str = String(value).trim();
+  
+  // Xử lý scientific notation (e.g., 9.09272727E+9)
+  if (str.toLowerCase().includes('e')) {
+    try {
+      const num = parseFloat(str);
+      if (!isNaN(num)) {
+        // Convert to full number string without scientific notation
+        str = num.toLocaleString('fullwide', { useGrouping: false });
+      }
+    } catch {
+      // If parse fails, continue with string processing
     }
-    return matches / querySuffix.length;
-  };
+  }
+  
+  // Loại bỏ mọi ký tự không phải số
+  let digits = str.replace(/\D/g, '');
+  
+  // Nếu dài 9 và không bắt đầu bằng 0, thêm '0' đầu
+  if (digits.length === 9 && digits[0] !== '0') {
+    digits = '0' + digits;
+  }
+  
+  return digits;
+};
 
-  // Filter valid SIMs with price > 0
-  const validSims = inventory.filter(sim => {
-    const price = Number(sim.price);
-    return sim.phone && !isNaN(price) && price > 0;
-  });
+/**
+ * Parse price từ nhiều định dạng
+ */
+const parsePriceToNumber = (value: string): number => {
+  if (!value) return 0;
+  const str = String(value).trim();
+  // Loại bỏ tất cả dấu chấm/phẩy ngăn cách hàng nghìn, đ, vnđ
+  const cleaned = str.replace(/[.,\s]/g, '').replace(/[đdvnĐVN]/gi, '');
+  const num = parseInt(cleaned, 10);
+  return isNaN(num) ? 0 : num;
+};
 
-  // Priority 1: Exact suffix match
-  for (const sim of validSims) {
-    if (results.length >= maxResults) break;
+/**
+ * Parse CSV thành array rows
+ */
+const parseCSVRows = (csvText: string): Record<string, string>[] => {
+  const lines = csvText.trim().split('\n');
+  if (lines.length < 2) return [];
+  
+  // Header row - giữ nguyên để match tiếng Việt
+  const headerLine = lines[0];
+  const headers = headerLine.split(',').map((h) => h.trim().replace(/["']/g, ''));
+  
+  const result: Record<string, string>[] = [];
+  
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line.trim()) continue;
     
-    const simDigits = normalizeToDigits(sim.phone);
-    const simSuffix = simDigits.slice(-len);
+    const values = line.split(',').map((v) => v.trim().replace(/["']/g, ''));
     
-    if (simSuffix === suffix && !usedPhones.has(simDigits)) {
-      results.push({
-        phone: sim.phone,
-        price: Number(sim.price),
-        url: sim.url
+    const row: Record<string, string> = {};
+    headers.forEach((header, idx) => {
+      row[header] = values[idx] || '';
+    });
+    
+    result.push(row);
+  }
+  
+  return result;
+};
+
+/**
+ * Fetch và parse inventory từ CSV
+ * Layer 1: Direct fetch
+ * Layer 2: Supabase Edge Function proxy (CORS fallback)
+ * TUYỆT ĐỐI không random, không mock
+ */
+const fetchInventory = async (): Promise<InventoryItem[]> => {
+  let csvText: string | null = null;
+  
+  // Layer 1: Try direct fetch
+  try {
+    if (import.meta.env.DEV) {
+      console.log('[SimPhongThuy] Trying direct CSV fetch...');
+    }
+    const response = await fetch(CSV_URL, {
+      method: 'GET',
+      headers: { 'Accept': 'text/csv' },
+    });
+    
+    if (response.ok) {
+      csvText = await response.text();
+      if (import.meta.env.DEV) {
+        console.log('[SimPhongThuy] Direct fetch success:', csvText.length, 'bytes');
+      }
+    }
+  } catch (err) {
+    if (import.meta.env.DEV) {
+      console.warn('[SimPhongThuy] Direct fetch failed (CORS?):', err);
+    }
+  }
+  
+  // Layer 2: Fallback to proxy
+  if (!csvText) {
+    try {
+      if (import.meta.env.DEV) {
+        console.log('[SimPhongThuy] Trying proxy fetch...');
+      }
+      const proxyUrl = getProxyUrl();
+      const targetUrl = encodeURIComponent(CSV_URL);
+      const response = await fetch(`${proxyUrl}?url=${targetUrl}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
       });
-      usedPhones.add(simDigits);
-    }
-  }
-
-  // Priority 2: >=70% character match from right
-  if (results.length < maxResults) {
-    for (const sim of validSims) {
-      if (results.length >= maxResults) break;
       
-      const simDigits = normalizeToDigits(sim.phone);
-      if (usedPhones.has(simDigits)) continue;
-
-      const simSuffix = simDigits.slice(-len);
-      const matchPercent = calcMatchPercent(simSuffix, suffix);
-      
-      if (matchPercent >= 0.7) {
-        results.push({
-          phone: sim.phone,
-          price: Number(sim.price),
-          url: sim.url
-        });
-        usedPhones.add(simDigits);
+      if (response.ok) {
+        csvText = await response.text();
+        if (import.meta.env.DEV) {
+          console.log('[SimPhongThuy] Proxy fetch success:', csvText.length, 'bytes');
+        }
       }
+    } catch (err) {
+      console.error('[SimPhongThuy] Proxy fetch failed:', err);
     }
   }
-
-  // Priority 3: Fallback - partial suffix match (last 3 digits for len=4, last 4 digits for len=6)
-  if (results.length < maxResults) {
-    const fallbackLen = len === 4 ? 3 : 4;
-    const fallbackSuffix = suffix.slice(-fallbackLen);
+  
+  // Check if we got HTML instead of CSV (error page)
+  if (csvText && (csvText.includes('<html') || csvText.includes('<!DOCTYPE'))) {
+    if (import.meta.env.DEV) {
+      console.error('[SimPhongThuy] CSV returned HTML - check share/public');
+    }
+    return [];
+  }
+  
+  if (!csvText) {
+    if (import.meta.env.DEV) {
+      console.warn('[SimPhongThuy] No CSV data, returning empty');
+    }
+    return [];
+  }
+  
+  const rows = parseCSVRows(csvText);
+  
+  if (rows.length === 0) {
+    if (import.meta.env.DEV) {
+      console.warn('[SimPhongThuy] Empty CSV parsed');
+    }
+    return [];
+  }
+  
+  // Find column keys
+  const sampleRow = rows[0];
+  const keys = Object.keys(sampleRow);
+  
+  // Phone column: ưu tiên "SỐ THUÊ BAO CHUẨN", fallback "SỐ THUÊ BAO"
+  const phoneStandardKey = keys.find((k) => {
+    const lower = k.toLowerCase().replace(/\s+/g, '');
+    return lower.includes('sốthuêbaochuẩn') || lower.includes('sothuebao chuẩn') || lower.includes('sothuebao chuan');
+  });
+  const phoneDisplayKey = keys.find((k) => {
+    const lower = k.toLowerCase().replace(/\s+/g, '');
+    return lower === 'sốthuêbao' || lower === 'sothuebao' || lower === 'số thuê bao';
+  });
+  const phoneKey = phoneStandardKey || phoneDisplayKey || keys.find((k) =>
+    ['phone', 'số', 'so', 'sim', 'sodienthoai', 'số điện thoại'].includes(k.toLowerCase().trim())
+  );
+  
+  // Price column: ưu tiên "GIÁ BÁN", fallback "Final_Price"
+  const priceSellKey = keys.find((k) => {
+    const lower = k.toLowerCase().replace(/\s+/g, '');
+    return lower === 'giábán' || lower === 'giaban' || lower === 'giá bán';
+  });
+  const priceFinalKey = keys.find((k) => {
+    const lower = k.toLowerCase().replace(/\s+/g, '');
+    return lower === 'final_price' || lower === 'finalprice';
+  });
+  const priceKey = priceSellKey || priceFinalKey || keys.find((k) =>
+    ['price', 'giá', 'gia'].includes(k.toLowerCase().trim())
+  );
+  
+  if (import.meta.env.DEV) {
+    console.log('[SimPhongThuy] Detected columns - phone:', phoneKey, '| price:', priceKey);
+  }
+  
+  const inventory: InventoryItem[] = [];
+  const seenDigits = new Set<string>();
+  
+  for (const row of rows) {
+    const phoneRaw = phoneKey ? row[phoneKey] : '';
+    const priceRaw = priceKey ? row[priceKey] : '';
     
-    for (const sim of validSims) {
-      if (results.length >= maxResults) break;
-      
-      const simDigits = normalizeToDigits(sim.phone);
-      if (usedPhones.has(simDigits)) continue;
-
-      const simSuffix = simDigits.slice(-fallbackLen);
-      if (simSuffix === fallbackSuffix) {
-        results.push({
-          phone: sim.phone,
-          price: Number(sim.price),
-          url: sim.url
-        });
-        usedPhones.add(simDigits);
-      }
+    if (!phoneRaw || !priceRaw) continue;
+    
+    const digits = normalizePhoneToDigits(phoneRaw);
+    const price = parsePriceToNumber(priceRaw);
+    
+    // Validate: digits phải >= 9 số, price > 0
+    if (digits.length < 9 || price <= 0) continue;
+    
+    // Dedup by digits
+    if (seenDigits.has(digits)) continue;
+    seenDigits.add(digits);
+    
+    inventory.push({
+      phone: phoneRaw, // Keep original format for display
+      digits,
+      price,
+    });
+  }
+  
+  if (import.meta.env.DEV) {
+    console.log('[SimPhongThuy] Inventory loaded:', inventory.length, 'items');
+    if (inventory.length > 0) {
+      console.log('[SimPhongThuy] Sample 3 items:', inventory.slice(0, 3));
     }
   }
-
-  // Sort by price ascending (no randomization)
-  results.sort((a, b) => a.price - b.price);
-
-  return results;
+  
+  return inventory;
 };
 
 // Card style classes - Ruby red gradient with radial highlight and golden glow border
@@ -299,18 +431,18 @@ const SimPhongThuy = () => {
   const [error, setError] = useState('');
 
   // State for real inventory from Google Sheet
-  const [inventory, setInventory] = useState<SimItem[]>([]);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [inventoryLoaded, setInventoryLoaded] = useState(false);
 
   // Load inventory from Google Sheet on mount (one time)
   useEffect(() => {
-    loadSimInventory()
+    fetchInventory()
       .then((data) => {
         setInventory(data);
         setInventoryLoaded(true);
       })
       .catch((err) => {
-        console.error('Failed to load inventory:', err);
+        console.error('[SimPhongThuy] Failed to load inventory:', err);
         setInventory([]);
         setInventoryLoaded(true);
       });
@@ -376,32 +508,48 @@ const SimPhongThuy = () => {
   };
 
   // Navigate to checkout when clicking a SIM suggestion - NO lookup, direct to checkout
-  const handleSimClick = (sim: SuggestedSim) => {
-    const phoneDigits = sim.phone.replace(/\D/g, '');
-    const params = new URLSearchParams({
-      sim: phoneDigits,
-      price: String(sim.price)
-    });
-    if (sim.url) {
-      params.set('url', sim.url);
-    }
-    navigate(`/mua-ngay/${encodeURIComponent(phoneDigits)}?${params.toString()}`);
+  const handleSimClick = (item: InventoryItem) => {
+    navigate(`/checkout?sim=${item.digits}`);
   };
 
-  // Similar suggestions from real inventory (Google Sheet) - NO random, only real SIMs
+  // ===================== ENGINE GỢI Ý "SỐ TƯƠNG TỰ" = LỌC TỪ KHO THẬT =====================
+  // TUYỆT ĐỐI không random, không generate số mới
   const similarSuggestions = useMemo(() => {
     if (!result || !inventoryLoaded || inventory.length === 0) {
-      if (import.meta.env.DEV) {
-        console.log('[SimPhongThuy] No suggestions: result=', !!result, 'loaded=', inventoryLoaded, 'inv=', inventory.length);
-      }
       return [];
     }
-    const suggestions = findSimilarSimsFromInventory(inventory, result.suffix, parseInt(suffixLength) as 4 | 6);
-    if (import.meta.env.DEV) {
-      console.log('[SimPhongThuy] inventory loaded:', inventory.length);
-      console.log('[SimPhongThuy] suggestions:', suggestions.length);
+
+    const suffixDigits = result.suffix.replace(/\D/g, '');
+    const suffixLen = parseInt(suffixLength);
+    
+    // Try different match lengths in priority order
+    const matchLengths = suffixLen === 4 ? [4, 3, 2] : [6, 5, 4, 3, 2];
+    
+    let candidates: InventoryItem[] = [];
+    
+    for (const matchLen of matchLengths) {
+      if (candidates.length >= 8) break;
+      
+      const targetSuffix = suffixDigits.slice(-matchLen);
+      const matches = inventory.filter((item) => {
+        // Already in candidates?
+        if (candidates.some((c) => c.digits === item.digits)) return false;
+        // Match suffix
+        return item.digits.endsWith(targetSuffix) && item.price > 0;
+      });
+      
+      candidates = [...candidates, ...matches];
     }
-    return suggestions;
+    
+    // Sort by price ascending, limit to 8
+    candidates.sort((a, b) => a.price - b.price);
+    const finalList = candidates.slice(0, 8);
+    
+    if (import.meta.env.DEV) {
+      console.log('[SimPhongThuy] suffixDigits:', suffixDigits, '| suggestions:', finalList.length);
+    }
+    
+    return finalList;
   }, [result, suffixLength, inventory, inventoryLoaded]);
 
   return (
