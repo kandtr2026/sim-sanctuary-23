@@ -4,7 +4,6 @@ import Header from '@/components/Header';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import ZaloChatCard from '@/components/ZaloChatCard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,7 +23,8 @@ import {
 } from '@/components/ui/accordion';
 import { Search, Copy, AlertCircle, Sparkles, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { loadSimInventory, type SimItem } from '@/lib/simInventorySheet';
+import { useSimData } from '@/hooks/useSimData';
+import type { NormalizedSIM } from '@/lib/simUtils';
 
 // ===================== DATA: 80 QUẺ =====================
 type HexagramLevel = 'Đại cát' | 'Cát' | 'Bình thường' | 'Hung' | 'Đại hung';
@@ -175,80 +175,59 @@ const formatPriceVND = (price: number): string => {
   return price.toLocaleString('vi-VN') + 'đ';
 };
 
-// Find similar SIMs from real inventory
+// Find similar SIMs from real inventory (Google Sheet via useSimData)
+// Matching logic: exact suffix match OR >=70% character match from right
 const findSimilarSimsFromInventory = (
-  inventory: SimItem[],
+  allSims: NormalizedSIM[],
   suffix: string,
   len: 4 | 6
-): SimItem[] => {
-  if (!inventory || inventory.length === 0) return [];
+): NormalizedSIM[] => {
+  if (!allSims || allSims.length === 0 || !suffix) return [];
 
-  const results: SimItem[] = [];
-  const usedPhones = new Set<string>();
+  const results: NormalizedSIM[] = [];
+  const usedIds = new Set<string>();
+  const maxResults = 6;
 
-  // Priority 1: Match exact suffix (4 or 6 digits)
-  for (const sim of inventory) {
-    if (sim.phone.endsWith(suffix) && sim.price > 0) {
-      if (!usedPhones.has(sim.phone)) {
-        results.push(sim);
-        usedPhones.add(sim.phone);
-      }
+  // Calculate character match percentage from right to left
+  const calcMatchPercent = (simSuffix: string, querySuffix: string): number => {
+    if (simSuffix.length !== querySuffix.length) return 0;
+    let matches = 0;
+    for (let i = simSuffix.length - 1; i >= 0; i--) {
+      if (simSuffix[i] === querySuffix[i]) matches++;
     }
-    if (results.length >= 12) break;
-  }
+    return matches / querySuffix.length;
+  };
 
-  // Priority 2: Match last 3 digits if not enough
-  if (results.length < 8) {
-    const last3 = suffix.slice(-3);
-    for (const sim of inventory) {
-      if (sim.phone.endsWith(last3) && sim.price > 0) {
-        if (!usedPhones.has(sim.phone)) {
-          results.push(sim);
-          usedPhones.add(sim.phone);
-        }
-      }
-      if (results.length >= 12) break;
-    }
-  }
-
-  // Priority 3: Match last 2 digits if still not enough
-  if (results.length < 8) {
-    const last2 = suffix.slice(-2);
-    for (const sim of inventory) {
-      if (sim.phone.endsWith(last2) && sim.price > 0) {
-        if (!usedPhones.has(sim.phone)) {
-          results.push(sim);
-          usedPhones.add(sim.phone);
-        }
-      }
-      if (results.length >= 12) break;
-    }
-  }
-
-  // Priority 4: Match similar patterns (repeating digits, sequences)
-  if (results.length < 8) {
-    // Check if suffix has repeating pattern
-    const hasRepeating = /(\d)\1{2,}/.test(suffix);
-    const hasSequence = /0123|1234|2345|3456|4567|5678|6789|7890|9876|8765|7654|6543|5432|4321|3210/.test(suffix);
+  // Priority 1: Exact suffix match
+  for (const sim of allSims) {
+    if (results.length >= maxResults) break;
+    if (!sim.rawDigits || sim.price <= 0) continue;
     
-    if (hasRepeating || hasSequence) {
-      for (const sim of inventory) {
-        const simSuffix = sim.phone.slice(-len);
-        const simHasRepeating = /(\d)\1{2,}/.test(simSuffix);
-        const simHasSequence = /0123|1234|2345|3456|4567|5678|6789|7890|9876|8765|7654|6543|5432|4321|3210/.test(simSuffix);
-        
-        if ((hasRepeating && simHasRepeating) || (hasSequence && simHasSequence)) {
-          if (!usedPhones.has(sim.phone) && sim.price > 0) {
-            results.push(sim);
-            usedPhones.add(sim.phone);
-          }
-        }
-        if (results.length >= 12) break;
+    const simSuffix = sim.rawDigits.slice(-len);
+    if (simSuffix === suffix && !usedIds.has(sim.id)) {
+      results.push(sim);
+      usedIds.add(sim.id);
+    }
+  }
+
+  // Priority 2: >=70% character match from right
+  if (results.length < maxResults) {
+    for (const sim of allSims) {
+      if (results.length >= maxResults) break;
+      if (!sim.rawDigits || sim.price <= 0) continue;
+      if (usedIds.has(sim.id)) continue;
+
+      const simSuffix = sim.rawDigits.slice(-len);
+      const matchPercent = calcMatchPercent(simSuffix, suffix);
+      
+      if (matchPercent >= 0.7) {
+        results.push(sim);
+        usedIds.add(sim.id);
       }
     }
   }
 
-  return results.slice(0, 12);
+  return results;
 };
 
 // Card style classes - Ruby red gradient with radial highlight and golden glow border
@@ -266,12 +245,9 @@ const SimPhongThuy = () => {
   const [suffixLength, setSuffixLength] = useState<'4' | '6'>('4');
   const [result, setResult] = useState<{ suffix: string; que: number; hexagram: Hexagram } | null>(null);
   const [error, setError] = useState('');
-  const [inventory, setInventory] = useState<SimItem[]>([]);
 
-  // Load inventory on mount
-  useEffect(() => {
-    loadSimInventory().then(setInventory);
-  }, []);
+  // Use real SIM data from Google Sheet via useSimData hook
+  const { allSims } = useSimData();
 
   // Parse URL params on load
   useEffect(() => {
@@ -333,23 +309,20 @@ const SimPhongThuy = () => {
   };
 
   // Navigate to checkout when clicking a SIM suggestion
-  const handleSimClick = (sim: SimItem) => {
-    const phoneDigits = sim.phone.replace(/\D/g, '');
+  const handleSimClick = (sim: NormalizedSIM) => {
+    const phoneDigits = sim.rawDigits;
     const params = new URLSearchParams({
       sim: phoneDigits,
       price: String(sim.price)
     });
-    if (sim.url) {
-      params.set('url', sim.url);
-    }
     navigate(`/mua-ngay/${encodeURIComponent(phoneDigits)}?${params.toString()}`);
   };
 
-  // Similar suggestions from real inventory
+  // Similar suggestions from real inventory (Google Sheet)
   const similarSuggestions = useMemo(() => {
-    if (!result || inventory.length === 0) return [];
-    return findSimilarSimsFromInventory(inventory, result.suffix, parseInt(suffixLength) as 4 | 6);
-  }, [result, suffixLength, inventory]);
+    if (!result || allSims.length === 0) return [];
+    return findSimilarSimsFromInventory(allSims, result.suffix, parseInt(suffixLength) as 4 | 6);
+  }, [result, suffixLength, allSims]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950">
@@ -555,7 +528,7 @@ const SimPhongThuy = () => {
                     onClick={() => handleSimClick(sim)}
                   >
                     <p className="font-mono text-sm font-semibold" style={{ color: '#F7C55A' }}>
-                      {formatPhoneDisplay(sim.phone)}
+                      {sim.displayNumber}
                     </p>
                     <p className="text-xs mt-1 font-medium" style={{ color: '#ff6b6b' }}>
                       {formatPriceVND(sim.price)}
