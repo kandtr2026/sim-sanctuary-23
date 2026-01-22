@@ -23,8 +23,7 @@ import {
 } from '@/components/ui/accordion';
 import { Search, Copy, AlertCircle, Sparkles, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useSimData } from '@/hooks/useSimData';
-import type { NormalizedSIM } from '@/lib/simUtils';
+import { loadSimInventory, type SimItem } from '@/lib/simInventorySheet';
 
 // ===================== DATA: 80 QUẺ =====================
 type HexagramLevel = 'Đại cát' | 'Cát' | 'Bình thường' | 'Hung' | 'Đại hung';
@@ -175,18 +174,29 @@ const formatPriceVND = (price: number): string => {
   return price.toLocaleString('vi-VN') + 'đ';
 };
 
-// Find similar SIMs from real inventory (Google Sheet via useSimData)
-// Matching logic: exact suffix match OR >=70% character match from right
+// Find similar SIMs from real inventory (Google Sheet)
+// NO random generation - only real SIMs with valid prices
+interface SuggestedSim {
+  phone: string;
+  price: number;
+  url?: string;
+}
+
 const findSimilarSimsFromInventory = (
-  allSims: NormalizedSIM[],
+  inventory: SimItem[],
   suffix: string,
   len: 4 | 6
-): NormalizedSIM[] => {
-  if (!allSims || allSims.length === 0 || !suffix) return [];
+): SuggestedSim[] => {
+  if (!inventory || inventory.length === 0 || !suffix) return [];
 
-  const results: NormalizedSIM[] = [];
-  const usedIds = new Set<string>();
-  const maxResults = 6;
+  const results: SuggestedSim[] = [];
+  const usedPhones = new Set<string>();
+  const maxResults = 8;
+
+  // Normalize phone to digits only
+  const normalizeToDigits = (phone: string): string => {
+    return phone.replace(/\D/g, '');
+  };
 
   // Calculate character match percentage from right to left
   const calcMatchPercent = (simSuffix: string, querySuffix: string): number => {
@@ -198,34 +208,76 @@ const findSimilarSimsFromInventory = (
     return matches / querySuffix.length;
   };
 
+  // Filter valid SIMs with price > 0
+  const validSims = inventory.filter(sim => {
+    const price = Number(sim.price);
+    return sim.phone && !isNaN(price) && price > 0;
+  });
+
   // Priority 1: Exact suffix match
-  for (const sim of allSims) {
+  for (const sim of validSims) {
     if (results.length >= maxResults) break;
-    if (!sim.rawDigits || sim.price <= 0) continue;
     
-    const simSuffix = sim.rawDigits.slice(-len);
-    if (simSuffix === suffix && !usedIds.has(sim.id)) {
-      results.push(sim);
-      usedIds.add(sim.id);
+    const simDigits = normalizeToDigits(sim.phone);
+    const simSuffix = simDigits.slice(-len);
+    
+    if (simSuffix === suffix && !usedPhones.has(simDigits)) {
+      results.push({
+        phone: sim.phone,
+        price: Number(sim.price),
+        url: sim.url
+      });
+      usedPhones.add(simDigits);
     }
   }
 
   // Priority 2: >=70% character match from right
   if (results.length < maxResults) {
-    for (const sim of allSims) {
+    for (const sim of validSims) {
       if (results.length >= maxResults) break;
-      if (!sim.rawDigits || sim.price <= 0) continue;
-      if (usedIds.has(sim.id)) continue;
+      
+      const simDigits = normalizeToDigits(sim.phone);
+      if (usedPhones.has(simDigits)) continue;
 
-      const simSuffix = sim.rawDigits.slice(-len);
+      const simSuffix = simDigits.slice(-len);
       const matchPercent = calcMatchPercent(simSuffix, suffix);
       
       if (matchPercent >= 0.7) {
-        results.push(sim);
-        usedIds.add(sim.id);
+        results.push({
+          phone: sim.phone,
+          price: Number(sim.price),
+          url: sim.url
+        });
+        usedPhones.add(simDigits);
       }
     }
   }
+
+  // Priority 3: Fallback - partial suffix match (last 3 digits for len=4, last 4 digits for len=6)
+  if (results.length < maxResults) {
+    const fallbackLen = len === 4 ? 3 : 4;
+    const fallbackSuffix = suffix.slice(-fallbackLen);
+    
+    for (const sim of validSims) {
+      if (results.length >= maxResults) break;
+      
+      const simDigits = normalizeToDigits(sim.phone);
+      if (usedPhones.has(simDigits)) continue;
+
+      const simSuffix = simDigits.slice(-fallbackLen);
+      if (simSuffix === fallbackSuffix) {
+        results.push({
+          phone: sim.phone,
+          price: Number(sim.price),
+          url: sim.url
+        });
+        usedPhones.add(simDigits);
+      }
+    }
+  }
+
+  // Sort by price ascending (no randomization)
+  results.sort((a, b) => a.price - b.price);
 
   return results;
 };
@@ -246,8 +298,23 @@ const SimPhongThuy = () => {
   const [result, setResult] = useState<{ suffix: string; que: number; hexagram: Hexagram } | null>(null);
   const [error, setError] = useState('');
 
-  // Use real SIM data from Google Sheet via useSimData hook
-  const { allSims } = useSimData();
+  // State for real inventory from Google Sheet
+  const [inventory, setInventory] = useState<SimItem[]>([]);
+  const [inventoryLoaded, setInventoryLoaded] = useState(false);
+
+  // Load inventory from Google Sheet on mount (one time)
+  useEffect(() => {
+    loadSimInventory()
+      .then((data) => {
+        setInventory(data);
+        setInventoryLoaded(true);
+      })
+      .catch((err) => {
+        console.error('Failed to load inventory:', err);
+        setInventory([]);
+        setInventoryLoaded(true);
+      });
+  }, []);
 
   // Parse URL params on load
   useEffect(() => {
@@ -308,21 +375,24 @@ const SimPhongThuy = () => {
     });
   };
 
-  // Navigate to checkout when clicking a SIM suggestion
-  const handleSimClick = (sim: NormalizedSIM) => {
-    const phoneDigits = sim.rawDigits;
+  // Navigate to checkout when clicking a SIM suggestion - NO lookup, direct to checkout
+  const handleSimClick = (sim: SuggestedSim) => {
+    const phoneDigits = sim.phone.replace(/\D/g, '');
     const params = new URLSearchParams({
       sim: phoneDigits,
       price: String(sim.price)
     });
+    if (sim.url) {
+      params.set('url', sim.url);
+    }
     navigate(`/mua-ngay/${encodeURIComponent(phoneDigits)}?${params.toString()}`);
   };
 
-  // Similar suggestions from real inventory (Google Sheet)
+  // Similar suggestions from real inventory (Google Sheet) - NO random, only real SIMs
   const similarSuggestions = useMemo(() => {
-    if (!result || allSims.length === 0) return [];
-    return findSimilarSimsFromInventory(allSims, result.suffix, parseInt(suffixLength) as 4 | 6);
-  }, [result, suffixLength, allSims]);
+    if (!result || !inventoryLoaded || inventory.length === 0) return [];
+    return findSimilarSimsFromInventory(inventory, result.suffix, parseInt(suffixLength) as 4 | 6);
+  }, [result, suffixLength, inventory, inventoryLoaded]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950">
@@ -528,7 +598,7 @@ const SimPhongThuy = () => {
                     onClick={() => handleSimClick(sim)}
                   >
                     <p className="font-mono text-sm font-semibold" style={{ color: '#F7C55A' }}>
-                      {sim.displayNumber}
+                      {formatPhoneDisplay(sim.phone)}
                     </p>
                     <p className="text-xs mt-1 font-medium" style={{ color: '#ff6b6b' }}>
                       {formatPriceVND(sim.price)}
