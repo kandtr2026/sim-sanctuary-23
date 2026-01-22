@@ -6,12 +6,10 @@ const Header = () => {
       <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <a href="/">
-            <img 
-              src="/brand-logo.png" 
-              alt="chonsomobifone.com" 
-              className="h-10 w-auto"
-            />
+          <a href="/" className="text-xl md:text-2xl font-bold tracking-tight">
+            <span className="text-gold">CHONSO</span>
+            <span className="text-primary">MOBIFONE</span>
+            <span className="text-header-foreground">.COM</span>
           </a>
         </div>
 
