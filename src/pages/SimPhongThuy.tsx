@@ -146,15 +146,15 @@ const faqData = [
 const getLevelBadgeClass = (level: HexagramLevel): string => {
   switch (level) {
     case 'Đại cát':
-      return 'bg-green-600 text-white';
+      return 'bg-gradient-to-r from-green-500 to-emerald-600 text-white border-green-400/50';
     case 'Cát':
-      return 'bg-emerald-500 text-white';
+      return 'bg-gradient-to-r from-emerald-500 to-green-500 text-white border-emerald-400/50';
     case 'Bình thường':
-      return 'bg-yellow-500 text-black';
+      return 'bg-gradient-to-r from-amber-500 to-yellow-500 text-black border-amber-400/50';
     case 'Hung':
-      return 'bg-orange-500 text-white';
+      return 'bg-gradient-to-r from-orange-500 to-red-500 text-white border-orange-400/50';
     case 'Đại hung':
-      return 'bg-red-600 text-white';
+      return 'bg-gradient-to-r from-red-600 to-rose-700 text-white border-red-400/50';
     default:
       return 'bg-muted text-muted-foreground';
   }
@@ -187,6 +187,9 @@ const generateSimilarSuggestions = (suffix: string, len: 4 | 6): string[] => {
   // Deduplicate and limit
   return [...new Set(suggestions)].slice(0, 10);
 };
+
+// Card style classes
+const cardBaseClass = "relative rounded-2xl border border-amber-500/30 bg-gradient-to-br from-red-950/60 via-red-950/30 to-black/40 shadow-[0_0_0_1px_rgba(245,158,11,0.15),0_0_40px_rgba(239,68,68,0.15)]";
 
 const SimPhongThuy = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -261,7 +264,7 @@ const SimPhongThuy = () => {
   }, [result, suffixLength]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-black via-neutral-950 to-black">
       <Header />
       <Navigation />
 
@@ -269,157 +272,172 @@ const SimPhongThuy = () => {
         <div className="max-w-4xl mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-gold mb-4 flex items-center justify-center gap-2">
-              <Sparkles className="w-8 h-8" />
+            <h1 className="text-2xl md:text-3xl font-bold text-amber-500 mb-3 flex items-center justify-center gap-2">
+              <Sparkles className="w-7 h-7 text-amber-400" />
               Bói 4 Số Đuôi / 6 Số Đuôi SIM
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-gray-400 text-sm md:text-base">
               Tra cứu ý nghĩa số đuôi SIM theo 80 quẻ Kinh Dịch
             </p>
           </div>
 
-          {/* Input Form */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="text-lg">Nhập số cần tra cứu</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Input */}
-                  <div className="md:col-span-2 space-y-2">
-                    <Label htmlFor="phone">Số điện thoại hoặc số đuôi</Label>
-                    <Input
-                      id="phone"
-                      type="text"
-                      placeholder="VD: 0909.123.456 hoặc 3456"
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Có thể nhập 4 số, 6 số, hoặc số điện thoại đầy đủ (có thể có dấu chấm/khoảng trắng)
-                    </p>
-                  </div>
-
-                  {/* Suffix Length */}
-                  <div className="space-y-2">
-                    <Label>Độ dài tra cứu</Label>
-                    <Select value={suffixLength} onValueChange={(v) => setSuffixLength(v as '4' | '6')}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="4">4 số cuối</SelectItem>
-                        <SelectItem value="6">6 số cuối</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+          {/* Card 1: Input Form */}
+          <div className={`${cardBaseClass} p-6 md:p-8 mb-6 md:mb-8`}>
+            <h2 className="text-lg md:text-xl font-semibold text-white mb-6 flex items-center gap-2">
+              <Search className="w-5 h-5 text-amber-500" />
+              Nhập số cần tra cứu
+            </h2>
+            
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                {/* Input */}
+                <div className="md:col-span-2 space-y-2">
+                  <Label htmlFor="phone" className="text-gray-300 text-sm">
+                    Số điện thoại hoặc số đuôi
+                  </Label>
+                  <Input
+                    id="phone"
+                    type="text"
+                    placeholder="VD: 0909.123.456 hoặc 3456"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    className="bg-black/50 border-gray-700 text-white placeholder:text-gray-500 focus:border-amber-500/50 focus:ring-amber-500/20"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Có thể nhập 4 số, 6 số, hoặc số điện thoại đầy đủ (có thể có dấu chấm/khoảng trắng)
+                  </p>
                 </div>
 
-                {/* Error */}
-                {error && (
-                  <div className="flex items-center gap-2 text-destructive text-sm">
-                    <AlertCircle className="w-4 h-4" />
-                    {error}
-                  </div>
-                )}
+                {/* Suffix Length */}
+                <div className="space-y-2">
+                  <Label className="text-gray-300 text-sm">Độ dài tra cứu</Label>
+                  <Select value={suffixLength} onValueChange={(v) => setSuffixLength(v as '4' | '6')}>
+                    <SelectTrigger className="bg-black/50 border-gray-700 text-white focus:border-amber-500/50 focus:ring-amber-500/20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-neutral-900 border-gray-700">
+                      <SelectItem value="4" className="text-white hover:bg-neutral-800">4 số cuối</SelectItem>
+                      <SelectItem value="6" className="text-white hover:bg-neutral-800">6 số cuối</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-                {/* Submit */}
-                <Button type="submit" className="w-full md:w-auto">
-                  <Search className="w-4 h-4 mr-2" />
-                  Tra cứu
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+              {/* Error */}
+              {error && (
+                <div className="flex items-center gap-2 text-red-400 text-sm bg-red-950/30 border border-red-900/50 rounded-lg p-3">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  {error}
+                </div>
+              )}
 
-          {/* Result Section */}
+              {/* Submit */}
+              <Button 
+                type="submit" 
+                className="w-full md:w-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white border-0 shadow-lg shadow-red-900/30"
+              >
+                <Search className="w-4 h-4 mr-2" />
+                Tra cứu
+              </Button>
+            </form>
+          </div>
+
+          {/* Card 2: Result Section */}
           {result && (
-            <Card className="mb-8 border-gold/30">
-              <CardHeader className="bg-muted/30">
-                <CardTitle className="text-lg flex items-center justify-between">
-                  <span>Kết quả tra cứu</span>
-                  <Button variant="outline" size="sm" onClick={handleCopyLink}>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy link
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="space-y-4">
+            <div className={`${cardBaseClass} p-6 md:p-8 mb-6 md:mb-8`}>
+              {/* Header with Copy Link */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg md:text-xl font-semibold text-white flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-amber-500" />
+                  Kết quả tra cứu
+                </h2>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleCopyLink}
+                  className="bg-black/30 border-amber-500/40 text-amber-400 hover:bg-amber-500/20 hover:text-amber-300"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy link
+                </Button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Result Grid */}
+                <div className="grid grid-cols-2 gap-4 md:gap-6">
                   {/* Suffix Display */}
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground mb-1">Số cuối tra cứu</p>
-                    <p className="text-3xl font-bold text-gold tracking-wider">{result.suffix}</p>
+                  <div className="text-center p-4 bg-black/30 rounded-xl border border-gray-800">
+                    <p className="text-xs md:text-sm text-gray-400 mb-2">Số cuối tra cứu</p>
+                    <p className="text-2xl md:text-4xl font-bold text-amber-500 tracking-wider">{result.suffix}</p>
                   </div>
 
                   {/* Que Number */}
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground mb-1">Quẻ số</p>
-                    <p className="text-xl font-semibold text-primary">{result.que}</p>
-                  </div>
-
-                  {/* Hexagram Title */}
-                  <div className="bg-muted/50 rounded-lg p-4 text-center">
-                    <p className="text-sm text-muted-foreground mb-2">Luận giải</p>
-                    <p className="text-lg font-medium text-foreground italic">
-                      "{result.hexagram.title}"
-                    </p>
-                  </div>
-
-                  {/* Level Badge */}
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground mb-2">Đánh giá</p>
-                    <Badge className={`text-base px-4 py-1 ${getLevelBadgeClass(result.hexagram.level)}`}>
-                      {result.hexagram.level}
-                    </Badge>
-                  </div>
-
-                  {/* Disclaimer */}
-                  <div className="text-center pt-4 border-t border-border">
-                    <p className="text-xs text-muted-foreground">
-                      ⚠️ Nội dung chỉ mang tính tham khảo, giải trí
-                    </p>
-                  </div>
-
-                  {/* Share Button */}
-                  <div className="flex justify-center">
-                    <Button variant="outline" size="sm" onClick={handleCopyLink}>
-                      <Share2 className="w-4 h-4 mr-2" />
-                      Chia sẻ kết quả
-                    </Button>
+                  <div className="text-center p-4 bg-black/30 rounded-xl border border-gray-800">
+                    <p className="text-xs md:text-sm text-gray-400 mb-2">Quẻ số</p>
+                    <p className="text-2xl md:text-4xl font-bold text-red-500">{result.que}</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+
+                {/* Hexagram Title - Luận giải */}
+                <div className="bg-black/40 rounded-xl p-5 border border-gray-800">
+                  <p className="text-xs md:text-sm text-gray-400 mb-3 text-center">Luận giải</p>
+                  <p className="text-base md:text-lg text-center text-gray-200 italic">
+                    "{result.hexagram.title}"
+                  </p>
+                </div>
+
+                {/* Level Badge - Đánh giá */}
+                <div className="text-center">
+                  <p className="text-xs md:text-sm text-gray-400 mb-3">Đánh giá</p>
+                  <Badge className={`text-sm md:text-base px-5 py-2 border ${getLevelBadgeClass(result.hexagram.level)}`}>
+                    {result.hexagram.level}
+                  </Badge>
+                </div>
+
+                {/* Disclaimer */}
+                <div className="text-center py-4 border-t border-gray-800">
+                  <p className="text-xs text-gray-500">
+                    ⚠️ Nội dung chỉ mang tính tham khảo, giải trí
+                  </p>
+                </div>
+
+                {/* Share Button */}
+                <div className="flex justify-center">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleCopyLink}
+                    className="bg-gradient-to-r from-amber-600/20 to-amber-700/20 border-amber-500/40 text-amber-400 hover:bg-amber-500/30 hover:text-amber-300"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Chia sẻ kết quả
+                  </Button>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Similar Suggestions */}
           {result && similarSuggestions.length > 0 && (
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle className="text-lg">Gợi ý số tương tự</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {similarSuggestions.map((phone, idx) => (
-                    <div
-                      key={idx}
-                      className="bg-muted/30 rounded-lg p-3 text-center hover:bg-muted/50 transition-colors cursor-pointer"
-                      onClick={() => {
-                        setInputValue(phone);
-                        performLookup(phone, suffixLength);
-                      }}
-                    >
-                      <p className="font-mono text-sm text-gold">{phone}</p>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground mt-4 text-center">
-                  Click vào số để tra cứu. Đây là số gợi ý mô phỏng, không phải số thực trong kho.
-                </p>
-              </CardContent>
-            </Card>
+            <div className={`${cardBaseClass} p-6 md:p-8 mb-6 md:mb-8`}>
+              <h2 className="text-lg font-semibold text-white mb-5">Gợi ý số tương tự</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {similarSuggestions.map((phone, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-black/40 rounded-lg p-3 text-center hover:bg-black/60 hover:border-amber-500/30 border border-gray-800 transition-all cursor-pointer"
+                    onClick={() => {
+                      setInputValue(phone);
+                      performLookup(phone, suffixLength);
+                    }}
+                  >
+                    <p className="font-mono text-sm text-amber-400">{phone}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-4 text-center">
+                Click vào số để tra cứu. Đây là số gợi ý mô phỏng, không phải số thực trong kho.
+              </p>
+            </div>
           )}
 
           {/* Zalo Contact */}
@@ -428,30 +446,26 @@ const SimPhongThuy = () => {
           </div>
 
           {/* FAQ Section */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="text-lg">Câu hỏi thường gặp</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Accordion type="single" collapsible className="w-full">
-                {faqData.map((faq, index) => (
-                  <AccordionItem key={index} value={`faq-${index}`}>
-                    <AccordionTrigger className="text-left">
-                      {faq.question}
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      {faq.answer}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </CardContent>
-          </Card>
+          <div className={`${cardBaseClass} p-6 md:p-8 mb-8`}>
+            <h2 className="text-lg font-semibold text-white mb-5">Câu hỏi thường gặp</h2>
+            <Accordion type="single" collapsible className="w-full">
+              {faqData.map((faq, index) => (
+                <AccordionItem key={index} value={`faq-${index}`} className="border-gray-800">
+                  <AccordionTrigger className="text-left text-gray-200 hover:text-amber-400 hover:no-underline">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-400">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
 
           {/* Disclaimer */}
-          <div className="bg-muted/30 rounded-lg p-4 text-center">
-            <p className="text-sm text-muted-foreground">
-              <strong>Lưu ý:</strong> Kết quả bói số đuôi SIM dựa trên 80 quẻ Kinh Dịch, chỉ mang tính chất tham khảo và giải trí. 
+          <div className="bg-black/40 rounded-xl p-5 text-center border border-gray-800">
+            <p className="text-sm text-gray-400">
+              <strong className="text-gray-300">Lưu ý:</strong> Kết quả bói số đuôi SIM dựa trên 80 quẻ Kinh Dịch, chỉ mang tính chất tham khảo và giải trí. 
               Việc lựa chọn SIM nên kết hợp nhiều yếu tố phong thủy khác như ngũ hành, bát tự, tổng số nút...
             </p>
           </div>
