@@ -390,8 +390,18 @@ const SimPhongThuy = () => {
 
   // Similar suggestions from real inventory (Google Sheet) - NO random, only real SIMs
   const similarSuggestions = useMemo(() => {
-    if (!result || !inventoryLoaded || inventory.length === 0) return [];
-    return findSimilarSimsFromInventory(inventory, result.suffix, parseInt(suffixLength) as 4 | 6);
+    if (!result || !inventoryLoaded || inventory.length === 0) {
+      if (import.meta.env.DEV) {
+        console.log('[SimPhongThuy] No suggestions: result=', !!result, 'loaded=', inventoryLoaded, 'inv=', inventory.length);
+      }
+      return [];
+    }
+    const suggestions = findSimilarSimsFromInventory(inventory, result.suffix, parseInt(suffixLength) as 4 | 6);
+    if (import.meta.env.DEV) {
+      console.log('[SimPhongThuy] inventory loaded:', inventory.length);
+      console.log('[SimPhongThuy] suggestions:', suggestions.length);
+    }
+    return suggestions;
   }, [result, suffixLength, inventory, inventoryLoaded]);
 
   return (

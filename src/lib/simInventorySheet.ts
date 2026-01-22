@@ -1,11 +1,18 @@
 // ==============================
 // SIM INVENTORY FROM GOOGLE SHEET
-// Chỉ dùng cho trang /dinh-gia-sim
+// Dùng cho /dinh-gia-sim và /sim-phong-thuy
 // ==============================
 
 import { detectCarrier, normalizePhone, type Carrier } from './simValuation';
+import { supabase } from '@/integrations/supabase/client';
 
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y/export?format=csv&gid=139400129';
+
+// Supabase Edge Function proxy URL
+const getProxyUrl = () => {
+  const projectId = 'pfeyyyvhzsuoccwoweco';
+  return `https://${projectId}.supabase.co/functions/v1/sheet-proxy`;
+};
 
 export interface SimItem {
   phone: string;
@@ -202,15 +209,47 @@ let cacheTimestamp = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 phút
 
 /**
+ * Fetch CSV via Supabase Edge Function proxy (CORS-safe)
+ */
+async function fetchViaProxy(): Promise<string> {
+  const proxyUrl = getProxyUrl();
+  const targetUrl = encodeURIComponent(SHEET_CSV_URL);
+  
+  const response = await fetch(`${proxyUrl}?url=${targetUrl}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Proxy error: ${response.status}`);
+  }
+  
+  return response.text();
+}
+
+/**
  * Load inventory từ Google Sheet
+ * Layer 1: Direct fetch
+ * Layer 2: Supabase Edge Function proxy (CORS fallback)
  */
 export async function loadSimInventory(): Promise<SimItem[]> {
   // Check cache
   if (cachedInventory && Date.now() - cacheTimestamp < CACHE_DURATION) {
+    if (import.meta.env.DEV) {
+      console.log('[simInventorySheet] Using cached inventory:', cachedInventory.length);
+    }
     return cachedInventory;
   }
   
+  let csvText: string | null = null;
+  
+  // Layer 1: Try direct fetch first
   try {
+    if (import.meta.env.DEV) {
+      console.log('[simInventorySheet] Trying direct fetch...');
+    }
     const response = await fetch(SHEET_CSV_URL, {
       method: 'GET',
       headers: {
@@ -218,91 +257,134 @@ export async function loadSimInventory(): Promise<SimItem[]> {
       },
     });
     
-    if (!response.ok) {
-      throw new Error(`HTTP error: ${response.status}`);
-    }
-    
-    const csvText = await response.text();
-    const rows = parseCSV(csvText);
-    
-    if (rows.length === 0) {
-      console.warn('Empty CSV, using mock inventory');
-      return getMockInventory();
-    }
-    
-    const inventory: SimItem[] = [];
-    
-    for (const row of rows) {
-      // Tìm cột phone (có thể là phone, Phone, so, số, sim...)
-      const phoneKey = Object.keys(row).find((k) => 
-        ['phone', 'số', 'so', 'sim', 'sodienthoai', 'số điện thoại'].includes(k.toLowerCase())
-      );
-      const priceKey = Object.keys(row).find((k) =>
-        ['price', 'giá', 'gia', 'giaban', 'giá bán'].includes(k.toLowerCase())
-      );
-      const carrierKey = Object.keys(row).find((k) =>
-        ['carrier', 'nhà mạng', 'nha mang', 'mang', 'mạng'].includes(k.toLowerCase())
-      );
-      const tagsKey = Object.keys(row).find((k) =>
-        ['tags', 'tag', 'nhãn', 'loại', 'loai', 'dạng số'].includes(k.toLowerCase())
-      );
-      const urlKey = Object.keys(row).find((k) =>
-        ['url', 'link', 'đường dẫn'].includes(k.toLowerCase())
-      );
-      
-      const phoneRaw = phoneKey ? row[phoneKey] : '';
-      const priceRaw = priceKey ? row[priceKey] : '';
-      
-      if (!phoneRaw || !priceRaw) continue;
-      
-      const phone = normalizePhone(phoneRaw);
-      const price = parsePriceToNumber(priceRaw);
-      
-      if (phone.length < 10 || price <= 0) continue;
-      
-      // Carrier
-      let carrier: Carrier = 'Unknown';
-      if (carrierKey && row[carrierKey]) {
-        const carrierStr = row[carrierKey].toLowerCase();
-        if (carrierStr.includes('viettel')) carrier = 'Viettel';
-        else if (carrierStr.includes('vina') || carrierStr.includes('vinaphone')) carrier = 'Vina';
-        else if (carrierStr.includes('mobi') || carrierStr.includes('mobifone')) carrier = 'Mobi';
-        else if (carrierStr.includes('vietnamobile')) carrier = 'Vietnamobile';
-        else if (carrierStr.includes('itel')) carrier = 'iTel';
-        else if (carrierStr.includes('gmobile')) carrier = 'Gmobile';
-        else carrier = detectCarrier(phone);
-      } else {
-        carrier = detectCarrier(phone);
+    if (response.ok) {
+      csvText = await response.text();
+      if (import.meta.env.DEV) {
+        console.log('[simInventorySheet] Direct fetch success:', csvText.length, 'bytes');
       }
-      
-      // Tags
-      let tags: string[] = [];
-      if (tagsKey && row[tagsKey]) {
-        tags = parseTags(row[tagsKey]);
-      }
-      if (tags.length === 0) {
-        tags = extractTagsFromPhone(phone);
-      }
-      
-      // URL
-      const url = urlKey ? row[urlKey] : undefined;
-      
-      inventory.push({ phone, price, carrier, tags, url });
     }
-    
-    if (inventory.length === 0) {
-      console.warn('No valid items parsed, using mock inventory');
-      return getMockInventory();
+  } catch (directError) {
+    if (import.meta.env.DEV) {
+      console.warn('[simInventorySheet] Direct fetch failed (CORS?):', directError);
     }
-    
-    cachedInventory = inventory;
-    cacheTimestamp = Date.now();
-    
-    return inventory;
-  } catch (error) {
-    console.error('Failed to load inventory from sheet:', error);
-    return getMockInventory();
   }
+  
+  // Layer 2: Fallback to Supabase proxy
+  if (!csvText) {
+    try {
+      if (import.meta.env.DEV) {
+        console.log('[simInventorySheet] Trying proxy fetch...');
+      }
+      csvText = await fetchViaProxy();
+      if (import.meta.env.DEV) {
+        console.log('[simInventorySheet] Proxy fetch success:', csvText.length, 'bytes');
+      }
+    } catch (proxyError) {
+      console.error('[simInventorySheet] Proxy fetch failed:', proxyError);
+      // Return empty array instead of mock - NO RANDOM/MOCK DATA
+      return [];
+    }
+  }
+  
+  if (!csvText) {
+    console.warn('[simInventorySheet] No CSV data, returning empty');
+    return [];
+  }
+  
+  const rows = parseCSV(csvText);
+  
+  if (rows.length === 0) {
+    console.warn('[simInventorySheet] Empty CSV, returning empty');
+    return [];
+  }
+  
+  const inventory: SimItem[] = [];
+  
+  for (const row of rows) {
+    // Tìm cột phone - ưu tiên SỐ THUÊ BAO (có dấu chấm) để hiển thị đẹp
+    const phoneDisplayKey = Object.keys(row).find((k) => {
+      const lower = k.toLowerCase().replace(/\s+/g, '');
+      return lower === 'sốthuêbao' || lower === 'sothuebao' || lower === 'số thuê bao';
+    });
+    const phoneStandardKey = Object.keys(row).find((k) => {
+      const lower = k.toLowerCase().replace(/\s+/g, '');
+      return lower.includes('sốthuêbaochuẩn') || lower.includes('sothuebao chuẩn') || lower.includes('sothuebao chuan');
+    });
+    const phoneKey = phoneDisplayKey || phoneStandardKey || Object.keys(row).find((k) => 
+      ['phone', 'số', 'so', 'sim', 'sodienthoai', 'số điện thoại'].includes(k.toLowerCase().trim())
+    );
+    
+    // Price - ưu tiên Final_Price
+    const priceKey = Object.keys(row).find((k) => {
+      const lower = k.toLowerCase().replace(/\s+/g, '');
+      return lower === 'final_price' || lower === 'finalprice';
+    }) || Object.keys(row).find((k) =>
+      ['price', 'giá', 'gia', 'giaban', 'giá bán'].includes(k.toLowerCase().trim())
+    );
+    
+    const carrierKey = Object.keys(row).find((k) =>
+      ['carrier', 'nhà mạng', 'nha mang', 'mang', 'mạng'].includes(k.toLowerCase().trim())
+    );
+    const tagsKey = Object.keys(row).find((k) =>
+      ['tags', 'tag', 'nhãn', 'loại', 'loai', 'dạng số'].includes(k.toLowerCase().trim())
+    );
+    const urlKey = Object.keys(row).find((k) =>
+      ['url', 'link', 'đường dẫn'].includes(k.toLowerCase().trim())
+    );
+    
+    const phoneRaw = phoneKey ? row[phoneKey] : '';
+    const priceRaw = priceKey ? row[priceKey] : '';
+    
+    if (!phoneRaw || !priceRaw) continue;
+    
+    const phone = normalizePhone(phoneRaw);
+    const price = parsePriceToNumber(priceRaw);
+    
+    if (phone.length < 9 || price <= 0) continue;
+    
+    // Carrier
+    let carrier: Carrier = 'Unknown';
+    if (carrierKey && row[carrierKey]) {
+      const carrierStr = row[carrierKey].toLowerCase();
+      if (carrierStr.includes('viettel')) carrier = 'Viettel';
+      else if (carrierStr.includes('vina') || carrierStr.includes('vinaphone')) carrier = 'Vina';
+      else if (carrierStr.includes('mobi') || carrierStr.includes('mobifone')) carrier = 'Mobi';
+      else if (carrierStr.includes('vietnamobile')) carrier = 'Vietnamobile';
+      else if (carrierStr.includes('itel')) carrier = 'iTel';
+      else if (carrierStr.includes('gmobile')) carrier = 'Gmobile';
+      else carrier = detectCarrier(phone);
+    } else {
+      carrier = detectCarrier(phone);
+    }
+    
+    // Tags
+    let tags: string[] = [];
+    if (tagsKey && row[tagsKey]) {
+      tags = parseTags(row[tagsKey]);
+    }
+    if (tags.length === 0) {
+      tags = extractTagsFromPhone(phone);
+    }
+    
+    // URL
+    const url = urlKey ? row[urlKey] : undefined;
+    
+    inventory.push({ phone, price, carrier, tags, url });
+  }
+  
+  if (inventory.length === 0) {
+    console.warn('[simInventorySheet] No valid items parsed, returning empty');
+    return [];
+  }
+  
+  cachedInventory = inventory;
+  cacheTimestamp = Date.now();
+  
+  if (import.meta.env.DEV) {
+    console.log('[simInventorySheet] Inventory loaded:', inventory.length, 'items');
+  }
+  
+  return inventory;
 }
 
 /**
