@@ -7,11 +7,15 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6 items-start justify-items-start">
           {/* Brand */}
           <div className="w-full min-w-0 lg:pr-4">
-            <h3 className="text-xl font-bold mb-4">
-              <span className="text-gold">CHONSO</span>
-              <span className="text-primary">MOBIFONE</span>
-              <span>.COM</span>
-            </h3>
+            <div className="mb-4">
+              <a href="/">
+                <img 
+                  src="/brand-logo.png" 
+                  alt="chonsomobifone.com" 
+                  className="h-12 w-auto"
+                />
+              </a>
+            </div>
             <p className="text-header-foreground/70 text-sm leading-relaxed mb-4 break-words">
               Kho SIM số đẹp uy tín hàng đầu Việt Nam. Chuyên SIM Mobifone, SIM phong thủy, SIM tài lộc với giá tốt nhất thị trường.
             </p>
