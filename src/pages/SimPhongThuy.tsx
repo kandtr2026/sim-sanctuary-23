@@ -332,9 +332,11 @@ const SimPhongThuy = () => {
     });
   };
 
-  // Navigate to checkout when clicking a SIM
+  // Lookup when clicking a SIM suggestion (set input + perform lookup)
   const handleSimClick = (sim: SimItem) => {
-    navigate(`/thanh-toan?sim=${encodeURIComponent(sim.phone)}&price=${sim.price}`);
+    const digits = sim.phone.replace(/\D/g, '');
+    setInputValue(digits);
+    performLookup(digits, suffixLength);
   };
 
   // Similar suggestions from real inventory
@@ -556,7 +558,7 @@ const SimPhongThuy = () => {
                 ))}
               </div>
               <p className="text-xs mt-4 text-center" style={{ color: 'rgba(237, 237, 237, 0.5)' }}>
-                Click vào số để xem chi tiết và đặt mua
+                Click vào số để xem và tra cứu. Giá hiển thị là giá tham khảo từ kho.
               </p>
             </div>
           )}
