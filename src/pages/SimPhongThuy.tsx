@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -15,87 +16,249 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, Sparkles, ShoppingCart, Search, AlertCircle } from 'lucide-react';
 import {
-  type Menh,
-  type Gender,
-  type FengShuiInput,
-  type FengShuiSimItem,
-  fetchFengShuiInventory,
-  getFengShuiSuggestions,
-  formatPriceVND
-} from '@/lib/fengShuiSim';
-import { useIsMobile } from '@/hooks/use-mobile';
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Search, Copy, AlertCircle, Sparkles, Share2 } from 'lucide-react';
+import { toast } from 'sonner';
 
-const MENH_OPTIONS: Menh[] = ['Kim', 'Mộc', 'Thuỷ', 'Hoả', 'Thổ'];
-const GENDER_OPTIONS: Gender[] = ['Nam', 'Nữ'];
+// ===================== DATA: 80 QUẺ =====================
+type HexagramLevel = 'Đại cát' | 'Cát' | 'Bình thường' | 'Hung' | 'Đại hung';
 
-const networkColors: Record<string, string> = {
-  Mobifone: 'bg-primary text-primary-foreground',
-  Viettel: 'bg-red-500 text-white',
-  Vinaphone: 'bg-blue-500 text-white',
-  iTelecom: 'bg-orange-500 text-white',
-  Vietnamobile: 'bg-yellow-600 text-white',
-  Gmobile: 'bg-green-600 text-white',
+interface Hexagram {
+  index: number;
+  title: string;
+  short: string;
+  level: HexagramLevel;
+}
+
+const HEXAGRAMS: Record<number, Hexagram> = {
+  1: { index: 1, title: "Đại triển hồng đô, khả được thành công", short: "Đại triển hồng đô, khả được thành công", level: "Cát" },
+  2: { index: 2, title: "Thăng trầm không số, về già vô công", short: "Thăng trầm không số, về già vô công", level: "Bình thường" },
+  3: { index: 3, title: "Ngày ngày tiến tới, vạn sự thuận toàn", short: "Ngày ngày tiến tới, vạn sự thuận toàn", level: "Đại cát" },
+  4: { index: 4, title: "Tiền đồ gai góc, dâu khổ theo đuổi", short: "Tiền đồ gai góc, dâu khổ theo đuổi", level: "Hung" },
+  5: { index: 5, title: "Làm ăn phát đạt, lợi danh đều có", short: "Làm ăn phát đạt, lợi danh đều có", level: "Đại cát" },
+  6: { index: 6, title: "Trời cho số phận có thể thành công", short: "Trời cho số phận có thể thành công", level: "Cát" },
+  7: { index: 7, title: "Ôn hòa êm dịu nhất phải thành công", short: "Ôn hòa êm dịu nhất phải thành công", level: "Cát" },
+  8: { index: 8, title: "Qua giai đoạn gian nan, có ngày thành công", short: "Qua giai đoạn gian nan, có ngày thành công", level: "Cát" },
+  9: { index: 9, title: "Tự làm có sức thất bại khó lường", short: "Tự làm có sức thất bại khó lường", level: "Hung" },
+  10: { index: 10, title: "Tâm sức làm không, không được đến bờ", short: "Tâm sức làm không, không được đến bờ", level: "Hung" },
+  11: { index: 11, title: "Vững đi từng bước, được người trọng vọng", short: "Vững đi từng bước, được người trọng vọng", level: "Cát" },
+  12: { index: 12, title: "Gầy gò yếu đuối, mọi việc khó thành", short: "Gầy gò yếu đuối, mọi việc khó thành", level: "Hung" },
+  13: { index: 13, title: "Trời cho cát vận, được người kính trọng", short: "Trời cho cát vận, được người kính trọng", level: "Cát" },
+  14: { index: 14, title: "Nửa được nửa bại, dựa vào nghị lực", short: "Nửa được nửa bại, dựa vào nghị lực", level: "Bình thường" },
+  15: { index: 15, title: "Đại sự thành tựu, nhất định hưng vương", short: "Đại sự thành tựu, nhất định hưng vương", level: "Cát" },
+  16: { index: 16, title: "Thành tựu to lớn, tên tuổi lừng danh", short: "Thành tựu to lớn, tên tuổi lừng danh", level: "Đại cát" },
+  17: { index: 17, title: "Quý nhân trợ giúp, sẽ được thành công", short: "Quý nhân trợ giúp, sẽ được thành công", level: "Cát" },
+  18: { index: 18, title: "Thuận lợi xương thịnh, trăm việc trôi chảy", short: "Thuận lợi xương thịnh, trăm việc trôi chảy", level: "Đại cát" },
+  19: { index: 19, title: "Nội ngoại bất hòa, khó khăn muôn phát", short: "Nội ngoại bất hòa, khó khăn muôn phát", level: "Hung" },
+  20: { index: 20, title: "Vượt mọi gian nan, lo xa nghĩ hoài", short: "Vượt mọi gian nan, lo xa nghĩ hoài", level: "Hung" },
+  21: { index: 21, title: "Chuyên tâm kinh doanh hay dung trí", short: "Chuyên tâm kinh doanh hay dung trí", level: "Cát" },
+  22: { index: 22, title: "Có tài không vận, việc không gặp may", short: "Có tài không vận, việc không gặp may", level: "Hung" },
+  23: { index: 23, title: "Tên tuổi 4 phương, sẽ thành đại nghiệp", short: "Tên tuổi 4 phương, sẽ thành đại nghiệp", level: "Đại cát" },
+  24: { index: 24, title: "Phải dựa tự lập sẽ thành đại nghiệp", short: "Phải dựa tự lập sẽ thành đại nghiệp", level: "Cát" },
+  25: { index: 25, title: "Thiên thời địa lợi vì được nhân cách", short: "Thiên thời địa lợi vì được nhân cách", level: "Cát" },
+  26: { index: 26, title: "Bảo táp phong ba qua được hiểm nguy", short: "Bảo táp phong ba qua được hiểm nguy", level: "Hung" },
+  27: { index: 27, title: "Lúc thắng lúc thua giữ được thành công", short: "Lúc thắng lúc thua giữ được thành công", level: "Cát" },
+  28: { index: 28, title: "Tiến mãi không lùi trí tuệ được dung", short: "Tiến mãi không lùi trí tuệ được dung", level: "Đại cát" },
+  29: { index: 29, title: "Cát hung chia đổ, được thua mỗi nửa", short: "Cát hung chia đổ, được thua mỗi nửa", level: "Hung" },
+  30: { index: 30, title: "Danh lợi được mùa đại sự thành công", short: "Danh lợi được mùa đại sự thành công", level: "Đại cát" },
+  31: { index: 31, title: "Con rồng trong nước thành công sẽ đến", short: "Con rồng trong nước thành công sẽ đến", level: "Đại cát" },
+  32: { index: 32, title: "Dùng trí lâu dài, sẽ được thịnh vượng", short: "Dùng trí lâu dài, sẽ được thịnh vượng", level: "Cát" },
+  33: { index: 33, title: "Rủi ro không ngừng khó có thành công", short: "Rủi ro không ngừng khó có thành công", level: "Hung" },
+  34: { index: 34, title: "Số phận trung cất tiến lùi bảo thủ", short: "Số phận trung cất tiến lùi bảo thủ", level: "Bình thường" },
+  35: { index: 35, title: "Trôi nổi bập bùng thường hay gặp nạn", short: "Trôi nổi bập bùng thường hay gặp nạn", level: "Hung" },
+  36: { index: 36, title: "Tránh được điểm ác, thuận buồm xuôi gió", short: "Tránh được điểm ác, thuận buồm xuôi gió", level: "Cát" },
+  37: { index: 37, title: "Danh thì được tiếng lợi thì bằng không", short: "Danh thì được tiếng lợi thì bằng không", level: "Bình thường" },
+  38: { index: 38, title: "Đường rộng thênh thang nhìn thấy tương lai", short: "Đường rộng thênh thang nhìn thấy tương lai", level: "Đại cát" },
+  39: { index: 39, title: "Lúc thịnh lúc suy chìm nổi vô định", short: "Lúc thịnh lúc suy chìm nổi vô định", level: "Bình thường" },
+  40: { index: 40, title: "Thiên ý cất vận tiền đồ sang sủa", short: "Thiên ý cất vận tiền đồ sang sủa", level: "Đại cát" },
+  41: { index: 41, title: "Sự nghiệp không chuyên hầu như không thành", short: "Sự nghiệp không chuyên hầu như không thành", level: "Hung" },
+  42: { index: 42, title: "Nhẫn nhịn chịu đựng, xấu sẽ thành tốt", short: "Nhẫn nhịn chịu đựng, xấu sẽ thành tốt", level: "Cát" },
+  43: { index: 43, title: "Cây xanh trổ lá đột nhiên thành công", short: "Cây xanh trổ lá đột nhiên thành công", level: "Cát" },
+  44: { index: 44, title: "Ngược với ý mình tham công lỡ việc", short: "Ngược với ý mình tham công lỡ việc", level: "Hung" },
+  45: { index: 45, title: "Quanh co khúy khỷu khó khăn kéo dài", short: "Quanh co khúy khỷu khó khăn kéo dài", level: "Hung" },
+  46: { index: 46, title: "Quý nhân giúp đỡ thành công đại sự", short: "Quý nhân giúp đỡ thành công đại sự", level: "Đại cát" },
+  47: { index: 47, title: "Danh lợi đều có thành công tốt đẹp", short: "Danh lợi đều có thành công tốt đẹp", level: "Đại cát" },
+  48: { index: 48, title: "Cặp cát được cát gặp hung thì hung", short: "Cặp cát được cát gặp hung thì hung", level: "Bình thường" },
+  49: { index: 49, title: "Hung cát cùng có, một thành một bại", short: "Hung cát cùng có, một thành một bại", level: "Bình thường" },
+  50: { index: 50, title: "Một thịnh một suy bập bùn sóng gió", short: "Một thịnh một suy bập bùn sóng gió", level: "Bình thường" },
+  51: { index: 51, title: "Trời quang mây tạnh nay được thành công", short: "Trời quang mây tạnh nay được thành công", level: "Cát" },
+  52: { index: 52, title: "Sướng thịnh nửa số cát trước hung sau", short: "Sướng thịnh nửa số cát trước hung sau", level: "Hung" },
+  53: { index: 53, title: "Nổ lực hết mình thành công ích ỏi", short: "Nổ lực hết mình thành công ích ỏi", level: "Bình thường" },
+  54: { index: 54, title: "Bề ngoài tươi sang ẩn họa sẽ tới", short: "Bề ngoài tươi sang ẩn họa sẽ tới", level: "Hung" },
+  55: { index: 55, title: "Ngược lại ý mình, có có thành công", short: "Ngược lại ý mình, có có thành công", level: "Đại hung" },
+  56: { index: 56, title: "Nổ lực phấn đấu phận tốt quay về", short: "Nổ lực phấn đấu phận tốt quay về", level: "Cát" },
+  57: { index: 57, title: "Bấp bênh nhiều chuyến hung trước tốt sau", short: "Bấp bênh nhiều chuyến hung trước tốt sau", level: "Bình thường" },
+  58: { index: 58, title: "Gặp việc do dự khó có thành công", short: "Gặp việc do dự khó có thành công", level: "Hung" },
+  59: { index: 59, title: "Mơ mơ hồ hồ khó có định phương hướng", short: "Mơ mơ hồ hồ khó có định phương hướng", level: "Bình thường" },
+  60: { index: 60, title: "Mây che nửa trăng dấu hiệu phong ba", short: "Mây che nửa trăng dấu hiệu phong ba", level: "Hung" },
+  61: { index: 61, title: "Lo nghỉ nhiều điều mọi việc không thành", short: "Lo nghỉ nhiều điều mọi việc không thành", level: "Hung" },
+  62: { index: 62, title: "Biết hướng nổ lực con đường phồn vinh", short: "Biết hướng nổ lực con đường phồn vinh", level: "Cát" },
+  63: { index: 63, title: "Mười việc chín không mất công mất sức", short: "Mười việc chín không mất công mất sức", level: "Hung" },
+  64: { index: 64, title: "Cát vận tự đến, có được thành công", short: "Cát vận tự đến, có được thành công", level: "Cát" },
+  65: { index: 65, title: "Nội ngoại bất hòa thiếu thốn tín nhiệm", short: "Nội ngoại bất hòa thiếu thốn tín nhiệm", level: "Bình thường" },
+  66: { index: 66, title: "Mọi việc như ý phú quý tự đến", short: "Mọi việc như ý phú quý tự đến", level: "Đại cát" },
+  67: { index: 67, title: "Nắm được thời cơ, thành công sẽ đến", short: "Nắm được thời cơ, thành công sẽ đến", level: "Cát" },
+  68: { index: 68, title: "Lo trước nghĩ sau thường hay gặp nạn", short: "Lo trước nghĩ sau thường hay gặp nạn", level: "Hung" },
+  69: { index: 69, title: "Bập bên khó tránh vất vả", short: "Bập bên khó tránh vất vả", level: "Hung" },
+  70: { index: 70, title: "Cát hung đều có chỉ dự chí khí", short: "Cát hung đều có chỉ dự chí khí", level: "Bình thường" },
+  71: { index: 71, title: "Được rồi lại mất khó có bình yên", short: "Được rồi lại mất khó có bình yên", level: "Hung" },
+  72: { index: 72, title: "An lạc tự đến tự nhiên cát tường", short: "An lạc tự đến tự nhiên cát tường", level: "Cát" },
+  73: { index: 73, title: "Như là vô mưu khó được thành đạt", short: "Như là vô mưu khó được thành đạt", level: "Bình thường" },
+  74: { index: 74, title: "Trong lành có hung tiến không bằng lùi", short: "Trong lành có hung tiến không bằng lùi", level: "Bình thường" },
+  75: { index: 75, title: "Nhiều điều đại hung, hiện tượng phân tán", short: "Nhiều điều đại hung, hiện tượng phân tán", level: "Đại hung" },
+  76: { index: 76, title: "Khổ trước sướng sau, không bị thất bại", short: "Khổ trước sướng sau, không bị thất bại", level: "Cát" },
+  77: { index: 77, title: "Nửa được nửa mất sang mà không thực", short: "Nửa được nửa mất sang mà không thực", level: "Bình thường" },
+  78: { index: 78, title: "Tiền đồ tươi sang trăm đầy hy vọng", short: "Tiền đồ tươi sang trăm đầy hy vọng", level: "Đại cát" },
+  79: { index: 79, title: "Được rồi lại mất lo cũng bằng không", short: "Được rồi lại mất lo cũng bằng không", level: "Hung" },
+  80: { index: 80, title: "Số phận cao nhất, sẽ được thành công", short: "Số phận cao nhất, sẽ được thành công", level: "Đại cát" },
+};
+
+// FAQ data
+const faqData = [
+  {
+    question: "Bói số đuôi SIM hoạt động như thế nào?",
+    answer: "Công thức dựa trên phép chia 80 quẻ Kinh Dịch: lấy 4 hoặc 6 số cuối của SIM, chia cho 80, số dư (1-80) tương ứng với 1 quẻ. Mỗi quẻ có luận giải và đánh giá riêng."
+  },
+  {
+    question: "Nên chọn 4 số cuối hay 6 số cuối?",
+    answer: "4 số cuối phổ biến và dễ nhớ hơn, phù hợp tra cứu nhanh. 6 số cuối cho kết quả chi tiết hơn, thường dùng khi cần phân tích sâu."
+  },
+  {
+    question: "Kết quả bói có chính xác 100% không?",
+    answer: "Đây là công cụ tham khảo dựa trên Kinh Dịch và phong thủy dân gian, không phải khoa học chính xác. Kết quả chỉ mang tính giải trí và tham khảo."
+  },
+  {
+    question: "Tại sao cùng một số có thể ra quẻ khác nhau?",
+    answer: "Nếu bạn chọn 4 số cuối hoặc 6 số cuối, phép tính sẽ khác nhau nên quẻ cũng khác. Hãy chọn đúng độ dài bạn muốn tra cứu."
+  },
+  {
+    question: "Làm sao để chọn SIM hợp phong thủy?",
+    answer: "Ngoài bói số đuôi, bạn nên xem xét thêm ngũ hành bản mệnh, tổng số nút, cân bằng âm dương. Liên hệ tư vấn viên để được hỗ trợ chi tiết."
+  }
+];
+
+// Level badge colors
+const getLevelBadgeClass = (level: HexagramLevel): string => {
+  switch (level) {
+    case 'Đại cát':
+      return 'bg-green-600 text-white';
+    case 'Cát':
+      return 'bg-emerald-500 text-white';
+    case 'Bình thường':
+      return 'bg-yellow-500 text-black';
+    case 'Hung':
+      return 'bg-orange-500 text-white';
+    case 'Đại hung':
+      return 'bg-red-600 text-white';
+    default:
+      return 'bg-muted text-muted-foreground';
+  }
+};
+
+// Generate similar suggestions
+const generateSimilarSuggestions = (suffix: string, len: 4 | 6): string[] => {
+  const suggestions: string[] = [];
+  const prefixes = ['090', '093', '089', '070', '076', '077', '078', '079'];
+  
+  if (len === 4) {
+    // Keep last 2 digits, randomize first 2
+    const last2 = suffix.slice(-2);
+    for (let i = 0; i < 10; i++) {
+      const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+      const mid = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+      const first2 = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+      suggestions.push(`${prefix}.${mid}${first2}.${last2}${String(Math.floor(Math.random() * 100)).padStart(2, '0')}`);
+    }
+  } else {
+    // Keep last 3 digits, randomize rest
+    const last3 = suffix.slice(-3);
+    for (let i = 0; i < 10; i++) {
+      const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+      const mid = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+      suggestions.push(`${prefix}.${mid}.${last3}${String(Math.floor(Math.random() * 10))}`);
+    }
+  }
+  
+  // Deduplicate and limit
+  return [...new Set(suggestions)].slice(0, 10);
 };
 
 const SimPhongThuy = () => {
-  const isMobile = useIsMobile();
-  const [year, setYear] = useState<string>('');
-  const [gender, setGender] = useState<Gender | ''>('');
-  const [menh, setMenh] = useState<Menh | ''>('');
-  const [suggestions, setSuggestions] = useState<FengShuiSimItem[]>([]);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [validationError, setValidationError] = useState<string>('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [inputValue, setInputValue] = useState('');
+  const [suffixLength, setSuffixLength] = useState<'4' | '6'>('4');
+  const [result, setResult] = useState<{ suffix: string; que: number; hexagram: Hexagram } | null>(null);
+  const [error, setError] = useState('');
 
-  // Fetch inventory
-  const { data: inventory, isLoading: isLoadingInventory, error: inventoryError } = useQuery({
-    queryKey: ['fengshui-inventory'],
-    queryFn: fetchFengShuiInventory,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  // Parse URL params on load
+  useEffect(() => {
+    const sim = searchParams.get('sim');
+    const len = searchParams.get('len');
+    
+    if (sim && (len === '4' || len === '6')) {
+      setInputValue(sim);
+      setSuffixLength(len);
+      // Auto-lookup
+      performLookup(sim, len);
+    }
+  }, []);
+
+  const performLookup = (input: string, len: '4' | '6') => {
+    setError('');
+    
+    // Extract digits only
+    const digits = input.replace(/\D/g, '');
+    const requiredLen = parseInt(len);
+    
+    if (digits.length < requiredLen) {
+      setError(`Vui lòng nhập ít nhất ${requiredLen} số để tra cứu ${requiredLen} số cuối.`);
+      setResult(null);
+      return;
+    }
+    
+    // Get suffix
+    const suffix = digits.slice(-requiredLen);
+    const n = parseInt(suffix, 10);
+    let que = n % 80;
+    if (que === 0) que = 80;
+    
+    const hexagram = HEXAGRAMS[que];
+    if (!hexagram) {
+      setError('Không tìm thấy quẻ tương ứng.');
+      setResult(null);
+      return;
+    }
+    
+    setResult({ suffix, que, hexagram });
+    
+    // Update URL
+    setSearchParams({ sim: suffix, len });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setValidationError('');
-
-    // Validate
-    const yearNum = parseInt(year, 10);
-    if (!year || isNaN(yearNum) || yearNum < 1900 || yearNum > 2100) {
-      setValidationError('Vui lòng nhập năm sinh hợp lệ (1900-2100)');
-      return;
-    }
-    if (!gender) {
-      setValidationError('Vui lòng chọn giới tính');
-      return;
-    }
-    if (!menh) {
-      setValidationError('Vui lòng chọn mệnh');
-      return;
-    }
-
-    if (!inventory || inventory.length === 0) {
-      setValidationError('Không tải được dữ liệu SIM. Vui lòng thử lại.');
-      return;
-    }
-
-    const input: FengShuiInput = {
-      year: yearNum,
-      gender: gender as Gender,
-      menh: menh as Menh
-    };
-
-    const limit = isMobile ? 24 : 40;
-    const results = getFengShuiSuggestions(inventory, input, limit);
-    setSuggestions(results);
-    setHasSearched(true);
+    performLookup(inputValue, suffixLength);
   };
 
-  const handleBuyClick = (sim: FengShuiSimItem) => {
-    if (sim.url) {
-      window.open(sim.url, '_blank');
-    }
+  const handleCopyLink = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      toast.success('Đã copy link!');
+    }).catch(() => {
+      toast.error('Không thể copy link');
+    });
   };
+
+  // Similar suggestions
+  const similarSuggestions = useMemo(() => {
+    if (!result) return [];
+    return generateSimilarSuggestions(result.suffix, parseInt(suffixLength) as 4 | 6);
+  }, [result, suffixLength]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -103,376 +266,199 @@ const SimPhongThuy = () => {
       <Navigation />
 
       <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Article Content Section */}
-          <div className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8 mb-8">
-            {/* Title */}
-            <h1 className="text-2xl md:text-3xl font-bold text-gold mb-6">
-              Sim Phong Thủy: "Vật Phẩm Hộ Thân" Thời Công Nghệ – Lợi Hay Hại?
-            </h1>
-
-            {/* Introduction */}
-            <div className="space-y-4 text-foreground/90 mb-8">
-              <p>
-                Trong thời đại số, số điện thoại không chỉ dùng để liên lạc mà còn được xem là "lá bùa bình an", là bộ mặt của chủ sở hữu. Một chiếc Sim Phong Thủy phù hợp được tin rằng sẽ mang lại may mắn, tài lộc và sự hanh thông. Vậy thực hư giá trị của sim phong thủy là gì?
-              </p>
-            </div>
-
-            {/* Section 1 */}
-            <div className="mb-8">
-              <h2 className="text-xl font-bold text-primary mb-4">1. Tại sao phải mua Sim Phong Thủy?</h2>
-              <div className="space-y-4 text-foreground/90">
-                <p>
-                  Nhiều người thắc mắc: "Tại sao phải bỏ ra số tiền lớn để mua một dãy số, trong khi sim nào cũng nghe gọi được?". Câu trả lời nằm ở 3 yếu tố cốt lõi:
-                </p>
-                <ul className="list-disc list-inside space-y-2 ml-4">
-                  <li>
-                    <strong>Cân bằng năng lượng:</strong> Theo thuyết Ngũ hành, mỗi người có một bản mệnh riêng (Kim, Mộc, Thủy, Hỏa, Thổ). Một chiếc sim có các con số tương sinh sẽ giúp cân bằng năng lượng, xua đuổi vận xui.
-                  </li>
-                  <li>
-                    <strong>Tạo dựng niềm tin và sự tự tin:</strong> Khi sở hữu một số điện thoại đẹp, hợp mệnh, chủ nhân sẽ cảm thấy an tâm và tự tin hơn trong các cuộc đàm phán, giao dịch quan trọng.
-                  </li>
-                  <li>
-                    <strong>Đánh dấu thương hiệu cá nhân:</strong> Sim phong thủy thường đi kèm với các bộ số dễ nhớ, đẳng cấp, giúp đối tác và khách hàng ấn tượng ngay từ lần đầu nhìn thấy.
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Section 2 */}
-            <div className="mb-8">
-              <h2 className="text-xl font-bold text-primary mb-4">2. Điểm lợi khi sử dụng Sim Phong Thủy</h2>
-              <p className="text-foreground/90 mb-4">
-                Sử dụng một chiếc sim hợp phong thủy mang lại những giá trị vô hình nhưng cực kỳ mạnh mẽ:
-              </p>
-              <ul className="list-disc list-inside space-y-2 ml-4 text-foreground/90">
-                <li>
-                  <strong>Kích tài lộc, thúc công danh:</strong> Những dãy số bổ trợ cho cung Quan Lộc hoặc Tài Bạch giúp sự nghiệp thăng tiến, kinh doanh hồng phát.
-                </li>
-                <li>
-                  <strong>Cải thiện các mối quan hệ:</strong> Một chiếc sim có ngũ hành tương sinh với chủ nhân giúp gia đạo êm ấm, kết nối tốt hơn với bạn bè và đồng nghiệp.
-                </li>
-                <li>
-                  <strong>Hóa giải vận hạn:</strong> Trong những năm hạn, một chiếc sim phong thủy được tính toán kỹ lưỡng theo bát tự (giờ, ngày, tháng, năm sinh) có tác dụng như một vật phẩm hộ thân, giúp giảm nhẹ tai ương.
-                </li>
-              </ul>
-            </div>
-
-            {/* Section 3 */}
-            <div className="mb-8">
-              <h2 className="text-xl font-bold text-primary mb-4">3. Sim Phong Thủy có "điểm hại" hay không?</h2>
-              <p className="text-foreground/90 mb-4">
-                Thực tế, sim phong thủy không gây hại trực tiếp, nhưng những hiểu lầm dưới đây có thể dẫn đến hệ lụy không tốt:
-              </p>
-              <ul className="list-disc list-inside space-y-2 ml-4 text-foreground/90">
-                <li>
-                  <strong>Dùng sai số, phản tác dụng:</strong> Nếu bạn chọn nhầm sim có ngũ hành xung khắc với bản mệnh (ví dụ: người mệnh Hỏa dùng sim quá nhiều hành Thủy), có thể khiến tinh thần bất an, công việc gặp trắc trở.
-                </li>
-                <li>
-                  <strong>Quá phụ thuộc vào sim:</strong> Sim phong thủy là công cụ hỗ trợ (trợ lực), không phải là phép màu thay thế cho sự nỗ lực. Nếu chỉ mua sim rồi ngồi chờ tài lộc mà không làm việc, bạn sẽ lãng phí tài chính.
-                </li>
-                <li>
-                  <strong>Bị lừa đảo bởi các "thầy phong thủy" giả danh:</strong> Nhiều người bỏ ra số tiền cực lớn để mua những chiếc sim được thổi phồng giá trị nhưng thực chất không hề hợp mệnh.
-                </li>
-              </ul>
-            </div>
-
-            {/* Section 4 */}
-            <div className="mb-8">
-              <h2 className="text-xl font-bold text-primary mb-4">4. Cách chọn Sim Phong Thủy chuẩn xác nhất</h2>
-              <p className="text-foreground/90 mb-4">
-                Để một chiếc sim thực sự phát huy tác dụng, bạn cần lưu ý các tiêu chí:
-              </p>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse border border-border">
-                  <thead>
-                    <tr className="bg-muted">
-                      <th className="border border-border px-4 py-2 text-left font-bold text-foreground">Tiêu chí</th>
-                      <th className="border border-border px-4 py-2 text-left font-bold text-foreground">Mô tả</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-foreground/90">
-                    <tr>
-                      <td className="border border-border px-4 py-2 font-medium">Cân bằng Âm Dương</td>
-                      <td className="border border-border px-4 py-2">Tỷ lệ số chẵn (Âm) và số lẻ (Dương) nên cân bằng (5/5 hoặc 4/6).</td>
-                    </tr>
-                    <tr>
-                      <td className="border border-border px-4 py-2 font-medium">Ngũ hành tương sinh</td>
-                      <td className="border border-border px-4 py-2">Các con số trong sim phải thuộc hành tương sinh hoặc tương hỗ với mệnh của chủ nhân.</td>
-                    </tr>
-                    <tr>
-                      <td className="border border-border px-4 py-2 font-medium">Cửu tinh đồ pháp</td>
-                      <td className="border border-border px-4 py-2">Ưu tiên các số chứa con số 8 hoặc 9 (con số của thời kỳ Hạ Nguyên - vận 8 và vận 9).</td>
-                    </tr>
-                    <tr>
-                      <td className="border border-border px-4 py-2 font-medium">Tổng số nút cao</td>
-                      <td className="border border-border px-4 py-2">Tổng các con số cộng lại có số đuôi từ 7 đến 10 là đại cát.</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Conclusion */}
-            <div className="mb-8 p-4 bg-muted/50 rounded-lg border border-border">
-              <p className="text-foreground/90">
-                <strong className="text-gold">Lời kết:</strong> Sim phong thủy giống như một người bạn đồng hành thầm lặng. Khi chọn đúng, nó sẽ tiếp thêm sức mạnh tinh thần và mở ra nhiều cơ hội mới. Hãy là người tiêu dùng thông thái, chọn sim dựa trên sự hiểu biết và đơn vị tư vấn tâm huyết.
-              </p>
-            </div>
-
-            {/* Zalo Chat Card */}
-            <div className="mt-8 max-w-sm">
-              <h3 className="text-lg font-semibold text-foreground mb-3">Liên hệ tư vấn</h3>
-              <ZaloChatCard />
-            </div>
-          </div>
-
-          {/* Tool Section */}
+        <div className="max-w-4xl mx-auto">
+          {/* Hero Section */}
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-primary flex items-center justify-center gap-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-gold mb-4 flex items-center justify-center gap-2">
               <Sparkles className="w-8 h-8" />
-              Tra cứu SIM Phong Thuỷ
-            </h2>
-            <p className="text-muted-foreground mt-2">
-              Tìm SIM số đẹp phù hợp với mệnh của bạn
+              Bói 4 Số Đuôi / 6 Số Đuôi SIM
+            </h1>
+            <p className="text-muted-foreground">
+              Tra cứu ý nghĩa số đuôi SIM theo 80 quẻ Kinh Dịch
             </p>
           </div>
 
-          {/* Form Section */}
+          {/* Input Form */}
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle className="text-lg">Nhập thông tin phong thuỷ</CardTitle>
+              <CardTitle className="text-lg">Nhập số cần tra cứu</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Year Input */}
-                  <div className="space-y-2">
-                    <Label htmlFor="year">Năm sinh</Label>
+                  {/* Input */}
+                  <div className="md:col-span-2 space-y-2">
+                    <Label htmlFor="phone">Số điện thoại hoặc số đuôi</Label>
                     <Input
-                      id="year"
-                      type="number"
-                      placeholder="VD: 1990"
-                      value={year}
-                      onChange={(e) => setYear(e.target.value)}
-                      min={1900}
-                      max={2100}
+                      id="phone"
+                      type="text"
+                      placeholder="VD: 0909.123.456 hoặc 3456"
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Có thể nhập 4 số, 6 số, hoặc số điện thoại đầy đủ (có thể có dấu chấm/khoảng trắng)
+                    </p>
                   </div>
 
-                  {/* Gender Select */}
+                  {/* Suffix Length */}
                   <div className="space-y-2">
-                    <Label>Giới tính</Label>
-                    <Select value={gender} onValueChange={(v) => setGender(v as Gender)}>
+                    <Label>Độ dài tra cứu</Label>
+                    <Select value={suffixLength} onValueChange={(v) => setSuffixLength(v as '4' | '6')}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Chọn giới tính" />
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {GENDER_OPTIONS.map((g) => (
-                          <SelectItem key={g} value={g}>
-                            {g}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Menh Select */}
-                  <div className="space-y-2">
-                    <Label>Mệnh</Label>
-                    <Select value={menh} onValueChange={(v) => setMenh(v as Menh)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn mệnh" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MENH_OPTIONS.map((m) => (
-                          <SelectItem key={m} value={m}>
-                            {m}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="4">4 số cuối</SelectItem>
+                        <SelectItem value="6">6 số cuối</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
-                {/* Validation Error */}
-                {validationError && (
+                {/* Error */}
+                {error && (
                   <div className="flex items-center gap-2 text-destructive text-sm">
                     <AlertCircle className="w-4 h-4" />
-                    {validationError}
+                    {error}
                   </div>
                 )}
 
-                {/* Submit Button */}
-                <Button
-                  type="submit"
-                  className="w-full md:w-auto"
-                  disabled={isLoadingInventory}
-                >
-                  {isLoadingInventory ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Đang tải...
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-4 h-4 mr-2" />
-                      Gợi ý SIM phù hợp
-                    </>
-                  )}
+                {/* Submit */}
+                <Button type="submit" className="w-full md:w-auto">
+                  <Search className="w-4 h-4 mr-2" />
+                  Tra cứu
                 </Button>
               </form>
             </CardContent>
           </Card>
 
-          {/* Results Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">SIM gợi ý theo phong thuỷ</h2>
-              {hasSearched && suggestions.length > 0 && (
-                <span className="text-sm text-muted-foreground">
-                  Tìm thấy {suggestions.length} SIM phù hợp
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Gợi ý chỉ mang tính tham khảo
-            </p>
+          {/* Result Section */}
+          {result && (
+            <Card className="mb-8 border-gold/30">
+              <CardHeader className="bg-muted/30">
+                <CardTitle className="text-lg flex items-center justify-between">
+                  <span>Kết quả tra cứu</span>
+                  <Button variant="outline" size="sm" onClick={handleCopyLink}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy link
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  {/* Suffix Display */}
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground mb-1">Số cuối tra cứu</p>
+                    <p className="text-3xl font-bold text-gold tracking-wider">{result.suffix}</p>
+                  </div>
 
-            {/* Loading State */}
-            {isLoadingInventory && (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                <span className="ml-2 text-muted-foreground">Đang tải dữ liệu SIM...</span>
-              </div>
-            )}
+                  {/* Que Number */}
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground mb-1">Quẻ số</p>
+                    <p className="text-xl font-semibold text-primary">{result.que}</p>
+                  </div>
 
-            {/* Error State */}
-            {inventoryError && !isLoadingInventory && (
-              <div className="text-center py-12">
-                <AlertCircle className="w-12 h-12 mx-auto text-destructive mb-4" />
-                <p className="text-muted-foreground">Không thể tải dữ liệu SIM. Vui lòng thử lại.</p>
-              </div>
-            )}
+                  {/* Hexagram Title */}
+                  <div className="bg-muted/50 rounded-lg p-4 text-center">
+                    <p className="text-sm text-muted-foreground mb-2">Luận giải</p>
+                    <p className="text-lg font-medium text-foreground italic">
+                      "{result.hexagram.title}"
+                    </p>
+                  </div>
 
-            {/* Empty State - Not searched yet */}
-            {!hasSearched && !isLoadingInventory && !inventoryError && (
-              <div className="text-center py-12 bg-muted/30 rounded-lg">
-                <Sparkles className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  Nhập thông tin phong thuỷ và bấm "Gợi ý SIM phù hợp" để xem kết quả
+                  {/* Level Badge */}
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground mb-2">Đánh giá</p>
+                    <Badge className={`text-base px-4 py-1 ${getLevelBadgeClass(result.hexagram.level)}`}>
+                      {result.hexagram.level}
+                    </Badge>
+                  </div>
+
+                  {/* Disclaimer */}
+                  <div className="text-center pt-4 border-t border-border">
+                    <p className="text-xs text-muted-foreground">
+                      ⚠️ Nội dung chỉ mang tính tham khảo, giải trí
+                    </p>
+                  </div>
+
+                  {/* Share Button */}
+                  <div className="flex justify-center">
+                    <Button variant="outline" size="sm" onClick={handleCopyLink}>
+                      <Share2 className="w-4 h-4 mr-2" />
+                      Chia sẻ kết quả
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Similar Suggestions */}
+          {result && similarSuggestions.length > 0 && (
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle className="text-lg">Gợi ý số tương tự</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {similarSuggestions.map((phone, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-muted/30 rounded-lg p-3 text-center hover:bg-muted/50 transition-colors cursor-pointer"
+                      onClick={() => {
+                        setInputValue(phone);
+                        performLookup(phone, suffixLength);
+                      }}
+                    >
+                      <p className="font-mono text-sm text-gold">{phone}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-4 text-center">
+                  Click vào số để tra cứu. Đây là số gợi ý mô phỏng, không phải số thực trong kho.
                 </p>
-              </div>
-            )}
+              </CardContent>
+            </Card>
+          )}
 
-            {/* Empty State - No results */}
-            {hasSearched && suggestions.length === 0 && !isLoadingInventory && (
-              <div className="text-center py-12 bg-muted/30 rounded-lg">
-                <Search className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-4">
-                  Chưa tìm được SIM phù hợp. Vui lòng liên hệ tư vấn.
-                </p>
-                <Button variant="outline" asChild>
-                  <a href="/">Xem tất cả SIM</a>
-                </Button>
-              </div>
-            )}
+          {/* Zalo Contact */}
+          <div className="mb-8 max-w-sm mx-auto">
+            <ZaloChatCard />
+          </div>
 
-            {/* Results Grid */}
-            {hasSearched && suggestions.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {suggestions.map((sim) => (
-                  <FengShuiSimCard
-                    key={sim.id}
-                    sim={sim}
-                    onBuy={() => handleBuyClick(sim)}
-                  />
+          {/* FAQ Section */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="text-lg">Câu hỏi thường gặp</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Accordion type="single" collapsible className="w-full">
+                {faqData.map((faq, index) => (
+                  <AccordionItem key={index} value={`faq-${index}`}>
+                    <AccordionTrigger className="text-left">
+                      {faq.question}
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
                 ))}
-              </div>
-            )}
+              </Accordion>
+            </CardContent>
+          </Card>
+
+          {/* Disclaimer */}
+          <div className="bg-muted/30 rounded-lg p-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              <strong>Lưu ý:</strong> Kết quả bói số đuôi SIM dựa trên 80 quẻ Kinh Dịch, chỉ mang tính chất tham khảo và giải trí. 
+              Việc lựa chọn SIM nên kết hợp nhiều yếu tố phong thủy khác như ngũ hành, bát tự, tổng số nút...
+            </p>
           </div>
         </div>
       </main>
 
       <Footer />
-    </div>
-  );
-};
-
-// SIM Card Component for Feng Shui page
-interface FengShuiSimCardProps {
-  sim: FengShuiSimItem;
-  onBuy: () => void;
-}
-
-const FengShuiSimCard = ({ sim, onBuy }: FengShuiSimCardProps) => {
-  // Highlight last 4 digits
-  const formatWithHighlight = (phone: string) => {
-    const parts = phone.split('.');
-    if (parts.length === 3) {
-      return (
-        <>
-          <span className="text-gold">{parts[0]}</span>
-          <span className="text-muted-foreground">.</span>
-          <span className="text-gold">{parts[1]}</span>
-          <span className="text-muted-foreground">.</span>
-          <span className="text-gold-dark font-extrabold gold-glow">{parts[2]}</span>
-        </>
-      );
-    }
-    return <span className="text-gold">{phone}</span>;
-  };
-
-  const networkColorClass = networkColors[sim.network] || 'bg-gray-500 text-white';
-
-  return (
-    <div className="sim-card group">
-      {/* Network Badge */}
-      <div className="flex items-center justify-between mb-3">
-        <span className={`px-2 py-0.5 rounded text-xs font-medium ${networkColorClass}`}>
-          {sim.network}
-        </span>
-        {sim.fengShuiScore !== undefined && sim.fengShuiScore > 5 && (
-          <span className="badge-vip flex items-center gap-1">
-            <Sparkles className="w-3 h-3" /> Hợp mệnh
-          </span>
-        )}
-      </div>
-
-      {/* SIM Number */}
-      <div className="text-center py-4">
-        <p className="sim-number tracking-wider text-lg md:text-xl font-bold">
-          {formatWithHighlight(sim.phone)}
-        </p>
-      </div>
-
-      {/* Tags */}
-      {sim.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-4 justify-center">
-          {sim.tags.slice(0, 3).map((tag) => (
-            <span key={tag} className="badge-type text-xs">
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* Price */}
-      <div className="text-center mb-4">
-        <p className="text-xl md:text-2xl font-bold text-cta">
-          {formatPriceVND(sim.price)}
-        </p>
-      </div>
-
-      {/* CTA Button */}
-      <Button
-        className="btn-cta w-full flex items-center justify-center gap-2"
-        onClick={onBuy}
-        disabled={!sim.url}
-      >
-        <ShoppingCart className="w-4 h-4" />
-        <span>MUA NGAY</span>
-      </Button>
     </div>
   );
 };
