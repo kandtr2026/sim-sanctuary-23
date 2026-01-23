@@ -29,17 +29,17 @@ const faqData = [
   {
     question: 'Làm sao để khiếu nại / góp ý?',
     answer:
-      'Liên hệ hotline 0909.888.888 hoặc Zalo để được hỗ trợ nhanh nhất. Email: hotro@chonsomobifone.com',
+      'Liên hệ hotline 0938.868.868 hoặc Zalo để được hỗ trợ nhanh nhất. Email: hotro@chonsomobifone.com.',
   },
   {
     question: 'Địa chỉ cửa hàng ở đâu?',
     answer:
-      'Hà Nội: 123 Cầu Giấy, Quận Cầu Giấy\nTP.HCM: 456 Nguyễn Văn Linh, Quận 7\nĐà Nẵng: 789 Nguyễn Văn Thoại, Quận Ngũ Hành Sơn',
+      '43A Đường số 9, Phường Tân Hưng, TP. Hồ Chí Minh.',
   },
   {
     question: 'Thời gian giao hàng là bao lâu?',
     answer:
-      'Nội thành HN/HCM: 2-4 tiếng. Các tỉnh thành khác: 1-2 ngày làm việc. Giao hàng từ 8h-21h hàng ngày.',
+      'Nội thành Hà Nội / TP.HCM: 30 phút – 1 tiếng.\nCác tỉnh thành khác: 1–2 ngày làm việc.\nThời gian giao hàng từ 8h–20h hàng ngày.',
   },
 ];
 
