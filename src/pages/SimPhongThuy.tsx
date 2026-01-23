@@ -35,6 +35,7 @@ const getEdgeFunctionUrl = () => {
 
 // ===================== INVENTORY ITEM TYPE =====================
 interface InventoryItem {
+  simId: string;      // SimID from sheet (required)
   phone: string;      // Formatted phone (may have dots)
   digits: string;     // Normalized digits only
   price: number;
@@ -270,6 +271,12 @@ const parseCSVRows = (csvText: string): Record<string, string>[] => {
  * Fetch và parse inventory từ CSV
  * Sử dụng Supabase Edge Function để bypass CORS
  * TUYỆT ĐỐI không random, không mock
+ * 
+ * MAPPING CỨNG THEO HEADER SHEET:
+ * - SimID
+ * - SỐ THUÊ BAO CHUẨN
+ * - SỐ THUÊ BAO
+ * - Final_Price
  */
 const fetchInventory = async (): Promise<InventoryItem[]> => {
   let csvText: string | null = null;
@@ -345,62 +352,44 @@ const fetchInventory = async (): Promise<InventoryItem[]> => {
     return [];
   }
   
-  // Find column keys
-  const sampleRow = rows[0];
-  const keys = Object.keys(sampleRow);
-  
-  // Phone column: ưu tiên "SỐ THUÊ BAO CHUẨN", fallback "SỐ THUÊ BAO"
-  const phoneStandardKey = keys.find((k) => {
-    const lower = k.toLowerCase().replace(/\s+/g, '');
-    return lower.includes('sốthuêbaochuẩn') || lower.includes('sothuebao chuẩn') || lower.includes('sothuebao chuan');
-  });
-  const phoneDisplayKey = keys.find((k) => {
-    const lower = k.toLowerCase().replace(/\s+/g, '');
-    return lower === 'sốthuêbao' || lower === 'sothuebao' || lower === 'số thuê bao';
-  });
-  const phoneKey = phoneStandardKey || phoneDisplayKey || keys.find((k) =>
-    ['phone', 'số', 'so', 'sim', 'sodienthoai', 'số điện thoại'].includes(k.toLowerCase().trim())
-  );
-  
-  // Price column: ưu tiên "Final_Price" (giá sau discount), fallback "GIÁ BÁN"
-  const priceFinalKey = keys.find((k) => {
-    const lower = k.toLowerCase().replace(/\s+/g, '');
-    return lower === 'final_price' || lower === 'finalprice';
-  });
-  const priceSellKey = keys.find((k) => {
-    const lower = k.toLowerCase().replace(/\s+/g, '');
-    return lower === 'giábán' || lower === 'giaban' || lower === 'giá bán';
-  });
-  // Ưu tiên Final_Price (giá đã giảm) > GIÁ BÁN
-  const priceKey = priceFinalKey || priceSellKey || keys.find((k) =>
-    ['price', 'giá', 'gia'].includes(k.toLowerCase().trim())
-  );
+  // ===== MAPPING CỨNG THEO HEADER SHEET =====
+  const SIMID_KEY = 'SimID';
+  const PHONE_DISPLAY_KEY = 'SỐ THUÊ BAO';
+  const PHONE_STANDARD_KEY = 'SỐ THUÊ BAO CHUẨN';
+  const PRICE_KEY = 'Final_Price';
   
   if (import.meta.env.DEV) {
-    console.log('[SimPhongThuy] Detected columns - phone:', phoneKey, '| price:', priceKey);
+    const sampleRow = rows[0];
+    console.log('[SimPhongThuy] Sample row keys:', Object.keys(sampleRow));
   }
   
   const inventory: InventoryItem[] = [];
   const seenDigits = new Set<string>();
   
   for (const row of rows) {
-    const phoneRaw = phoneKey ? row[phoneKey] : '';
-    const priceRaw = priceKey ? row[priceKey] : '';
+    const simId = row[SIMID_KEY] || '';
+    const phoneDisplay = row[PHONE_DISPLAY_KEY] || '';
+    const phoneStandard = row[PHONE_STANDARD_KEY] || '';
+    const priceRaw = row[PRICE_KEY] || '';
     
-    if (!phoneRaw || !priceRaw) continue;
+    // Phone: ưu tiên SỐ THUÊ BAO (có dấu chấm), fallback SỐ THUÊ BAO CHUẨN
+    const phone = phoneDisplay || phoneStandard;
     
-    const digits = normalizePhoneToDigits(phoneRaw);
+    if (!simId || !phone || !priceRaw) continue;
+    
+    const digits = normalizePhoneToDigits(phone);
     const price = parsePriceToNumber(priceRaw);
     
-    // Validate: digits phải >= 9 số, price > 0
-    if (digits.length < 9 || price <= 0) continue;
+    // Validate: simId không rỗng, digits >= 9 số, price > 0
+    if (!simId.trim() || digits.length < 9 || price <= 0) continue;
     
     // Dedup by digits
     if (seenDigits.has(digits)) continue;
     seenDigits.add(digits);
     
     inventory.push({
-      phone: phoneRaw, // Keep original format for display
+      simId: simId.trim(),
+      phone, // Keep original format for display
       digits,
       price,
     });
@@ -509,50 +498,65 @@ const SimPhongThuy = () => {
     });
   };
 
-  // Navigate to checkout when clicking a SIM suggestion - NO lookup, direct to checkout
-  const handleSimClick = (item: InventoryItem) => {
-    navigate(`/checkout?sim=${item.digits}`);
+  // Navigate to checkout when clicking "Mua ngay" button
+  const handleBuyNow = (item: InventoryItem) => {
+    navigate(`/mua-ngay/${encodeURIComponent(item.simId)}`);
   };
 
-  // ===================== ENGINE GỢI Ý "SỐ TƯƠNG TỰ" = LỌC TỪ KHO THẬT =====================
+  // ===================== ENGINE GỢI Ý "SIM ĐẠI CÁT / CÁT" THEO 4 SỐ ĐUÔI =====================
+  // Logic mới: Tính quẻ từ 4 số đuôi, chỉ giữ "Đại cát" hoặc "Cát"
   // TUYỆT ĐỐI không random, không generate số mới
-  const similarSuggestions = useMemo(() => {
-    if (!result || !inventoryLoaded || inventory.length === 0) {
+  const luckySuggestions = useMemo(() => {
+    if (!inventoryLoaded || inventory.length === 0) {
       return [];
     }
 
-    const suffixDigits = result.suffix.replace(/\D/g, '');
-    const suffixLen = parseInt(suffixLength);
-    
-    // Try different match lengths in priority order
-    const matchLengths = suffixLen === 4 ? [4, 3, 2] : [6, 5, 4, 3, 2];
-    
-    let candidates: InventoryItem[] = [];
-    
-    for (const matchLen of matchLengths) {
-      if (candidates.length >= 8) break;
-      
-      const targetSuffix = suffixDigits.slice(-matchLen);
-      const matches = inventory.filter((item) => {
-        // Already in candidates?
-        if (candidates.some((c) => c.digits === item.digits)) return false;
-        // Match suffix
-        return item.digits.endsWith(targetSuffix) && item.price > 0;
-      });
-      
-      candidates = [...candidates, ...matches];
+    // Filter SIM có level "Đại cát" hoặc "Cát" theo 4 số đuôi
+    const luckyItems: { item: InventoryItem; level: HexagramLevel; hexagram: Hexagram }[] = [];
+
+    for (const item of inventory) {
+      if (item.price <= 0 || item.digits.length < 4) continue;
+
+      // Lấy 4 số đuôi
+      const suffix4 = item.digits.slice(-4);
+      const n = parseInt(suffix4, 10);
+      if (isNaN(n)) continue;
+
+      // Tính quẻ
+      let que = n % 80;
+      if (que === 0) que = 80;
+
+      const hex = HEXAGRAMS[que];
+      if (!hex) continue;
+
+      // Chỉ giữ "Đại cát" hoặc "Cát"
+      if (hex.level === 'Đại cát' || hex.level === 'Cát') {
+        luckyItems.push({ item, level: hex.level, hexagram: hex });
+      }
     }
-    
-    // Sort by price ascending, limit to 8
-    candidates.sort((a, b) => a.price - b.price);
-    const finalList = candidates.slice(0, 8);
-    
+
+    // Sắp xếp: ưu tiên "Đại cát" trước "Cát", cùng level thì giá tăng dần
+    luckyItems.sort((a, b) => {
+      // Đại cát = 1, Cát = 2
+      const levelOrder: Record<string, number> = { 'Đại cát': 1, 'Cát': 2 };
+      const aOrder = levelOrder[a.level] || 99;
+      const bOrder = levelOrder[b.level] || 99;
+      
+      if (aOrder !== bOrder) {
+        return aOrder - bOrder; // Đại cát trước
+      }
+      return a.item.price - b.item.price; // Giá tăng dần
+    });
+
+    // Giới hạn 12 item
+    const finalList = luckyItems.slice(0, 12);
+
     if (import.meta.env.DEV) {
-      console.log('[SimPhongThuy] suffixDigits:', suffixDigits, '| suggestions:', finalList.length);
+      console.log('[SimPhongThuy] Lucky suggestions:', finalList.length);
     }
-    
+
     return finalList;
-  }, [result, suffixLength, inventory, inventoryLoaded]);
+  }, [inventory, inventoryLoaded]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950">
@@ -741,36 +745,69 @@ const SimPhongThuy = () => {
             </div>
           )}
 
-          {/* Similar Suggestions - Real SIMs from inventory */}
-          {result && similarSuggestions.length > 0 && (
-            <div className={`${cardBaseClass} mt-6 md:mt-8`} style={cardStyle}>
-              <h2 className="text-lg font-semibold mb-5" style={{ color: '#F7C55A', textShadow: '0 0 8px rgba(247, 197, 90, 0.4)' }}>Gợi ý số tương tự</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {similarSuggestions.map((sim, idx) => (
-                  <div
-                    key={idx}
-                    className="rounded-lg p-3 text-center cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg"
-                    style={{ 
-                      background: 'rgba(255, 255, 255, 0.06)', 
-                      backdropFilter: 'blur(6px)',
-                      border: '1px solid rgba(245, 194, 107, 0.25)'
-                    }}
-                    onClick={() => handleSimClick(sim)}
-                  >
-                    <p className="font-mono text-sm font-semibold" style={{ color: '#F7C55A' }}>
-                      {formatPhoneDisplay(sim.phone)}
-                    </p>
-                    <p className="text-xs mt-1 font-medium" style={{ color: '#ff6b6b' }}>
-                      {formatPriceVND(sim.price)}
-                    </p>
-                  </div>
-                ))}
+          {/* Gợi ý SIM Đại cát / Cát - Real SIMs from inventory */}
+          <div className={`${cardBaseClass} mt-6 md:mt-8`} style={cardStyle}>
+            <h2 className="text-lg font-semibold mb-5" style={{ color: '#F7C55A', textShadow: '0 0 8px rgba(247, 197, 90, 0.4)' }}>
+              Gợi ý SIM Đại cát / Cát (theo 4 số đuôi)
+            </h2>
+            
+            {!inventoryLoaded ? (
+              <div className="text-center py-8">
+                <p style={{ color: 'rgba(237, 237, 237, 0.7)' }}>Đang tải kho SIM...</p>
               </div>
-              <p className="text-xs mt-4 text-center" style={{ color: 'rgba(237, 237, 237, 0.5)' }}>
-                Click vào số để xem chi tiết và đặt mua. Giá hiển thị là giá tham khảo từ kho.
-              </p>
-            </div>
-          )}
+            ) : luckySuggestions.length === 0 ? (
+              <div className="text-center py-8">
+                <p style={{ color: 'rgba(237, 237, 237, 0.7)' }}>Không tìm thấy SIM phù hợp trong kho.</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {luckySuggestions.map((entry, idx) => (
+                    <div
+                      key={idx}
+                      className="rounded-lg p-4 flex flex-col gap-2"
+                      style={{ 
+                        background: 'rgba(255, 255, 255, 0.06)', 
+                        backdropFilter: 'blur(6px)',
+                        border: '1px solid rgba(245, 194, 107, 0.25)'
+                      }}
+                    >
+                      {/* Phone number */}
+                      <p className="font-mono text-base font-semibold" style={{ color: '#F7C55A' }}>
+                        {formatPhoneDisplay(entry.item.phone)}
+                      </p>
+                      
+                      {/* Price */}
+                      <p className="text-sm font-medium" style={{ color: '#ff6b6b' }}>
+                        {formatPriceVND(entry.item.price)}
+                      </p>
+                      
+                      {/* Level Badge */}
+                      <Badge className={`w-fit text-xs px-3 py-1 border font-semibold ${getLevelBadgeClass(entry.level)}`}>
+                        {entry.level}
+                      </Badge>
+                      
+                      {/* Buy button */}
+                      <Button
+                        size="sm"
+                        className="mt-2 text-white border-0"
+                        style={{ 
+                          background: 'linear-gradient(135deg, #ff3b3b, #ff7a18)', 
+                          boxShadow: '0 4px 12px rgba(255, 90, 50, 0.35)' 
+                        }}
+                        onClick={() => handleBuyNow(entry.item)}
+                      >
+                        Mua ngay
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs mt-4 text-center" style={{ color: 'rgba(237, 237, 237, 0.5)' }}>
+                  Click "Mua ngay" để đặt mua SIM. Giá hiển thị là giá thực từ kho.
+                </p>
+              </>
+            )}
+          </div>
 
           {/* Zalo Contact */}
           <div className="my-8 max-w-sm mx-auto">
