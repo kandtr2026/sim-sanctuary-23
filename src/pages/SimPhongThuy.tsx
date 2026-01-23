@@ -503,23 +503,26 @@ const SimPhongThuy = () => {
     navigate(`/mua-ngay/${encodeURIComponent(item.simId)}`);
   };
 
-  // ===================== ENGINE GỢI Ý "SIM ĐẠI CÁT / CÁT" THEO 4 SỐ ĐUÔI =====================
-  // Logic mới: Tính quẻ từ 4 số đuôi, chỉ giữ "Đại cát" hoặc "Cát"
+  // ===================== ENGINE GỢI Ý "SIM ĐẠI CÁT / CÁT" THEO suffixLength =====================
+  // Logic: Tính quẻ từ 4 hoặc 6 số đuôi (theo suffixLength hiện tại), chỉ giữ "Đại cát" hoặc "Cát"
   // TUYỆT ĐỐI không random, không generate số mới
+  // Trả về 2 nhóm: luckyGreat (6 "Đại cát") + luckyGood (6 "Cát")
   const luckySuggestions = useMemo(() => {
     if (!inventoryLoaded || inventory.length === 0) {
-      return [];
+      return { luckyGreat: [], luckyGood: [] };
     }
 
-    // Filter SIM có level "Đại cát" hoặc "Cát" theo 4 số đuôi
-    const luckyItems: { item: InventoryItem; level: HexagramLevel; hexagram: Hexagram }[] = [];
+    const suffixLen = parseInt(suffixLength, 10); // 4 hoặc 6
+
+    const greatItems: { item: InventoryItem; level: HexagramLevel; hexagram: Hexagram }[] = [];
+    const goodItems: { item: InventoryItem; level: HexagramLevel; hexagram: Hexagram }[] = [];
 
     for (const item of inventory) {
-      if (item.price <= 0 || item.digits.length < 4) continue;
+      if (item.price <= 0 || item.digits.length < suffixLen) continue;
 
-      // Lấy 4 số đuôi
-      const suffix4 = item.digits.slice(-4);
-      const n = parseInt(suffix4, 10);
+      // Lấy suffix theo suffixLength hiện tại
+      const suffix = item.digits.slice(-suffixLen);
+      const n = parseInt(suffix, 10);
       if (isNaN(n)) continue;
 
       // Tính quẻ
@@ -529,34 +532,28 @@ const SimPhongThuy = () => {
       const hex = HEXAGRAMS[que];
       if (!hex) continue;
 
-      // Chỉ giữ "Đại cát" hoặc "Cát"
-      if (hex.level === 'Đại cát' || hex.level === 'Cát') {
-        luckyItems.push({ item, level: hex.level, hexagram: hex });
+      // Phân loại theo level
+      if (hex.level === 'Đại cát') {
+        greatItems.push({ item, level: hex.level, hexagram: hex });
+      } else if (hex.level === 'Cát') {
+        goodItems.push({ item, level: hex.level, hexagram: hex });
       }
     }
 
-    // Sắp xếp: ưu tiên "Đại cát" trước "Cát", cùng level thì giá tăng dần
-    luckyItems.sort((a, b) => {
-      // Đại cát = 1, Cát = 2
-      const levelOrder: Record<string, number> = { 'Đại cát': 1, 'Cát': 2 };
-      const aOrder = levelOrder[a.level] || 99;
-      const bOrder = levelOrder[b.level] || 99;
-      
-      if (aOrder !== bOrder) {
-        return aOrder - bOrder; // Đại cát trước
-      }
-      return a.item.price - b.item.price; // Giá tăng dần
-    });
+    // Sắp xếp theo giá tăng dần trong mỗi nhóm
+    greatItems.sort((a, b) => a.item.price - b.item.price);
+    goodItems.sort((a, b) => a.item.price - b.item.price);
 
-    // Giới hạn 12 item
-    const finalList = luckyItems.slice(0, 12);
+    // Lấy tối đa 6 item mỗi nhóm
+    const luckyGreat = greatItems.slice(0, 6);
+    const luckyGood = goodItems.slice(0, 6);
 
     if (import.meta.env.DEV) {
-      console.log('[SimPhongThuy] Lucky suggestions:', finalList.length);
+      console.log('[SimPhongThuy] Lucky suggestions - Đại cát:', luckyGreat.length, ', Cát:', luckyGood.length);
     }
 
-    return finalList;
-  }, [inventory, inventoryLoaded]);
+    return { luckyGreat, luckyGood };
+  }, [inventory, inventoryLoaded, suffixLength]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950">
@@ -748,64 +745,125 @@ const SimPhongThuy = () => {
           {/* Gợi ý SIM Đại cát / Cát - Real SIMs from inventory */}
           <div className={`${cardBaseClass} mt-6 md:mt-8`} style={cardStyle}>
             <h2 className="text-lg font-semibold mb-5" style={{ color: '#F7C55A', textShadow: '0 0 8px rgba(247, 197, 90, 0.4)' }}>
-              Gợi ý SIM Đại cát / Cát (theo 4 số đuôi)
+              Gợi ý SIM Đại cát / Cát (theo {suffixLength} số đuôi)
             </h2>
             
             {!inventoryLoaded ? (
               <div className="text-center py-8">
                 <p style={{ color: 'rgba(237, 237, 237, 0.7)' }}>Đang tải kho SIM...</p>
               </div>
-            ) : luckySuggestions.length === 0 ? (
+            ) : luckySuggestions.luckyGreat.length === 0 && luckySuggestions.luckyGood.length === 0 ? (
               <div className="text-center py-8">
                 <p style={{ color: 'rgba(237, 237, 237, 0.7)' }}>Không tìm thấy SIM phù hợp trong kho.</p>
               </div>
             ) : (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {luckySuggestions.map((entry, idx) => (
-                    <div
-                      key={idx}
-                      className="rounded-lg p-4 flex flex-col gap-2"
-                      style={{ 
-                        background: 'rgba(255, 255, 255, 0.06)', 
-                        backdropFilter: 'blur(6px)',
-                        border: '1px solid rgba(245, 194, 107, 0.25)'
-                      }}
-                    >
-                      {/* Phone number */}
-                      <p className="font-mono text-base font-semibold" style={{ color: '#F7C55A' }}>
-                        {formatPhoneDisplay(entry.item.phone)}
-                      </p>
-                      
-                      {/* Price */}
-                      <p className="text-sm font-medium" style={{ color: '#ff6b6b' }}>
-                        {formatPriceVND(entry.item.price)}
-                      </p>
-                      
-                      {/* Level Badge */}
-                      <Badge className={`w-fit text-xs px-3 py-1 border font-semibold ${getLevelBadgeClass(entry.level)}`}>
-                        {entry.level}
-                      </Badge>
-                      
-                      {/* Buy button */}
-                      <Button
-                        size="sm"
-                        className="mt-2 text-white border-0"
-                        style={{ 
-                          background: 'linear-gradient(135deg, #ff3b3b, #ff7a18)', 
-                          boxShadow: '0 4px 12px rgba(255, 90, 50, 0.35)' 
-                        }}
-                        onClick={() => handleBuyNow(entry.item)}
-                      >
-                        Mua ngay
-                      </Button>
+              <div className="space-y-6">
+                {/* Section Đại cát */}
+                {luckySuggestions.luckyGreat.length > 0 && (
+                  <div>
+                    <h3 className="text-base font-semibold mb-3 flex items-center gap-2" style={{ color: '#2ecc71' }}>
+                      <span className="inline-block w-3 h-3 rounded-full bg-[#2ecc71]"></span>
+                      Đại cát ({luckySuggestions.luckyGreat.length})
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {luckySuggestions.luckyGreat.map((entry, idx) => (
+                        <div
+                          key={`great-${idx}`}
+                          className="rounded-lg p-4 flex flex-col gap-2"
+                          style={{ 
+                            background: 'rgba(255, 255, 255, 0.06)', 
+                            backdropFilter: 'blur(6px)',
+                            border: '1px solid rgba(46, 204, 113, 0.35)'
+                          }}
+                        >
+                          {/* Phone number */}
+                          <p className="font-mono text-base font-semibold" style={{ color: '#F7C55A' }}>
+                            {formatPhoneDisplay(entry.item.phone)}
+                          </p>
+                          
+                          {/* Price */}
+                          <p className="text-sm font-medium" style={{ color: '#ff6b6b' }}>
+                            {formatPriceVND(entry.item.price)}
+                          </p>
+                          
+                          {/* Level Badge */}
+                          <Badge className={`w-fit text-xs px-3 py-1 border font-semibold ${getLevelBadgeClass(entry.level)}`}>
+                            {entry.level}
+                          </Badge>
+                          
+                          {/* Buy button */}
+                          <Button
+                            size="sm"
+                            className="mt-2 text-white border-0"
+                            style={{ 
+                              background: 'linear-gradient(135deg, #ff3b3b, #ff7a18)', 
+                              boxShadow: '0 4px 12px rgba(255, 90, 50, 0.35)' 
+                            }}
+                            onClick={() => handleBuyNow(entry.item)}
+                          >
+                            Mua ngay
+                          </Button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
+
+                {/* Section Cát */}
+                {luckySuggestions.luckyGood.length > 0 && (
+                  <div>
+                    <h3 className="text-base font-semibold mb-3 flex items-center gap-2" style={{ color: '#27ae60' }}>
+                      <span className="inline-block w-3 h-3 rounded-full bg-[#27ae60]"></span>
+                      Cát ({luckySuggestions.luckyGood.length})
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {luckySuggestions.luckyGood.map((entry, idx) => (
+                        <div
+                          key={`good-${idx}`}
+                          className="rounded-lg p-4 flex flex-col gap-2"
+                          style={{ 
+                            background: 'rgba(255, 255, 255, 0.06)', 
+                            backdropFilter: 'blur(6px)',
+                            border: '1px solid rgba(39, 174, 96, 0.35)'
+                          }}
+                        >
+                          {/* Phone number */}
+                          <p className="font-mono text-base font-semibold" style={{ color: '#F7C55A' }}>
+                            {formatPhoneDisplay(entry.item.phone)}
+                          </p>
+                          
+                          {/* Price */}
+                          <p className="text-sm font-medium" style={{ color: '#ff6b6b' }}>
+                            {formatPriceVND(entry.item.price)}
+                          </p>
+                          
+                          {/* Level Badge */}
+                          <Badge className={`w-fit text-xs px-3 py-1 border font-semibold ${getLevelBadgeClass(entry.level)}`}>
+                            {entry.level}
+                          </Badge>
+                          
+                          {/* Buy button */}
+                          <Button
+                            size="sm"
+                            className="mt-2 text-white border-0"
+                            style={{ 
+                              background: 'linear-gradient(135deg, #ff3b3b, #ff7a18)', 
+                              boxShadow: '0 4px 12px rgba(255, 90, 50, 0.35)' 
+                            }}
+                            onClick={() => handleBuyNow(entry.item)}
+                          >
+                            Mua ngay
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <p className="text-xs mt-4 text-center" style={{ color: 'rgba(237, 237, 237, 0.5)' }}>
                   Click "Mua ngay" để đặt mua SIM. Giá hiển thị là giá thực từ kho.
                 </p>
-              </>
+              </div>
             )}
           </div>
 
