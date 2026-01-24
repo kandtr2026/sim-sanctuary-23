@@ -378,8 +378,8 @@ const fetchInventory = async (): Promise<InventoryItem[]> => {
     // Validate: bỏ qua nếu phone rỗng
     if (!phone) continue;
     
-    // Validate: bỏ qua nếu price <= 0
-    if (price <= 0) continue;
+    // Validate: bỏ qua nếu giá không hợp lệ (KHÔNG fallback về 1)
+    if (!Number.isFinite(price) || price <= 0) continue;
     
     // Normalize digits
     const digits = normalizePhoneToDigits(phone);
