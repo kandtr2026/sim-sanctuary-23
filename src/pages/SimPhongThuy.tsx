@@ -230,11 +230,11 @@ const normalizePhoneToDigits = (value: string): string => {
  */
 const parsePriceToNumber = (value: string): number => {
   if (!value) return 0;
-  const str = String(value).trim();
-  // Loại bỏ tất cả dấu chấm, phẩy, khoảng trắng, đ, vnđ, và các ký tự khác
-  const cleaned = str.replace(/[.,\s]/g, '').replace(/[đdvnĐVN"']/gi, '');
-  const num = parseInt(cleaned, 10);
-  return isNaN(num) || num <= 0 ? 0 : num;
+  let s = String(value).trim();
+  s = s.replace(/\s+/g, '').replace(/[đĐ]/g, '');
+  const digitsOnly = s.replace(/[^\d]/g, '');
+  const n = parseInt(digitsOnly, 10);
+  return Number.isFinite(n) && n > 0 ? n : 0;
 };
 
 /**
@@ -365,7 +365,12 @@ const fetchInventory = async (): Promise<InventoryItem[]> => {
     // Map đúng header Google Sheet
     const simId = row['SimID'] || '';
     const phone = row['SỐ THUÊ BAO'] || row['SỐ THUÊ BAO CHUẨN'] || '';
-    const price = parsePriceToNumber(row['Final_Price'] || row['GIÁ BÁN']);
+    const priceRaw = 
+      row['Final_Price']?.trim() || 
+      row['GIÁ BÁN']?.trim() || 
+      row['GIÁ THU VỀ']?.trim() || 
+      '';
+    const price = parsePriceToNumber(priceRaw);
     
     // Validate: bỏ qua nếu simId rỗng
     if (!simId.trim()) continue;
