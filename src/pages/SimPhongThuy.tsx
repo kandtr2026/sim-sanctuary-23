@@ -790,13 +790,13 @@ const SimPhongThuy = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => setSuggestionSeed(Date.now())}
-                className="text-white border-0 w-fit"
+                className="bg-black/40 hover:bg-black/60 text-white"
                 style={{ 
-                  background: 'linear-gradient(135deg, #9b59b6, #8e44ad)', 
-                  boxShadow: '0 4px 12px rgba(155, 89, 182, 0.35)' 
+                  border: '1px solid rgba(245, 194, 107, 0.45)',
+                  boxShadow: '0 0 10px rgba(245, 194, 107, 0.2)'
                 }}
               >
-                <Sparkles className="w-4 h-4 mr-2" />
+                <Sparkles className="w-4 h-4 mr-2" style={{ color: '#F7C55A' }} />
                 Làm mới gợi ý
               </Button>
             </div>
@@ -822,7 +822,7 @@ const SimPhongThuy = () => {
                       {luckySuggestions.luckyGreat.map((entry, idx) => (
                         <div
                           key={`great-${idx}`}
-                          className="rounded-lg p-4 flex flex-col gap-2"
+                          className="rounded-lg p-6 flex flex-col gap-3"
                           style={{ 
                             background: 'rgba(255, 255, 255, 0.06)', 
                             backdropFilter: 'blur(6px)',
@@ -830,24 +830,24 @@ const SimPhongThuy = () => {
                           }}
                         >
                           {/* Phone number - hiển thị đúng từ cột "SỐ THUÊ BAO" */}
-                          <p className="font-mono text-base font-semibold" style={{ color: '#F7C55A' }}>
+                          <p className="font-mono text-xl md:text-2xl font-semibold" style={{ color: '#F7C55A' }}>
                             {entry.item.phone}
                           </p>
                           
                           {/* Price */}
-                          <p className="text-sm font-medium" style={{ color: '#ff6b6b' }}>
+                          <p className="text-lg md:text-xl font-medium text-white">
                             {formatPriceVND(entry.item.price)}
                           </p>
                           
                           {/* Level Badge */}
-                          <Badge className={`w-fit text-xs px-3 py-1 border font-semibold ${getLevelBadgeClass(entry.level)}`}>
+                          <Badge className={`w-fit text-base md:text-lg px-5 py-2 border font-semibold ${getLevelBadgeClass(entry.level)}`}>
                             {entry.level}
                           </Badge>
                           
                           {/* Buy button */}
                           <Button
-                            size="sm"
-                            className="mt-2 text-white border-0"
+                            size="lg"
+                            className="mt-2 text-white border-0 text-base md:text-lg py-3"
                             style={{ 
                               background: 'linear-gradient(135deg, #ff3b3b, #ff7a18)', 
                               boxShadow: '0 4px 12px rgba(255, 90, 50, 0.35)' 
@@ -873,7 +873,7 @@ const SimPhongThuy = () => {
                       {luckySuggestions.luckyGood.map((entry, idx) => (
                         <div
                           key={`good-${idx}`}
-                          className="rounded-lg p-4 flex flex-col gap-2"
+                          className="rounded-lg p-6 flex flex-col gap-3"
                           style={{ 
                             background: 'rgba(255, 255, 255, 0.06)', 
                             backdropFilter: 'blur(6px)',
@@ -881,24 +881,24 @@ const SimPhongThuy = () => {
                           }}
                         >
                           {/* Phone number - hiển thị đúng từ cột "SỐ THUÊ BAO" */}
-                          <p className="font-mono text-base font-semibold" style={{ color: '#F7C55A' }}>
+                          <p className="font-mono text-xl md:text-2xl font-semibold" style={{ color: '#F7C55A' }}>
                             {entry.item.phone}
                           </p>
                           
                           {/* Price */}
-                          <p className="text-sm font-medium" style={{ color: '#ff6b6b' }}>
+                          <p className="text-lg md:text-xl font-medium text-white">
                             {formatPriceVND(entry.item.price)}
                           </p>
                           
                           {/* Level Badge */}
-                          <Badge className={`w-fit text-xs px-3 py-1 border font-semibold ${getLevelBadgeClass(entry.level)}`}>
+                          <Badge className={`w-fit text-base md:text-lg px-5 py-2 border font-semibold ${getLevelBadgeClass(entry.level)}`}>
                             {entry.level}
                           </Badge>
                           
                           {/* Buy button */}
                           <Button
-                            size="sm"
-                            className="mt-2 text-white border-0"
+                            size="lg"
+                            className="mt-2 text-white border-0 text-base md:text-lg py-3"
                             style={{ 
                               background: 'linear-gradient(135deg, #ff3b3b, #ff7a18)', 
                               boxShadow: '0 4px 12px rgba(255, 90, 50, 0.35)' 
