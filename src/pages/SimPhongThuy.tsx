@@ -658,7 +658,7 @@ const SimPhongThuy = () => {
                     placeholder="VD: 0909.123.456 hoặc 3456"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    className="bg-black/50 border-[rgba(245,194,107,0.3)] text-white placeholder:text-gray-500 focus:border-[#F7C55A] focus:ring-[#F7C55A]/30 h-14 md:h-16 text-lg md:text-xl"
+                    className="bg-black/50 border-[rgba(245,194,107,0.3)] text-white placeholder:text-gray-500 focus:border-[#F7C55A] focus:ring-[#F7C55A]/30 h-14 md:h-16 text-2xl md:text-3xl"
                   />
                   <p style={{ color: 'rgba(237, 237, 237, 0.5)' }} className="text-xs">
                     Có thể nhập 4 số, 6 số, hoặc số điện thoại đầy đủ (có thể có dấu chấm/khoảng trắng)
@@ -764,7 +764,7 @@ const SimPhongThuy = () => {
                   }}
                 >
                   <p className="text-xs md:text-sm mb-2 text-center" style={{ color: 'rgba(237, 237, 237, 0.65)' }}>Luận giải</p>
-                  <p className="text-xl md:text-2xl text-center" style={{ color: '#f5f5f5' }}>
+                  <p className="text-3xl md:text-4xl text-center" style={{ color: '#f5f5f5' }}>
                     "{result.hexagram.title}"
                   </p>
                 </div>
@@ -772,7 +772,7 @@ const SimPhongThuy = () => {
                 {/* Level Badge - Đánh giá */}
                 <div className="text-center">
                   <p className="text-xs md:text-sm mb-2" style={{ color: 'rgba(237, 237, 237, 0.65)' }}>Đánh giá</p>
-                  <Badge className={`text-sm md:text-base px-5 py-2 border font-semibold ${getLevelBadgeClass(result.hexagram.level)}`}>
+                  <Badge className={`text-2xl md:text-3xl px-8 py-4 border font-semibold ${getLevelBadgeClass(result.hexagram.level)}`}>
                     {result.hexagram.level}
                   </Badge>
                 </div>
