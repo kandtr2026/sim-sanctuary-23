@@ -800,9 +800,9 @@ const SimPhongThuy = () => {
                             border: '1px solid rgba(46, 204, 113, 0.35)'
                           }}
                         >
-                          {/* Phone number */}
+                          {/* Phone number - hiển thị đúng từ cột "SỐ THUÊ BAO" */}
                           <p className="font-mono text-base font-semibold" style={{ color: '#F7C55A' }}>
-                            {formatPhoneDisplay(entry.item.phone)}
+                            {entry.item.phone}
                           </p>
                           
                           {/* Price */}
@@ -851,9 +851,9 @@ const SimPhongThuy = () => {
                             border: '1px solid rgba(39, 174, 96, 0.35)'
                           }}
                         >
-                          {/* Phone number */}
+                          {/* Phone number - hiển thị đúng từ cột "SỐ THUÊ BAO" */}
                           <p className="font-mono text-base font-semibold" style={{ color: '#F7C55A' }}>
-                            {formatPhoneDisplay(entry.item.phone)}
+                            {entry.item.phone}
                           </p>
                           
                           {/* Price */}
