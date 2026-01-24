@@ -437,6 +437,31 @@ const cardStyle = {
   boxShadow: '0 0 25px rgba(245, 194, 107, 0.25), inset 0 1px 0 rgba(245, 194, 107, 0.1)',
 };
 
+// Fisher-Yates shuffle helper
+function shuffle<T>(arr: T[]): T[] {
+  const result = [...arr];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+// Pick items prioritizing those not in prevShown, then fill with old ones if needed
+function pickWithoutRepeating(
+  candidates: { item: InventoryItem; level: HexagramLevel; hexagram: Hexagram }[],
+  n: number,
+  prevShownDigits: Set<string>
+): { item: InventoryItem; level: HexagramLevel; hexagram: Hexagram }[] {
+  const newOnes = candidates.filter(c => !prevShownDigits.has(c.item.digits));
+  const oldOnes = candidates.filter(c => prevShownDigits.has(c.item.digits));
+  
+  const shuffledNew = shuffle(newOnes);
+  const shuffledOld = shuffle(oldOnes);
+  
+  return [...shuffledNew, ...shuffledOld].slice(0, n);
+}
+
 const SimPhongThuy = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -448,6 +473,10 @@ const SimPhongThuy = () => {
   // State for real inventory from Google Sheet
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [inventoryLoaded, setInventoryLoaded] = useState(false);
+
+  // State for random suggestions
+  const [prevShownDigits, setPrevShownDigits] = useState<Set<string>>(new Set());
+  const [suggestionSeed, setSuggestionSeed] = useState<number>(0);
 
   // Load inventory from Google Sheet on mount (one time)
   useEffect(() => {
@@ -471,8 +500,9 @@ const SimPhongThuy = () => {
     if (sim && (len === '4' || len === '6')) {
       setInputValue(sim);
       setSuffixLength(len);
-      // Auto-lookup
+      // Auto-lookup and trigger new random seed
       performLookup(sim, len);
+      setSuggestionSeed(Date.now());
     }
   }, []);
 
@@ -504,6 +534,9 @@ const SimPhongThuy = () => {
     
     setResult({ suffix, que, hexagram });
     
+    // Trigger new random suggestions
+    setSuggestionSeed(Date.now());
+    
     // Update URL
     setSearchParams({ sim: suffix, len });
   };
@@ -529,7 +562,7 @@ const SimPhongThuy = () => {
 
   // ===================== ENGINE GỢI Ý "SIM ĐẠI CÁT / CÁT" THEO suffixLength =====================
   // Logic: Tính quẻ từ 4 hoặc 6 số đuôi (theo suffixLength hiện tại), chỉ giữ "Đại cát" hoặc "Cát"
-  // TUYỆT ĐỐI không random, không generate số mới
+  // Hiển thị NGẪU NHIÊN 6 "Đại cát" + 6 "Cát", ưu tiên không lặp lại lần trước
   // Trả về 2 nhóm: luckyGreat (6 "Đại cát") + luckyGood (6 "Cát")
   const luckySuggestions = useMemo(() => {
     if (!inventoryLoaded || inventory.length === 0) {
@@ -538,8 +571,8 @@ const SimPhongThuy = () => {
 
     const suffixLen = parseInt(suffixLength, 10); // 4 hoặc 6
 
-    const greatItems: { item: InventoryItem; level: HexagramLevel; hexagram: Hexagram }[] = [];
-    const goodItems: { item: InventoryItem; level: HexagramLevel; hexagram: Hexagram }[] = [];
+    const daiCatCandidates: { item: InventoryItem; level: HexagramLevel; hexagram: Hexagram }[] = [];
+    const catCandidates: { item: InventoryItem; level: HexagramLevel; hexagram: Hexagram }[] = [];
 
     for (const item of inventory) {
       if (item.price <= 0 || item.digits.length < suffixLen) continue;
@@ -558,26 +591,34 @@ const SimPhongThuy = () => {
 
       // Phân loại theo level
       if (hex.level === 'Đại cát') {
-        greatItems.push({ item, level: hex.level, hexagram: hex });
+        daiCatCandidates.push({ item, level: hex.level, hexagram: hex });
       } else if (hex.level === 'Cát') {
-        goodItems.push({ item, level: hex.level, hexagram: hex });
+        catCandidates.push({ item, level: hex.level, hexagram: hex });
       }
     }
 
-    // Sắp xếp theo giá tăng dần trong mỗi nhóm
-    greatItems.sort((a, b) => a.item.price - b.item.price);
-    goodItems.sort((a, b) => a.item.price - b.item.price);
-
-    // Lấy tối đa 6 item mỗi nhóm
-    const luckyGreat = greatItems.slice(0, 6);
-    const luckyGood = goodItems.slice(0, 6);
+    // Sử dụng pickWithoutRepeating để chọn ngẫu nhiên ưu tiên không lặp
+    const luckyGreat = pickWithoutRepeating(daiCatCandidates, 6, prevShownDigits);
+    const luckyGood = pickWithoutRepeating(catCandidates, 6, prevShownDigits);
 
     if (import.meta.env.DEV) {
-      console.log('[SimPhongThuy] Lucky suggestions - Đại cát:', luckyGreat.length, ', Cát:', luckyGood.length);
+      console.log('[SimPhongThuy] Lucky suggestions - Đại cát:', luckyGreat.length, ', Cát:', luckyGood.length, ', seed:', suggestionSeed);
     }
 
     return { luckyGreat, luckyGood };
-  }, [inventory, inventoryLoaded, suffixLength]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inventory, inventoryLoaded, suffixLength, suggestionSeed]);
+
+  // Cập nhật prevShownDigits sau khi có danh sách gợi ý mới
+  useEffect(() => {
+    if (luckySuggestions.luckyGreat.length === 0 && luckySuggestions.luckyGood.length === 0) return;
+    
+    const newShownDigits = new Set<string>();
+    luckySuggestions.luckyGreat.forEach(entry => newShownDigits.add(entry.item.digits));
+    luckySuggestions.luckyGood.forEach(entry => newShownDigits.add(entry.item.digits));
+    
+    setPrevShownDigits(newShownDigits);
+  }, [suggestionSeed, luckySuggestions.luckyGreat, luckySuggestions.luckyGood]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950">
