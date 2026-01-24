@@ -238,32 +238,53 @@ const parsePriceToNumber = (value: string): number => {
 };
 
 /**
- * Parse CSV thành array rows
+ * Parse CSV thành array rows - hỗ trợ dấu ngoặc kép cho giá có dấu phẩy
  */
 const parseCSVRows = (csvText: string): Record<string, string>[] => {
-  const lines = csvText.trim().split('\n');
+  const lines = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim() !== '');
   if (lines.length < 2) return [];
-  
-  // Header row - giữ nguyên để match tiếng Việt
-  const headerLine = lines[0];
-  const headers = headerLine.split(',').map((h) => h.trim().replace(/["']/g, ''));
-  
+
+  const splitCsvLine = (line: string): string[] => {
+    const out: string[] = [];
+    let cur = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        // handle escaped quotes ""
+        const next = line[i + 1];
+        if (inQuotes && next === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+        continue;
+      }
+      if (ch === ',' && !inQuotes) {
+        out.push(cur.trim());
+        cur = '';
+        continue;
+      }
+      cur += ch;
+    }
+    out.push(cur.trim());
+    return out.map(v => v.replace(/^"|"$/g, '').trim());
+  };
+
+  // remove BOM if any
+  const headerLine = lines[0].replace(/^\uFEFF/, '');
+  const headers = splitCsvLine(headerLine).map(h => h.replace(/["']/g, '').trim());
+
   const result: Record<string, string>[] = [];
-  
   for (let i = 1; i < lines.length; i++) {
-    const line = lines[i];
-    if (!line.trim()) continue;
-    
-    const values = line.split(',').map((v) => v.trim().replace(/["']/g, ''));
-    
+    const values = splitCsvLine(lines[i]);
     const row: Record<string, string> = {};
-    headers.forEach((header, idx) => {
-      row[header] = values[idx] || '';
+    headers.forEach((h, idx) => {
+      row[h] = values[idx] ?? '';
     });
-    
     result.push(row);
   }
-  
   return result;
 };
 
