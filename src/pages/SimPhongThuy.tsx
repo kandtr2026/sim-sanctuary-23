@@ -658,7 +658,7 @@ const SimPhongThuy = () => {
                     placeholder="VD: 0909.123.456 hoặc 3456"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    className="bg-black/50 border-[rgba(245,194,107,0.3)] text-white placeholder:text-gray-500 focus:border-[#F7C55A] focus:ring-[#F7C55A]/30"
+                    className="bg-black/50 border-[rgba(245,194,107,0.3)] text-white placeholder:text-gray-500 focus:border-[#F7C55A] focus:ring-[#F7C55A]/30 h-14 md:h-16 text-lg md:text-xl"
                   />
                   <p style={{ color: 'rgba(237, 237, 237, 0.5)' }} className="text-xs">
                     Có thể nhập 4 số, 6 số, hoặc số điện thoại đầy đủ (có thể có dấu chấm/khoảng trắng)
@@ -669,12 +669,12 @@ const SimPhongThuy = () => {
                 <div className="space-y-2">
                   <Label style={{ color: '#EDEDED' }} className="text-sm">Độ dài tra cứu</Label>
                   <Select value={suffixLength} onValueChange={(v) => setSuffixLength(v as '4' | '6')}>
-                    <SelectTrigger className="bg-black/50 border-[rgba(245,194,107,0.3)] text-white focus:border-[#F7C55A] focus:ring-[#F7C55A]/30">
+                    <SelectTrigger className="bg-black/50 border-[rgba(245,194,107,0.3)] text-white focus:border-[#F7C55A] focus:ring-[#F7C55A]/30 h-14 md:h-16 text-lg md:text-xl">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-neutral-900 border-[rgba(245,194,107,0.3)]">
-                      <SelectItem value="4" className="text-white hover:bg-neutral-800">4 số cuối</SelectItem>
-                      <SelectItem value="6" className="text-white hover:bg-neutral-800">6 số cuối</SelectItem>
+                      <SelectItem value="4" className="text-white hover:bg-neutral-800 text-lg md:text-xl">4 số cuối</SelectItem>
+                      <SelectItem value="6" className="text-white hover:bg-neutral-800 text-lg md:text-xl">6 số cuối</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -727,81 +727,54 @@ const SimPhongThuy = () => {
                 </Button>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {/* Result Grid */}
-                <div className="grid grid-cols-2 gap-4 md:gap-6">
+                <div className="grid grid-cols-2 gap-3 md:gap-4">
                   {/* Suffix Display */}
                   <div 
-                    className="text-center p-4 rounded-xl"
+                    className="text-center p-3 md:p-4 rounded-xl"
                     style={{ 
                       background: 'rgba(255, 255, 255, 0.06)', 
-                      backdropFilter: 'blur(6px)',
                       border: '1px solid rgba(245, 194, 107, 0.25)'
                     }}
                   >
                     <p className="text-xs md:text-sm mb-2" style={{ color: 'rgba(237, 237, 237, 0.65)' }}>Số cuối tra cứu</p>
-                    <p className="text-2xl md:text-4xl font-bold tracking-wider" style={{ color: '#F7C55A', textShadow: '0 0 10px rgba(247, 197, 90, 0.6)' }}>{result.suffix}</p>
+                    <p className="text-4xl md:text-6xl font-bold tracking-wider" style={{ color: '#F7C55A' }}>{result.suffix}</p>
                   </div>
 
                   {/* Que Number */}
                   <div 
-                    className="text-center p-4 rounded-xl"
+                    className="text-center p-3 md:p-4 rounded-xl"
                     style={{ 
                       background: 'rgba(255, 255, 255, 0.06)', 
-                      backdropFilter: 'blur(6px)',
                       border: '1px solid rgba(245, 194, 107, 0.25)'
                     }}
                   >
                     <p className="text-xs md:text-sm mb-2" style={{ color: 'rgba(237, 237, 237, 0.65)' }}>Quẻ số</p>
-                    <p className="text-2xl md:text-4xl font-bold" style={{ color: '#ff6b6b', textShadow: '0 0 10px rgba(255, 107, 107, 0.5)' }}>{result.que}</p>
+                    <p className="text-4xl md:text-6xl font-bold" style={{ color: '#FFFFFF' }}>{result.que}</p>
                   </div>
                 </div>
 
                 {/* Hexagram Title - Luận giải */}
                 <div 
-                  className="rounded-xl p-5"
+                  className="rounded-xl p-4"
                   style={{ 
                     background: 'rgba(255, 255, 255, 0.06)', 
-                    backdropFilter: 'blur(6px)',
                     border: '1px solid rgba(245, 194, 107, 0.25)'
                   }}
                 >
-                  <p className="text-xs md:text-sm mb-3 text-center" style={{ color: 'rgba(237, 237, 237, 0.65)' }}>Luận giải</p>
-                  <p className="text-base md:text-lg text-center italic" style={{ color: '#f5f5f5' }}>
+                  <p className="text-xs md:text-sm mb-2 text-center" style={{ color: 'rgba(237, 237, 237, 0.65)' }}>Luận giải</p>
+                  <p className="text-xl md:text-2xl text-center" style={{ color: '#f5f5f5' }}>
                     "{result.hexagram.title}"
                   </p>
                 </div>
 
                 {/* Level Badge - Đánh giá */}
                 <div className="text-center">
-                  <p className="text-xs md:text-sm mb-3" style={{ color: 'rgba(237, 237, 237, 0.65)' }}>Đánh giá</p>
+                  <p className="text-xs md:text-sm mb-2" style={{ color: 'rgba(237, 237, 237, 0.65)' }}>Đánh giá</p>
                   <Badge className={`text-sm md:text-base px-5 py-2 border font-semibold ${getLevelBadgeClass(result.hexagram.level)}`}>
                     {result.hexagram.level}
                   </Badge>
-                </div>
-
-                {/* Disclaimer */}
-                <div className="text-center py-4" style={{ borderTop: '1px solid rgba(245, 194, 107, 0.2)' }}>
-                  <p className="text-xs flex items-center justify-center gap-2" style={{ color: 'rgba(237, 237, 237, 0.6)' }}>
-                    <AlertCircle className="w-4 h-4" style={{ color: '#F7C55A' }} />
-                    Nội dung chỉ mang tính tham khảo, giải trí
-                  </p>
-                </div>
-
-                {/* Share Button */}
-                <div className="flex justify-center">
-                  <Button 
-                    variant="outline" 
-                    onClick={handleCopyLink}
-                    className="text-white border-0"
-                    style={{ 
-                      background: 'linear-gradient(135deg, #ff3b3b, #ff7a18)', 
-                      boxShadow: '0 6px 20px rgba(255, 90, 50, 0.45)' 
-                    }}
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Chia sẻ kết quả
-                  </Button>
                 </div>
               </div>
             </div>
