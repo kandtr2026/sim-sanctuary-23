@@ -809,9 +809,24 @@ const SimPhongThuy = () => {
 
           {/* Gợi ý SIM Đại cát / Cát - Real SIMs from inventory */}
           <div className={`${cardBaseClass} mt-6 md:mt-8`} style={cardStyle}>
-            <h2 className="text-lg font-semibold mb-5" style={{ color: '#F7C55A', textShadow: '0 0 8px rgba(247, 197, 90, 0.4)' }}>
-              Gợi ý SIM Đại cát / Cát (theo {suffixLength} số đuôi)
-            </h2>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+              <h2 className="text-lg font-semibold" style={{ color: '#F7C55A', textShadow: '0 0 8px rgba(247, 197, 90, 0.4)' }}>
+                Gợi ý SIM Đại cát / Cát (theo {suffixLength} số đuôi)
+              </h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSuggestionSeed(Date.now())}
+                className="text-white border-0 w-fit"
+                style={{ 
+                  background: 'linear-gradient(135deg, #9b59b6, #8e44ad)', 
+                  boxShadow: '0 4px 12px rgba(155, 89, 182, 0.35)' 
+                }}
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Làm mới gợi ý
+              </Button>
+            </div>
             
             {!inventoryLoaded ? (
               <div className="text-center py-8">
