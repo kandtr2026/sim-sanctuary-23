@@ -353,11 +353,6 @@ const fetchInventory = async (): Promise<InventoryItem[]> => {
   }
   
   // ===== MAPPING CỨNG THEO HEADER SHEET =====
-  const SIMID_KEY = 'SimID';
-  const PHONE_DISPLAY_KEY = 'SỐ THUÊ BAO';
-  const PHONE_STANDARD_KEY = 'SỐ THUÊ BAO CHUẨN';
-  const PRICE_KEY = 'Final_Price';
-  
   if (import.meta.env.DEV) {
     const sampleRow = rows[0];
     console.log('[SimPhongThuy] Sample row keys:', Object.keys(sampleRow));
@@ -367,21 +362,25 @@ const fetchInventory = async (): Promise<InventoryItem[]> => {
   const seenDigits = new Set<string>();
   
   for (const row of rows) {
-    const simId = row[SIMID_KEY] || '';
-    const phoneDisplay = row[PHONE_DISPLAY_KEY] || '';
-    const phoneStandard = row[PHONE_STANDARD_KEY] || '';
-    const priceRaw = row[PRICE_KEY] || '';
+    // Map đúng header Google Sheet
+    const simId = row['SimID'] || '';
+    const phone = row['SỐ THUÊ BAO'] || row['SỐ THUÊ BAO CHUẨN'] || '';
+    const price = parsePriceToNumber(row['Final_Price'] || row['GIÁ BÁN']);
     
-    // Phone: ưu tiên SỐ THUÊ BAO (có dấu chấm), fallback SỐ THUÊ BAO CHUẨN
-    const phone = phoneDisplay || phoneStandard;
+    // Validate: bỏ qua nếu simId rỗng
+    if (!simId.trim()) continue;
     
-    if (!simId || !phone || !priceRaw) continue;
+    // Validate: bỏ qua nếu phone rỗng
+    if (!phone) continue;
     
+    // Validate: bỏ qua nếu price <= 0
+    if (price <= 0) continue;
+    
+    // Normalize digits
     const digits = normalizePhoneToDigits(phone);
-    const price = parsePriceToNumber(priceRaw);
     
-    // Validate: simId không rỗng, digits >= 9 số, price > 0
-    if (!simId.trim() || digits.length < 9 || price <= 0) continue;
+    // Validate: bỏ qua nếu digits < 9 số
+    if (digits.length < 9) continue;
     
     // Dedup by digits
     if (seenDigits.has(digits)) continue;
@@ -395,11 +394,10 @@ const fetchInventory = async (): Promise<InventoryItem[]> => {
     });
   }
   
+  // Debug log (chỉ DEV)
   if (import.meta.env.DEV) {
-    console.log('[SimPhongThuy] Inventory loaded:', inventory.length, 'items');
-    if (inventory.length > 0) {
-      console.log('[SimPhongThuy] Sample 3 items:', inventory.slice(0, 3));
-    }
+    console.log('[SimPhongThuy] inventory size:', inventory.length);
+    console.log('[SimPhongThuy] sample inventory:', inventory.slice(0, 5));
   }
   
   return inventory;
