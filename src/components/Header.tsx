@@ -26,11 +26,11 @@ const Header = () => {
             href="tel:+84938868868"
             onClick={() => {
               (window as any).gtag?.("event", "click_call", {
-  event_category: "contact",
-  event_label: "header_call",
-  phone_number: "+84938868868",
-});
-
+                event_category: "contact",
+                event_label: "header_call",
+                phone_number: "+84938868868",
+              });
+            }}
             className="flex items-center gap-2 font-bold text-lg hover:opacity-80 transition-colors"
           >
             <Phone className="w-5 h-5 text-gold" />
