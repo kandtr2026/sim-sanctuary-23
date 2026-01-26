@@ -115,6 +115,12 @@ const FloatingContactButtons = () => {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Chat Zalo"
+          onClick={() => {
+            (window as any).gtag?.("event", "click_zalo", {
+              event_category: "contact",
+              event_label: "floating_zalo",
+            });
+          }}
           className="floating-contact-btn relative flex items-center justify-center bg-white hover:bg-gray-50 rounded-full shadow-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#0068ff] focus:ring-offset-2"
           style={{
             width: "clamp(48px, 4.5vw, 60px)",
