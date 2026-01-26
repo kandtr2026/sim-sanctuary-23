@@ -87,7 +87,7 @@ const FloatingContactButtons = () => {
           href={CALL_URL}
           aria-label="Gọi điện tư vấn"
           onClick={() => {
-            window.gtag?.("event", "click_call", {
+            (window as any).gtag?.("event", "click_call", {
               event_category: "contact",
               event_label: "floating_call",
               phone_number: CALL_URL.replace("tel:", ""),
