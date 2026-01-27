@@ -8,6 +8,7 @@ import Checkout from "./pages/Checkout";
 import DinhGiaSim from "./pages/DinhGiaSim";
 import SimPhongThuy from "./pages/SimPhongThuy";
 import SimTraGop from "./pages/SimTraGop";
+import MuaSimSoDepMobifone from "./pages/MuaSimSoDepMobifone";
 import ThanhToan from "./pages/thanh-toan";
 import TinTuc from "./pages/TinTuc";
 import TinTucBai1 from "./pages/TinTucBai1";
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/dinh-gia-sim" element={<DinhGiaSim />} />
           <Route path="/sim-phong-thuy" element={<SimPhongThuy />} />
           <Route path="/sim-tra-gop" element={<SimTraGop />} />
+          <Route path="/mua-sim-so-dep-mobifone" element={<MuaSimSoDepMobifone />} />
           <Route path="/thanh-toan" element={<ThanhToan />} />
           <Route path="/tin-tuc" element={<TinTuc />} />
           <Route path="/tin-tuc/y-nghia-sim-so-dep" element={<TinTucBai1 />} />
