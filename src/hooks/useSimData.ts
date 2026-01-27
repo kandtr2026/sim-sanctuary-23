@@ -389,6 +389,13 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
     let discountCount = 0;
     
     rows.forEach((row, index) => {
+      // Filter by TRẠNG THÁI: only show "available" SIMs, hide "sold" ones
+      const trangThai = (row['TRANG_THAI'] || row['TRẠNG THÁI'] || row['TRANG THAI'] || '').trim().toLowerCase();
+      if (trangThai === 'sold' || trangThai === 'reserved') return;
+      // Only show SIMs that are explicitly "available" or have no status (backwards compatible)
+      // If you want strict filtering (only "available"), uncomment:
+      // if (trangThai && trangThai !== 'available') return;
+      
       // Use SimID from Google Sheet if available, otherwise generate one
       const sheetSimId = row['SIMID'] || '';
       const rawNumber = row['RAW'] || row['DISPLAY'] || '';
