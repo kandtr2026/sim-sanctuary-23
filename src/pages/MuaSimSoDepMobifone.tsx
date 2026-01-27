@@ -84,7 +84,6 @@ const MuaSimSoDepMobifone = () => {
                 onClick={handleZaloClick}
                 className="bg-[#0068FF] hover:bg-[#0052CC] text-white font-bold px-8 py-6 text-lg rounded-xl shadow-lg"
               >
-                <MessageCircle className="w-5 h-5 mr-2" />
                 💬 Zalo – Hỏi nhanh về số này
               </Button>
             </div>
@@ -263,7 +262,6 @@ const MuaSimSoDepMobifone = () => {
               onClick={handleZaloClick}
               className="bg-[#0068FF] hover:bg-[#0052CC] text-white font-bold px-8 py-6 text-lg rounded-xl"
             >
-              <MessageCircle className="w-5 h-5 mr-2" />
               💬 Chat Zalo – Tư vấn nhanh
             </Button>
           </div>
