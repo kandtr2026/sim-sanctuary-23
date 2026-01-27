@@ -383,6 +383,10 @@ const fetchInventory = async (): Promise<InventoryItem[]> => {
   const seenDigits = new Set<string>();
   
   for (const row of rows) {
+    // Filter by TRẠNG THÁI: only show "available" SIMs, hide "sold" ones
+    const trangThai = (row['TRẠNG THÁI'] || row['TRANG THAI'] || row['TRANG_THAI'] || '').trim().toLowerCase();
+    if (trangThai === 'sold' || trangThai === 'reserved') continue;
+    
     // Map đúng header Google Sheet
     const simId = row['SimID'] || '';
     const phone = row['SỐ THUÊ BAO'] || row['SỐ THUÊ BAO CHUẨN'] || '';
