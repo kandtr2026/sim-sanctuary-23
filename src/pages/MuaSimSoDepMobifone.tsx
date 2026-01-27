@@ -43,7 +43,7 @@ const MuaSimSoDepMobifone = () => {
         </div>
 
         <div className="container mx-auto px-4 py-10 md:py-16 relative z-10">
-          <div className="text-center max-w-3xl mx-auto">
+        <div className="text-center max-w-3xl mx-auto">
             {/* Trust Badge */}
             <div className="inline-flex items-center gap-2 bg-gold/20 text-gold px-4 py-2 rounded-full mb-6">
               <Star className="w-4 h-4 fill-gold" />
@@ -51,38 +51,42 @@ const MuaSimSoDepMobifone = () => {
             </div>
 
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary-foreground mb-4">
-              Mua SIM Số Đẹp Mobifone
-              <span className="block text-gold mt-2">Giá Tốt Nhất Thị Trường</span>
+              Kho SIM Số Đẹp Mobifone
+              <span className="block text-gold mt-2">Chọn Số Dễ, Chốt Nhanh</span>
             </h1>
 
             <p className="text-primary-foreground/90 text-lg md:text-xl mb-8 max-w-2xl mx-auto">
-              Kho SIM khổng lồ 50.000+ số đẹp. Cam kết chính hãng 100%. 
-              Giao SIM tận nơi toàn quốc trong 24h.
+              Hơn 50.000 SIM Mobifone • Giá niêm yết rõ ràng • Mỗi số chỉ bán cho 1 khách
             </p>
 
             {/* Search Bar */}
             <div className="max-w-xl mx-auto mb-8">
-              <SearchBar onSearch={handleSearch} />
+              <SearchBar 
+                onSearch={handleSearch}
+                placeholder="Nhập số bạn thích (6868, 888, 666…)"
+                buttonText="Tìm & Giữ Số"
+                showHints={false}
+                microCopy="🔥 SIM đẹp được cập nhật liên tục – Nhiều số có thể hết trong ngày"
+              />
             </div>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg" 
-                onClick={handleZaloClick}
-                className="bg-[#0068FF] hover:bg-[#0052CC] text-white font-bold px-8 py-6 text-lg rounded-xl shadow-lg"
-              >
-                <MessageCircle className="w-5 h-5 mr-2" />
-                Chat Zalo Ngay
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline"
                 onClick={handleCallClick}
                 className="bg-gold hover:bg-gold/90 text-header-bg border-gold font-bold px-8 py-6 text-lg rounded-xl shadow-lg"
               >
                 <Phone className="w-5 h-5 mr-2" />
-                Gọi: 0938.868.868
+                📞 Gọi ngay – Giữ SIM số đẹp
+              </Button>
+              <Button 
+                size="lg" 
+                onClick={handleZaloClick}
+                className="bg-[#0068FF] hover:bg-[#0052CC] text-white font-bold px-8 py-6 text-lg rounded-xl shadow-lg"
+              >
+                <MessageCircle className="w-5 h-5 mr-2" />
+                💬 Zalo – Hỏi nhanh về số này
               </Button>
             </div>
           </div>
@@ -138,10 +142,10 @@ const MuaSimSoDepMobifone = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
-              SIM Số Đẹp <span className="text-gold">Nổi Bật</span>
+              ⭐ SIM Số Đẹp <span className="text-gold">Nổi Bật</span>
             </h2>
             <p className="text-muted-foreground">
-              Những số đẹp được săn đón nhất - Cập nhật hàng ngày
+              🔥 Được nhiều khách quan tâm – Cập nhật liên tục mỗi ngày
             </p>
           </div>
 
@@ -182,19 +186,19 @@ const MuaSimSoDepMobifone = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
-              Tại Sao Chọn <span className="text-primary">CHONSOMOBIFONE.COM</span>?
+              Tại Sao Chọn <span className="text-primary">Chúng Tôi</span>?
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-4 gap-6">
             <Card className="bg-card border-border shadow-soft">
               <CardContent className="p-6 text-center">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gold/10 flex items-center justify-center">
                   <Star className="w-8 h-8 text-gold" />
                 </div>
-                <h3 className="font-bold text-lg text-foreground mb-2">Kho SIM Khổng Lồ</h3>
+                <h3 className="font-bold text-lg text-foreground mb-2">Kho SIM Lớn</h3>
                 <p className="text-muted-foreground text-sm">
-                  Hơn 50.000 SIM số đẹp đa dạng: Tứ quý, Ngũ quý, Lộc phát, Thần tài, Phong thủy...
+                  Kho SIM Mobifone lớn, cập nhật mỗi ngày
                 </p>
               </CardContent>
             </Card>
@@ -204,9 +208,9 @@ const MuaSimSoDepMobifone = () => {
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                   <Shield className="w-8 h-8 text-primary" />
                 </div>
-                <h3 className="font-bold text-lg text-foreground mb-2">Uy Tín 10 Năm</h3>
+                <h3 className="font-bold text-lg text-foreground mb-2">Giá Minh Bạch</h3>
                 <p className="text-muted-foreground text-sm">
-                  Đại lý chính hãng Mobifone. Cam kết SIM chính chủ, đăng ký miễn phí, bảo hành trọn đời.
+                  Giá niêm yết minh bạch, không phát sinh
                 </p>
               </CardContent>
             </Card>
@@ -214,11 +218,23 @@ const MuaSimSoDepMobifone = () => {
             <Card className="bg-card border-border shadow-soft">
               <CardContent className="p-6 text-center">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/10 flex items-center justify-center">
-                  <Truck className="w-8 h-8 text-green-500" />
+                  <CheckCircle className="w-8 h-8 text-green-500" />
                 </div>
-                <h3 className="font-bold text-lg text-foreground mb-2">Giao Hàng Nhanh</h3>
+                <h3 className="font-bold text-lg text-foreground mb-2">Số Độc Quyền</h3>
                 <p className="text-muted-foreground text-sm">
-                  Ship COD toàn quốc trong 24h. Kiểm tra SIM trước khi thanh toán. Miễn phí ship nội thành.
+                  Mỗi SIM chỉ bán cho 1 khách duy nhất
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card border-border shadow-soft">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-500/10 flex items-center justify-center">
+                  <Phone className="w-8 h-8 text-blue-500" />
+                </div>
+                <h3 className="font-bold text-lg text-foreground mb-2">Hỗ Trợ Nhanh</h3>
+                <p className="text-muted-foreground text-sm">
+                  Hỗ trợ giữ số và xác nhận nhanh qua điện thoại / Zalo
                 </p>
               </CardContent>
             </Card>
@@ -230,27 +246,27 @@ const MuaSimSoDepMobifone = () => {
       <section className="bg-gradient-to-r from-primary to-primary-dark py-12">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
-            Sở Hữu SIM Số Đẹp Ngay Hôm Nay!
+            Sở Hữu SIM Số Đẹp Ngay Hôm Nay
           </h2>
           <p className="text-primary-foreground/90 mb-6 max-w-xl mx-auto">
-            Liên hệ ngay để được tư vấn miễn phí và chọn số đẹp phù hợp nhất với bạn.
+            Chọn số bạn thích – Giữ số nhanh – Nhân viên liên hệ xác nhận ngay
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              onClick={handleZaloClick}
-              className="bg-[#0068FF] hover:bg-[#0052CC] text-white font-bold px-8 py-6 text-lg rounded-xl"
-            >
-              <MessageCircle className="w-5 h-5 mr-2" />
-              Chat Zalo: 090.119.1111
-            </Button>
             <Button 
               size="lg" 
               onClick={handleCallClick}
               className="bg-gold hover:bg-gold/90 text-header-bg font-bold px-8 py-6 text-lg rounded-xl"
             >
               <Phone className="w-5 h-5 mr-2" />
-              Hotline: 0938.868.868
+              📞 Gọi ngay – Giữ SIM số đẹp
+            </Button>
+            <Button 
+              size="lg" 
+              onClick={handleZaloClick}
+              className="bg-[#0068FF] hover:bg-[#0052CC] text-white font-bold px-8 py-6 text-lg rounded-xl"
+            >
+              <MessageCircle className="w-5 h-5 mr-2" />
+              💬 Chat Zalo – Tư vấn nhanh
             </Button>
           </div>
         </div>
