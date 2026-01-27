@@ -77,7 +77,6 @@ const MuaSimSoDepMobifone = () => {
                 onClick={handleCallClick}
                 className="bg-gold hover:bg-gold/90 text-header-bg border-gold font-bold px-8 py-6 text-lg rounded-xl shadow-lg"
               >
-                <Phone className="w-5 h-5 mr-2" />
                 📞 Gọi ngay – Giữ SIM số đẹp
               </Button>
               <Button 
@@ -257,7 +256,6 @@ const MuaSimSoDepMobifone = () => {
               onClick={handleCallClick}
               className="bg-gold hover:bg-gold/90 text-header-bg font-bold px-8 py-6 text-lg rounded-xl"
             >
-              <Phone className="w-5 h-5 mr-2" />
               📞 Gọi ngay – Giữ SIM số đẹp
             </Button>
             <Button 
