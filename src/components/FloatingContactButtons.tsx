@@ -87,13 +87,15 @@ const FloatingContactButtons = () => {
           href={CALL_URL}
           aria-label="Gọi điện tư vấn"
           onClick={() => {
-            (window as any).gtag?.("event", "call_click", {
-  event_category: "contact",
-  event_label: "floating_call",
-  phone_number: CALL_URL.replace("tel:", ""),
-});
-
-          className="floating-contact-btn flex items-center justify-center bg-green-500 hover:bg-green-600 rounded-full shadow-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            if (typeof window !== "undefined" && (window as any).gtag) {
+              (window as any).gtag("event", "call_click", {
+                event_category: "contact",
+                event_label: "floating_call",
+                phone_number: CALL_URL.replace("tel:", ""),
+              });
+            }
+          }}
+          className="floating-contact-btn flex items-center justify-center bg-green-500 hover:bg-green-600"
           style={{
             width: "clamp(48px, 4.5vw, 60px)",
             height: "clamp(48px, 4.5vw, 60px)",
