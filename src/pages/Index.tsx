@@ -214,8 +214,8 @@ const Index = () => {
 
   const isNoResultsWithSuggestions = filteredSims.length === 0 && finalCombinedSuggestions.length > 0 && !isLoading && !error;
 
-  // Base list for display: use reordered landing list when in default state
-  const baseListForDisplay = isDefaultLanding ? finalCombinedSuggestions : filteredSims;
+  // Landing list: reorder filteredSims for default landing state (3-5M priority)
+  const landingList = isDefaultLanding ? reorderForLanding(filteredSims) : filteredSims;
 
   // Reset visible count when filters change
   useEffect(() => {
@@ -223,15 +223,15 @@ const Index = () => {
   }, [filters]);
 
   const displayedSIMs = useMemo(() => {
-    return baseListForDisplay.slice(0, visibleCount);
-  }, [baseListForDisplay, visibleCount]);
+    return landingList.slice(0, visibleCount);
+  }, [landingList, visibleCount]);
 
-  const hasMoreItems = visibleCount < baseListForDisplay.length;
-  const remainingCount = baseListForDisplay.length - visibleCount;
+  const hasMoreItems = visibleCount < landingList.length;
+  const remainingCount = landingList.length - visibleCount;
 
   const handleLoadMore = useCallback(() => {
-    setVisibleCount((prev) => Math.min(prev + ITEMS_PER_PAGE, baseListForDisplay.length));
-  }, [baseListForDisplay.length]);
+    setVisibleCount((prev) => Math.min(prev + ITEMS_PER_PAGE, landingList.length));
+  }, [landingList.length]);
 
   const scrollToTop = useCallback(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
