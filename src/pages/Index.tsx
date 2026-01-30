@@ -55,7 +55,23 @@ function getSimKey(sim: any): string {
 }
 
 function getFinalPrice(sim: any): number {
-  return parseVnd(sim?.Final_Price ?? sim?.finalPrice ?? sim?.final_price);
+  // Prioritize normalized price field (number)
+  if (typeof sim?.price === "number") return sim.price;
+
+  const candidates = [
+    sim?.Final_Price,
+    sim?.finalPrice,
+    sim?.final_price,
+    sim?.["Final_Price"],
+    sim?.["GIÁ BÁN"],
+    sim?.["GIÁ THU VỀ"],
+  ];
+
+  for (const c of candidates) {
+    const n = parseVnd(c);
+    if (Number.isFinite(n)) return n;
+  }
+  return NaN;
 }
 
 function reorderForLanding(list: any[]) {
@@ -198,8 +214,7 @@ const Index = () => {
   // Landing page random ordering: prioritize 3-5M SIMs when no filters active
   const isDefaultLanding =
     !isOrFallback &&
-    (!filters?.searchQuery || filters.searchQuery.replace(/[.\s]/g, "").trim() === "") &&
-    (!activeFilters || (Array.isArray(activeFilters) && activeFilters.length === 0));
+    (!filters?.searchQuery || filters.searchQuery.replace(/[.\s]/g, "").trim() === "");
 
   const finalCombinedSuggestions = isDefaultLanding
     ? reorderForLanding(combinedSuggestions)
