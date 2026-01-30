@@ -214,21 +214,24 @@ const Index = () => {
 
   const isNoResultsWithSuggestions = filteredSims.length === 0 && finalCombinedSuggestions.length > 0 && !isLoading && !error;
 
+  // Base list for display: use reordered landing list when in default state
+  const baseListForDisplay = isDefaultLanding ? finalCombinedSuggestions : filteredSims;
+
   // Reset visible count when filters change
   useEffect(() => {
     setVisibleCount(ITEMS_PER_PAGE);
   }, [filters]);
 
   const displayedSIMs = useMemo(() => {
-    return filteredSims.slice(0, visibleCount);
-  }, [filteredSims, visibleCount]);
+    return baseListForDisplay.slice(0, visibleCount);
+  }, [baseListForDisplay, visibleCount]);
 
-  const hasMoreItems = visibleCount < filteredSims.length;
-  const remainingCount = filteredSims.length - visibleCount;
+  const hasMoreItems = visibleCount < baseListForDisplay.length;
+  const remainingCount = baseListForDisplay.length - visibleCount;
 
   const handleLoadMore = useCallback(() => {
-    setVisibleCount((prev) => Math.min(prev + ITEMS_PER_PAGE, filteredSims.length));
-  }, [filteredSims.length]);
+    setVisibleCount((prev) => Math.min(prev + ITEMS_PER_PAGE, baseListForDisplay.length));
+  }, [baseListForDisplay.length]);
 
   const scrollToTop = useCallback(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
