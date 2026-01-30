@@ -54,22 +54,14 @@ function getSimKey(sim: any): string {
   return String(sim?.SimID || sim?.SimRef || sim?.id || "");
 }
 
-function getFinalPrice(sim: any): number {
-  // Prioritize normalized price field (number)
-  if (typeof sim?.price === "number") return sim.price;
-
-  const candidates = [
-    sim?.Final_Price,
-    sim?.finalPrice,
-    sim?.final_price,
-    sim?.["Final_Price"],
-    sim?.["GIÁ BÁN"],
-    sim?.["GIÁ THU VỀ"],
-  ];
-
-  for (const c of candidates) {
-    const n = parseVnd(c);
-    if (Number.isFinite(n)) return n;
+function getFinalPriceForLanding(sim: any): number {
+  // Ưu tiên finalPricePick từ cột Final_Price (cho random landing)
+  if (typeof sim?.finalPricePick === "number" && sim.finalPricePick > 0) {
+    return sim.finalPricePick;
+  }
+  // Fallback to price nếu không có finalPricePick
+  if (typeof sim?.price === "number" && sim.price > 0) {
+    return sim.price;
   }
   return NaN;
 }
@@ -83,7 +75,7 @@ function reorderForLanding(list: any[]) {
   const others: any[] = [];
 
   for (const sim of list) {
-    const p = getFinalPrice(sim);
+    const p = getFinalPriceForLanding(sim);
     if (!Number.isFinite(p)) {
       others.push(sim);
     } else if (p >= min && p <= max) {

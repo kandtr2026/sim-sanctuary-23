@@ -17,6 +17,7 @@ const getProxyUrl = () => {
 export interface SimItem {
   phone: string;
   price: number;
+  finalPricePick: number;
   carrier: Carrier;
   tags: string[];
   url?: string;
@@ -161,46 +162,46 @@ function parseCSV(csvText: string): Record<string, string>[] {
  */
 function getMockInventory(): SimItem[] {
   return [
-    { phone: '0901234567', price: 2500000, carrier: 'Mobi', tags: ['Sảnh 4'], url: '' },
-    { phone: '0912345678', price: 3500000, carrier: 'Vina', tags: ['Sảnh 5'], url: '' },
-    { phone: '0978888888', price: 150000000, carrier: 'Viettel', tags: ['Lục quý'], url: '' },
-    { phone: '0909999999', price: 120000000, carrier: 'Mobi', tags: ['Lục quý'], url: '' },
-    { phone: '0988886868', price: 35000000, carrier: 'Viettel', tags: ['Lộc phát', 'ABAB'], url: '' },
-    { phone: '0907891189', price: 8500000, carrier: 'Mobi', tags: ['Gánh'], url: '' },
-    { phone: '0912222222', price: 85000000, carrier: 'Vina', tags: ['Lục quý'], url: '' },
-    { phone: '0968686868', price: 45000000, carrier: 'Viettel', tags: ['ABAB', 'Lộc phát'], url: '' },
-    { phone: '0909393939', price: 28000000, carrier: 'Mobi', tags: ['ABAB', 'Thần tài'], url: '' },
-    { phone: '0978787878', price: 22000000, carrier: 'Viettel', tags: ['ABAB'], url: '' },
-    { phone: '0909111222', price: 15000000, carrier: 'Mobi', tags: ['Tam hoa kép'], url: '' },
-    { phone: '0912333444', price: 12000000, carrier: 'Vina', tags: ['Tam hoa kép'], url: '' },
-    { phone: '0967777777', price: 95000000, carrier: 'Viettel', tags: ['Lục quý'], url: '' },
-    { phone: '0986543210', price: 18000000, carrier: 'Viettel', tags: ['Sảnh 6'], url: '' },
-    { phone: '0909012345', price: 12000000, carrier: 'Mobi', tags: ['Sảnh 5'], url: '' },
-    { phone: '0912388888', price: 45000000, carrier: 'Vina', tags: ['Ngũ quý'], url: '' },
-    { phone: '0988899999', price: 52000000, carrier: 'Viettel', tags: ['Ngũ quý'], url: '' },
-    { phone: '0909666666', price: 78000000, carrier: 'Mobi', tags: ['Lục quý'], url: '' },
-    { phone: '0978123456', price: 8500000, carrier: 'Viettel', tags: ['Sảnh 6'], url: '' },
-    { phone: '0912686868', price: 25000000, carrier: 'Vina', tags: ['ABAB', 'Lộc phát'], url: '' },
-    { phone: '0909797979', price: 18000000, carrier: 'Mobi', tags: ['ABAB'], url: '' },
-    { phone: '0968881234', price: 6500000, carrier: 'Viettel', tags: ['Tam hoa'], url: '' },
-    { phone: '0912999888', price: 9500000, carrier: 'Vina', tags: ['Tam hoa'], url: '' },
-    { phone: '0909555555', price: 65000000, carrier: 'Mobi', tags: ['Lục quý'], url: '' },
-    { phone: '0978686886', price: 12000000, carrier: 'Viettel', tags: ['Gánh', 'Lộc phát'], url: '' },
-    { phone: '0909393979', price: 8500000, carrier: 'Mobi', tags: ['Thần tài'], url: '' },
-    { phone: '0912558899', price: 4500000, carrier: 'Vina', tags: ['AABB'], url: '' },
-    { phone: '0968112233', price: 3800000, carrier: 'Viettel', tags: ['AABB'], url: '' },
-    { phone: '0909778899', price: 4200000, carrier: 'Mobi', tags: ['AABB'], url: '' },
-    { phone: '0912345345', price: 5500000, carrier: 'Vina', tags: ['Taxi'], url: '' },
-    { phone: '0968123123', price: 6800000, carrier: 'Viettel', tags: ['Taxi'], url: '' },
-    { phone: '0909456456', price: 5200000, carrier: 'Mobi', tags: ['Taxi'], url: '' },
-    { phone: '0912389389', price: 7500000, carrier: 'Vina', tags: ['Taxi', 'Thần tài'], url: '' },
-    { phone: '0978911119', price: 8200000, carrier: 'Viettel', tags: ['Tứ quý'], url: '' },
-    { phone: '0909022220', price: 9500000, carrier: 'Mobi', tags: ['Tứ quý'], url: '' },
-    { phone: '0912233330', price: 8800000, carrier: 'Vina', tags: ['Tứ quý'], url: '' },
-    { phone: '0968044440', price: 7200000, carrier: 'Viettel', tags: ['Tứ quý'], url: '' },
-    { phone: '0909855558', price: 11000000, carrier: 'Mobi', tags: ['Tứ quý'], url: '' },
-    { phone: '0912366663', price: 10500000, carrier: 'Vina', tags: ['Tứ quý'], url: '' },
-    { phone: '0968077770', price: 9800000, carrier: 'Viettel', tags: ['Tứ quý'], url: '' },
+    { phone: '0901234567', price: 2500000, finalPricePick: 2500000, carrier: 'Mobi', tags: ['Sảnh 4'], url: '' },
+    { phone: '0912345678', price: 3500000, finalPricePick: 3500000, carrier: 'Vina', tags: ['Sảnh 5'], url: '' },
+    { phone: '0978888888', price: 150000000, finalPricePick: 150000000, carrier: 'Viettel', tags: ['Lục quý'], url: '' },
+    { phone: '0909999999', price: 120000000, finalPricePick: 120000000, carrier: 'Mobi', tags: ['Lục quý'], url: '' },
+    { phone: '0988886868', price: 35000000, finalPricePick: 35000000, carrier: 'Viettel', tags: ['Lộc phát', 'ABAB'], url: '' },
+    { phone: '0907891189', price: 8500000, finalPricePick: 8500000, carrier: 'Mobi', tags: ['Gánh'], url: '' },
+    { phone: '0912222222', price: 85000000, finalPricePick: 85000000, carrier: 'Vina', tags: ['Lục quý'], url: '' },
+    { phone: '0968686868', price: 45000000, finalPricePick: 45000000, carrier: 'Viettel', tags: ['ABAB', 'Lộc phát'], url: '' },
+    { phone: '0909393939', price: 28000000, finalPricePick: 28000000, carrier: 'Mobi', tags: ['ABAB', 'Thần tài'], url: '' },
+    { phone: '0978787878', price: 22000000, finalPricePick: 22000000, carrier: 'Viettel', tags: ['ABAB'], url: '' },
+    { phone: '0909111222', price: 15000000, finalPricePick: 15000000, carrier: 'Mobi', tags: ['Tam hoa kép'], url: '' },
+    { phone: '0912333444', price: 12000000, finalPricePick: 12000000, carrier: 'Vina', tags: ['Tam hoa kép'], url: '' },
+    { phone: '0967777777', price: 95000000, finalPricePick: 95000000, carrier: 'Viettel', tags: ['Lục quý'], url: '' },
+    { phone: '0986543210', price: 18000000, finalPricePick: 18000000, carrier: 'Viettel', tags: ['Sảnh 6'], url: '' },
+    { phone: '0909012345', price: 12000000, finalPricePick: 12000000, carrier: 'Mobi', tags: ['Sảnh 5'], url: '' },
+    { phone: '0912388888', price: 45000000, finalPricePick: 45000000, carrier: 'Vina', tags: ['Ngũ quý'], url: '' },
+    { phone: '0988899999', price: 52000000, finalPricePick: 52000000, carrier: 'Viettel', tags: ['Ngũ quý'], url: '' },
+    { phone: '0909666666', price: 78000000, finalPricePick: 78000000, carrier: 'Mobi', tags: ['Lục quý'], url: '' },
+    { phone: '0978123456', price: 8500000, finalPricePick: 8500000, carrier: 'Viettel', tags: ['Sảnh 6'], url: '' },
+    { phone: '0912686868', price: 25000000, finalPricePick: 25000000, carrier: 'Vina', tags: ['ABAB', 'Lộc phát'], url: '' },
+    { phone: '0909797979', price: 18000000, finalPricePick: 18000000, carrier: 'Mobi', tags: ['ABAB'], url: '' },
+    { phone: '0968881234', price: 6500000, finalPricePick: 6500000, carrier: 'Viettel', tags: ['Tam hoa'], url: '' },
+    { phone: '0912999888', price: 9500000, finalPricePick: 9500000, carrier: 'Vina', tags: ['Tam hoa'], url: '' },
+    { phone: '0909555555', price: 65000000, finalPricePick: 65000000, carrier: 'Mobi', tags: ['Lục quý'], url: '' },
+    { phone: '0978686886', price: 12000000, finalPricePick: 12000000, carrier: 'Viettel', tags: ['Gánh', 'Lộc phát'], url: '' },
+    { phone: '0909393979', price: 8500000, finalPricePick: 8500000, carrier: 'Mobi', tags: ['Thần tài'], url: '' },
+    { phone: '0912558899', price: 4500000, finalPricePick: 4500000, carrier: 'Vina', tags: ['AABB'], url: '' },
+    { phone: '0968112233', price: 3800000, finalPricePick: 3800000, carrier: 'Viettel', tags: ['AABB'], url: '' },
+    { phone: '0909778899', price: 4200000, finalPricePick: 4200000, carrier: 'Mobi', tags: ['AABB'], url: '' },
+    { phone: '0912345345', price: 5500000, finalPricePick: 5500000, carrier: 'Vina', tags: ['Taxi'], url: '' },
+    { phone: '0968123123', price: 6800000, finalPricePick: 6800000, carrier: 'Viettel', tags: ['Taxi'], url: '' },
+    { phone: '0909456456', price: 5200000, finalPricePick: 5200000, carrier: 'Mobi', tags: ['Taxi'], url: '' },
+    { phone: '0912389389', price: 7500000, finalPricePick: 7500000, carrier: 'Vina', tags: ['Taxi', 'Thần tài'], url: '' },
+    { phone: '0978911119', price: 8200000, finalPricePick: 8200000, carrier: 'Viettel', tags: ['Tứ quý'], url: '' },
+    { phone: '0909022220', price: 9500000, finalPricePick: 9500000, carrier: 'Mobi', tags: ['Tứ quý'], url: '' },
+    { phone: '0912233330', price: 8800000, finalPricePick: 8800000, carrier: 'Vina', tags: ['Tứ quý'], url: '' },
+    { phone: '0968044440', price: 7200000, finalPricePick: 7200000, carrier: 'Viettel', tags: ['Tứ quý'], url: '' },
+    { phone: '0909855558', price: 11000000, finalPricePick: 11000000, carrier: 'Mobi', tags: ['Tứ quý'], url: '' },
+    { phone: '0912366663', price: 10500000, finalPricePick: 10500000, carrier: 'Vina', tags: ['Tứ quý'], url: '' },
+    { phone: '0968077770', price: 9800000, finalPricePick: 9800000, carrier: 'Viettel', tags: ['Tứ quý'], url: '' },
   ];
 }
 
@@ -314,13 +315,20 @@ export async function loadSimInventory(): Promise<SimItem[]> {
       ['phone', 'số', 'so', 'sim', 'sodienthoai', 'số điện thoại'].includes(k.toLowerCase().trim())
     );
     
-    // Price - ưu tiên Final_Price
-    const priceKey = Object.keys(row).find((k) => {
-      const lower = k.toLowerCase().replace(/\s+/g, '');
-      return lower === 'final_price' || lower === 'finalprice';
-    }) || Object.keys(row).find((k) =>
-      ['price', 'giá', 'gia', 'giaban', 'giá bán'].includes(k.toLowerCase().trim())
-    );
+    // Helper to normalize key
+    const norm = (k: string) => k.toLowerCase().replace(/[^a-z0-9]/g, '');
+    
+    // Price display - lấy từ GIÁ BÁN
+    const giaBanKey = Object.keys(row).find((k) => {
+      const n = norm(k);
+      return n === 'giaban' || n === 'gia' || n === 'price';
+    });
+    
+    // Final_Price - cho logic random landing
+    const finalPriceKey = Object.keys(row).find((k) => {
+      const n = norm(k);
+      return n === 'finalprice' || n === 'final_price';
+    });
     
     const carrierKey = Object.keys(row).find((k) =>
       ['carrier', 'nhà mạng', 'nha mang', 'mang', 'mạng'].includes(k.toLowerCase().trim())
@@ -333,14 +341,17 @@ export async function loadSimInventory(): Promise<SimItem[]> {
     );
     
     const phoneRaw = phoneKey ? row[phoneKey] : '';
-    const priceRaw = priceKey ? row[priceKey] : '';
+    const priceDisplayRaw = giaBanKey ? row[giaBanKey] : '';
+    const finalPickRaw = finalPriceKey ? row[finalPriceKey] : '';
     
-    if (!phoneRaw || !priceRaw) continue;
+    if (!phoneRaw) continue;
     
     const phone = normalizePhone(phoneRaw);
-    const price = parsePriceToNumber(priceRaw);
+    const price = parsePriceToNumber(priceDisplayRaw);
+    const finalPricePick = parsePriceToNumber(finalPickRaw);
     
-    if (phone.length < 9 || price <= 0) continue;
+    // Cần ít nhất price hoặc finalPricePick > 0
+    if (phone.length < 9 || (price <= 0 && finalPricePick <= 0)) continue;
     
     // Carrier
     let carrier: Carrier = 'Unknown';
@@ -369,7 +380,7 @@ export async function loadSimInventory(): Promise<SimItem[]> {
     // URL
     const url = urlKey ? row[urlKey] : undefined;
     
-    inventory.push({ phone, price, carrier, tags, url });
+    inventory.push({ phone, price, finalPricePick, carrier, tags, url });
   }
   
   if (inventory.length === 0) {
