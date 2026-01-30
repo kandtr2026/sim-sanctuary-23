@@ -95,7 +95,7 @@ const FloatingContactButtons = () => {
               });
             }
           }}
-          className="floating-contact-btn flex items-center justify-center bg-green-500 hover:bg-green-600"
+          className="floating-contact-btn flex items-center justify-center bg-green-500 hover:bg-green-600 rounded-full"
           style={{
             width: "clamp(48px, 4.5vw, 60px)",
             height: "clamp(48px, 4.5vw, 60px)",
