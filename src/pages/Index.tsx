@@ -21,6 +21,95 @@ import type { NormalizedSIM } from '@/lib/simUtils';
 
 const ITEMS_PER_PAGE = 100;
 
+// Helper functions for landing page random ordering
+function parseVnd(v: any): number {
+  if (v == null) return NaN;
+  if (typeof v === "number") return v;
+
+  const s = String(v).toLowerCase().trim();
+
+  // "3.5 triệu"
+  if (s.includes("triệu")) {
+    const num = parseFloat(
+      s.replace("triệu", "")
+        .replace(",", ".")
+        .replace(/[^\d.]/g, "")
+    );
+    return Number.isFinite(num) ? Math.round(num * 1_000_000) : NaN;
+  }
+
+  // "3,500,000" / "3.500.000" / "3500000"
+  const digits = s.replace(/[^\d]/g, "");
+  return digits ? parseInt(digits, 10) : NaN;
+}
+
+function shuffleInPlace<T>(arr: T[]) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function getSimKey(sim: any): string {
+  return String(sim?.SimID || sim?.SimRef || sim?.id || "");
+}
+
+function getFinalPrice(sim: any): number {
+  return parseVnd(sim?.Final_Price ?? sim?.finalPrice ?? sim?.final_price);
+}
+
+function reorderForLanding(list: any[]) {
+  const min = 3_000_000;
+  const max = 5_000_000;
+
+  const in3to5: any[] = [];
+  const lowerThan3: any[] = [];
+  const others: any[] = [];
+
+  for (const sim of list) {
+    const p = getFinalPrice(sim);
+    if (!Number.isFinite(p)) {
+      others.push(sim);
+    } else if (p >= min && p <= max) {
+      in3to5.push(sim);
+    } else if (p < min) {
+      lowerThan3.push(sim);
+    } else {
+      others.push(sim); // > 5tr
+    }
+  }
+
+  shuffleInPlace(in3to5);
+  shuffleInPlace(lowerThan3);
+
+  let first100 = in3to5.slice(0, 100);
+  if (first100.length < 100) {
+    first100 = [...first100, ...lowerThan3.slice(0, 100 - first100.length)];
+  }
+
+  const picked = new Set(first100.map(getSimKey));
+
+  const rest = [
+    ...in3to5.slice(100),
+    ...lowerThan3.filter(s => !picked.has(getSimKey(s))),
+    ...others,
+  ].filter(s => {
+    const k = getSimKey(s);
+    if (!k) return true;
+    return !picked.has(k);
+  });
+
+  // đảm bảo không trùng toàn bộ
+  const seen = new Set<string>();
+  return [...first100, ...rest].filter(s => {
+    const k = getSimKey(s);
+    if (!k) return true;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
 const Index = () => {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -106,7 +195,17 @@ const Index = () => {
   const combinedSuggestions = orFallbackSims.length > 0 ? orFallbackSims : similarSims;
   const isOrFallback = orFallbackSims.length > 0;
 
-  const isNoResultsWithSuggestions = filteredSims.length === 0 && combinedSuggestions.length > 0 && !isLoading && !error;
+  // Landing page random ordering: prioritize 3-5M SIMs when no filters active
+  const isDefaultLanding =
+    !isOrFallback &&
+    (!filters?.searchQuery || filters.searchQuery.replace(/[.\s]/g, "").trim() === "") &&
+    (!activeFilters || (Array.isArray(activeFilters) && activeFilters.length === 0));
+
+  const finalCombinedSuggestions = isDefaultLanding
+    ? reorderForLanding(combinedSuggestions)
+    : combinedSuggestions;
+
+  const isNoResultsWithSuggestions = filteredSims.length === 0 && finalCombinedSuggestions.length > 0 && !isLoading && !error;
 
   // Reset visible count when filters change
   useEffect(() => {
@@ -306,7 +405,7 @@ const Index = () => {
                   searchQuery={filters.searchQuery}
                   filters={filters}
                   quyFilter={filters.quyType}
-                  precomputedSuggestions={combinedSuggestions}
+                  precomputedSuggestions={finalCombinedSuggestions}
                   isOrFallback={isOrFallback}
                 />
               )}
