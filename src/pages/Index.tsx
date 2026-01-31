@@ -22,32 +22,26 @@ import type { NormalizedSIM } from '@/lib/simUtils';
 const ITEMS_PER_PAGE = 100;
 
 // Helper functions for landing page random ordering
-function parseVnd(v: any): number {
-  if (v == null) return NaN;
-  if (typeof v === "number") return v;
 
-  const s = String(v).toLowerCase().trim();
-
-  // "3.5 triệu"
-  if (s.includes("triệu")) {
-    const num = parseFloat(
-      s.replace("triệu", "")
-        .replace(",", ".")
-        .replace(/[^\d.]/g, "")
-    );
-    return Number.isFinite(num) ? Math.round(num * 1_000_000) : NaN;
-  }
-
-  // "3,500,000" / "3.500.000" / "3500000"
-  const digits = s.replace(/[^\d]/g, "");
-  return digits ? parseInt(digits, 10) : NaN;
+// Seeded random number generator (Mulberry32)
+function createSeededRandom(seed: number): () => number {
+  return function() {
+    let t = seed += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
 }
 
-function shuffleInPlace<T>(arr: T[]) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+// Seeded shuffle - deterministic based on seed
+function seededShuffle<T>(arr: T[], seed: number): T[] {
+  const result = [...arr];
+  const random = createSeededRandom(seed);
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
   }
+  return result;
 }
 
 function getSimKey(sim: any): string {
@@ -55,18 +49,20 @@ function getSimKey(sim: any): string {
 }
 
 function getFinalPriceForLanding(sim: any): number {
-  // Ưu tiên finalPricePick từ cột Final_Price (cho random landing)
-  if (typeof sim?.finalPricePick === "number" && sim.finalPricePick > 0) {
-    return sim.finalPricePick;
-  }
-  // Fallback to price nếu không có finalPricePick
+  // Ưu tiên price (giá hiển thị trên card, mapped từ GIÁ BÁN)
   if (typeof sim?.price === "number" && sim.price > 0) {
     return sim.price;
+  }
+  // Fallback to finalPricePick nếu không có price
+  if (typeof sim?.finalPricePick === "number" && sim.finalPricePick > 0) {
+    return sim.finalPricePick;
   }
   return NaN;
 }
 
-function reorderForLanding(list: any[]) {
+// Reorder for landing: prioritize 3-5M, supplement from <3M, then rest
+// Uses seeded shuffle for deterministic randomization
+function reorderForLanding(list: any[], seed: number = 0): any[] {
   const min = 3_000_000;
   const max = 5_000_000;
 
@@ -87,29 +83,30 @@ function reorderForLanding(list: any[]) {
     }
   }
 
-  shuffleInPlace(in3to5);
-  shuffleInPlace(lowerThan3);
+  // Apply seeded shuffle to each group
+  const shuffled3to5 = seededShuffle(in3to5, seed);
+  const shuffledLower = seededShuffle(lowerThan3, seed + 1);
 
-  let first100 = in3to5.slice(0, 100);
-  if (first100.length < 100) {
-    first100 = [...first100, ...lowerThan3.slice(0, 100 - first100.length)];
+  // Build initial100: prioritize 3-5M, supplement from <3M if needed
+  let initial100 = shuffled3to5.slice(0, 100);
+  if (initial100.length < 100) {
+    const needed = 100 - initial100.length;
+    initial100 = [...initial100, ...shuffledLower.slice(0, needed)];
   }
 
-  const picked = new Set(first100.map(getSimKey));
+  // Track picked keys to avoid duplicates
+  const pickedKeys = new Set(initial100.map(getSimKey));
 
+  // Build rest: remaining from 3-5M, then <3M (not picked), then others
   const rest = [
-    ...in3to5.slice(100),
-    ...lowerThan3.filter(s => !picked.has(getSimKey(s))),
+    ...shuffled3to5.slice(100),
+    ...shuffledLower.filter(s => !pickedKeys.has(getSimKey(s))),
     ...others,
-  ].filter(s => {
-    const k = getSimKey(s);
-    if (!k) return true;
-    return !picked.has(k);
-  });
+  ];
 
-  // đảm bảo không trùng toàn bộ
+  // Final deduplication
   const seen = new Set<string>();
-  return [...first100, ...rest].filter(s => {
+  return [...initial100, ...rest].filter(s => {
     const k = getSimKey(s);
     if (!k) return true;
     if (seen.has(k)) return false;
@@ -261,18 +258,20 @@ const Index = () => {
     (!filters?.searchQuery || filters.searchQuery.replace(/[.\s]/g, "").trim() === "");
 
   const finalCombinedSuggestions = isDefaultLanding
-    ? reorderForLanding(combinedSuggestions)
+    ? reorderForLanding(combinedSuggestions, landingSeed)
     : combinedSuggestions;
 
   const isNoResultsWithSuggestions = filteredSims.length === 0 && finalCombinedSuggestions.length > 0 && !isLoading && !error;
 
   // Freeze landing list when in default landing state (random once, keep on scroll)
+  // Uses seeded shuffle for deterministic ordering based on landingSeed
   useEffect(() => {
     if (!isDefaultLanding) return;
     if (!filteredSims || filteredSims.length === 0) return;
 
     // Freeze the list based on seed (random once, stable during scroll)
-    const next = reorderForLanding(filteredSims);
+    // reorderForLanding: prioritizes 3-5M SIMs, supplements from <3M if needed
+    const next = reorderForLanding(filteredSims, landingSeed);
     setLandingFrozenList(next);
   }, [isDefaultLanding, landingSeed, filteredSims]);
 
