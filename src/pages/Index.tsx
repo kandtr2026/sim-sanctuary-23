@@ -18,6 +18,7 @@ import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff, Cloud, CloudOff } fr
 import { Button } from '@/components/ui/button';
 import { getSimilarSims } from '@/lib/similarSimSuggestions';
 import type { NormalizedSIM } from '@/lib/simUtils';
+import { isQuadTail, isQuintTail, isHexTail } from '@/data/simData';
 
 const ITEMS_PER_PAGE = 100;
 
@@ -302,13 +303,40 @@ const Index = () => {
     }
   }, [isDefaultLanding, hasInteracted]);
 
-  // Base list for display: frozen list for landing, filteredSims for search/filter
-  const baseListForDisplay = isDefaultLanding ? landingFrozenList : filteredSims;
+  // Detect active Quý filter states from activeFilters (chips have { label: string })
+  const activeFilterLabels = useMemo(() => 
+    Array.isArray(activeFilters) ? activeFilters.map(f => f.label) : [], 
+    [activeFilters]
+  );
+  const isQuadOn = activeFilterLabels.includes('Tứ quý');
+  const isQuintOn = activeFilterLabels.includes('Ngũ quý');
+  const isHexOn = activeFilterLabels.includes('Lục quý');
+
+  // Apply tail-based quý filtering directly (not relying on types array)
+  const filteredByQuy = useMemo(() => {
+    // No quý filter active -> return filteredSims as-is
+    if (!isQuadOn && !isQuintOn && !isHexOn) return filteredSims;
+
+    // Priority: Lục > Ngũ > Tứ (since higher quý also satisfies lower ones)
+    if (isHexOn) return filteredSims.filter(s => isHexTail(s.rawDigits));
+    if (isQuintOn) return filteredSims.filter(s => isQuintTail(s.rawDigits));
+    return filteredSims.filter(s => isQuadTail(s.rawDigits));
+  }, [filteredSims, isQuadOn, isQuintOn, isHexOn]);
+
+  // Base list for display: frozen list for landing, filteredByQuy for search/filter
+  const baseListForDisplay = isDefaultLanding ? landingFrozenList : filteredByQuy;
 
   // Reset visible count when landing state changes (filter applied/removed)
   useEffect(() => {
     setVisibleCount(ITEMS_PER_PAGE);
   }, [isDefaultLanding]);
+
+  // Reset pagination when quý filter changes
+  useEffect(() => {
+    if (isQuadOn || isQuintOn || isHexOn) {
+      setVisibleCount(ITEMS_PER_PAGE);
+    }
+  }, [isQuadOn, isQuintOn, isHexOn]);
 
   const displayedSIMs = useMemo(() => {
     return baseListForDisplay.slice(0, visibleCount);
