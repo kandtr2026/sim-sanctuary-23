@@ -9,6 +9,31 @@ export interface SIMData {
 }
 
 // SIM type detection utilities
+
+// Helper functions for tail-based quý detection
+const onlyDigits = (num: string) => (num || '').replace(/\D/g, '');
+
+export const isQuadTail = (num: string): boolean => {
+  const digits = onlyDigits(num);
+  if (digits.length < 4) return false;
+  const last4 = digits.slice(-4);
+  return /^(\d)\1{3}$/.test(last4);
+};
+
+export const isQuintTail = (num: string): boolean => {
+  const digits = onlyDigits(num);
+  if (digits.length < 5) return false;
+  const last5 = digits.slice(-5);
+  return /^(\d)\1{4}$/.test(last5);
+};
+
+export const isHexTail = (num: string): boolean => {
+  const digits = onlyDigits(num);
+  if (digits.length < 6) return false;
+  const last6 = digits.slice(-6);
+  return /^(\d)\1{5}$/.test(last6);
+};
+
 export const detectSIMTypes = (number: string): string[] => {
   const digits = number.replace(/\D/g, '');
   const last4 = digits.slice(-4);
