@@ -61,9 +61,24 @@ const masked = (digits: string): string => {
 
 // Format NgayBan to dd/MM/yyyy (Vietnamese format)
 function formatSoldDate(v: any): string {
-  if (!v) return "";
+  if (v == null) return "";
 
-  // gviz sometimes returns Date-like object or string
+  // 1) gviz often returns string like: "Date(2026,0,22)" or "Date(2026, 0, 22, 0, 0, 0)"
+  const asString = String(v).trim();
+  const m = asString.match(/Date\(\s*(\d{4})\s*,\s*(\d{1,2})\s*,\s*(\d{1,2})(?:\s*,\s*(\d{1,2}))?(?:\s*,\s*(\d{1,2}))?(?:\s*,\s*(\d{1,2}))?\s*\)/i);
+  if (m) {
+    const yy = parseInt(m[1], 10);
+    const mm0 = parseInt(m[2], 10); // 0-based month from gviz
+    const dd = parseInt(m[3], 10);
+
+    // Build date safely
+    const mm = mm0 + 1; // convert to 1-based
+    const DD = String(dd).padStart(2, "0");
+    const MM = String(mm).padStart(2, "0");
+    return `${DD}/${MM}/${yy}`;
+  }
+
+  // 2) If it's a Date object
   if (v instanceof Date && !isNaN(v.getTime())) {
     const dd = String(v.getDate()).padStart(2, "0");
     const mm = String(v.getMonth() + 1).padStart(2, "0");
@@ -71,43 +86,33 @@ function formatSoldDate(v: any): string {
     return `${dd}/${mm}/${yy}`;
   }
 
-  const s = String(v).trim();
+  // 3) If it's already dd/mm/yyyy or dd/mm/yyyy hh:mm → keep
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}(\s+\d{1,2}:\d{2})?$/.test(asString)) {
+    // normalize to dd/MM/yyyy
+    const [dPart] = asString.split(" ");
+    const [d, mo, y] = dPart.split("/");
+    const DD = String(parseInt(d, 10)).padStart(2, "0");
+    const MM = String(parseInt(mo, 10)).padStart(2, "0");
+    const rest = asString.includes(" ") ? " " + asString.split(" ").slice(1).join(" ") : "";
+    return `${DD}/${MM}/${y}${rest}`;
+  }
 
-  // Handle M/D/YYYY format (common in Google Sheets) -> convert to dd/MM/yyyy
-  const partsSlash = s.split("/");
-  if (partsSlash.length === 3) {
-    const a = partsSlash[0];
-    const b = partsSlash[1];
-    const c = partsSlash[2];
-
-    const A = parseInt(a, 10);
-    const B = parseInt(b, 10);
-    const Y = c;
-
-    // If a <= 12 and b > 12 => a=month, b=day (M/D/YYYY format)
-    if (!isNaN(A) && !isNaN(B) && A <= 12 && B > 12) {
-      const dd = String(B).padStart(2, "0");
-      const mm = String(A).padStart(2, "0");
-      return `${dd}/${mm}/${Y}`;
-    }
-
-    // If a > 12 and b <= 12 => a=day, b=month (D/M/YYYY format)
-    if (!isNaN(A) && !isNaN(B) && A > 12 && B <= 12) {
-      const dd = String(A).padStart(2, "0");
-      const mm = String(B).padStart(2, "0");
-      return `${dd}/${mm}/${Y}`;
-    }
-
-    // Fallback: assume M/D/YYYY (common Google Sheet format)
-    if (!isNaN(A) && !isNaN(B)) {
-      const dd = String(B).padStart(2, "0");
-      const mm = String(A).padStart(2, "0");
-      return `${dd}/${mm}/${Y}`;
+  // 4) If it's M/D/YYYY from Sheets (rare when gviz doesn't wrap)
+  const parts = asString.split("/");
+  if (parts.length === 3) {
+    const A = parseInt(parts[0], 10);
+    const B = parseInt(parts[1], 10);
+    const Y = parts[2].trim();
+    if (!isNaN(A) && !isNaN(B) && /^\d{4}$/.test(Y)) {
+      // assume M/D/YYYY (google sheets common)
+      const DD = String(B).padStart(2, "0");
+      const MM = String(A).padStart(2, "0");
+      return `${DD}/${MM}/${Y}`;
     }
   }
 
-  // Try parsing with Date
-  const d = new Date(s);
+  // 5) Final fallback: try Date parse
+  const d = new Date(asString);
   if (!isNaN(d.getTime())) {
     const dd = String(d.getDate()).padStart(2, "0");
     const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -115,7 +120,7 @@ function formatSoldDate(v: any): string {
     return `${dd}/${mm}/${yy}`;
   }
 
-  return s;
+  return asString;
 }
 
 const RightSidebar = () => {
