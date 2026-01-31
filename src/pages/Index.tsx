@@ -18,9 +18,45 @@ import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff, Cloud, CloudOff } fr
 import { Button } from '@/components/ui/button';
 import { getSimilarSims } from '@/lib/similarSimSuggestions';
 import type { NormalizedSIM } from '@/lib/simUtils';
-import { isQuadTailSim, isQuintTailSim, isHexTailSim } from '@/data/simData';
-
 const ITEMS_PER_PAGE = 100;
+
+// Helper: normalize string for comparison
+const norm = (s: any) =>
+  (s ?? "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+
+// Helper: check if array includes a label (case-insensitive)
+const includesLabel = (arr: any, label: string) => {
+  if (!Array.isArray(arr)) return false;
+  const target = norm(label);
+  return arr.some((x) => {
+    // Handle both string and object with label property
+    const val = typeof x === 'object' && x !== null ? x.label : x;
+    return norm(val) === target;
+  });
+};
+
+// Helper: extract digits from SIM for tail checking
+const simDigits = (sim: any) =>
+  String(sim?.formattedNumber ?? sim?.number ?? "")
+    .replace(/\D/g, "");
+
+// Tail-based quý detection (inline for accuracy)
+const isQuadTail = (sim: any) => {
+  const d = simDigits(sim);
+  return d.length >= 4 && /^(\d)\1{3}$/.test(d.slice(-4));
+};
+const isQuintTail = (sim: any) => {
+  const d = simDigits(sim);
+  return d.length >= 5 && /^(\d)\1{4}$/.test(d.slice(-5));
+};
+const isHexTail = (sim: any) => {
+  const d = simDigits(sim);
+  return d.length >= 6 && /^(\d)\1{5}$/.test(d.slice(-6));
+};
 
 // Helper functions for landing page random ordering
 
@@ -259,9 +295,21 @@ const Index = () => {
   const combinedSuggestions = orFallbackSims.length > 0 ? orFallbackSims : similarSims;
   const isOrFallback = orFallbackSims.length > 0;
 
-  // Landing page: check if in default state (no search query AND no active filters)
+  // Check multiple sources for quý filter state
+  const typeSources = [
+    filters?.selectedTags,
+    activeFilters,
+  ].filter(Boolean);
+
+  const isQuadOn = typeSources.some((src) => includesLabel(src, "Tứ quý"));
+  const isQuintOn = typeSources.some((src) => includesLabel(src, "Ngũ quý"));
+  const isHexOn = typeSources.some((src) => includesLabel(src, "Lục quý"));
+  const anyQuyOn = isQuadOn || isQuintOn || isHexOn;
+
+  // Landing page: check if in default state (no search query AND no active filters AND no quý filter)
   const isDefaultLanding =
     !isOrFallback &&
+    !anyQuyOn &&
     (!filters?.searchQuery || filters.searchQuery.replace(/[.\s]/g, "").trim() === "") &&
     (!activeFilters || activeFilters.length === 0);
 
@@ -303,26 +351,17 @@ const Index = () => {
     }
   }, [isDefaultLanding, hasInteracted]);
 
-  // Detect active Quý filter states from activeFilters (chips have { label: string })
-  const activeFilterLabels = useMemo(() => 
-    Array.isArray(activeFilters) ? activeFilters.map(f => f.label) : [], 
-    [activeFilters]
-  );
-  const isQuadOn = activeFilterLabels.includes('Tứ quý');
-  const isQuintOn = activeFilterLabels.includes('Ngũ quý');
-  const isHexOn = activeFilterLabels.includes('Lục quý');
-
   // Apply tail-based quý filtering directly (not relying on types array)
-  // Uses SIM object helpers to check formattedNumber/number for display accuracy
+  // Uses inline helpers to check formattedNumber/number for display accuracy
   const filteredByQuy = useMemo(() => {
     // No quý filter active -> return filteredSims as-is
-    if (!isQuadOn && !isQuintOn && !isHexOn) return filteredSims;
+    if (!anyQuyOn) return filteredSims;
 
     // Priority: Lục > Ngũ > Tứ (since higher quý also satisfies lower ones)
-    if (isHexOn) return filteredSims.filter(isHexTailSim);
-    if (isQuintOn) return filteredSims.filter(isQuintTailSim);
-    return filteredSims.filter(isQuadTailSim);
-  }, [filteredSims, isQuadOn, isQuintOn, isHexOn]);
+    if (isHexOn) return filteredSims.filter(isHexTail);
+    if (isQuintOn) return filteredSims.filter(isQuintTail);
+    return filteredSims.filter(isQuadTail);
+  }, [filteredSims, anyQuyOn, isQuadOn, isQuintOn, isHexOn]);
 
   // Base list for display: frozen list for landing, filteredByQuy for search/filter
   const baseListForDisplay = isDefaultLanding ? landingFrozenList : filteredByQuy;
