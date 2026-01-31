@@ -48,15 +48,15 @@ function getSimKey(sim: any): string {
   return String(sim?.SimID || sim?.SimRef || sim?.id || "");
 }
 
+// Get numeric VND price from Final_Price column (finalPricePick field)
+// MUST use finalPricePick (numeric VND), NOT price (display string)
 function getFinalPriceForLanding(sim: any): number {
-  // Ưu tiên price (giá hiển thị trên card, mapped từ GIÁ BÁN)
-  if (typeof sim?.price === "number" && sim.price > 0) {
-    return sim.price;
+  // Priority: finalPricePick (mapped from Final_Price column in Google Sheet)
+  const v = sim?.finalPricePick ?? sim?.finalPrice ?? sim?.Final_Price;
+  if (typeof v === "number" && Number.isFinite(v) && v > 0) {
+    return v;
   }
-  // Fallback to finalPricePick nếu không có price
-  if (typeof sim?.finalPricePick === "number" && sim.finalPricePick > 0) {
-    return sim.finalPricePick;
-  }
+  // Log warning for debugging - should not happen with valid data
   return NaN;
 }
 
@@ -265,15 +265,27 @@ const Index = () => {
 
   // Freeze landing list when in default landing state (random once, keep on scroll)
   // Uses seeded shuffle for deterministic ordering based on landingSeed
+  // IMPORTANT: Use allSims (full dataset), NOT filteredSims
   useEffect(() => {
     if (!isDefaultLanding) return;
-    if (!filteredSims || filteredSims.length === 0) return;
+    if (!allSims || allSims.length === 0) return;
 
     // Freeze the list based on seed (random once, stable during scroll)
-    // reorderForLanding: prioritizes 3-5M SIMs, supplements from <3M if needed
-    const next = reorderForLanding(filteredSims, landingSeed);
+    // reorderForLanding: prioritizes 3-5M SIMs (by finalPricePick), supplements from <3M if needed
+    const next = reorderForLanding(allSims, landingSeed);
+    
+    // Debug: log first 5 prices to verify correct field is used
+    if (next.length > 0) {
+      const sample = next.slice(0, 5).map(s => ({
+        id: s.id,
+        finalPricePick: s.finalPricePick,
+        priceUsed: getFinalPriceForLanding(s)
+      }));
+      console.log('[Landing] First 5 SIMs price check:', sample);
+    }
+    
     setLandingFrozenList(next);
-  }, [isDefaultLanding, landingSeed, filteredSims]);
+  }, [isDefaultLanding, landingSeed, allSims]);
 
   // When user returns to default landing after interaction, re-randomize once
   useEffect(() => {
