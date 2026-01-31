@@ -59,6 +59,65 @@ const masked = (digits: string): string => {
   return digits;
 };
 
+// Format NgayBan to dd/MM/yyyy (Vietnamese format)
+function formatSoldDate(v: any): string {
+  if (!v) return "";
+
+  // gviz sometimes returns Date-like object or string
+  if (v instanceof Date && !isNaN(v.getTime())) {
+    const dd = String(v.getDate()).padStart(2, "0");
+    const mm = String(v.getMonth() + 1).padStart(2, "0");
+    const yy = v.getFullYear();
+    return `${dd}/${mm}/${yy}`;
+  }
+
+  const s = String(v).trim();
+
+  // Handle M/D/YYYY format (common in Google Sheets) -> convert to dd/MM/yyyy
+  const partsSlash = s.split("/");
+  if (partsSlash.length === 3) {
+    const a = partsSlash[0];
+    const b = partsSlash[1];
+    const c = partsSlash[2];
+
+    const A = parseInt(a, 10);
+    const B = parseInt(b, 10);
+    const Y = c;
+
+    // If a <= 12 and b > 12 => a=month, b=day (M/D/YYYY format)
+    if (!isNaN(A) && !isNaN(B) && A <= 12 && B > 12) {
+      const dd = String(B).padStart(2, "0");
+      const mm = String(A).padStart(2, "0");
+      return `${dd}/${mm}/${Y}`;
+    }
+
+    // If a > 12 and b <= 12 => a=day, b=month (D/M/YYYY format)
+    if (!isNaN(A) && !isNaN(B) && A > 12 && B <= 12) {
+      const dd = String(A).padStart(2, "0");
+      const mm = String(B).padStart(2, "0");
+      return `${dd}/${mm}/${Y}`;
+    }
+
+    // Fallback: assume M/D/YYYY (common Google Sheet format)
+    if (!isNaN(A) && !isNaN(B)) {
+      const dd = String(B).padStart(2, "0");
+      const mm = String(A).padStart(2, "0");
+      return `${dd}/${mm}/${Y}`;
+    }
+  }
+
+  // Try parsing with Date
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) {
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yy = d.getFullYear();
+    return `${dd}/${mm}/${yy}`;
+  }
+
+  return s;
+}
+
 const RightSidebar = () => {
   // ONLY real data from Google Sheet - NO mock/fallback
   const [realOrders, setRealOrders] = useState<{ phone: string; time: string }[]>([]);
@@ -102,8 +161,10 @@ const RightSidebar = () => {
         
         // SIM_SOLD: soldSimIdKey = contains "sothuebao" (this column contains SimID values like SIM036...)
         const soldSimIdKey = findKey(soldKeys, "sothuebao");
+        // Detect NgayBan column for sale date
+        const soldDateKey = findKey(soldKeys, "ngayban");
         
-        console.log("[RightSidebar] detected keys:", { simIdKey, msisdnKey, soldSimIdKey });
+        console.log("[RightSidebar] detected keys:", { simIdKey, msisdnKey, soldSimIdKey, soldDateKey });
         
         if (!simIdKey || !msisdnKey || !soldSimIdKey) {
           console.error("[RightSidebar] Missing required keys!", { simIdKey, msisdnKey, soldSimIdKey });
@@ -137,28 +198,34 @@ const RightSidebar = () => {
             continue;
           }
           
-          // Time: if SIM_SOLD has NgayBan column, try to parse; otherwise empty
-          const ngayBanKey = findKey(soldKeys, "ngayban");
-          const ngayBan = ngayBanKey ? String(r[ngayBanKey] ?? "") : "";
-          let timeStr = "";
-          if (ngayBan) {
-            const match = ngayBan.match(/(\d{1,2}):(\d{2})/);
-            if (match) {
-              timeStr = `${match[1].padStart(2, '0')}:${match[2]}`;
-            }
-          }
+          // Get NgayBan (sale date) from SIM_SOLD
+          const rawDate = soldDateKey ? r[soldDateKey] : "";
+          const dateLabel = formatSoldDate(rawDate);
           
           built.push({ 
             phone: masked(digits), 
-            time: timeStr || "--:--" // Use placeholder if no time, not fake data
+            time: dateLabel || "--"
           });
         }
         
-        // Reverse to show newest first (assuming newest are at bottom of sheet)
-        const reversed = [...built].reverse();
+        // Sort by NgayBan (newest first)
+        if (soldDateKey) {
+          built.sort((a, b) => {
+            // parse dd/MM/yyyy -> timestamp
+            const parseVN = (s: string) => {
+              const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s || "");
+              if (!m) return 0;
+              const dd = parseInt(m[1], 10);
+              const mm = parseInt(m[2], 10);
+              const yy = parseInt(m[3], 10);
+              return new Date(yy, mm - 1, dd).getTime();
+            };
+            return parseVN(b.time) - parseVN(a.time);
+          });
+        }
         
-        // Limit to 8 items
-        const limited = reversed.slice(0, 8);
+        // Limit to 8 items (already sorted by date)
+        const limited = built.slice(0, 8);
         
         console.log("[RightSidebar] orders built:", limited.length, "from", soldRows.length, "sold rows");
         
