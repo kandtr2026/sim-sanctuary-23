@@ -10,7 +10,7 @@ export interface SIMData {
 
 // SIM type detection utilities
 
-// Helper functions for tail-based quý detection
+// Helper functions for tail-based quý detection (string version - keep for backward compatibility)
 const onlyDigits = (num: string) => (num || '').replace(/\D/g, '');
 
 export const isQuadTail = (num: string): boolean => {
@@ -32,6 +32,30 @@ export const isHexTail = (num: string): boolean => {
   if (digits.length < 6) return false;
   const last6 = digits.slice(-6);
   return /^(\d)\1{5}$/.test(last6);
+};
+
+// NEW: Helper functions that work with SIM objects (use formattedNumber/number for display accuracy)
+export const getSimDigits = (sim: { formattedNumber?: string; number?: string }) => {
+  const raw = (sim.formattedNumber || sim.number || '').toString();
+  return raw.replace(/\D/g, '');
+};
+
+export const isQuadTailSim = (sim: { formattedNumber?: string; number?: string }): boolean => {
+  const d = getSimDigits(sim);
+  if (d.length < 4) return false;
+  return /^(\d)\1{3}$/.test(d.slice(-4));
+};
+
+export const isQuintTailSim = (sim: { formattedNumber?: string; number?: string }): boolean => {
+  const d = getSimDigits(sim);
+  if (d.length < 5) return false;
+  return /^(\d)\1{4}$/.test(d.slice(-5));
+};
+
+export const isHexTailSim = (sim: { formattedNumber?: string; number?: string }): boolean => {
+  const d = getSimDigits(sim);
+  if (d.length < 6) return false;
+  return /^(\d)\1{5}$/.test(d.slice(-6));
 };
 
 export const detectSIMTypes = (number: string): string[] => {
