@@ -19,13 +19,15 @@ export const detectSIMTypes = (number: string): string[] => {
   if (/(\d)\1{5}$/.test(digits)) types.push('Lục quý');
   // Ngũ quý (5 same digits at end) - independent check
   if (/(\d)\1{4}$/.test(digits) && !types.includes('Lục quý')) types.push('Ngũ quý');
-  // Tứ quý: chỉ khi đúng 10 số và 4 số ĐUÔI giống nhau
+  // Tứ quý: 4 số ĐUÔI giống nhau (không phụ thuộc độ dài số)
+  const last4ForTuQuy = digits.slice(-4);
   if (
-    digits.length === 10 &&
-    /^(\d)\1{3}$/.test(digits.slice(-4)) &&
+    /^(\d)\1{3}$/.test(last4ForTuQuy) &&
     !types.includes('Lục quý') &&
     !types.includes('Ngũ quý')
-  ) types.push('Tứ quý');
+  ) {
+    types.push('Tứ quý');
+  }
 
   // Tam hoa / Tam hoa kép detection
   // Find all triple identical consecutive digits (xxx) anywhere in the number
