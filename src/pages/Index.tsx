@@ -296,20 +296,27 @@ const Index = () => {
   const isOrFallback = orFallbackSims.length > 0;
 
   // Check multiple sources for quý filter state
+  // Include: filters.selectedTags (toggle chips), filters.quyType (dropdown), activeFilters (chips)
   const typeSources = [
     filters?.selectedTags,
     activeFilters,
   ].filter(Boolean);
 
-  const isQuadOn = typeSources.some((src) => includesLabel(src, "Tứ quý"));
-  const isQuintOn = typeSources.some((src) => includesLabel(src, "Ngũ quý"));
-  const isHexOn = typeSources.some((src) => includesLabel(src, "Lục quý"));
+  // Also check quyType directly (it's a separate filter field)
+  const quyTypeOn = filters?.quyType;
+  const isQuadOn = quyTypeOn === 'Tứ quý' || typeSources.some((src) => includesLabel(src, "Tứ quý"));
+  const isQuintOn = quyTypeOn === 'Ngũ quý' || typeSources.some((src) => includesLabel(src, "Ngũ quý"));
+  const isHexOn = quyTypeOn === 'Lục quý' || typeSources.some((src) => includesLabel(src, "Lục quý"));
   const anyQuyOn = isQuadOn || isQuintOn || isHexOn;
+
+  // Check if any type selection is active (for landing detection)
+  const hasTypeSelection = (Array.isArray(filters?.selectedTags) && filters.selectedTags.length > 0) || !!filters?.quyType;
 
   // Landing page: check if in default state (no search query AND no active filters AND no quý filter)
   const isDefaultLanding =
     !isOrFallback &&
     !anyQuyOn &&
+    !hasTypeSelection &&
     (!filters?.searchQuery || filters.searchQuery.replace(/[.\s]/g, "").trim() === "") &&
     (!activeFilters || activeFilters.length === 0);
 
