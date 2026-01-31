@@ -2,33 +2,128 @@ import { Phone, MessageCircle, AlertCircle, Clock } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import ZaloChatCard from '@/components/ZaloChatCard';
 
-const recentOrdersData = [
-  { phone: '0909***888', time: '09:15' },
-  { phone: '0936***666', time: '09:12' },
-  { phone: '0903***979', time: '09:08' },
-  { phone: '0907***123', time: '09:05' },
-  { phone: '0935***688', time: '09:01' },
-  { phone: '0909***886', time: '08:55' },
-  { phone: '0938***397', time: '08:50' },
-  { phone: '0901***567', time: '08:45' },
-];
+const SHEET_ID = '1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y';
+const SHEET1_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Sheet1`;
+const SIM_SOLD_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=SIM_SOLD`;
+
+// Parse gviz response to array of objects
+const parseGvizResponse = (text: string): Record<string, string>[] => {
+  // Remove wrapper: google.visualization.Query.setResponse({...})
+  const jsonStr = text.replace(/^[^(]+\(/, '').replace(/\);?\s*$/, '');
+  const data = JSON.parse(jsonStr);
+  
+  const cols = data.table.cols.map((c: any) => c.label || c.id || '');
+  const rows = data.table.rows || [];
+  
+  return rows.map((row: any) => {
+    const obj: Record<string, string> = {};
+    row.c?.forEach((cell: any, i: number) => {
+      const header = cols[i];
+      if (header) {
+        obj[header] = cell?.v != null ? String(cell.v).trim() : '';
+      }
+    });
+    return obj;
+  });
+};
+
+// Format phone: 0799515759 -> 0799****59
+const formatPhone = (digits: string): string => {
+  const d = digits.replace(/\D/g, '');
+  if (d.length < 6) return d;
+  return d.slice(0, 4) + '****' + d.slice(-2);
+};
+
+// Parse time from NgayBan if available
+const parseTime = (dateStr: string): string => {
+  if (!dateStr) return '';
+  // Try to extract HH:mm from various formats
+  const match = dateStr.match(/(\d{1,2}):(\d{2})/);
+  if (match) {
+    return `${match[1].padStart(2, '0')}:${match[2]}`;
+  }
+  return '';
+};
 
 const RightSidebar = () => {
-  const [orders, setOrders] = useState(recentOrdersData);
+  const [orders, setOrders] = useState<{ phone: string; time: string }[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Simulate new orders coming in
   useEffect(() => {
-    const interval = setInterval(() => {
-      setOrders((prev) => {
-        const newOrder = {
-          phone: `09${Math.floor(Math.random() * 90 + 10)}***${Math.floor(Math.random() * 900 + 100)}`,
-          time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-        };
-        return [newOrder, ...prev.slice(0, 7)];
-      });
-    }, 30000); // New order every 30 seconds
-
-    return () => clearInterval(interval);
+    const fetchRealOrders = async () => {
+      try {
+        // Fetch both sheets in parallel
+        const [sheet1Res, soldRes] = await Promise.all([
+          fetch(SHEET1_URL),
+          fetch(SIM_SOLD_URL)
+        ]);
+        
+        const [sheet1Text, soldText] = await Promise.all([
+          sheet1Res.text(),
+          soldRes.text()
+        ]);
+        
+        const sheet1Data = parseGvizResponse(sheet1Text);
+        const soldData = parseGvizResponse(soldText);
+        
+        // Build map: SimID -> phone digits from Sheet1
+        const simIdToPhone = new Map<string, string>();
+        sheet1Data.forEach((row) => {
+          const simId = (row['SimID'] || '').trim().toUpperCase();
+          // Try multiple possible column names for phone number
+          const phone = row['SỐ THUÊ BAO'] || row['SỐ THUÊ BAO CHUẨN'] || row['SO THUE BAO'] || '';
+          const digits = phone.replace(/\D/g, '');
+          if (simId && digits) {
+            simIdToPhone.set(simId, digits);
+          }
+        });
+        
+        // Map SIM_SOLD to real orders
+        const realOrders: { phone: string; time: string; date?: Date }[] = [];
+        
+        soldData.forEach((row) => {
+          const soThueBao = (row['SoThueBao'] || row['SOTHUEBAO'] || '').trim().toUpperCase();
+          const ngayBan = row['NgayBan'] || row['NGAYBAN'] || '';
+          
+          const phoneDigits = simIdToPhone.get(soThueBao);
+          if (phoneDigits) {
+            realOrders.push({
+              phone: formatPhone(phoneDigits),
+              time: parseTime(ngayBan) || '',
+              date: ngayBan ? new Date(ngayBan) : undefined
+            });
+          }
+        });
+        
+        // Sort by date if available (newest first), otherwise reverse to get latest entries
+        realOrders.sort((a, b) => {
+          if (a.date && b.date) return b.date.getTime() - a.date.getTime();
+          if (a.date) return -1;
+          if (b.date) return 1;
+          return 0;
+        });
+        
+        // If no dates parsed, reverse to get latest entries from bottom of sheet
+        const hasAnyDate = realOrders.some(o => o.date);
+        const ordersToShow = hasAnyDate ? realOrders : [...realOrders].reverse();
+        
+        // Take first 8 and format
+        const finalOrders = ordersToShow.slice(0, 8).map(o => ({
+          phone: o.phone,
+          time: o.time
+        }));
+        
+        if (finalOrders.length > 0) {
+          setOrders(finalOrders);
+        }
+      } catch (err) {
+        console.error('[RightSidebar] Failed to fetch real orders:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchRealOrders();
   }, []);
 
   return (
