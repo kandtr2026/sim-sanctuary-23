@@ -39,7 +39,7 @@ function getFinalPriceForLanding(sim: any): number {
 }
 
 // Deterministic initial load: 100 SIMs with Final_Price 3M-10M, sorted by price then SimID
-function getInitial100Deterministic(list: any[]): { initial100: any[]; rest: any[] } {
+function getInitial100Deterministic(list: any[]): { initial100: any[]; restInRange: any[]; restOutOfRange: any[] } {
   const MIN_PRICE = 3_000_000;
   const MAX_PRICE = 10_000_000;
 
@@ -74,20 +74,28 @@ function getInitial100Deterministic(list: any[]): { initial100: any[]; rest: any
   // Take first 100 from sorted in-range list
   const initial100 = inRange.slice(0, 100);
   
-  // Rest = remaining in-range + out of range
+  // Rest in range = remaining from sorted in-range list
   const restInRange = inRange.slice(100);
   
   // Create set of picked SimIDs for deduplication
   const pickedIds = new Set(initial100.map(getSimKey));
   
-  // Filter out any duplicates from rest
-  const rest = [...restInRange, ...outOfRange].filter(s => {
+  // Filter out any duplicates from restInRange
+  const filteredRestInRange = restInRange.filter(s => {
     const k = getSimKey(s);
     if (!k) return true;
     return !pickedIds.has(k);
   });
+  
+  // Filter out any duplicates from outOfRange
+  const allPickedIds = new Set([...initial100, ...filteredRestInRange].map(getSimKey));
+  const filteredOutOfRange = outOfRange.filter(s => {
+    const k = getSimKey(s);
+    if (!k) return true;
+    return !allPickedIds.has(k);
+  });
 
-  return { initial100, rest };
+  return { initial100, restInRange: filteredRestInRange, restOutOfRange: filteredOutOfRange };
 }
 
 const Index = () => {
@@ -214,32 +222,43 @@ const Index = () => {
     if (initialLoadComplete && progressiveList.length > 0) return;
 
     // Get deterministic initial 100
-    const { initial100, rest } = getInitial100Deterministic(filteredSims);
+    const { initial100, restInRange, restOutOfRange } = getInitial100Deterministic(filteredSims);
     
     // Set initial 100 immediately
     setProgressiveList(initial100);
     setIsAppending(true);
 
-    // After 1 second, start appending rest in batches
+    // After 1 second, start appending rest in 2 phases
     const BATCH_SIZE = 100;
     const BATCH_DELAY = 200; // ms between batches
 
     const timeoutId = setTimeout(() => {
+      let currentPhase = 1; // 1 = restInRange, 2 = restOutOfRange
       let currentIndex = 0;
+      let currentList = restInRange;
       
       const appendBatch = () => {
-        if (currentIndex >= rest.length) {
-          setIsAppending(false);
-          setInitialLoadComplete(true);
-          return;
+        // Check if current phase is complete
+        if (currentIndex >= currentList.length) {
+          // Move to next phase
+          if (currentPhase === 1 && restOutOfRange.length > 0) {
+            currentPhase = 2;
+            currentIndex = 0;
+            currentList = restOutOfRange;
+          } else {
+            // All phases complete
+            setIsAppending(false);
+            setInitialLoadComplete(true);
+            return;
+          }
         }
 
-        const batch = rest.slice(currentIndex, currentIndex + BATCH_SIZE);
+        const batch = currentList.slice(currentIndex, currentIndex + BATCH_SIZE);
         currentIndex += BATCH_SIZE;
 
         setProgressiveList(prev => [...prev, ...batch]);
 
-        if (currentIndex < rest.length) {
+        if (currentIndex < currentList.length || (currentPhase === 1 && restOutOfRange.length > 0)) {
           setTimeout(appendBatch, BATCH_DELAY);
         } else {
           setIsAppending(false);
