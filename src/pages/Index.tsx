@@ -45,17 +45,24 @@ const simDigits = (sim: any) =>
     .replace(/\D/g, "");
 
 // Tail-based quý detection (inline for accuracy)
+// Tứ quý: 4 số cuối giống nhau (tail-based)
 const isQuadTail = (sim: any) => {
   const d = simDigits(sim);
   return d.length >= 4 && /^(\d)\1{3}$/.test(d.slice(-4));
 };
-const isQuintTail = (sim: any) => {
+
+// Ngũ quý: 5 số giống nhau LIỀN NHAU ở bất kỳ vị trí nào
+const isQuintAnywhere = (sim: any) => {
   const d = simDigits(sim);
-  return d.length >= 5 && /^(\d)\1{4}$/.test(d.slice(-5));
+  if (d.length < 5) return false;
+  return /(\d)\1{4}/.test(d);
 };
-const isHexTail = (sim: any) => {
+
+// Lục quý: 6 số giống nhau LIỀN NHAU ở bất kỳ vị trí nào
+const isHexAnywhere = (sim: any) => {
   const d = simDigits(sim);
-  return d.length >= 6 && /^(\d)\1{5}$/.test(d.slice(-6));
+  if (d.length < 6) return false;
+  return /(\d)\1{5}/.test(d);
 };
 
 // Helper functions for landing page random ordering
@@ -358,15 +365,15 @@ const Index = () => {
     }
   }, [isDefaultLanding, hasInteracted]);
 
-  // Apply tail-based quý filtering directly (not relying on types array)
-  // Uses inline helpers to check formattedNumber/number for display accuracy
+  // Apply quý filtering directly (not relying on types array)
+  // Tứ quý: tail-based, Ngũ/Lục quý: anywhere in number
   const filteredByQuy = useMemo(() => {
     // No quý filter active -> return filteredSims as-is
     if (!anyQuyOn) return filteredSims;
 
-    // Priority: Lục > Ngũ > Tứ (since higher quý also satisfies lower ones)
-    if (isHexOn) return filteredSims.filter(isHexTail);
-    if (isQuintOn) return filteredSims.filter(isQuintTail);
+    // Priority: Lục > Ngũ > Tứ
+    if (isHexOn) return filteredSims.filter(isHexAnywhere);
+    if (isQuintOn) return filteredSims.filter(isQuintAnywhere);
     return filteredSims.filter(isQuadTail);
   }, [filteredSims, anyQuyOn, isQuadOn, isQuintOn, isHexOn]);
 
