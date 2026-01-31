@@ -18,7 +18,7 @@ import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff, Cloud, CloudOff } fr
 import { Button } from '@/components/ui/button';
 import { getSimilarSims } from '@/lib/similarSimSuggestions';
 import type { NormalizedSIM } from '@/lib/simUtils';
-import { isQuadTail, isQuintTail, isHexTail } from '@/data/simData';
+import { isQuadTailSim, isQuintTailSim, isHexTailSim } from '@/data/simData';
 
 const ITEMS_PER_PAGE = 100;
 
@@ -313,14 +313,15 @@ const Index = () => {
   const isHexOn = activeFilterLabels.includes('Lục quý');
 
   // Apply tail-based quý filtering directly (not relying on types array)
+  // Uses SIM object helpers to check formattedNumber/number for display accuracy
   const filteredByQuy = useMemo(() => {
     // No quý filter active -> return filteredSims as-is
     if (!isQuadOn && !isQuintOn && !isHexOn) return filteredSims;
 
     // Priority: Lục > Ngũ > Tứ (since higher quý also satisfies lower ones)
-    if (isHexOn) return filteredSims.filter(s => isHexTail(s.rawDigits));
-    if (isQuintOn) return filteredSims.filter(s => isQuintTail(s.rawDigits));
-    return filteredSims.filter(s => isQuadTail(s.rawDigits));
+    if (isHexOn) return filteredSims.filter(isHexTailSim);
+    if (isQuintOn) return filteredSims.filter(isQuintTailSim);
+    return filteredSims.filter(isQuadTailSim);
   }, [filteredSims, isQuadOn, isQuintOn, isHexOn]);
 
   // Base list for display: frozen list for landing, filteredByQuy for search/filter
