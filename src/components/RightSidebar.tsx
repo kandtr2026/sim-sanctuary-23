@@ -46,8 +46,9 @@ const parseTime = (dateStr: string): string => {
 };
 
 const RightSidebar = () => {
-  const [orders, setOrders] = useState<{ phone: string; time: string }[]>([]);
-  const [loading, setLoading] = useState(true);
+  // ONLY real data from Google Sheet - NO mock/fallback
+  const [realOrders, setRealOrders] = useState<{ phone: string; time: string }[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
 
   useEffect(() => {
     const fetchRealOrders = async () => {
@@ -58,6 +59,14 @@ const RightSidebar = () => {
           fetch(SIM_SOLD_URL)
         ]);
         
+        // Check if responses are ok
+        if (!sheet1Res.ok || !soldRes.ok) {
+          console.error('[RightSidebar] HTTP error fetching sheets');
+          setRealOrders([]);
+          setOrdersLoading(false);
+          return;
+        }
+        
         const [sheet1Text, soldText] = await Promise.all([
           sheet1Res.text(),
           soldRes.text()
@@ -65,6 +74,8 @@ const RightSidebar = () => {
         
         const sheet1Data = parseGvizResponse(sheet1Text);
         const soldData = parseGvizResponse(soldText);
+        
+        console.log('[RightSidebar] Sheet1 rows:', sheet1Data.length, 'SIM_SOLD rows:', soldData.length);
         
         // Build map: SimID -> phone digits from Sheet1
         const simIdToPhone = new Map<string, string>();
@@ -78,16 +89,19 @@ const RightSidebar = () => {
           }
         });
         
-        // Map SIM_SOLD to real orders
-        const realOrders: { phone: string; time: string; date?: Date }[] = [];
+        console.log('[RightSidebar] SimID map size:', simIdToPhone.size);
+        
+        // Map SIM_SOLD to real orders - ONLY if we can find the real phone number
+        const mappedOrders: { phone: string; time: string; date?: Date }[] = [];
         
         soldData.forEach((row) => {
           const soThueBao = (row['SoThueBao'] || row['SOTHUEBAO'] || '').trim().toUpperCase();
           const ngayBan = row['NgayBan'] || row['NGAYBAN'] || '';
           
+          // ONLY add if we can map to real phone number
           const phoneDigits = simIdToPhone.get(soThueBao);
           if (phoneDigits) {
-            realOrders.push({
+            mappedOrders.push({
               phone: formatPhone(phoneDigits),
               time: parseTime(ngayBan) || '',
               date: ngayBan ? new Date(ngayBan) : undefined
@@ -95,8 +109,10 @@ const RightSidebar = () => {
           }
         });
         
+        console.log('[RightSidebar] Mapped orders count:', mappedOrders.length);
+        
         // Sort by date if available (newest first), otherwise reverse to get latest entries
-        realOrders.sort((a, b) => {
+        mappedOrders.sort((a, b) => {
           if (a.date && b.date) return b.date.getTime() - a.date.getTime();
           if (a.date) return -1;
           if (b.date) return 1;
@@ -104,27 +120,32 @@ const RightSidebar = () => {
         });
         
         // If no dates parsed, reverse to get latest entries from bottom of sheet
-        const hasAnyDate = realOrders.some(o => o.date);
-        const ordersToShow = hasAnyDate ? realOrders : [...realOrders].reverse();
+        const hasAnyDate = mappedOrders.some(o => o.date);
+        const ordersToShow = hasAnyDate ? mappedOrders : [...mappedOrders].reverse();
         
-        // Take first 8 and format
+        // Take first 8 - NO padding with mock data
         const finalOrders = ordersToShow.slice(0, 8).map(o => ({
           phone: o.phone,
           time: o.time
         }));
         
-        if (finalOrders.length > 0) {
-          setOrders(finalOrders);
-        }
+        // ALWAYS set real orders (even if empty)
+        setRealOrders(finalOrders);
+        
       } catch (err) {
         console.error('[RightSidebar] Failed to fetch real orders:', err);
+        // On error: set empty array, NO fallback to mock
+        setRealOrders([]);
       } finally {
-        setLoading(false);
+        setOrdersLoading(false);
       }
     };
     
     fetchRealOrders();
   }, []);
+
+  // Use ONLY real orders - never mock data
+  const orders = realOrders;
 
   return (
     <aside className="space-y-6">
