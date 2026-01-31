@@ -21,13 +21,41 @@ import type { NormalizedSIM } from '@/lib/simUtils';
 
 const ITEMS_PER_PAGE = 100;
 
-// Helper functions for deterministic landing page ordering
+// Helper functions for landing page random ordering
+function parseVnd(v: any): number {
+  if (v == null) return NaN;
+  if (typeof v === "number") return v;
+
+  const s = String(v).toLowerCase().trim();
+
+  // "3.5 triệu"
+  if (s.includes("triệu")) {
+    const num = parseFloat(
+      s.replace("triệu", "")
+        .replace(",", ".")
+        .replace(/[^\d.]/g, "")
+    );
+    return Number.isFinite(num) ? Math.round(num * 1_000_000) : NaN;
+  }
+
+  // "3,500,000" / "3.500.000" / "3500000"
+  const digits = s.replace(/[^\d]/g, "");
+  return digits ? parseInt(digits, 10) : NaN;
+}
+
+function shuffleInPlace<T>(arr: T[]) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
 function getSimKey(sim: any): string {
   return String(sim?.SimID || sim?.SimRef || sim?.id || "");
 }
 
 function getFinalPriceForLanding(sim: any): number {
-  // Ưu tiên finalPricePick từ cột Final_Price
+  // Ưu tiên finalPricePick từ cột Final_Price (cho random landing)
   if (typeof sim?.finalPricePick === "number" && sim.finalPricePick > 0) {
     return sim.finalPricePick;
   }
@@ -38,74 +66,66 @@ function getFinalPriceForLanding(sim: any): number {
   return NaN;
 }
 
-// Deterministic initial load: 100 SIMs with Final_Price 3M-10M, sorted by price then SimID
-function getInitial100Deterministic(list: any[]): { initial100: any[]; restInRange: any[]; restOutOfRange: any[] } {
-  const MIN_PRICE = 3_000_000;
-  const MAX_PRICE = 10_000_000;
+function reorderForLanding(list: any[]) {
+  const min = 3_000_000;
+  const max = 5_000_000;
 
-  // Filter SIMs in price range
-  const inRange: any[] = [];
-  const outOfRange: any[] = [];
+  const in3to5: any[] = [];
+  const lowerThan3: any[] = [];
+  const others: any[] = [];
 
   for (const sim of list) {
     const p = getFinalPriceForLanding(sim);
-    if (Number.isFinite(p) && p >= MIN_PRICE && p <= MAX_PRICE) {
-      inRange.push(sim);
+    if (!Number.isFinite(p)) {
+      others.push(sim);
+    } else if (p >= min && p <= max) {
+      in3to5.push(sim);
+    } else if (p < min) {
+      lowerThan3.push(sim);
     } else {
-      outOfRange.push(sim);
+      others.push(sim); // > 5tr
     }
   }
 
-  // Sort deterministically: by Final_Price ascending, then by SimID ascending
-  inRange.sort((a, b) => {
-    const priceA = getFinalPriceForLanding(a);
-    const priceB = getFinalPriceForLanding(b);
-    
-    if (priceA !== priceB) {
-      return priceA - priceB;
-    }
-    
-    // If same price, sort by SimID (or id) ascending
-    const idA = getSimKey(a);
-    const idB = getSimKey(b);
-    return idA.localeCompare(idB);
-  });
+  shuffleInPlace(in3to5);
+  shuffleInPlace(lowerThan3);
 
-  // Take first 100 from sorted in-range list
-  const initial100 = inRange.slice(0, 100);
-  
-  // Rest in range = remaining from sorted in-range list
-  const restInRange = inRange.slice(100);
-  
-  // Create set of picked SimIDs for deduplication
-  const pickedIds = new Set(initial100.map(getSimKey));
-  
-  // Filter out any duplicates from restInRange
-  const filteredRestInRange = restInRange.filter(s => {
+  let first100 = in3to5.slice(0, 100);
+  if (first100.length < 100) {
+    first100 = [...first100, ...lowerThan3.slice(0, 100 - first100.length)];
+  }
+
+  const picked = new Set(first100.map(getSimKey));
+
+  const rest = [
+    ...in3to5.slice(100),
+    ...lowerThan3.filter(s => !picked.has(getSimKey(s))),
+    ...others,
+  ].filter(s => {
     const k = getSimKey(s);
     if (!k) return true;
-    return !pickedIds.has(k);
-  });
-  
-  // Filter out any duplicates from outOfRange
-  const allPickedIds = new Set([...initial100, ...filteredRestInRange].map(getSimKey));
-  const filteredOutOfRange = outOfRange.filter(s => {
-    const k = getSimKey(s);
-    if (!k) return true;
-    return !allPickedIds.has(k);
+    return !picked.has(k);
   });
 
-  return { initial100, restInRange: filteredRestInRange, restOutOfRange: filteredOutOfRange };
+  // đảm bảo không trùng toàn bộ
+  const seen = new Set<string>();
+  return [...first100, ...rest].filter(s => {
+    const k = getSimKey(s);
+    if (!k) return true;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
 }
 
 const Index = () => {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [showBackToTop, setShowBackToTop] = useState(false);
   
-  // Progressive loading state for deterministic initial 100
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-  const [progressiveList, setProgressiveList] = useState<NormalizedSIM[]>([]);
-  const [isAppending, setIsAppending] = useState(false);
+  // Landing list freeze state - prevents re-randomization on scroll
+  const [landingSeed, setLandingSeed] = useState(0);
+  const [landingFrozenList, setLandingFrozenList] = useState<NormalizedSIM[]>([]);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   const {
     allSims,
@@ -129,6 +149,53 @@ const Index = () => {
     relaxAllFilters,
     searchSuggestion
   } = useSimData();
+
+  // Mark interaction and increment seed to trigger new random order
+  const markInteracted = useCallback(() => {
+    setHasInteracted(true);
+    setLandingSeed((s) => s + 1);
+  }, []);
+
+  // Wrapped filter handlers that trigger re-randomization
+  const updateFilterWithSeed = useCallback(<K extends keyof typeof filters>(key: K, value: typeof filters[K]) => {
+    markInteracted();
+    return updateFilter(key, value);
+  }, [updateFilter, markInteracted]);
+
+  const togglePriceRangeWithSeed = useCallback((index: number) => {
+    markInteracted();
+    return togglePriceRange(index);
+  }, [togglePriceRange, markInteracted]);
+
+  const toggleTagWithSeed = useCallback((tag: string) => {
+    markInteracted();
+    return toggleTag(tag);
+  }, [toggleTag, markInteracted]);
+
+  const toggleNetworkWithSeed = useCallback((network: string) => {
+    markInteracted();
+    return toggleNetwork(network);
+  }, [toggleNetwork, markInteracted]);
+
+  const toggleSuffixWithSeed = useCallback((suffix: string) => {
+    markInteracted();
+    return toggleSuffix(suffix);
+  }, [toggleSuffix, markInteracted]);
+
+  const resetFiltersWithSeed = useCallback(() => {
+    markInteracted();
+    return resetFilters();
+  }, [resetFilters, markInteracted]);
+
+  const relaxFiltersWithSeed = useCallback(() => {
+    markInteracted();
+    return relaxFilters();
+  }, [relaxFilters, markInteracted]);
+
+  const relaxAllFiltersWithSeed = useCallback(() => {
+    markInteracted();
+    return relaxAllFilters();
+  }, [relaxAllFilters, markInteracted]);
 
   // Get last update info for display
   const lastUpdateInfo = getLastUpdateInfo();
@@ -188,114 +255,41 @@ const Index = () => {
   const combinedSuggestions = orFallbackSims.length > 0 ? orFallbackSims : similarSims;
   const isOrFallback = orFallbackSims.length > 0;
 
-  // Landing page: check if in default state (no search query and no active filters)
-  const isDefaultLanding = useMemo(() => {
-    return !isOrFallback &&
-      (!filters?.searchQuery || filters.searchQuery.replace(/[.\s]/g, "").trim() === "") &&
-      filters.selectedTags.length === 0 &&
-      filters.priceRanges.length === 0 &&
-      filters.selectedNetworks.length === 0 &&
-      filters.selectedSuffixes.length === 0 &&
-      filters.selectedPrefixes3.length === 0 &&
-      filters.customPriceMin === null &&
-      filters.customPriceMax === null;
-  }, [isOrFallback, filters]);
+  // Landing page: check if in default state (no search query)
+  const isDefaultLanding =
+    !isOrFallback &&
+    (!filters?.searchQuery || filters.searchQuery.replace(/[.\s]/g, "").trim() === "");
 
-  const isNoResultsWithSuggestions = filteredSims.length === 0 && combinedSuggestions.length > 0 && !isLoading && !error;
+  const finalCombinedSuggestions = isDefaultLanding
+    ? reorderForLanding(combinedSuggestions)
+    : combinedSuggestions;
 
-  // Progressive loading: deterministic initial 100 + append rest after 1 second
+  const isNoResultsWithSuggestions = filteredSims.length === 0 && finalCombinedSuggestions.length > 0 && !isLoading && !error;
+
+  // Freeze landing list when in default landing state (random once, keep on scroll)
   useEffect(() => {
-    // Reset when filters change or not in default landing
-    if (!isDefaultLanding) {
-      setProgressiveList([]);
-      setInitialLoadComplete(false);
-      setIsAppending(false);
-      return;
-    }
+    if (!isDefaultLanding) return;
+    if (!filteredSims || filteredSims.length === 0) return;
 
-    if (!filteredSims || filteredSims.length === 0) {
-      setProgressiveList([]);
-      return;
-    }
+    // Freeze the list based on seed (random once, stable during scroll)
+    const next = reorderForLanding(filteredSims);
+    setLandingFrozenList(next);
+  }, [isDefaultLanding, landingSeed, filteredSims]);
 
-    // If already loaded for this data, skip
-    if (initialLoadComplete && progressiveList.length > 0) return;
-
-    // Get deterministic initial 100
-    const { initial100, restInRange, restOutOfRange } = getInitial100Deterministic(filteredSims);
-    
-    // Set initial 100 immediately
-    setProgressiveList(initial100);
-    setIsAppending(true);
-
-    // After 1 second, start appending rest in 2 phases
-    const BATCH_SIZE = 100;
-    const BATCH_DELAY = 200; // ms between batches
-
-    const timeoutId = setTimeout(() => {
-      let currentPhase = 1; // 1 = restInRange, 2 = restOutOfRange
-      let currentIndex = 0;
-      let currentList = restInRange;
-      
-      const appendBatch = () => {
-        // Check if current phase is complete
-        if (currentIndex >= currentList.length) {
-          // Move to next phase
-          if (currentPhase === 1 && restOutOfRange.length > 0) {
-            currentPhase = 2;
-            currentIndex = 0;
-            currentList = restOutOfRange;
-          } else {
-            // All phases complete
-            setIsAppending(false);
-            setInitialLoadComplete(true);
-            return;
-          }
-        }
-
-        const batch = currentList.slice(currentIndex, currentIndex + BATCH_SIZE);
-        currentIndex += BATCH_SIZE;
-
-        setProgressiveList(prev => [...prev, ...batch]);
-
-        if (currentIndex < currentList.length || (currentPhase === 1 && restOutOfRange.length > 0)) {
-          setTimeout(appendBatch, BATCH_DELAY);
-        } else {
-          setIsAppending(false);
-          setInitialLoadComplete(true);
-        }
-      };
-
-      appendBatch();
-    }, 1000);
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [isDefaultLanding, filteredSims, initialLoadComplete, progressiveList.length]);
-
-  // Reset progressive list when data reloads
+  // When user returns to default landing after interaction, re-randomize once
   useEffect(() => {
-    if (isDefaultLanding && filteredSims.length > 0 && progressiveList.length === 0) {
-      const { initial100 } = getInitial100Deterministic(filteredSims);
-      setProgressiveList(initial100);
+    if (isDefaultLanding && hasInteracted) {
+      setHasInteracted(false);
+      setLandingSeed((s) => s + 1);
     }
-  }, [filteredSims, isDefaultLanding]);
+  }, [isDefaultLanding, hasInteracted]);
 
-  // Base list for display: progressive list for landing, filteredSims for search/filter
-  const baseListForDisplay = useMemo(() => {
-    if (isDefaultLanding && progressiveList.length > 0) {
-      return progressiveList;
-    }
-    return filteredSims;
-  }, [isDefaultLanding, progressiveList, filteredSims]);
+  // Base list for display: frozen list for landing, filteredSims for search/filter
+  const baseListForDisplay = isDefaultLanding ? landingFrozenList : filteredSims;
 
   // Reset visible count when filters change
   useEffect(() => {
     setVisibleCount(ITEMS_PER_PAGE);
-    // Reset progressive loading state
-    setInitialLoadComplete(false);
-    setProgressiveList([]);
   }, [filters]);
 
   const displayedSIMs = useMemo(() => {
@@ -305,7 +299,7 @@ const Index = () => {
   const hasMoreItems = visibleCount < baseListForDisplay.length;
   const remainingCount = baseListForDisplay.length - visibleCount;
 
-  // handleLoadMore: ONLY increases visibleCount
+  // handleLoadMore: ONLY increases visibleCount, NO re-randomization
   const handleLoadMore = useCallback(() => {
     setVisibleCount((prev) => Math.min(prev + ITEMS_PER_PAGE, baseListForDisplay.length));
   }, [baseListForDisplay.length]);
@@ -347,7 +341,7 @@ const Index = () => {
         <section id="sim-so" className="mb-5">
           <SearchBarAdvanced
             value={filters.searchQuery}
-            onChange={(value) => updateFilter('searchQuery', value)}
+            onChange={(value) => updateFilterWithSeed('searchQuery', value)}
           />
         </section>
 
@@ -358,16 +352,16 @@ const Index = () => {
             tagCounts={tagCounts}
             prefixes={prefixes}
             activeFilterCount={activeFilters.length}
-            onTogglePriceRange={togglePriceRange}
-            onToggleTag={toggleTag}
-            onToggleNetwork={toggleNetwork}
-            onToggleSuffix={toggleSuffix}
-            onUpdateFilter={updateFilter}
-            onReset={resetFilters}
+            onTogglePriceRange={togglePriceRangeWithSeed}
+            onToggleTag={toggleTagWithSeed}
+            onToggleNetwork={toggleNetworkWithSeed}
+            onToggleSuffix={toggleSuffixWithSeed}
+            onUpdateFilter={updateFilterWithSeed}
+            onReset={resetFiltersWithSeed}
           />
           <SortDropdown
             value={filters.sortBy}
-            onChange={(value) => updateFilter('sortBy', value)}
+            onChange={(value) => updateFilterWithSeed('sortBy', value)}
           />
         </div>
 
@@ -379,11 +373,11 @@ const Index = () => {
               filters={filters}
               tagCounts={tagCounts}
               prefixes={prefixes}
-              onTogglePriceRange={togglePriceRange}
-              onToggleTag={toggleTag}
-              onToggleNetwork={toggleNetwork}
-              onToggleSuffix={toggleSuffix}
-              onUpdateFilter={updateFilter}
+              onTogglePriceRange={togglePriceRangeWithSeed}
+              onToggleTag={toggleTagWithSeed}
+              onToggleNetwork={toggleNetworkWithSeed}
+              onToggleSuffix={toggleSuffixWithSeed}
+              onUpdateFilter={updateFilterWithSeed}
             />
           </aside>
 
@@ -395,7 +389,7 @@ const Index = () => {
                 <div className="hidden lg:block">
                   <SortDropdown
                     value={filters.sortBy}
-                    onChange={(value) => updateFilter('sortBy', value)}
+                    onChange={(value) => updateFilterWithSeed('sortBy', value)}
                   />
                 </div>
               </div>
@@ -405,7 +399,7 @@ const Index = () => {
               <ActiveFilterChips
                 chips={activeFilters}
                 resultCount={0}
-                onResetAll={resetFilters}
+                onResetAll={resetFiltersWithSeed}
                 hideResultCount={true}
               />
 
@@ -485,14 +479,14 @@ const Index = () => {
                 <EmptyStateHelper
                   constraints={activeConstraints}
                   searchSuggestion={searchSuggestion}
-                  onRelaxOne={relaxFilters}
-                  onRelaxAll={relaxAllFilters}
-                  onReset={resetFilters}
+                  onRelaxOne={relaxFiltersWithSeed}
+                  onRelaxAll={relaxAllFiltersWithSeed}
+                  onReset={resetFiltersWithSeed}
                   allSims={allSims}
                   searchQuery={filters.searchQuery}
                   filters={filters}
                   quyFilter={filters.quyType}
-                  precomputedSuggestions={combinedSuggestions}
+                  precomputedSuggestions={finalCombinedSuggestions}
                   isOrFallback={isOrFallback}
                 />
               )}
