@@ -156,6 +156,7 @@ const Index = () => {
   const markInteracted = useCallback(() => {
     setHasInteracted(true);
     setLandingSeed((s) => s + 1);
+    setVisibleCount(ITEMS_PER_PAGE); // Reset pagination when filter/search/sort
   }, []);
 
   // Wrapped filter handlers that trigger re-randomization
@@ -257,10 +258,11 @@ const Index = () => {
   const combinedSuggestions = orFallbackSims.length > 0 ? orFallbackSims : similarSims;
   const isOrFallback = orFallbackSims.length > 0;
 
-  // Landing page: check if in default state (no search query)
+  // Landing page: check if in default state (no search query AND no active filters)
   const isDefaultLanding =
     !isOrFallback &&
-    (!filters?.searchQuery || filters.searchQuery.replace(/[.\s]/g, "").trim() === "");
+    (!filters?.searchQuery || filters.searchQuery.replace(/[.\s]/g, "").trim() === "") &&
+    (!activeFilters || activeFilters.length === 0);
 
   const finalCombinedSuggestions = isDefaultLanding
     ? reorderForLanding(combinedSuggestions, landingSeed)
@@ -303,10 +305,10 @@ const Index = () => {
   // Base list for display: frozen list for landing, filteredSims for search/filter
   const baseListForDisplay = isDefaultLanding ? landingFrozenList : filteredSims;
 
-  // Reset visible count when filters change
+  // Reset visible count when landing state changes (filter applied/removed)
   useEffect(() => {
     setVisibleCount(ITEMS_PER_PAGE);
-  }, [filters]);
+  }, [isDefaultLanding]);
 
   const displayedSIMs = useMemo(() => {
     return baseListForDisplay.slice(0, visibleCount);
