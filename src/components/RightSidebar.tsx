@@ -1,4 +1,4 @@
-import { Phone, MessageCircle, AlertCircle, Clock } from 'lucide-react';
+import { Phone, AlertCircle, Clock } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import ZaloChatCard from '@/components/ZaloChatCard';
 
@@ -6,43 +6,57 @@ const SHEET_ID = '1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y';
 const SHEET1_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Sheet1`;
 const SIM_SOLD_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=SIM_SOLD`;
 
+// Normalize string: lowercase, remove accents, remove spaces
+const norm = (s: any): string =>
+  String(s ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove diacritics
+    .replace(/\s+/g, "")
+    .trim();
+
 // Parse gviz response to array of objects
-const parseGvizResponse = (text: string): Record<string, string>[] => {
-  // Remove wrapper: google.visualization.Query.setResponse({...})
-  const jsonStr = text.replace(/^[^(]+\(/, '').replace(/\);?\s*$/, '');
-  const data = JSON.parse(jsonStr);
-  
-  const cols = data.table.cols.map((c: any) => c.label || c.id || '');
-  const rows = data.table.rows || [];
-  
-  return rows.map((row: any) => {
-    const obj: Record<string, string> = {};
-    row.c?.forEach((cell: any, i: number) => {
-      const header = cols[i];
-      if (header) {
-        obj[header] = cell?.v != null ? String(cell.v).trim() : '';
-      }
+const gvizToObjects = (text: string): Record<string, string>[] => {
+  try {
+    // Remove wrapper: google.visualization.Query.setResponse({...})
+    const jsonStr = text.replace(/^[^(]+\(/, '').replace(/\);?\s*$/, '');
+    const data = JSON.parse(jsonStr);
+    
+    const cols = data.table.cols || [];
+    const rows = data.table.rows || [];
+    
+    // Get headers - use label, fallback to id, fallback to col index
+    const headers = cols.map((c: any, i: number) => {
+      const label = c.label || c.id || '';
+      return label.trim() || `col${i}`;
     });
-    return obj;
-  });
-};
-
-// Format phone: 0799515759 -> 0799****59
-const formatPhone = (digits: string): string => {
-  const d = digits.replace(/\D/g, '');
-  if (d.length < 6) return d;
-  return d.slice(0, 4) + '****' + d.slice(-2);
-};
-
-// Parse time from NgayBan if available
-const parseTime = (dateStr: string): string => {
-  if (!dateStr) return '';
-  // Try to extract HH:mm from various formats
-  const match = dateStr.match(/(\d{1,2}):(\d{2})/);
-  if (match) {
-    return `${match[1].padStart(2, '0')}:${match[2]}`;
+    
+    return rows.map((row: any) => {
+      const obj: Record<string, string> = {};
+      (row.c || []).forEach((cell: any, i: number) => {
+        const header = headers[i];
+        if (header) {
+          obj[header] = cell?.v != null ? String(cell.v).trim() : '';
+        }
+      });
+      return obj;
+    });
+  } catch (err) {
+    console.error('[gvizToObjects] Parse error:', err);
+    return [];
   }
-  return '';
+};
+
+// Find key in object keys that matches normalized pattern
+const findKey = (keys: string[], pattern: string): string | undefined => {
+  return keys.find(k => norm(k).includes(pattern));
+};
+
+// Mask phone: 0799515759 -> 0799****59
+const masked = (digits: string): string => {
+  if (digits.length >= 6) return `${digits.slice(0, 4)}****${digits.slice(-2)}`;
+  if (digits.length >= 4) return `${digits.slice(0, 2)}****${digits.slice(-1)}`;
+  return digits;
 };
 
 const RightSidebar = () => {
@@ -59,9 +73,8 @@ const RightSidebar = () => {
           fetch(SIM_SOLD_URL)
         ]);
         
-        // Check if responses are ok
         if (!sheet1Res.ok || !soldRes.ok) {
-          console.error('[RightSidebar] HTTP error fetching sheets');
+          console.error('[RightSidebar] HTTP error:', sheet1Res.status, soldRes.status);
           setRealOrders([]);
           setOrdersLoading(false);
           return;
@@ -72,70 +85,94 @@ const RightSidebar = () => {
           soldRes.text()
         ]);
         
-        const sheet1Data = parseGvizResponse(sheet1Text);
-        const soldData = parseGvizResponse(soldText);
+        const sheet1Rows = gvizToObjects(sheet1Text);
+        const soldRows = gvizToObjects(soldText);
         
-        console.log('[RightSidebar] Sheet1 rows:', sheet1Data.length, 'SIM_SOLD rows:', soldData.length);
+        // Get keys from first row of each sheet
+        const sheet1Keys = Object.keys(sheet1Rows[0] ?? {});
+        const soldKeys = Object.keys(soldRows[0] ?? {});
+        
+        console.log("[RightSidebar] sheet1 keys:", sheet1Keys);
+        console.log("[RightSidebar] sold keys:", soldKeys);
+        
+        // Find matching keys using normalized comparison
+        // Sheet1: simIdKey = contains "simid", msisdnKey = contains "sothuebao"
+        const simIdKey = findKey(sheet1Keys, "simid");
+        const msisdnKey = findKey(sheet1Keys, "sothuebao");
+        
+        // SIM_SOLD: soldSimIdKey = contains "sothuebao" (this column contains SimID values like SIM036...)
+        const soldSimIdKey = findKey(soldKeys, "sothuebao");
+        
+        console.log("[RightSidebar] detected keys:", { simIdKey, msisdnKey, soldSimIdKey });
+        
+        if (!simIdKey || !msisdnKey || !soldSimIdKey) {
+          console.error("[RightSidebar] Missing required keys!", { simIdKey, msisdnKey, soldSimIdKey });
+          setRealOrders([]);
+          setOrdersLoading(false);
+          return;
+        }
         
         // Build map: SimID -> phone digits from Sheet1
-        const simIdToPhone = new Map<string, string>();
-        sheet1Data.forEach((row) => {
-          const simId = (row['SimID'] || '').trim().toUpperCase();
-          // Try multiple possible column names for phone number
-          const phone = row['SỐ THUÊ BAO'] || row['SỐ THUÊ BAO CHUẨN'] || row['SO THUE BAO'] || '';
-          const digits = phone.replace(/\D/g, '');
-          if (simId && digits) {
-            simIdToPhone.set(simId, digits);
+        const simIdToDigits = new Map<string, string>();
+        for (const r of sheet1Rows) {
+          const simid = String(r[simIdKey] ?? "").trim();
+          const raw = String(r[msisdnKey] ?? "");
+          const digits = raw.replace(/\D/g, "");
+          if (simid && digits) {
+            simIdToDigits.set(simid, digits);
           }
-        });
+        }
         
-        console.log('[RightSidebar] SimID map size:', simIdToPhone.size);
+        console.log("[RightSidebar] simIdToDigits map size:", simIdToDigits.size);
         
-        // Map SIM_SOLD to real orders - ONLY if we can find the real phone number
-        const mappedOrders: { phone: string; time: string; date?: Date }[] = [];
+        // Build orders by joining: SIM_SOLD.SoThueBao -> Sheet1.SimID -> Sheet1.SỐ THUÊ BAO
+        const built: { phone: string; time: string }[] = [];
         
-        soldData.forEach((row) => {
-          const soThueBao = (row['SoThueBao'] || row['SOTHUEBAO'] || '').trim().toUpperCase();
-          const ngayBan = row['NgayBan'] || row['NGAYBAN'] || '';
+        for (const r of soldRows) {
+          const soldSimId = String(r[soldSimIdKey] ?? "").trim(); // e.g. "SIM036227"
+          const digits = simIdToDigits.get(soldSimId);
           
-          // ONLY add if we can map to real phone number
-          const phoneDigits = simIdToPhone.get(soThueBao);
-          if (phoneDigits) {
-            mappedOrders.push({
-              phone: formatPhone(phoneDigits),
-              time: parseTime(ngayBan) || '',
-              date: ngayBan ? new Date(ngayBan) : undefined
-            });
+          if (!digits) {
+            // Skip if we can't find the real phone number
+            continue;
           }
-        });
+          
+          // Time: if SIM_SOLD has NgayBan column, try to parse; otherwise empty
+          const ngayBanKey = findKey(soldKeys, "ngayban");
+          const ngayBan = ngayBanKey ? String(r[ngayBanKey] ?? "") : "";
+          let timeStr = "";
+          if (ngayBan) {
+            const match = ngayBan.match(/(\d{1,2}):(\d{2})/);
+            if (match) {
+              timeStr = `${match[1].padStart(2, '0')}:${match[2]}`;
+            }
+          }
+          
+          built.push({ 
+            phone: masked(digits), 
+            time: timeStr || "--:--" // Use placeholder if no time, not fake data
+          });
+        }
         
-        console.log('[RightSidebar] Mapped orders count:', mappedOrders.length);
+        // Reverse to show newest first (assuming newest are at bottom of sheet)
+        const reversed = [...built].reverse();
         
-        // Sort by date if available (newest first), otherwise reverse to get latest entries
-        mappedOrders.sort((a, b) => {
-          if (a.date && b.date) return b.date.getTime() - a.date.getTime();
-          if (a.date) return -1;
-          if (b.date) return 1;
-          return 0;
-        });
+        // Limit to 8 items
+        const limited = reversed.slice(0, 8);
         
-        // If no dates parsed, reverse to get latest entries from bottom of sheet
-        const hasAnyDate = mappedOrders.some(o => o.date);
-        const ordersToShow = hasAnyDate ? mappedOrders : [...mappedOrders].reverse();
+        console.log("[RightSidebar] orders built:", limited.length, "from", soldRows.length, "sold rows");
         
-        // Take first 8 - NO padding with mock data
-        const finalOrders = ordersToShow.slice(0, 8).map(o => ({
-          phone: o.phone,
-          time: o.time
-        }));
+        // Log first few for verification
+        if (limited.length > 0) {
+          console.log("[RightSidebar] sample orders:", limited.slice(0, 3));
+        }
         
-        // ALWAYS set real orders (even if empty)
-        setRealOrders(finalOrders);
+        // Set real orders (even if empty - no mock fallback)
+        setRealOrders(limited);
         
       } catch (err) {
         console.error('[RightSidebar] Failed to fetch real orders:', err);
-        // On error: set empty array, NO fallback to mock
-        setRealOrders([]);
+        setRealOrders([]); // No mock fallback
       } finally {
         setOrdersLoading(false);
       }
