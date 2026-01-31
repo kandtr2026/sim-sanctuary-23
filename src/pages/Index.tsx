@@ -48,15 +48,20 @@ function getSimKey(sim: any): string {
   return String(sim?.SimID || sim?.SimRef || sim?.id || "");
 }
 
-// Get numeric VND price from Final_Price column (finalPricePick field)
-// MUST use finalPricePick (numeric VND), NOT price (display string)
+// Get numeric VND price for landing filtering
+// MUST use sim.price (numeric VND from normalizeSIM), NOT formatted string
 function getFinalPriceForLanding(sim: any): number {
-  // Priority: finalPricePick (mapped from Final_Price column in Google Sheet)
-  const v = sim?.finalPricePick ?? sim?.finalPrice ?? sim?.Final_Price;
+  // Priority: sim.price (the effective price set during normalization)
+  // This is the numeric VND value used for display and sorting
+  const v = sim?.price;
   if (typeof v === "number" && Number.isFinite(v) && v > 0) {
     return v;
   }
-  // Log warning for debugging - should not happen with valid data
+  // Fallback to finalPricePick if price is not available
+  const fallback = sim?.finalPricePick ?? sim?.finalPrice;
+  if (typeof fallback === "number" && Number.isFinite(fallback) && fallback > 0) {
+    return fallback;
+  }
   return NaN;
 }
 
