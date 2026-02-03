@@ -1,0 +1,12 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
+export default function SimTamHoaGiaRe() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    navigate("/#landing=tamhoa-1-3tr", { replace: true });
+  }, [navigate]);
+
+  return null;
+}
