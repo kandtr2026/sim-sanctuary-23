@@ -288,6 +288,26 @@ const Index = () => {
     setHashProcessed(true);
   }, [hashProcessed, togglePriceRange]);
 
+  // Auto-filter for tam hoa landing page (#landing=tamhoa-1-3tr)
+  useEffect(() => {
+    if (hashProcessed) return;
+    
+    const hash = window.location.hash || "";
+    if (hash !== "#landing=tamhoa-1-3tr") return;
+    
+    // 1) Bật filter Loại số = "Tam hoa"
+    toggleTag("Tam hoa");
+    
+    // 2) Bật filter giá "1 - 3 triệu" (index 1 trong PRICE_RANGES)
+    togglePriceRange(1);
+    
+    // 3) Xoá hash để URL sạch
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+    
+    // Mark as processed to prevent re-running
+    setHashProcessed(true);
+  }, [hashProcessed, toggleTag, togglePriceRange]);
+
   // Get last update info for display
   const lastUpdateInfo = getLastUpdateInfo();
 
