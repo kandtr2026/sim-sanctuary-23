@@ -30,8 +30,6 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/sim-nam-sinh-*" element={<SimNamSinh />} />
-
           <Route path="/mua-ngay/:simId" element={<Checkout />} />
           <Route path="/dinh-gia-sim" element={<DinhGiaSim />} />
           <Route path="/sim-phong-thuy" element={<SimPhongThuy />} />
@@ -45,6 +43,7 @@ const App = () => (
           <Route path="/tin-tuc/cach-tranh-mat-tien-oan-khi-mua-sim-so-dep" element={<TinTucBai5 />} />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/:slug" element={<SimNamSinh />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <FloatingContactButtons />
