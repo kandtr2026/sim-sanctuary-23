@@ -35,7 +35,6 @@ const App = () => (
           <Route path="/dinh-gia-sim" element={<DinhGiaSim />} />
           <Route path="/sim-phong-thuy" element={<SimPhongThuy />} />
           <Route path="/sim-tra-gop" element={<SimTraGop />} />
-          <Route path="/mua-sim-so-dep-mobifone" element={<MuaSimSoDepMobifone />} />
           <Route path="/thanh-toan" element={<ThanhToan />} />
           <Route path="/tin-tuc" element={<TinTuc />} />
           <Route path="/tin-tuc/y-nghia-sim-so-dep" element={<TinTucBai1 />} />
