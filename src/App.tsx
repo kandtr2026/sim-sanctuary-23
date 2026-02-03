@@ -30,7 +30,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/sim-nam-sinh-:year" element={<SimNamSinh />} />
+          <Route path="/sim-nam-sinh-*" element={<SimNamSinh />} />
           <Route path="/" element={<Index />} />
           <Route path="/mua-ngay/:simId" element={<Checkout />} />
           <Route path="/dinh-gia-sim" element={<DinhGiaSim />} />
