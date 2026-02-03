@@ -1,17 +1,21 @@
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 export default function SimNamSinh() {
-  const { year } = useParams();
+  const location = useLocation();
 
   useEffect(() => {
-    const y = String(year || "").trim();
-    if (!/^\d{4}$/.test(y)) {
+    const path = location.pathname; // "/sim-nam-sinh-1999"
+    const m = path.match(/\/sim-nam-sinh-(\d{4})$/);
+
+    if (!m) {
       window.location.replace("/");
       return;
     }
-    window.location.replace(`/#ns=${encodeURIComponent(y)}`);
-  }, [year]);
+
+    const year = m[1];
+    window.location.replace(`/#ns=${encodeURIComponent(year)}`);
+  }, [location.pathname]);
 
   return null;
 }
