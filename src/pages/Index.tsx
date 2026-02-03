@@ -172,7 +172,9 @@ const Index = () => {
   const [landingSeed, setLandingSeed] = useState(0);
   const [landingFrozenList, setLandingFrozenList] = useState<NormalizedSIM[]>([]);
   const [hasInteracted, setHasInteracted] = useState(false);
-
+  
+  // Flag to prevent duplicate hash processing
+  const [hashProcessed, setHashProcessed] = useState(false);
   const {
     allSims,
     filteredSims,
@@ -243,6 +245,29 @@ const Index = () => {
     markInteracted();
     return relaxAllFilters();
   }, [relaxAllFilters, markInteracted]);
+
+  // Auto-fill search + filter when URL has hash #ns=YYYY (SEO landing page for birth year)
+  useEffect(() => {
+    if (hashProcessed) return;
+    
+    const hash = window.location.hash || "";
+    const m = hash.match(/^#ns=(\d{4})$/);
+    if (!m) return;
+    
+    const y = m[1];
+    
+    // 1) Set search query to the year
+    updateFilter('searchQuery', y);
+    
+    // 2) Enable "Năm sinh" tag filter
+    updateFilter('selectedTags', ['Năm sinh']);
+    
+    // 3) Clear hash to clean up URL
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+    
+    // Mark as processed to prevent re-running
+    setHashProcessed(true);
+  }, [hashProcessed, updateFilter]);
 
   // Get last update info for display
   const lastUpdateInfo = getLastUpdateInfo();
