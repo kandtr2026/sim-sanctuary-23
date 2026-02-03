@@ -271,6 +271,23 @@ const Index = () => {
     setHashProcessed(true);
   }, [hashProcessed, updateFilter]);
 
+  // Auto-filter for price landing page (#price=under-1m)
+  useEffect(() => {
+    if (hashProcessed) return;
+    
+    const hash = window.location.hash || "";
+    if (hash !== "#price=under-1m") return;
+    
+    // Bật filter giá "Dưới 1 triệu" (index 0 trong priceRanges)
+    togglePriceRange(0);
+    
+    // Xoá hash để URL sạch
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+    
+    // Mark as processed to prevent re-running
+    setHashProcessed(true);
+  }, [hashProcessed, togglePriceRange]);
+
   // Get last update info for display
   const lastUpdateInfo = getLastUpdateInfo();
 
