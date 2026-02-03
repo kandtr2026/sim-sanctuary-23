@@ -31,7 +31,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/sim-nam-sinh-*" element={<SimNamSinh />} />
-          <Route path="/" element={<Index />} />
+
           <Route path="/mua-ngay/:simId" element={<Checkout />} />
           <Route path="/dinh-gia-sim" element={<DinhGiaSim />} />
           <Route path="/sim-phong-thuy" element={<SimPhongThuy />} />
