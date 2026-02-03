@@ -246,7 +246,8 @@ const Index = () => {
     return relaxAllFilters();
   }, [relaxAllFilters, markInteracted]);
 
-  // Auto-fill search + filter when URL has hash #ns=YYYY (SEO landing page for birth year)
+  // Auto-fill search when URL has hash #ns=YYYY (SEO landing page for birth year)
+  // Uses pattern *YYYY to find SIMs ending with the birth year
   useEffect(() => {
     if (hashProcessed) return;
     
@@ -256,13 +257,10 @@ const Index = () => {
     
     const y = m[1];
     
-    // 1) Set search query to the year
-    updateFilter('searchQuery', y);
+    // Set search query with suffix pattern to find SIMs ending with birth year
+    updateFilter('searchQuery', `*${y}`);
     
-    // 2) Enable "Năm sinh" tag filter
-    updateFilter('selectedTags', ['Năm sinh']);
-    
-    // 3) Clear hash to clean up URL
+    // Clear hash to clean up URL
     history.replaceState(null, "", window.location.pathname + window.location.search);
     
     // Mark as processed to prevent re-running
