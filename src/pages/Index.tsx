@@ -463,21 +463,29 @@ const Index = () => {
     }
   }, [isDefaultLanding, hasInteracted]);
 
+  // Check if search query is empty (only whitespace/dots)
+  const isSearchEmpty = !filters?.searchQuery || filters.searchQuery.replace(/[.\s]/g, "").trim() === "";
+
   // Apply quý filtering directly (not relying on types array)
   // Tứ quý: tail-based, Ngũ/Lục quý: anywhere in number
-  // IMPORTANT: Use baseFiltered (not filteredSims directly) to avoid filtering empty list
+  // CRITICAL FIX: When quý filter is ON and no search query, filter from allSims directly
+  // This prevents falling into "SỐ TƯƠNG TỰ" branch when filteredSims=0
   const filteredByQuy = useMemo(() => {
-    // Determine base list: use landingFrozenList for default landing, filteredSims otherwise
-    const baseFiltered = isDefaultLanding ? landingFrozenList : filteredSims;
+    // No quý filter active -> use normal flow
+    if (!anyQuyOn) {
+      return isDefaultLanding ? landingFrozenList : filteredSims;
+    }
 
-    // No quý filter active -> return base as-is
-    if (!anyQuyOn) return baseFiltered;
-
+    // Quý filter is ON
+    // If search is empty, filter directly from allSims (full dataset)
+    // This ensures we get results even when filteredSims is empty
+    const sourceList = isSearchEmpty ? allSims : filteredSims;
+    
     // Priority: Lục > Ngũ > Tứ
-    if (isHexOn) return baseFiltered.filter(isHexAnywhere);
-    if (isQuintOn) return baseFiltered.filter(isQuintAnywhere);
-    return baseFiltered.filter(isQuadTail);
-  }, [filteredSims, landingFrozenList, isDefaultLanding, anyQuyOn, isQuadOn, isQuintOn, isHexOn]);
+    if (isHexOn) return sourceList.filter(isHexAnywhere);
+    if (isQuintOn) return sourceList.filter(isQuintAnywhere);
+    return sourceList.filter(isQuadTail);
+  }, [filteredSims, allSims, isDefaultLanding, landingFrozenList, isSearchEmpty, anyQuyOn, isQuadOn, isQuintOn, isHexOn]);
 
   // Base list for display: use filteredByQuy directly (it already handles landing vs filtered logic)
   const baseListForDisplay = filteredByQuy;
