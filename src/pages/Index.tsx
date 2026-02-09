@@ -39,9 +39,9 @@ const includesLabel = (arr: any, label: string) => {
   });
 };
 
-// Helper: extract digits from SIM for tail checking
+// Helper: extract digits from SIM for tail checking - prioritize rawDigits
 const simDigits = (sim: any) =>
-  String(sim?.formattedNumber ?? sim?.number ?? "")
+  String(sim?.rawDigits ?? sim?.number ?? sim?.formattedNumber ?? sim?.sim ?? "")
     .replace(/\D/g, "");
 
 // Tail-based quý detection (inline for accuracy)
@@ -431,18 +431,22 @@ const Index = () => {
 
   // Apply quý filtering directly (not relying on types array)
   // Tứ quý: tail-based, Ngũ/Lục quý: anywhere in number
+  // IMPORTANT: Use baseFiltered (not filteredSims directly) to avoid filtering empty list
   const filteredByQuy = useMemo(() => {
-    // No quý filter active -> return filteredSims as-is
-    if (!anyQuyOn) return filteredSims;
+    // Determine base list: use landingFrozenList for default landing, filteredSims otherwise
+    const baseFiltered = isDefaultLanding ? landingFrozenList : filteredSims;
+
+    // No quý filter active -> return base as-is
+    if (!anyQuyOn) return baseFiltered;
 
     // Priority: Lục > Ngũ > Tứ
-    if (isHexOn) return filteredSims.filter(isHexAnywhere);
-    if (isQuintOn) return filteredSims.filter(isQuintAnywhere);
-    return filteredSims.filter(isQuadTail);
-  }, [filteredSims, anyQuyOn, isQuadOn, isQuintOn, isHexOn]);
+    if (isHexOn) return baseFiltered.filter(isHexAnywhere);
+    if (isQuintOn) return baseFiltered.filter(isQuintAnywhere);
+    return baseFiltered.filter(isQuadTail);
+  }, [filteredSims, landingFrozenList, isDefaultLanding, anyQuyOn, isQuadOn, isQuintOn, isHexOn]);
 
-  // Base list for display: frozen list for landing, filteredByQuy for search/filter
-  const baseListForDisplay = isDefaultLanding ? landingFrozenList : filteredByQuy;
+  // Base list for display: use filteredByQuy directly (it already handles landing vs filtered logic)
+  const baseListForDisplay = filteredByQuy;
 
   // Reset visible count when landing state changes (filter applied/removed)
   useEffect(() => {
