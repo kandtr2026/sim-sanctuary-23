@@ -20,6 +20,34 @@ import { getSimilarSims } from '@/lib/similarSimSuggestions';
 import type { NormalizedSIM } from '@/lib/simUtils';
 const ITEMS_PER_PAGE = 100;
 
+// Helper: normalize any value to digit-only string
+const normalizeSim = (v?: any) => String(v ?? "").replace(/\D/g, "");
+
+// Helper: robust digit extraction from SIM object
+const getDigits = (sim: any) => {
+  // Try common fields first
+  const direct = sim?.rawDigits ?? sim?.sim_normalized ?? sim?.number ?? sim?.formattedNumber ?? sim?.sim ?? sim?.phone ?? sim?.msisdn ?? sim?.value ?? sim?.simNumber ?? sim?.displayNumber;
+
+  const d1 = normalizeSim(direct);
+  if (d1.length >= 8) return d1;
+
+  // Fallback: scan object values for a string containing many digits
+  if (sim && typeof sim === 'object') {
+    for (const k of Object.keys(sim)) {
+      const v = (sim as any)[k];
+      if (typeof v === 'string' || typeof v === 'number') {
+        const d = normalizeSim(v);
+        if (d.length >= 8) return d;
+      }
+    }
+  }
+
+  return "";
+};
+
+// Helper: extract digits from SIM - uses robust getDigits
+const simDigits = (sim: any) => getDigits(sim);
+
 // Helper: normalize string for comparison
 const norm = (s: any) =>
   (s ?? "")
@@ -38,11 +66,6 @@ const includesLabel = (arr: any, label: string) => {
     return norm(val) === target;
   });
 };
-
-// Helper: extract digits from SIM for tail checking - prioritize rawDigits
-const simDigits = (sim: any) =>
-  String(sim?.rawDigits ?? sim?.number ?? sim?.formattedNumber ?? sim?.sim ?? "")
-    .replace(/\D/g, "");
 
 // Tail-based quý detection (inline for accuracy)
 // Tứ quý: 4 số cuối giống nhau (tail-based)
