@@ -17,223 +17,6 @@ import {
 } from '@/lib/simUtils';
 import { toast } from 'sonner';
 
-// ============= PRIVATE SEARCH HELPERS =============
-
-/**
- * Normalize any value to digits-only string
- * Used for search matching (removes dots, spaces, non-digits)
- */
-const normalizeSim = (v?: unknown): string => String(v ?? '').replace(/\D/g, '');
-
-/**
- * Get digits from SIM object, robust field selection with fallback
- * Tries prioritized fields, then searches all keys for longest digit string
- * Returns digits-only string or empty string
- */
-const getSimDigits = (sim: NormalizedSIM | Record<string, unknown>): string => {
-  // Priority list of known fields
-  const priorityFields = [
-    (sim as NormalizedSIM)?.rawDigits,
-    (sim as Record<string, unknown>)?.sim_normalized,
-    (sim as Record<string, unknown>)?.number,
-    (sim as NormalizedSIM)?.formattedNumber,
-    (sim as Record<string, unknown>)?.sim,
-    (sim as Record<string, unknown>)?.phone,
-    (sim as Record<string, unknown>)?.value,
-    (sim as Record<string, unknown>)?.SIM,
-    (sim as Record<string, unknown>)?.simNumber,
-    (sim as NormalizedSIM)?.displayNumber,
-  ];
-  
-  // Try priority fields first
-  for (const c of priorityFields) {
-    if (c) {
-      const digits = normalizeSim(c);
-      if (digits.length >= 9) return digits;
-    }
-  }
-  
-  // Fallback: scan all object keys for a string with >= 8 digits
-  if (typeof sim === 'object' && sim !== null) {
-    let longestDigits = '';
-    for (const key in sim) {
-      const val = (sim as Record<string, unknown>)[key];
-      if (typeof val === 'string' || typeof val === 'number') {
-        const digits = normalizeSim(val);
-        if (digits.length >= 8 && digits.length > longestDigits.length) {
-          longestDigits = digits;
-        }
-      }
-    }
-    if (longestDigits.length >= 8) return longestDigits;
-  }
-  
-  return '';
-};
-
-/**
- * Apply search with 3 modes: EXACT, STAR PATTERN, CONTAINS
- * - EXACT: queryDigits.length >= 8 && no '*' => exact match
- * - STAR PATTERN: query contains '*' with prefix*suffix format
- * - CONTAINS: fallback for partial queries
- */
-const applySearchFilter = (
-  sims: NormalizedSIM[],
-  query: string
-): NormalizedSIM[] => {
-  const queryRaw = (query ?? '').trim();
-  if (!queryRaw) return sims;
-
-  const queryDigits = normalizeSim(queryRaw);
-  
-  // Skip if less than 2 digits
-  if (queryDigits.length < 2) return sims;
-
-  // STAR PATTERN: prefix*suffix
-  if (queryRaw.includes('*')) {
-    const parts = queryRaw.split('*');
-    // Only handle exact 2 parts (prefix*suffix), not leading/trailing '*' alone
-    if (parts.length === 2 && parts[0] && parts[1]) {
-      const prefixDigits = normalizeSim(parts[0]);
-      const suffixDigits = normalizeSim(parts[1]);
-      
-      if (prefixDigits && suffixDigits) {
-        return sims.filter(sim => {
-          const digits = getSimDigits(sim);
-          return digits.startsWith(prefixDigits) && digits.endsWith(suffixDigits);
-        });
-      }
-    }
-    // If star pattern is invalid, fall through to CONTAINS
-  }
-
-  // EXACT MODE: 8+ digits, no wildcard => exact match only
-  if (queryDigits.length >= 8 && !queryRaw.includes('*')) {
-    return sims.filter(sim => getSimDigits(sim) === queryDigits);
-  }
-
-  // CONTAINS MODE: default partial match
-  return sims.filter(sim => getSimDigits(sim).includes(queryDigits));
-};
-
-/**
- * Apply non-search filters (price, network, tags, prefixes, suffixes, vip, quy)
- */
-const applyNonSearchFilters = (
-  sims: NormalizedSIM[],
-  filters: FilterState
-): NormalizedSIM[] => {
-  let result = sims;
-
-  // Price ranges
-  if (filters.priceRanges.length > 0) {
-    result = result.filter(sim => {
-      return filters.priceRanges.some(rangeIndex => {
-        const range = PRICE_RANGES[rangeIndex];
-        return sim.price >= range.min && sim.price <= range.max;
-      });
-    });
-  }
-
-  // Custom price range
-  if (filters.customPriceMin !== null || filters.customPriceMax !== null) {
-    const min = filters.customPriceMin ?? 0;
-    const max = filters.customPriceMax ?? Infinity;
-    result = result.filter(sim => sim.price >= min && sim.price <= max);
-  }
-
-  // Tags
-  if (filters.selectedTags.length > 0) {
-    result = result.filter(sim => {
-      return filters.selectedTags.some(tag => {
-        if (tag === 'VIP') return sim.isVIP;
-        return sim.tags.includes(tag);
-      });
-    });
-  }
-
-  // Networks
-  if (filters.selectedNetworks.length > 0) {
-    result = result.filter(sim => filters.selectedNetworks.includes(sim.network));
-  }
-
-  // Prefix3
-  if (filters.selectedPrefixes3.length > 0) {
-    result = result.filter(sim => filters.selectedPrefixes3.includes(sim.prefix3));
-  }
-
-  // Prefix4
-  if (filters.selectedPrefixes4.length > 0) {
-    result = result.filter(sim => filters.selectedPrefixes4.includes(sim.prefix4));
-  }
-
-  // Suffixes
-  if (filters.selectedSuffixes.length > 0 || filters.customSuffix) {
-    const allSuffixes = [...filters.selectedSuffixes];
-    if (filters.customSuffix) {
-      allSuffixes.push(filters.customSuffix);
-    }
-    result = result.filter(sim => {
-      return allSuffixes.some(suffix => sim.rawDigits.endsWith(suffix));
-    });
-  }
-
-  // VIP filter
-  if (filters.vipFilter === 'only') {
-    result = result.filter(sim => sim.isVIP);
-  } else if (filters.vipFilter === 'hide') {
-    result = result.filter(sim => !sim.isVIP);
-  }
-
-  // Quý position filter
-  if (filters.quyType) {
-    result = result.filter(sim =>
-      matchesQuyFilter(sim.rawDigits, filters.quyType, filters.quyPosition)
-    );
-  }
-
-  return result;
-};
-
-/**
- * Apply sorting with Mobifone-first and discount priority
- */
-const applySorting = (
-  sims: NormalizedSIM[],
-  filters: FilterState
-): NormalizedSIM[] => {
-  let result = sortSIMs(sims, filters.sortBy);
-
-  // Mobifone first (only for default sort)
-  if (filters.mobifoneFirst && filters.sortBy === 'default') {
-    result = result.sort((a, b) => {
-      if (a.network === 'Mobifone' && b.network !== 'Mobifone') return -1;
-      if (a.network !== 'Mobifone' && b.network === 'Mobifone') return 1;
-      return 0;
-    });
-  }
-
-  // Prioritize discounted SIMs (stable sort)
-  const discountedSims: NormalizedSIM[] = [];
-  const normalSims: NormalizedSIM[] = [];
-
-  result.forEach(sim => {
-    const promoData = getPromotionalData(sim.id);
-    const originalPrice = promoData?.originalPrice;
-    const hasRealDiscount = originalPrice && originalPrice > 0 && sim.price > 0 && originalPrice > sim.price;
-
-    if (hasRealDiscount) {
-      discountedSims.push(sim);
-    } else {
-      normalSims.push(sim);
-    }
-  });
-
-  return [...discountedSims, ...normalSims];
-};
-
-// ============= END SEARCH HELPERS =============
-
 // Seed data: 100 SIMs for instant rendering (prices 3-5 million VND)
 const SEED_RAW_DATA = [
   { number: '0938123456', price: 3500000 },
@@ -523,210 +306,459 @@ const loadCsvFromCache = (): { csv: string; timestamp: number } | null => {
   return null;
 };
 
-// Fetch CSV from sheet proxy
-const fetchSimInventory = async (): Promise<NormalizedSIM[]> => {
-  const cacheData = loadCsvFromCache();
-  const now = Date.now();
-  const isCacheValid = cacheData && (now - cacheData.timestamp) < MAX_CACHE_AGE;
-
-  let csvText: string;
-
-  if (isCacheValid && cacheData) {
-    csvText = cacheData.csv;
-  } else {
-    try {
-      const response = await fetch('/api/sheet-proxy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sheetId: '1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y',
-          sheetName: 'Sheet1'
-        })
-      });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      csvText = await response.text();
-      const validation = validateCSV(csvText);
-      if (!validation.valid) throw new Error(validation.reason || 'Invalid CSV');
-
-      saveCsvToCache(csvText);
-    } catch (error) {
-      console.error('Failed to fetch SIM inventory:', error);
-      if (cacheData) {
-        console.warn('Using stale cache...');
-        csvText = cacheData.csv;
-      } else {
-        return SEED_SIMS;
-      }
-    }
+// Save normalized SIMs to cache
+const saveToCache = (data: NormalizedSIM[]) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      timestamp: Date.now(),
+      data
+    }));
+  } catch (e) {
+    console.warn('Failed to save to cache:', e);
   }
-
-  const rows = parseCSV(csvText);
-  const sims: NormalizedSIM[] = [];
-
-  for (const row of rows) {
-    try {
-      const rawNumber = row['RAW'] || row['DISPLAY'] || row['SIMID'] || '';
-      const displayNumber = row['DISPLAY'] || row['RAW'] || '';
-      const simId = row['SIMID'] || '';
-      
-      if (!rawNumber) continue;
-
-      const priceStr = row['FINAL_PRICE'] || row['ORIGINAL_PRICE'] || '';
-      let price = safeParseVnd(priceStr);
-
-      if (price <= 0) {
-        const tags = searchSIM({ rawDigits: rawNumber } as NormalizedSIM, '') ? [] : [];
-        price = estimatePriceByTags(tags);
-      }
-
-      const sim = normalizeSIM(rawNumber, displayNumber || null, price, simId || `csv-${rawNumber}`);
-      sims.push(sim);
-
-      // Store promotional data if present
-      const originalPrice = safeParseVnd(row['ORIGINAL_PRICE']);
-      if (originalPrice > 0 && price > 0) {
-        const discountType = parseDiscountType(row['DISCOUNT_TYPE'] || '');
-        const discountValue = safeParseVnd(row['DISCOUNT_VALUE']);
-        promotionalDataStore.set(sim.id, {
-          originalPrice,
-          finalPrice: price,
-          discountType,
-          discountValue
-        });
-      }
-    } catch (error) {
-      console.warn('Error processing SIM row:', error, row);
-    }
-  }
-
-  return sims.length > 0 ? sims : SEED_SIMS;
 };
 
-// Types and Filter State
+// Load normalized SIMs from cache
+const loadFromCache = (): { data: NormalizedSIM[]; timestamp: number } | null => {
+  try {
+    const cached = localStorage.getItem(STORAGE_KEY);
+    if (cached) {
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp < MAX_CACHE_AGE && data?.length > 0) {
+        return { data, timestamp };
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to load from cache:', e);
+  }
+  return null;
+};
+
+// Last fetch timestamp for UI display
+let lastFetchTimestamp: number | null = null;
+let usingCachedData = false;
+
+// Get last updated info
+export const getLastUpdateInfo = (): { timestamp: number | null; isCache: boolean } => ({
+  timestamp: lastFetchTimestamp,
+  isCache: usingCachedData
+});
+
+// Fetch CSV via edge function (bypasses CORS)
+const fetchCsvViaProxy = async (): Promise<string> => {
+  console.log('[SIM] Fetching via backend proxy...');
+  
+  const { data, error } = await supabase.functions.invoke('fetch-sim-data');
+  
+  if (error) {
+    console.error('[SIM] Edge function error:', error);
+    throw new Error(error.message || 'Failed to fetch from proxy');
+  }
+  
+  // The edge function returns CSV text directly
+  const csvText = typeof data === 'string' ? data : String(data);
+  
+  // Validate CSV content
+  const validation = validateCSV(csvText);
+  if (!validation.valid) {
+    throw new Error(validation.reason || 'Invalid CSV response from proxy');
+  }
+  
+  console.log(`[SIM] Received ${csvText.length} bytes via proxy`);
+  return csvText;
+};
+
+// Fetch and normalize SIM data
+const fetchSimData = async (): Promise<NormalizedSIM[]> => {
+  usingCachedData = false;
+  
+  try {
+    // Try fetching via edge function proxy
+    const csvText = await fetchCsvViaProxy();
+    
+    // Save raw CSV to cache on success
+    saveCsvToCache(csvText);
+    lastFetchTimestamp = Date.now();
+    
+    const rows = parseCSV(csvText);
+    console.log(`[SIM] Parsed ${rows.length} rows from CSV`);
+    
+    const sims: NormalizedSIM[] = [];
+    const promotionalDataMap = new Map<string, PromotionalData>();
+    
+    // Track discount count for verification
+    let discountCount = 0;
+    
+    rows.forEach((row, index) => {
+      // Filter by TRẠNG THÁI: only show "available" SIMs, hide "sold" ones
+      const trangThai = (row['TRANG_THAI'] || row['TRẠNG THÁI'] || row['TRANG THAI'] || '').trim().toLowerCase();
+      if (trangThai === 'sold' || trangThai === 'reserved') return;
+      // Only show SIMs that are explicitly "available" or have no status (backwards compatible)
+      // If you want strict filtering (only "available"), uncomment:
+      // if (trangThai && trangThai !== 'available') return;
+      
+      // Use SimID from Google Sheet if available, otherwise generate one
+      const sheetSimId = row['SIMID'] || '';
+      const rawNumber = row['RAW'] || row['DISPLAY'] || '';
+      const displayNumber = row['DISPLAY'] || row['RAW'] || rawNumber;
+      const originalPriceStr = row['ORIGINAL_PRICE'] || row['PRICE'] || '0';
+      const finalPriceStr = row['FINAL_PRICE'] || '';
+      const discountTypeStr = row['DISCOUNT_TYPE'] || '';
+      const discountValueStr = row['DISCOUNT_VALUE'] || '';
+      
+      const rawDigits = rawNumber.replace(/\D/g, '');
+      
+      // Ignore rows with less than 9 digits
+      if (rawDigits.length < 9) return;
+      
+      // Prefer safe VND parsing for sheet values (handles commas/spaces/etc.)
+      let originalPrice = safeParseVnd(originalPriceStr);
+      const finalPriceRaw = safeParseVnd(finalPriceStr);
+      const finalPrice = finalPriceRaw > 0 ? finalPriceRaw : undefined;
+
+      const discountType = parseDiscountType(discountTypeStr) || undefined;
+      const discountValue = safeParseVnd(discountValueStr) || undefined;
+      
+      // Count SIMs with actual discount (finalPrice < originalPrice)
+      if (finalPrice && finalPrice > 0 && finalPrice < originalPrice) {
+        discountCount++;
+      }
+      
+      // Estimate price if original price is missing or invalid
+      if (!originalPrice || originalPrice <= 0) {
+        const tempSim = normalizeSIM(rawNumber, displayNumber, 0, `temp-${index}`);
+        originalPrice = estimatePriceByTags(tempSim.tags);
+      }
+      
+      // Use finalPrice for sorting/filtering if available, else originalPrice
+      const effectivePrice = finalPrice ?? originalPrice;
+      // Use Google Sheet SimID if available, otherwise fallback to index-based id
+      const simId = sheetSimId.trim() || `sim-${index}`;
+      const sim = normalizeSIM(rawNumber, displayNumber, effectivePrice, simId);
+      sims.push(sim);
+      
+      // Store promotional data separately (keyed by SIM id)
+      promotionalDataMap.set(sim.id, {
+        originalPrice,
+        finalPrice,
+        discountType,
+        discountValue
+      });
+    });
+    
+    // Update module-level promotional data store
+    promotionalDataStore = promotionalDataMap;
+    
+    console.log(`[SIM] Normalized ${sims.length} SIMs, ${discountCount} with discounts`);
+    
+    if (sims.length > 0) {
+      saveToCache(sims);
+    }
+    
+    return sims;
+    
+  } catch (error) {
+    console.error('[SIM] Fetch failed, trying cache:', error);
+    
+    // Try loading from CSV cache first
+    const csvCache = loadCsvFromCache();
+    if (csvCache && csvCache.csv) {
+      console.log('[SIM] Using cached CSV');
+      const rows = parseCSV(csvCache.csv);
+      const sims: NormalizedSIM[] = [];
+      
+      rows.forEach((row, index) => {
+        const sheetSimId = row['SIMID'] || '';
+        const rawNumber = row['RAW'] || row['DISPLAY'] || '';
+        const displayNumber = row['DISPLAY'] || row['RAW'] || rawNumber;
+        const originalPriceStr = row['ORIGINAL_PRICE'] || row['PRICE'] || '0';
+        const finalPriceStr = row['FINAL_PRICE'] || '';
+        const rawDigits = rawNumber.replace(/\D/g, '');
+        
+        if (rawDigits.length < 9) return;
+        
+        let originalPrice = safeParseVnd(originalPriceStr);
+        const finalPriceRaw = safeParseVnd(finalPriceStr);
+        const finalPrice = finalPriceRaw > 0 ? finalPriceRaw : undefined;
+        
+        if (!originalPrice || originalPrice <= 0) {
+          const tempSim = normalizeSIM(rawNumber, displayNumber, 0, `temp-${index}`);
+          originalPrice = estimatePriceByTags(tempSim.tags);
+        }
+        
+        const effectivePrice = finalPrice ?? originalPrice;
+        const simId = sheetSimId.trim() || `sim-${index}`;
+        const sim = normalizeSIM(rawNumber, displayNumber, effectivePrice, simId);
+        sims.push(sim);
+      });
+      
+      if (sims.length > 0) {
+        usingCachedData = true;
+        lastFetchTimestamp = csvCache.timestamp;
+        toast.warning('Không thể tải dữ liệu mới. Đang dùng dữ liệu tạm (cache).', {
+          duration: 5000
+        });
+        return sims;
+      }
+    }
+    
+    // Try loading normalized SIMs from cache
+    const cachedData = loadFromCache();
+    if (cachedData && cachedData.data.length > 0) {
+      usingCachedData = true;
+      lastFetchTimestamp = cachedData.timestamp;
+      toast.warning('Không thể tải dữ liệu mới. Đang dùng dữ liệu tạm (cache).', {
+        duration: 5000
+      });
+      return cachedData.data;
+    }
+    
+    throw error;
+  }
+};
+
+// Quý filter types
+import type { QuyType, QuyPosition } from '@/lib/simUtils';
+export type { QuyType, QuyPosition };
+
+// Filter state interface
 export interface FilterState {
   searchQuery: string;
   priceRanges: number[];
   customPriceMin: number | null;
   customPriceMax: number | null;
-  selectedNetworks: string[];
   selectedTags: string[];
+  selectedNetworks: string[];
   selectedPrefixes3: string[];
   selectedPrefixes4: string[];
   selectedSuffixes: string[];
   customSuffix: string;
   vipFilter: 'all' | 'only' | 'hide';
-  quyType: any;
-  quyPosition: any;
+  vipThreshold: number;
   sortBy: SortOption;
   mobifoneFirst: boolean;
+  // Quý position filter
+  quyType: QuyType | null;
+  quyPosition: QuyPosition | null;
 }
 
-const defaultFilters: FilterState = {
+export const defaultFilterState: FilterState = {
   searchQuery: '',
   priceRanges: [],
   customPriceMin: null,
   customPriceMax: null,
-  selectedNetworks: [],
   selectedTags: [],
+  selectedNetworks: [],
   selectedPrefixes3: [],
   selectedPrefixes4: [],
   selectedSuffixes: [],
   customSuffix: '',
   vipFilter: 'all',
-  quyType: null,
-  quyPosition: null,
+  vipThreshold: 50000000,
   sortBy: 'default',
   mobifoneFirst: true,
+  quyType: null,
+  quyPosition: null
 };
 
-// Hook
+const RELAX_ORDER: (keyof FilterState)[] = [
+  'customSuffix',
+  'selectedSuffixes',
+  'selectedPrefixes3',
+  'selectedPrefixes4',
+  'quyType',
+  'quyPosition',
+  'selectedTags',
+  'priceRanges',
+  'customPriceMin',
+  'customPriceMax',
+  'selectedNetworks',
+  'searchQuery'
+];
+
 export const useSimData = () => {
+  const [filters, setFilters] = useState<FilterState>(defaultFilterState);
   const queryClient = useQueryClient();
-  const [filters, setFilters] = useState<FilterState>(defaultFilters);
 
   const { data: allSims = [], isLoading, error, refetch, isFetching } = useQuery({
-    queryKey: ['simInventory'],
-    queryFn: fetchSimInventory,
-    staleTime: AUTO_REFRESH_INTERVAL,
-    gcTime: 10 * 60 * 1000,
+    queryKey: ['simData'],
+    queryFn: fetchSimData,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 1,
     refetchInterval: AUTO_REFRESH_INTERVAL,
+    refetchIntervalInBackground: false,
+    // Seed data for instant rendering - prevents loading screen on first load
+    placeholderData: SEED_SIMS
   });
 
-  const updateFilter = useCallback(
-    (key: keyof FilterState, value: unknown) => {
-      setFilters(prev => ({ ...prev, [key]: value }));
-    },
-    []
-  );
-
-  const clearAllFilters = useCallback(() => {
-    setFilters(defaultFilters);
-  }, []);
-
-  const refetchData = useCallback(async () => {
-    queryClient.invalidateQueries({ queryKey: ['simInventory'] });
+  const forceReload = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['simData'] });
     toast.info('Đang tải lại dữ liệu...');
-    await refetch();
-  }, [refetch, queryClient]);
+  }, [queryClient]);
 
   const prefixes = useMemo(() => getUniquePrefixes(allSims), [allSims]);
 
   const filteredSims = useMemo(() => {
-    const queryRaw = (filters.searchQuery ?? '').trim();
-    const queryDigits = normalizeSim(queryRaw);
+    let result = [...allSims];
 
-    // ============= EXACT RESCUE: Check for exact match in allSims FIRST =============
-    // If query is 8+ digits and doesn't contain '*', try to find exact match in entire dataset
-    // This must be checked BEFORE applying non-search filters to avoid losing valid results
-    if (queryDigits.length >= 8 && !queryRaw.includes('*')) {
-      const exactMatches = allSims.filter(sim => getSimDigits(sim) === queryDigits);
-      if (exactMatches.length > 0) {
-        // Found exact match - return it immediately, bypassing all other filters
-        return applySorting(exactMatches, filters);
+    if (filters.searchQuery) {
+      const digitCount = filters.searchQuery.replace(/\D/g, '').length;
+      if (digitCount >= 2) {
+        result = result.filter(sim => searchSIM(sim, filters.searchQuery));
       }
     }
 
-    // ============= PIPELINE A: Non-search filters (price, network, tags, etc.) =============
-    const afterNonSearch = applyNonSearchFilters(allSims, filters);
-
-    // ============= PIPELINE B: Search filter =============
-    const afterSearch = applySearchFilter(afterNonSearch, filters.searchQuery);
-
-    // ============= PIPELINE C: Sorting =============
-    return applySorting(afterSearch, filters);
-  }, [allSims, filters]);
-
-  const tagCounts = useMemo(() => countTags(allSims), [allSims]);
-  const filteredTagCounts = useMemo(() => countTags(filteredSims), [filteredSims]);
-
-  const activeConstraints = useMemo(() => {
-    const constraints: Array<{ label: string; key: keyof FilterState; onRemove: () => void }> = [];
-    
-    if (filters.searchQuery) {
-      constraints.push({
-        label: `Tìm: "${filters.searchQuery}"`,
-        key: 'searchQuery',
-        onRemove: () => updateFilter('searchQuery', '')
-      });
-    }
-
     if (filters.priceRanges.length > 0) {
-      const labels = filters.priceRanges.map(i => PRICE_RANGES[i]?.label).filter(Boolean);
-      constraints.push({
-        label: `Giá: ${labels.join(', ')}`,
-        key: 'priceRanges',
-        onRemove: () => updateFilter('priceRanges', [])
+      result = result.filter(sim => {
+        return filters.priceRanges.some(rangeIndex => {
+          const range = PRICE_RANGES[rangeIndex];
+          return sim.price >= range.min && sim.price <= range.max;
+        });
       });
     }
 
     if (filters.customPriceMin !== null || filters.customPriceMax !== null) {
       const min = filters.customPriceMin ?? 0;
       const max = filters.customPriceMax ?? Infinity;
+      result = result.filter(sim => sim.price >= min && sim.price <= max);
+    }
+
+    if (filters.selectedTags.length > 0) {
+      result = result.filter(sim => {
+        return filters.selectedTags.some(tag => {
+          if (tag === 'VIP') return sim.isVIP;
+          return sim.tags.includes(tag);
+        });
+      });
+    }
+
+    if (filters.selectedNetworks.length > 0) {
+      result = result.filter(sim => filters.selectedNetworks.includes(sim.network));
+    }
+
+    if (filters.selectedPrefixes3.length > 0) {
+      result = result.filter(sim => filters.selectedPrefixes3.includes(sim.prefix3));
+    }
+
+    if (filters.selectedPrefixes4.length > 0) {
+      result = result.filter(sim => filters.selectedPrefixes4.includes(sim.prefix4));
+    }
+
+    if (filters.selectedSuffixes.length > 0 || filters.customSuffix) {
+      const allSuffixes = [...filters.selectedSuffixes];
+      if (filters.customSuffix) {
+        allSuffixes.push(filters.customSuffix);
+      }
+      result = result.filter(sim => {
+        return allSuffixes.some(suffix => sim.rawDigits.endsWith(suffix));
+      });
+    }
+
+    if (filters.vipFilter === 'only') {
+      result = result.filter(sim => sim.isVIP);
+    } else if (filters.vipFilter === 'hide') {
+      result = result.filter(sim => !sim.isVIP);
+    }
+
+    // Quý position filter
+    if (filters.quyType) {
+      result = result.filter(sim => 
+        matchesQuyFilter(sim.rawDigits, filters.quyType, filters.quyPosition)
+      );
+    }
+
+    result = sortSIMs(result, filters.sortBy);
+
+    if (filters.mobifoneFirst && filters.sortBy === 'default') {
+      result = result.sort((a, b) => {
+        if (a.network === 'Mobifone' && b.network !== 'Mobifone') return -1;
+        if (a.network !== 'Mobifone' && b.network === 'Mobifone') return 1;
+        return 0;
+      });
+    }
+
+    // Ưu tiên SIM có giảm giá thật lên đầu (stable sort - giữ nguyên thứ tự trong từng nhóm)
+    const discountedSims: NormalizedSIM[] = [];
+    const normalSims: NormalizedSIM[] = [];
+    
+    result.forEach(sim => {
+      const promoData = getPromotionalData(sim.id);
+      const originalPrice = promoData?.originalPrice;
+      const hasRealDiscount = originalPrice && originalPrice > 0 && sim.price > 0 && originalPrice > sim.price;
+      
+      if (hasRealDiscount) {
+        discountedSims.push(sim);
+      } else {
+        normalSims.push(sim);
+      }
+    });
+    
+    result = [...discountedSims, ...normalSims];
+
+    return result;
+  }, [allSims, filters]);
+
+  const tagCounts = useMemo(() => countTags(allSims), [allSims]);
+  const filteredTagCounts = useMemo(() => countTags(filteredSims), [filteredSims]);
+
+  const activeConstraints = useMemo(() => {
+    const constraints: { key: keyof FilterState; label: string; onRemove: () => void }[] = [];
+
+    if (filters.searchQuery) {
       constraints.push({
-        label: `Giá tùy chỉnh: ${min.toLocaleString()} - ${max === Infinity ? '∞' : max.toLocaleString()}`,
+        key: 'searchQuery',
+        label: `Tìm: "${filters.searchQuery}"`,
+        onRemove: () => updateFilter('searchQuery', '')
+      });
+    }
+
+    if (filters.selectedSuffixes.length > 0) {
+      constraints.push({
+        key: 'selectedSuffixes',
+        label: `Đuôi số: ${filters.selectedSuffixes.join(', ')}`,
+        onRemove: () => updateFilter('selectedSuffixes', [])
+      });
+    }
+
+    if (filters.customSuffix) {
+      constraints.push({
+        key: 'customSuffix',
+        label: `Đuôi: ${filters.customSuffix}`,
+        onRemove: () => updateFilter('customSuffix', '')
+      });
+    }
+
+    if (filters.selectedPrefixes3.length > 0) {
+      constraints.push({
+        key: 'selectedPrefixes3',
+        label: `Đầu số: ${filters.selectedPrefixes3.join(', ')}`,
+        onRemove: () => updateFilter('selectedPrefixes3', [])
+      });
+    }
+
+    if (filters.selectedTags.length > 0) {
+      constraints.push({
+        key: 'selectedTags',
+        label: `Loại: ${filters.selectedTags.join(', ')}`,
+        onRemove: () => updateFilter('selectedTags', [])
+      });
+    }
+
+    if (filters.priceRanges.length > 0) {
+      constraints.push({
+        key: 'priceRanges',
+        label: `Khoảng giá đã chọn`,
+        onRemove: () => updateFilter('priceRanges', [])
+      });
+    }
+
+    if (filters.customPriceMin !== null || filters.customPriceMax !== null) {
+      const min = filters.customPriceMin ? `${(filters.customPriceMin / 1000000).toFixed(0)}tr` : '0';
+      const max = filters.customPriceMax ? `${(filters.customPriceMax / 1000000).toFixed(0)}tr` : '∞';
+      constraints.push({
         key: 'customPriceMin',
+        label: `Giá: ${min} - ${max}`,
         onRemove: () => {
           updateFilter('customPriceMin', null);
           updateFilter('customPriceMax', null);
@@ -734,85 +766,241 @@ export const useSimData = () => {
       });
     }
 
-    if (filters.selectedTags.length > 0) {
-      constraints.push({
-        label: `Tags: ${filters.selectedTags.join(', ')}`,
-        key: 'selectedTags',
-        onRemove: () => updateFilter('selectedTags', [])
-      });
-    }
-
     if (filters.selectedNetworks.length > 0) {
       constraints.push({
-        label: `Mạng: ${filters.selectedNetworks.join(', ')}`,
         key: 'selectedNetworks',
+        label: `Mạng: ${filters.selectedNetworks.join(', ')}`,
         onRemove: () => updateFilter('selectedNetworks', [])
       });
     }
 
-    if (filters.selectedPrefixes3.length > 0) {
+    if (filters.quyType) {
       constraints.push({
-        label: `Đầu số 3 chữ: ${filters.selectedPrefixes3.join(', ')}`,
-        key: 'selectedPrefixes3',
-        onRemove: () => updateFilter('selectedPrefixes3', [])
+        key: 'quyType',
+        label: filters.quyType,
+        onRemove: () => {
+          updateFilter('quyType', null);
+          updateFilter('quyPosition', null);
+        }
       });
     }
 
-    if (filters.selectedPrefixes4.length > 0) {
-      constraints.push({
-        label: `Đầu số 4 chữ: ${filters.selectedPrefixes4.join(', ')}`,
-        key: 'selectedPrefixes4',
-        onRemove: () => updateFilter('selectedPrefixes4', [])
+    return constraints;
+  }, [filters]);
+
+  const relaxFilters = useCallback(() => {
+    const relaxedMessages: string[] = [];
+    
+    setFilters(prev => {
+      const newFilters = { ...prev };
+      
+      for (const key of RELAX_ORDER) {
+        const value = newFilters[key];
+        const isEmpty = 
+          value === '' || 
+          value === null || 
+          (Array.isArray(value) && value.length === 0);
+        
+        if (!isEmpty) {
+          if (Array.isArray(value)) {
+            (newFilters[key] as typeof value) = [];
+          } else if (typeof value === 'string') {
+            (newFilters[key] as string) = '';
+          } else {
+            (newFilters[key] as typeof value) = null as typeof value;
+          }
+          
+          const keyLabels: Record<string, string> = {
+            searchQuery: 'Từ khóa tìm kiếm',
+            selectedSuffixes: 'Bộ lọc đuôi số',
+            customSuffix: 'Đuôi số tùy chỉnh',
+            selectedPrefixes3: 'Bộ lọc đầu số',
+            selectedPrefixes4: 'Bộ lọc đầu 4 số',
+            quyType: 'Bộ lọc quý',
+            quyPosition: 'Vị trí quý',
+            selectedTags: 'Bộ lọc loại số',
+            priceRanges: 'Khoảng giá',
+            customPriceMin: 'Giá tối thiểu',
+            customPriceMax: 'Giá tối đa',
+            selectedNetworks: 'Bộ lọc mạng'
+          };
+          
+          relaxedMessages.push(keyLabels[key] || key);
+          break;
+        }
+      }
+      
+      return newFilters;
+    });
+
+    if (relaxedMessages.length > 0) {
+      toast.info(`Đã bỏ: ${relaxedMessages.join(', ')}`);
+    }
+  }, []);
+
+  const relaxAllFilters = useCallback(() => {
+    setFilters(prev => ({
+      ...prev,
+      searchQuery: '',
+      priceRanges: [],
+      customPriceMin: null,
+      customPriceMax: null,
+      selectedTags: [],
+      selectedNetworks: [],
+      selectedPrefixes3: [],
+      selectedPrefixes4: [],
+      selectedSuffixes: [],
+      customSuffix: ''
+    }));
+    toast.success('Đã nới lỏng tất cả bộ lọc');
+  }, []);
+
+  const updateFilter = useCallback(<K extends keyof FilterState>(
+    key: K, 
+    value: FilterState[K]
+  ) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  }, []);
+
+  const togglePriceRange = useCallback((index: number) => {
+    setFilters(prev => ({
+      ...prev,
+      priceRanges: prev.priceRanges.includes(index)
+        ? prev.priceRanges.filter(i => i !== index)
+        : [...prev.priceRanges, index]
+    }));
+  }, []);
+
+  const toggleTag = useCallback((tag: string) => {
+    setFilters(prev => ({
+      ...prev,
+      selectedTags: prev.selectedTags.includes(tag)
+        ? prev.selectedTags.filter(t => t !== tag)
+        : [...prev.selectedTags, tag]
+    }));
+  }, []);
+
+  const toggleNetwork = useCallback((network: string) => {
+    setFilters(prev => ({
+      ...prev,
+      selectedNetworks: prev.selectedNetworks.includes(network)
+        ? prev.selectedNetworks.filter(n => n !== network)
+        : [...prev.selectedNetworks, network]
+    }));
+  }, []);
+
+  const toggleSuffix = useCallback((suffix: string) => {
+    setFilters(prev => ({
+      ...prev,
+      selectedSuffixes: prev.selectedSuffixes.includes(suffix)
+        ? prev.selectedSuffixes.filter(s => s !== suffix)
+        : [...prev.selectedSuffixes, suffix]
+    }));
+  }, []);
+
+  const resetFilters = useCallback(() => {
+    setFilters(defaultFilterState);
+    toast.info('Đã đặt lại bộ lọc');
+  }, []);
+
+  const activeFilters = useMemo(() => {
+    const chips: { key: string; label: string; onRemove: () => void }[] = [];
+
+    if (filters.searchQuery) {
+      chips.push({
+        key: 'search',
+        label: `Tìm: ${filters.searchQuery}`,
+        onRemove: () => updateFilter('searchQuery', '')
       });
     }
 
-    if (filters.selectedSuffixes.length > 0) {
-      constraints.push({
-        label: `Đuôi: ${filters.selectedSuffixes.join(', ')}`,
-        key: 'selectedSuffixes',
-        onRemove: () => updateFilter('selectedSuffixes', [])
+    filters.priceRanges.forEach(index => {
+      chips.push({
+        key: `price-${index}`,
+        label: PRICE_RANGES[index].label,
+        onRemove: () => togglePriceRange(index)
+      });
+    });
+
+    if (filters.customPriceMin !== null || filters.customPriceMax !== null) {
+      const min = filters.customPriceMin ? `${(filters.customPriceMin / 1000000).toFixed(0)}tr` : '0';
+      const max = filters.customPriceMax ? `${(filters.customPriceMax / 1000000).toFixed(0)}tr` : '∞';
+      chips.push({
+        key: 'custom-price',
+        label: `${min} - ${max}`,
+        onRemove: () => {
+          updateFilter('customPriceMin', null);
+          updateFilter('customPriceMax', null);
+        }
       });
     }
+
+    filters.selectedTags.forEach(tag => {
+      chips.push({
+        key: `tag-${tag}`,
+        label: tag,
+        onRemove: () => toggleTag(tag)
+      });
+    });
+
+    filters.selectedNetworks.forEach(network => {
+      chips.push({
+        key: `network-${network}`,
+        label: network,
+        onRemove: () => toggleNetwork(network)
+      });
+    });
+
+    filters.selectedPrefixes3.forEach(prefix => {
+      chips.push({
+        key: `prefix3-${prefix}`,
+        label: `Đầu ${prefix}`,
+        onRemove: () => updateFilter('selectedPrefixes3', filters.selectedPrefixes3.filter(p => p !== prefix))
+      });
+    });
+
+    filters.selectedSuffixes.forEach(suffix => {
+      chips.push({
+        key: `suffix-${suffix}`,
+        label: `Đuôi ${suffix}`,
+        onRemove: () => toggleSuffix(suffix)
+      });
+    });
 
     if (filters.customSuffix) {
-      constraints.push({
-        label: `Đuôi tùy chỉnh: ${filters.customSuffix}`,
-        key: 'customSuffix',
+      chips.push({
+        key: 'custom-suffix',
+        label: `Đuôi ${filters.customSuffix}`,
         onRemove: () => updateFilter('customSuffix', '')
       });
     }
 
-    if (filters.vipFilter !== 'all') {
-      constraints.push({
-        label: `VIP: ${filters.vipFilter === 'only' ? 'Chỉ VIP' : 'Ẩn VIP'}`,
-        key: 'vipFilter',
+    if (filters.vipFilter === 'only') {
+      chips.push({
+        key: 'vip-only',
+        label: 'Chỉ VIP',
+        onRemove: () => updateFilter('vipFilter', 'all')
+      });
+    } else if (filters.vipFilter === 'hide') {
+      chips.push({
+        key: 'vip-hide',
+        label: 'Ẩn VIP',
         onRemove: () => updateFilter('vipFilter', 'all')
       });
     }
 
-    if (filters.sortBy !== 'default') {
-      const sortLabel = ['Mới nhất', 'Giá tăng dần', 'Giá giảm dần', 'Đẹp nhất', 'Đuôi đẹp'].find(
-        (_, i) => ['default', 'price_asc', 'price_desc', 'beauty', 'suffix_beauty'][i] === filters.sortBy
-      );
-      if (sortLabel) {
-        constraints.push({
-          label: `Sắp xếp: ${sortLabel}`,
-          key: 'sortBy',
-          onRemove: () => updateFilter('sortBy', 'default')
-        });
-      }
-    }
-
-    return constraints;
-  }, [filters, updateFilter]);
+    return chips;
+  }, [filters, updateFilter, togglePriceRange, toggleTag, toggleNetwork, toggleSuffix]);
 
   const searchSuggestion = useMemo(() => {
     if (filteredSims.length === 0 && filters.searchQuery) {
       const query = filters.searchQuery;
       if (query.includes('*')) {
-        return `Không tìm thấy SIM nào với mẫu "${query}"`;
+        return 'Thử bỏ dấu * hoặc giảm số ký tự';
       }
-      return `Không tìm thấy SIM nào với từ khóa "${query}"`;
+      if (query.length > 6) {
+        return 'Thử tìm với ít số hơn (4-6 số)';
+      }
     }
     return null;
   }, [filteredSims.length, filters.searchQuery]);
@@ -821,17 +1009,25 @@ export const useSimData = () => {
     allSims,
     filteredSims,
     isLoading,
-    error,
     isFetching,
-    filters,
-    updateFilter,
-    clearAllFilters,
-    refetch: refetchData,
+    error,
+    refetch,
+    forceReload,
     prefixes,
     tagCounts,
     filteredTagCounts,
+    filters,
+    setFilters,
+    updateFilter,
+    togglePriceRange,
+    toggleTag,
+    toggleNetwork,
+    toggleSuffix,
+    resetFilters,
+    activeFilters,
     activeConstraints,
-    searchSuggestion,
-    vipThreshold: 50000000,
+    relaxFilters,
+    relaxAllFilters,
+    searchSuggestion
   };
 };

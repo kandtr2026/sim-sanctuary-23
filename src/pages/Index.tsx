@@ -28,9 +28,6 @@ const norm = (s: any) =>
     .toLowerCase()
     .replace(/\s+/g, " ");
 
-// Helper: normalize to digits-only (for search matching)
-const normalizeSim = (v?: any) => String(v ?? "").replace(/\D/g, "");
-
 // Helper: check if array includes a label (case-insensitive)
 const includesLabel = (arr: any, label: string) => {
   if (!Array.isArray(arr)) return false;
@@ -42,9 +39,10 @@ const includesLabel = (arr: any, label: string) => {
   });
 };
 
-// Helper: extract digits from SIM for tail checking (prioritize rawDigits)
+// Helper: extract digits from SIM for tail checking
 const simDigits = (sim: any) =>
-  normalizeSim(sim?.rawDigits ?? sim?.formattedNumber ?? sim?.number ?? sim?.sim ?? "");
+  String(sim?.formattedNumber ?? sim?.number ?? "")
+    .replace(/\D/g, "");
 
 // Tail-based quý detection (inline for accuracy)
 // Tứ quý: 4 số cuối giống nhau (tail-based)
@@ -313,36 +311,30 @@ const Index = () => {
   // Get last update info for display
   const lastUpdateInfo = getLastUpdateInfo();
 
-  // Normalized search digits for matching (memoized)
-  const normalizedSearchDigits = useMemo(() => normalizeSim(filters.searchQuery), [filters.searchQuery]);
-
   // Compute OR-fallback when main search returns 0 results with prefix*suffix pattern
   const orFallbackSims = useMemo(() => {
     if (filteredSims.length > 0 || allSims.length === 0) return [];
     
-    const raw = (filters.searchQuery || "").trim();
+    const query = filters.searchQuery.replace(/[\.\s]/g, '').trim();
     
     // Only apply OR fallback for prefix*suffix pattern
-    if (!raw.includes('*')) return [];
+    if (!query.includes('*')) return [];
     
-    const parts = raw.split('*');
-    if (parts.length !== 2) return [];
-    if (!parts[0] || !parts[1]) return [];
+    const parts = query.split('*').filter(Boolean);
+    if (parts.length !== 2 || query.startsWith('*') || query.endsWith('*')) return [];
     
-    const prefix = normalizeSim(parts[0]);
-    const suffix = normalizeSim(parts[1]);
-    if (!prefix || !suffix) return [];
+    const prefix = parts[0];
+    const suffix = parts[1];
     
     const matchBoth: NormalizedSIM[] = [];
     const matchPrefix: NormalizedSIM[] = [];
     const matchSuffix: NormalizedSIM[] = [];
     
     for (const sim of allSims) {
-      const d = normalizeSim((sim as any)?.rawDigits ?? simDigits(sim));
-      if (!d) continue;
+      if (!sim.rawDigits) continue;
       
-      const hasP = d.startsWith(prefix);
-      const hasS = d.endsWith(suffix);
+      const hasP = sim.rawDigits.startsWith(prefix);
+      const hasS = sim.rawDigits.endsWith(suffix);
       
       if (hasP && hasS) {
         matchBoth.push(sim);
@@ -364,11 +356,11 @@ const Index = () => {
     if (filteredSims.length > 0 || allSims.length === 0) return [];
     return getSimilarSims({
       allSims,
-      searchQuery: normalizedSearchDigits || filters.searchQuery,
+      searchQuery: filters.searchQuery,
       activeFilters: filters,
       limit: 100
     });
-  }, [allSims, filteredSims.length, filters, orFallbackSims.length, normalizedSearchDigits]);
+  }, [allSims, filteredSims.length, filters, orFallbackSims.length]);
 
   // Combined suggestions: OR fallback takes priority over similarity suggestions
   const combinedSuggestions = orFallbackSims.length > 0 ? orFallbackSims : similarSims;
