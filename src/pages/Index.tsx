@@ -403,6 +403,14 @@ const Index = () => {
   const isHexOn = quyTypeOn === 'Lục quý' || typeSources.some((src) => includesLabel(src, "Lục quý"));
   const anyQuyOn = isQuadOn || isQuintOn || isHexOn;
 
+  // Helper: apply quý filter to a list (defined after quý state variables)
+  const applyQuyFilter = (list: any[]) => {
+    if (!anyQuyOn) return list;
+    if (isHexOn) return list.filter(isHexAnywhere);
+    if (isQuintOn) return list.filter(isQuintAnywhere);
+    return list.filter(isQuadTail);
+  };
+
   // Check if any type selection is active (for landing detection)
   const hasTypeSelection = (Array.isArray(filters?.selectedTags) && filters.selectedTags.length > 0) || !!filters?.quyType;
 
@@ -418,7 +426,10 @@ const Index = () => {
     ? reorderForLanding(combinedSuggestions, landingSeed)
     : combinedSuggestions;
 
-  const isNoResultsWithSuggestions = filteredSims.length === 0 && finalCombinedSuggestions.length > 0 && !isLoading && !error;
+  // Apply quý filter to suggestions
+  const finalSuggestionsWithQuy = useMemo(() => applyQuyFilter(finalCombinedSuggestions), [finalCombinedSuggestions, anyQuyOn, isHexOn, isQuintOn, isQuadOn]);
+
+  const isNoResultsWithSuggestions = filteredSims.length === 0 && finalSuggestionsWithQuy.length > 0 && !isLoading && !error;
 
   // Freeze landing list when in default landing state (random once, keep on scroll)
   // Uses seeded shuffle for deterministic ordering based on landingSeed
@@ -677,7 +688,7 @@ const Index = () => {
                   searchQuery={filters.searchQuery}
                   filters={filters}
                   quyFilter={filters.quyType}
-                  precomputedSuggestions={finalCombinedSuggestions}
+                  precomputedSuggestions={finalSuggestionsWithQuy}
                   isOrFallback={isOrFallback}
                 />
               )}
