@@ -599,7 +599,40 @@ export const useSimData = () => {
 
   const prefixes = useMemo(() => getUniquePrefixes(allSims), [allSims]);
 
+  // Helper to extract digits from a SIM object (robust, handles various field names)
+  const normalizeDigits = (v?: any) => String(v ?? "").replace(/\D/g, "");
+  
+  const getSimDigits = (sim: any) => normalizeDigits(
+    sim?.rawDigits ??
+    sim?.sim_normalized ??
+    sim?.number ??
+    sim?.formattedNumber ??
+    sim?.sim ??
+    sim?.phone ??
+    sim?.msisdn ??
+    sim?.value ??
+    sim?.simNumber ??
+    sim?.displayNumber ??
+    ""
+  );
+
   const filteredSims = useMemo(() => {
+    // --- EXACT MATCH PRIORITY RULE ---
+    // If user enters exactly 10 digits (no wildcards), return exact match immediately
+    const qRaw = String(filters.searchQuery || "").trim();
+    const qDigits = normalizeDigits(qRaw);
+    
+    // Exact rule: 10 digits, no wildcard '*'
+    if (qDigits.length === 10 && !qRaw.includes('*')) {
+      const exactInAll = allSims.filter(sim => getSimDigits(sim) === qDigits);
+      if (exactInAll.length > 0) {
+        // RETURN IMMEDIATELY - bypass all other filters for exact match
+        console.log(`[Search] Exact match found for ${qDigits}: ${exactInAll.length} result(s)`);
+        return exactInAll;
+      }
+    }
+    // --- END EXACT MATCH PRIORITY ---
+
     let result = [...allSims];
 
     if (filters.searchQuery) {
