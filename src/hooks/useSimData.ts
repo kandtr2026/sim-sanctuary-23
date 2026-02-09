@@ -17,6 +17,199 @@ import {
 } from '@/lib/simUtils';
 import { toast } from 'sonner';
 
+// ============= PRIVATE SEARCH HELPERS =============
+
+/**
+ * Normalize any value to digits-only string
+ * Used for search matching (removes dots, spaces, non-digits)
+ */
+const normalizeSim = (v?: unknown): string => String(v ?? '').replace(/\D/g, '');
+
+/**
+ * Get digits from SIM object, prioritized by reliability of field
+ * Returns digits-only string or empty string
+ */
+const getSimDigits = (sim: NormalizedSIM | Record<string, unknown>): string => {
+  const candidates = [
+    (sim as NormalizedSIM)?.rawDigits,
+    (sim as Record<string, unknown>)?.sim_normalized,
+    (sim as Record<string, unknown>)?.number,
+    (sim as NormalizedSIM)?.formattedNumber,
+    (sim as Record<string, unknown>)?.sim,
+    (sim as NormalizedSIM)?.displayNumber,
+  ];
+  for (const c of candidates) {
+    if (c) {
+      const digits = normalizeSim(c);
+      if (digits.length >= 9) return digits;
+    }
+  }
+  return '';
+};
+
+/**
+ * Apply search with 3 modes: EXACT, STAR PATTERN, CONTAINS
+ * - EXACT: queryDigits.length >= 8 && no '*' => exact match
+ * - STAR PATTERN: query contains '*' with prefix*suffix format
+ * - CONTAINS: fallback for partial queries
+ */
+const applySearchFilter = (
+  sims: NormalizedSIM[],
+  query: string
+): NormalizedSIM[] => {
+  const queryRaw = (query ?? '').trim();
+  if (!queryRaw) return sims;
+
+  const queryDigits = normalizeSim(queryRaw);
+  
+  // Skip if less than 2 digits
+  if (queryDigits.length < 2) return sims;
+
+  // STAR PATTERN: prefix*suffix
+  if (queryRaw.includes('*')) {
+    const parts = queryRaw.split('*');
+    // Only handle exact 2 parts (prefix*suffix), not leading/trailing '*' alone
+    if (parts.length === 2 && parts[0] && parts[1]) {
+      const prefixDigits = normalizeSim(parts[0]);
+      const suffixDigits = normalizeSim(parts[1]);
+      
+      if (prefixDigits && suffixDigits) {
+        return sims.filter(sim => {
+          const digits = getSimDigits(sim);
+          return digits.startsWith(prefixDigits) && digits.endsWith(suffixDigits);
+        });
+      }
+    }
+    // If star pattern is invalid, fall through to CONTAINS
+  }
+
+  // EXACT MODE: 8+ digits, no wildcard => exact match only
+  if (queryDigits.length >= 8 && !queryRaw.includes('*')) {
+    return sims.filter(sim => getSimDigits(sim) === queryDigits);
+  }
+
+  // CONTAINS MODE: default partial match
+  return sims.filter(sim => getSimDigits(sim).includes(queryDigits));
+};
+
+/**
+ * Apply non-search filters (price, network, tags, prefixes, suffixes, vip, quy)
+ */
+const applyNonSearchFilters = (
+  sims: NormalizedSIM[],
+  filters: FilterState
+): NormalizedSIM[] => {
+  let result = sims;
+
+  // Price ranges
+  if (filters.priceRanges.length > 0) {
+    result = result.filter(sim => {
+      return filters.priceRanges.some(rangeIndex => {
+        const range = PRICE_RANGES[rangeIndex];
+        return sim.price >= range.min && sim.price <= range.max;
+      });
+    });
+  }
+
+  // Custom price range
+  if (filters.customPriceMin !== null || filters.customPriceMax !== null) {
+    const min = filters.customPriceMin ?? 0;
+    const max = filters.customPriceMax ?? Infinity;
+    result = result.filter(sim => sim.price >= min && sim.price <= max);
+  }
+
+  // Tags
+  if (filters.selectedTags.length > 0) {
+    result = result.filter(sim => {
+      return filters.selectedTags.some(tag => {
+        if (tag === 'VIP') return sim.isVIP;
+        return sim.tags.includes(tag);
+      });
+    });
+  }
+
+  // Networks
+  if (filters.selectedNetworks.length > 0) {
+    result = result.filter(sim => filters.selectedNetworks.includes(sim.network));
+  }
+
+  // Prefix3
+  if (filters.selectedPrefixes3.length > 0) {
+    result = result.filter(sim => filters.selectedPrefixes3.includes(sim.prefix3));
+  }
+
+  // Prefix4
+  if (filters.selectedPrefixes4.length > 0) {
+    result = result.filter(sim => filters.selectedPrefixes4.includes(sim.prefix4));
+  }
+
+  // Suffixes
+  if (filters.selectedSuffixes.length > 0 || filters.customSuffix) {
+    const allSuffixes = [...filters.selectedSuffixes];
+    if (filters.customSuffix) {
+      allSuffixes.push(filters.customSuffix);
+    }
+    result = result.filter(sim => {
+      return allSuffixes.some(suffix => sim.rawDigits.endsWith(suffix));
+    });
+  }
+
+  // VIP filter
+  if (filters.vipFilter === 'only') {
+    result = result.filter(sim => sim.isVIP);
+  } else if (filters.vipFilter === 'hide') {
+    result = result.filter(sim => !sim.isVIP);
+  }
+
+  // Quý position filter
+  if (filters.quyType) {
+    result = result.filter(sim =>
+      matchesQuyFilter(sim.rawDigits, filters.quyType, filters.quyPosition)
+    );
+  }
+
+  return result;
+};
+
+/**
+ * Apply sorting with Mobifone-first and discount priority
+ */
+const applySorting = (
+  sims: NormalizedSIM[],
+  filters: FilterState
+): NormalizedSIM[] => {
+  let result = sortSIMs(sims, filters.sortBy);
+
+  // Mobifone first (only for default sort)
+  if (filters.mobifoneFirst && filters.sortBy === 'default') {
+    result = result.sort((a, b) => {
+      if (a.network === 'Mobifone' && b.network !== 'Mobifone') return -1;
+      if (a.network !== 'Mobifone' && b.network === 'Mobifone') return 1;
+      return 0;
+    });
+  }
+
+  // Prioritize discounted SIMs (stable sort)
+  const discountedSims: NormalizedSIM[] = [];
+  const normalSims: NormalizedSIM[] = [];
+
+  result.forEach(sim => {
+    const promoData = getPromotionalData(sim.id);
+    const originalPrice = promoData?.originalPrice;
+    const hasRealDiscount = originalPrice && originalPrice > 0 && sim.price > 0 && originalPrice > sim.price;
+
+    if (hasRealDiscount) {
+      discountedSims.push(sim);
+    } else {
+      normalSims.push(sim);
+    }
+  });
+
+  return [...discountedSims, ...normalSims];
+};
+
+// ============= END SEARCH HELPERS =============
+
 // Seed data: 100 SIMs for instant rendering (prices 3-5 million VND)
 const SEED_RAW_DATA = [
   { number: '0938123456', price: 3500000 },
@@ -600,103 +793,28 @@ export const useSimData = () => {
   const prefixes = useMemo(() => getUniquePrefixes(allSims), [allSims]);
 
   const filteredSims = useMemo(() => {
-    let result = [...allSims];
+    const queryRaw = (filters.searchQuery ?? '').trim();
+    const queryDigits = normalizeSim(queryRaw);
 
-    if (filters.searchQuery) {
-      const digitCount = filters.searchQuery.replace(/\D/g, '').length;
-      if (digitCount >= 2) {
-        result = result.filter(sim => searchSIM(sim, filters.searchQuery));
+    // ============= EXACT RESCUE =============
+    // If query is 8+ digits without '*', check for exact match in allSims first
+    // This prevents "data exists but returns empty" when other filters would exclude it
+    if (queryDigits.length >= 8 && !queryRaw.includes('*')) {
+      const exactInAll = allSims.filter(sim => getSimDigits(sim) === queryDigits);
+      if (exactInAll.length > 0) {
+        // Return exact matches immediately (bypass other filters)
+        return applySorting(exactInAll, filters);
       }
     }
 
-    if (filters.priceRanges.length > 0) {
-      result = result.filter(sim => {
-        return filters.priceRanges.some(rangeIndex => {
-          const range = PRICE_RANGES[rangeIndex];
-          return sim.price >= range.min && sim.price <= range.max;
-        });
-      });
-    }
+    // ============= PIPELINE A: Non-search filters =============
+    const afterNonSearch = applyNonSearchFilters(allSims, filters);
 
-    if (filters.customPriceMin !== null || filters.customPriceMax !== null) {
-      const min = filters.customPriceMin ?? 0;
-      const max = filters.customPriceMax ?? Infinity;
-      result = result.filter(sim => sim.price >= min && sim.price <= max);
-    }
+    // ============= PIPELINE B: Search filter =============
+    const afterSearch = applySearchFilter(afterNonSearch, filters.searchQuery);
 
-    if (filters.selectedTags.length > 0) {
-      result = result.filter(sim => {
-        return filters.selectedTags.some(tag => {
-          if (tag === 'VIP') return sim.isVIP;
-          return sim.tags.includes(tag);
-        });
-      });
-    }
-
-    if (filters.selectedNetworks.length > 0) {
-      result = result.filter(sim => filters.selectedNetworks.includes(sim.network));
-    }
-
-    if (filters.selectedPrefixes3.length > 0) {
-      result = result.filter(sim => filters.selectedPrefixes3.includes(sim.prefix3));
-    }
-
-    if (filters.selectedPrefixes4.length > 0) {
-      result = result.filter(sim => filters.selectedPrefixes4.includes(sim.prefix4));
-    }
-
-    if (filters.selectedSuffixes.length > 0 || filters.customSuffix) {
-      const allSuffixes = [...filters.selectedSuffixes];
-      if (filters.customSuffix) {
-        allSuffixes.push(filters.customSuffix);
-      }
-      result = result.filter(sim => {
-        return allSuffixes.some(suffix => sim.rawDigits.endsWith(suffix));
-      });
-    }
-
-    if (filters.vipFilter === 'only') {
-      result = result.filter(sim => sim.isVIP);
-    } else if (filters.vipFilter === 'hide') {
-      result = result.filter(sim => !sim.isVIP);
-    }
-
-    // Quý position filter
-    if (filters.quyType) {
-      result = result.filter(sim => 
-        matchesQuyFilter(sim.rawDigits, filters.quyType, filters.quyPosition)
-      );
-    }
-
-    result = sortSIMs(result, filters.sortBy);
-
-    if (filters.mobifoneFirst && filters.sortBy === 'default') {
-      result = result.sort((a, b) => {
-        if (a.network === 'Mobifone' && b.network !== 'Mobifone') return -1;
-        if (a.network !== 'Mobifone' && b.network === 'Mobifone') return 1;
-        return 0;
-      });
-    }
-
-    // Ưu tiên SIM có giảm giá thật lên đầu (stable sort - giữ nguyên thứ tự trong từng nhóm)
-    const discountedSims: NormalizedSIM[] = [];
-    const normalSims: NormalizedSIM[] = [];
-    
-    result.forEach(sim => {
-      const promoData = getPromotionalData(sim.id);
-      const originalPrice = promoData?.originalPrice;
-      const hasRealDiscount = originalPrice && originalPrice > 0 && sim.price > 0 && originalPrice > sim.price;
-      
-      if (hasRealDiscount) {
-        discountedSims.push(sim);
-      } else {
-        normalSims.push(sim);
-      }
-    });
-    
-    result = [...discountedSims, ...normalSims];
-
-    return result;
+    // ============= PIPELINE C: Sorting =============
+    return applySorting(afterSearch, filters);
   }, [allSims, filters]);
 
   const tagCounts = useMemo(() => countTags(allSims), [allSims]);
