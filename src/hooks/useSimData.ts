@@ -602,19 +602,32 @@ export const useSimData = () => {
   // Helper to extract digits from a SIM object (robust, handles various field names)
   const normalizeDigits = (v?: any) => String(v ?? "").replace(/\D/g, "");
   
-  const getSimDigits = (sim: any) => normalizeDigits(
-    sim?.rawDigits ??
-    sim?.sim_normalized ??
-    sim?.number ??
-    sim?.formattedNumber ??
-    sim?.sim ??
-    sim?.phone ??
-    sim?.msisdn ??
-    sim?.value ??
-    sim?.simNumber ??
-    sim?.displayNumber ??
-    ""
-  );
+  const getSimDigitsRobust = (sim: any) => {
+    const preferred = [
+      sim?.rawDigits, sim?.sim_normalized, sim?.number, sim?.formattedNumber, sim?.sim,
+      sim?.phone, sim?.msisdn, sim?.value, sim?.simNumber, sim?.displayNumber,
+      sim?.SimNumber, sim?.sim_number, sim?.phone_number, sim?.so_sim
+    ];
+    
+    // Try preferred fields first
+    for (const v of preferred) {
+      const d = normalizeDigits(v);
+      if (d.length >= 10) return d;
+    }
+    
+    // Fallback: scan all object keys
+    if (sim && typeof sim === 'object') {
+      for (const k of Object.keys(sim)) {
+        const v = sim[k];
+        if (typeof v === 'string' || typeof v === 'number') {
+          const d = normalizeDigits(v);
+          if (d.length >= 10) return d;
+        }
+      }
+    }
+    
+    return '';
+  };
 
   const filteredSims = useMemo(() => {
     // --- EXACT MATCH PRIORITY RULE ---
@@ -624,7 +637,7 @@ export const useSimData = () => {
     
     // Exact rule: 10 digits, no wildcard '*'
     if (qDigits.length === 10 && !qRaw.includes('*')) {
-      const exactInAll = allSims.filter(sim => getSimDigits(sim) === qDigits);
+      const exactInAll = allSims.filter(sim => getSimDigitsRobust(sim) === qDigits);
       if (exactInAll.length > 0) {
         // RETURN IMMEDIATELY - bypass all other filters for exact match
         console.log(`[Search] Exact match found for ${qDigits}: ${exactInAll.length} result(s)`);
@@ -684,7 +697,8 @@ export const useSimData = () => {
         allSuffixes.push(filters.customSuffix);
       }
       result = result.filter(sim => {
-        return allSuffixes.some(suffix => sim.rawDigits.endsWith(suffix));
+        const simDigits = getSimDigitsRobust(sim);
+        return allSuffixes.some(suffix => simDigits.endsWith(suffix));
       });
     }
 
@@ -696,9 +710,10 @@ export const useSimData = () => {
 
     // Quý position filter
     if (filters.quyType) {
-      result = result.filter(sim => 
-        matchesQuyFilter(sim.rawDigits, filters.quyType, filters.quyPosition)
-      );
+      result = result.filter(sim => {
+        const simDigits = getSimDigitsRobust(sim);
+        return matchesQuyFilter(simDigits, filters.quyType, filters.quyPosition);
+      });
     }
 
     result = sortSIMs(result, filters.sortBy);
