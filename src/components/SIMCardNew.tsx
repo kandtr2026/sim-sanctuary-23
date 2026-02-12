@@ -74,29 +74,107 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
     return `Giảm ${thousands}k`;
   };
 
-  // Highlight based on search query, or fallback to last 4 digits highlight
+  // Highlight based on search query, or fallback to last segment VIP highlight
   const formatWithHighlight = (displayNumber: string): React.ReactNode => {
-    const highlightQuery = String(searchQuery || '').replace(/[^\d*]/g, '');
+    const q = String(searchQuery || '').replace(/[^0-9*]/g, '');
+    const digitsOnly = q.replace(/\*/g, '');
+    const candidateDigits = (sim.rawDigits || displayNumber).replace(/\D/g, '');
 
-    // If there's a search query with 2+ digits, use search highlighting
-    const queryDigits = highlightQuery.replace(/[^\d]/g, '');
-    if (queryDigits.length >= 2) {
-      const spans = createHighlightedNumber(displayNumber, sim.rawDigits, highlightQuery);
-      return <>{spans}</>;
+    // No meaningful search -> VIP default highlight (last segment gold)
+    if (!digitsOnly) {
+      const parts = displayNumber.split('.');
+      if (parts.length === 3) {
+        return (
+          <>
+            <span className="opacity-80">{parts[0]}.</span>
+            <span className="opacity-80">{parts[1]}.</span>
+            <span className="text-gold font-extrabold">{parts[2]}</span>
+          </>
+        );
+      }
+      return displayNumber;
     }
-    
-    // Default: highlight last segment (after last dot)
-    const parts = displayNumber.split('.');
-    if (parts.length === 3) {
-      return (
-        <>
-          <span className="opacity-80">{parts[0]}.</span>
-          <span className="opacity-80">{parts[1]}.</span>
-          <span className="text-gold font-extrabold">{parts[2]}</span>
-        </>
-      );
+
+    // Compute highlight ranges on candidateDigits (digit indices to bold)
+    const hlSet = new Set<number>();
+
+    if (q.includes('*')) {
+      const starIdx = q.indexOf('*');
+      const isPrefix = !q.startsWith('*') && q.endsWith('*') && q.indexOf('*') === q.lastIndexOf('*');
+      const isSuffix = q.startsWith('*') && !q.endsWith('*') && q.indexOf('*') === q.lastIndexOf('*');
+      const isMid = !q.startsWith('*') && !q.endsWith('*') && q.indexOf('*') === q.lastIndexOf('*');
+
+      if (isMid) {
+        const prefix = q.slice(0, starIdx).replace(/\*/g, '');
+        const suffix = q.slice(starIdx + 1).replace(/\*/g, '');
+        if (candidateDigits.startsWith(prefix)) {
+          for (let i = 0; i < prefix.length; i++) hlSet.add(i);
+        }
+        if (candidateDigits.endsWith(suffix)) {
+          const start = candidateDigits.length - suffix.length;
+          for (let i = start; i < candidateDigits.length; i++) hlSet.add(i);
+        }
+      } else if (isPrefix) {
+        const prefix = q.replace(/\*/g, '');
+        if (candidateDigits.startsWith(prefix)) {
+          for (let i = 0; i < prefix.length; i++) hlSet.add(i);
+        }
+      } else if (isSuffix) {
+        const suffix = q.replace(/\*/g, '');
+        if (candidateDigits.endsWith(suffix)) {
+          const start = candidateDigits.length - suffix.length;
+          for (let i = start; i < candidateDigits.length; i++) hlSet.add(i);
+        }
+      }
+      // else: multiple wildcards or weird pattern -> no highlight (safe)
+    } else if (digitsOnly.length === 10) {
+      // Exact match -> highlight all
+      if (candidateDigits === digitsOnly) {
+        for (let i = 0; i < candidateDigits.length; i++) hlSet.add(i);
+      }
+    } else {
+      // Contains match -> highlight first occurrence
+      const idx = candidateDigits.indexOf(digitsOnly);
+      if (idx !== -1) {
+        for (let i = idx; i < idx + digitsOnly.length; i++) hlSet.add(i);
+      }
     }
-    return displayNumber;
+
+    // If nothing matched, render plain
+    if (hlSet.size === 0) return displayNumber;
+
+    // Render display string, mapping digit positions to highlight set
+    const result: React.ReactNode[] = [];
+    let digitIdx = 0;
+    let buf = '';
+    let bufHl = false;
+
+    const flush = () => {
+      if (buf) {
+        result.push(
+          <span key={result.length} className={bufHl ? 'font-semibold text-red-600' : 'opacity-80'}>
+            {buf}
+          </span>
+        );
+        buf = '';
+      }
+    };
+
+    for (const ch of displayNumber) {
+      if (/\d/.test(ch)) {
+        const isHl = hlSet.has(digitIdx);
+        if (buf && bufHl !== isHl) flush();
+        bufHl = isHl;
+        buf += ch;
+        digitIdx++;
+      } else {
+        // non-digit (dot, space) - keep in current buffer
+        buf += ch;
+      }
+    }
+    flush();
+
+    return <>{result}</>;
   };
 
   const networkColors: Record<string, string> = {
