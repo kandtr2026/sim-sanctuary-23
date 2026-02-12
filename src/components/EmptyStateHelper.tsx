@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { AlertCircle, Eraser, XCircle, Sparkles, Phone, ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import SIMCardNew from '@/components/SIMCardNew';
-import { getPromotionalData } from '@/hooks/useSimData';
-import type { NormalizedSIM } from '@/lib/simUtils';
-import { getSuggestionHighlightDigits } from '@/lib/highlightUtils';
-import type { FilterState } from '@/hooks/useSimData';
+import { useState } from "react";
+import { AlertCircle, Eraser, XCircle, Sparkles, Phone, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import SIMCardNew from "@/components/SIMCardNew";
+import { getPromotionalData } from "@/hooks/useSimData";
+import type { NormalizedSIM } from "@/lib/simUtils";
+import { getSuggestionHighlightDigits } from "@/lib/highlightUtils";
+import type { FilterState } from "@/hooks/useSimData";
 
 interface Constraint {
   key: string;
@@ -22,7 +22,7 @@ interface EmptyStateHelperProps {
   allSims?: NormalizedSIM[];
   searchQuery?: string;
   filters?: FilterState;
-  quyFilter?: FilterState['quyType'];
+  quyFilter?: FilterState["quyType"];
   precomputedSuggestions?: NormalizedSIM[];
   isOrFallback?: boolean; // True when showing OR-fallback results instead of similarity suggestions
 }
@@ -37,21 +37,21 @@ const EmptyStateHelper = ({
   onRelaxAll,
   onReset,
   allSims = [],
-  searchQuery = '',
+  searchQuery = "",
   filters,
   quyFilter,
   precomputedSuggestions = [],
-  isOrFallback = false
+  isOrFallback = false,
 }: EmptyStateHelperProps) => {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   // Digits-only query for highlighting (ignore quotes/spaces/dots/non-digits)
-  const normalizedSearchDigits = String(searchQuery || '').replace(/[^0-9]/g, '');
+  const normalizedSearchDigits = String(searchQuery || "").replace(/[^0-9]/g, "");
 
   // Dev-only debug (enable via: localStorage.setItem('debug_highlight','1'))
-  if (import.meta.env.DEV && typeof window !== 'undefined' && window.localStorage?.getItem('debug_highlight') === '1') {
+  if (import.meta.env.DEV && typeof window !== "undefined" && window.localStorage?.getItem("debug_highlight") === "1") {
     // eslint-disable-next-line no-console
-    console.log('[highlight] EmptyStateHelper', { normalizedSearchDigits, rawSearchQuery: searchQuery });
+    console.log("[highlight] EmptyStateHelper", { normalizedSearchDigits, rawSearchQuery: searchQuery });
   }
 
   // Use precomputed suggestions from parent
@@ -60,12 +60,18 @@ const EmptyStateHelper = ({
   const remainingCount = precomputedSuggestions.length - visibleCount;
 
   const handleLoadMore = () => {
-    setVisibleCount(prev => prev + LOAD_MORE_COUNT);
+    setVisibleCount((prev) => prev + LOAD_MORE_COUNT);
   };
 
   // Display query for notice (original format, not sanitized)
-  const displayQuery = searchQuery || constraints.find(c => c.key === 'searchQuery')?.label.replace('Tìm: "', '').replace('"', '') || '';
-  
+  const displayQuery =
+    searchQuery ||
+    constraints
+      .find((c) => c.key === "searchQuery")
+      ?.label.replace('Tìm: "', "")
+      .replace('"', "") ||
+    "";
+
   const hasSuggestions = precomputedSuggestions.length > 0;
 
   return (
@@ -78,17 +84,15 @@ const EmptyStateHelper = ({
             <div className="flex items-center gap-2 flex-wrap">
               <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
               <span className="text-sm font-medium text-amber-800">
-                {displayQuery 
+                {displayQuery
                   ? `Không tìm thấy kết quả phù hợp cho "${displayQuery}"`
-                  : 'Không tìm thấy SIM phù hợp với bộ lọc'}
+                  : "Không tìm thấy SIM phù hợp với bộ lọc"}
               </span>
               <span className="text-xs text-amber-700">—</span>
-              <span className="text-xs text-amber-700">
-                Dưới đây là các số gợi ý để bạn tham khảo.
-              </span>
+              <span className="text-xs text-amber-700">Dưới đây là các số gợi ý để bạn tham khảo.</span>
               <span className="text-xs text-amber-600 flex items-center gap-1 ml-auto">
                 <Phone className="w-3 h-3" />
-                Hotline: <strong className="text-primary">0933.686.666</strong>
+                Hotline: <strong className="text-primary">0938.868.868</strong>
               </span>
             </div>
           </div>
@@ -97,7 +101,7 @@ const EmptyStateHelper = ({
           {constraints.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap mb-3">
               <span className="text-xs text-muted-foreground">Lọc:</span>
-              {constraints.slice(0, 3).map(constraint => (
+              {constraints.slice(0, 3).map((constraint) => (
                 <button
                   key={constraint.key}
                   onClick={constraint.onRemove}
@@ -128,14 +132,14 @@ const EmptyStateHelper = ({
             <Sparkles className="w-4 h-4 text-primary" />
             {`GỢI Ý (${precomputedSuggestions.length.toLocaleString()} SIM)`}
           </h4>
-          
+
           {/* SIM Grid - Same layout as main listing */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {similarSims.map((sim) => {
               // Compute smart highlight for suggestion: find longest matching suffix/substring
-              const candidateDigits = String(sim.rawDigits || sim.displayNumber || '').replace(/[^0-9]/g, '');
+              const candidateDigits = String(sim.rawDigits || sim.displayNumber || "").replace(/[^0-9]/g, "");
               const suggestHighlight = getSuggestionHighlightDigits(normalizedSearchDigits, candidateDigits);
-              
+
               return (
                 <SIMCardNew
                   key={sim.id}
@@ -151,16 +155,11 @@ const EmptyStateHelper = ({
           {/* Load more button */}
           {hasMoreSuggestions && (
             <div className="mt-4 text-center">
-              <button
-                onClick={handleLoadMore}
-                className="btn-cta inline-flex items-center gap-2 px-6 py-2 text-sm"
-              >
+              <button onClick={handleLoadMore} className="btn-cta inline-flex items-center gap-2 px-6 py-2 text-sm">
                 <ChevronDown className="w-4 h-4" />
                 <span>Xem thêm {Math.min(remainingCount, LOAD_MORE_COUNT)} SIM</span>
               </button>
-              <p className="text-xs text-muted-foreground mt-1">
-                Còn {remainingCount.toLocaleString()} SIM gợi ý
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">Còn {remainingCount.toLocaleString()} SIM gợi ý</p>
             </div>
           )}
         </div>
@@ -177,37 +176,33 @@ const EmptyStateHelper = ({
               </div>
               <div className="flex-1">
                 <h3 className="text-base font-semibold text-amber-800 mb-1">
-                  {displayQuery 
+                  {displayQuery
                     ? `Không tìm thấy kết quả phù hợp cho "${displayQuery}"`
-                    : 'Không tìm thấy SIM phù hợp với bộ lọc'}
+                    : "Không tìm thấy SIM phù hợp với bộ lọc"}
                 </h3>
                 <p className="text-sm text-amber-700 mb-2">
-                  {displayQuery 
-                    ? 'Vui lòng thử tìm kiếm với số khác hoặc liên hệ hotline.'
-                    : 'Các bộ lọc đã chọn không khớp với SIM nào trong kho.'}
+                  {displayQuery
+                    ? "Vui lòng thử tìm kiếm với số khác hoặc liên hệ hotline."
+                    : "Các bộ lọc đã chọn không khớp với SIM nào trong kho."}
                 </p>
                 <div className="flex items-center gap-2 text-sm text-amber-800">
                   <Phone className="w-4 h-4" />
-                  <span>Quý khách có thể gọi <strong className="text-primary">Hotline: 0933.686.666</strong> để được tư vấn</span>
+                  <span>
+                    Quý khách có thể gọi <strong className="text-primary">Hotline: 0938.868.868</strong> để được tư vấn
+                  </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {searchSuggestion && (
-            <p className="text-sm text-primary mb-4 text-center">
-              💡 Gợi ý: {searchSuggestion}
-            </p>
-          )}
+          {searchSuggestion && <p className="text-sm text-primary mb-4 text-center">💡 Gợi ý: {searchSuggestion}</p>}
 
           {/* Active constraints */}
           {constraints.length > 0 && (
             <div className="mb-6 p-4 bg-muted/50 rounded-lg">
-              <p className="text-sm text-muted-foreground mb-3">
-                Các bộ lọc đang áp dụng:
-              </p>
+              <p className="text-sm text-muted-foreground mb-3">Các bộ lọc đang áp dụng:</p>
               <div className="flex flex-wrap justify-center gap-2">
-                {constraints.map(constraint => (
+                {constraints.map((constraint) => (
                   <button
                     key={constraint.key}
                     onClick={constraint.onRemove}
@@ -226,34 +221,19 @@ const EmptyStateHelper = ({
             <div className="flex flex-wrap justify-center gap-2">
               {constraints.length > 0 && (
                 <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onRelaxOne}
-                    className="gap-1"
-                  >
+                  <Button variant="outline" size="sm" onClick={onRelaxOne} className="gap-1">
                     <Eraser className="w-4 h-4" />
                     Bỏ 1 bộ lọc
                   </Button>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onRelaxAll}
-                    className="gap-1"
-                  >
+
+                  <Button variant="outline" size="sm" onClick={onRelaxAll} className="gap-1">
                     <Sparkles className="w-4 h-4" />
                     Nới lỏng tất cả
                   </Button>
                 </>
               )}
-              
-              <Button
-                variant="default"
-                size="sm"
-                onClick={onReset}
-                className="gap-1"
-              >
+
+              <Button variant="default" size="sm" onClick={onReset} className="gap-1">
                 <XCircle className="w-4 h-4" />
                 Xóa toàn bộ
               </Button>
