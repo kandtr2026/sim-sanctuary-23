@@ -99,41 +99,51 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
     const hlSet = new Set<number>();
 
     if (q.includes('*')) {
-      const starIdx = q.indexOf('*');
-      const isPrefix = !q.startsWith('*') && q.endsWith('*') && q.indexOf('*') === q.lastIndexOf('*');
-      const isSuffix = q.startsWith('*') && !q.endsWith('*') && q.indexOf('*') === q.lastIndexOf('*');
-      const isMid = !q.startsWith('*') && !q.endsWith('*') && q.indexOf('*') === q.lastIndexOf('*');
+      // Determine pattern type: exactly 1 asterisk
+      const starCount = q.split('*').length - 1;
+      if (starCount === 1) {
+        const starIdx = q.indexOf('*');
+        const isPrefix = q.endsWith('*') && !q.startsWith('*') && q.indexOf('*') === q.lastIndexOf('*');
+        const isSuffix = q.startsWith('*') && !q.endsWith('*') && q.indexOf('*') === q.lastIndexOf('*');
+        const isMid = !q.startsWith('*') && !q.endsWith('*') && q.indexOf('*') === q.lastIndexOf('*');
 
-      if (isMid) {
-        const prefix = q.slice(0, starIdx).replace(/\*/g, '');
-        const suffix = q.slice(starIdx + 1).replace(/\*/g, '');
-        if (candidateDigits.startsWith(prefix)) {
-          for (let i = 0; i < prefix.length; i++) hlSet.add(i);
-        }
-        if (candidateDigits.endsWith(suffix)) {
-          const start = candidateDigits.length - suffix.length;
-          for (let i = start; i < candidateDigits.length; i++) hlSet.add(i);
-        }
-      } else if (isPrefix) {
-        const prefix = q.replace(/\*/g, '');
-        if (candidateDigits.startsWith(prefix)) {
-          for (let i = 0; i < prefix.length; i++) hlSet.add(i);
-        }
-      } else if (isSuffix) {
-        const suffix = q.replace(/\*/g, '');
-        if (candidateDigits.endsWith(suffix)) {
-          const start = candidateDigits.length - suffix.length;
-          for (let i = start; i < candidateDigits.length; i++) hlSet.add(i);
+        if (isMid) {
+          // prefix*suffix pattern
+          const prefix = q.substring(0, starIdx);
+          const suffix = q.substring(starIdx + 1);
+          // Highlight prefix at start if matches
+          if (prefix && candidateDigits.startsWith(prefix)) {
+            for (let i = 0; i < prefix.length; i++) hlSet.add(i);
+          }
+          
+          // Highlight suffix at end if matches
+          if (suffix && candidateDigits.endsWith(suffix)) {
+            const start = candidateDigits.length - suffix.length;
+            for (let i = start; i < candidateDigits.length; i++) hlSet.add(i);
+          }
+        } else if (isPrefix) {
+          // prefix* pattern
+          const prefix = q.slice(0, -1); // Remove trailing *
+          if (prefix && candidateDigits.startsWith(prefix)) {
+            for (let i = 0; i < prefix.length; i++) hlSet.add(i);
+          }
+        } else if (isSuffix) {
+          // *suffix pattern
+          const suffix = q.slice(1); // Remove leading *
+          if (suffix && candidateDigits.endsWith(suffix)) {
+            const start = candidateDigits.length - suffix.length;
+            for (let i = start; i < candidateDigits.length; i++) hlSet.add(i);
+          }
         }
       }
-      // else: multiple wildcards or weird pattern -> no highlight (safe)
+      // Multiple wildcards or weird pattern -> no highlight (safe)
     } else if (digitsOnly.length === 10) {
-      // Exact match -> highlight all
+      // Exact 10-digit match -> highlight all
       if (candidateDigits === digitsOnly) {
         for (let i = 0; i < candidateDigits.length; i++) hlSet.add(i);
       }
     } else {
-      // Contains match -> highlight first occurrence
+      // Contains search -> highlight first occurrence
       const idx = candidateDigits.indexOf(digitsOnly);
       if (idx !== -1) {
         for (let i = idx; i < idx + digitsOnly.length; i++) hlSet.add(i);
