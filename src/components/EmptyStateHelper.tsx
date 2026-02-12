@@ -78,17 +78,13 @@ const EmptyStateHelper = ({
             <div className="flex items-center gap-2 flex-wrap">
               <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
               <span className="text-sm font-medium text-amber-800">
-                {isOrFallback
-                  ? `Không có kết quả khớp cả 2 điều kiện`
-                  : displayQuery 
-                    ? `SIM dạng "${displayQuery}" chưa được cập nhật lên web`
-                    : 'Không tìm thấy SIM phù hợp với bộ lọc'}
+                {displayQuery 
+                  ? `Không tìm thấy kết quả phù hợp cho "${displayQuery}"`
+                  : 'Không tìm thấy SIM phù hợp với bộ lọc'}
               </span>
               <span className="text-xs text-amber-700">—</span>
               <span className="text-xs text-amber-700">
-                {isOrFallback 
-                  ? 'Hiển thị kết quả khớp 1 trong 2 điều kiện.'
-                  : 'Dưới đây là các SỐ TƯƠNG TỰ để bạn tham khảo.'}
+                Dưới đây là các số gợi ý để bạn tham khảo.
               </span>
               <span className="text-xs text-amber-600 flex items-center gap-1 ml-auto">
                 <Phone className="w-3 h-3" />
@@ -130,9 +126,7 @@ const EmptyStateHelper = ({
           {/* Title for suggestions */}
           <h4 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-primary" />
-            {isOrFallback 
-              ? `KẾT QUẢ TƯƠNG TỰ (${precomputedSuggestions.length.toLocaleString()} SIM)`
-              : `SỐ TƯƠNG TỰ (${precomputedSuggestions.length.toLocaleString()} SIM)`}
+            {`GỢI Ý (${precomputedSuggestions.length.toLocaleString()} SIM)`}
           </h4>
           
           {/* SIM Grid - Same layout as main listing */}
@@ -184,12 +178,12 @@ const EmptyStateHelper = ({
               <div className="flex-1">
                 <h3 className="text-base font-semibold text-amber-800 mb-1">
                   {displayQuery 
-                    ? `SIM dạng "${displayQuery}" chưa được cập nhật lên web`
+                    ? `Không tìm thấy kết quả phù hợp cho "${displayQuery}"`
                     : 'Không tìm thấy SIM phù hợp với bộ lọc'}
                 </h3>
                 <p className="text-sm text-amber-700 mb-2">
                   {displayQuery 
-                    ? 'Số này có thể chưa được cập nhật trong hệ thống.'
+                    ? 'Vui lòng thử tìm kiếm với số khác hoặc liên hệ hotline.'
                     : 'Các bộ lọc đã chọn không khớp với SIM nào trong kho.'}
                 </p>
                 <div className="flex items-center gap-2 text-sm text-amber-800">
