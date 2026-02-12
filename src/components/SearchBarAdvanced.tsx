@@ -1,11 +1,5 @@
 import { useState, useEffect, useCallback, ClipboardEvent, ChangeEvent } from 'react';
-import { Search, HelpCircle, X } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Search, X } from 'lucide-react';
 
 interface SearchBarAdvancedProps {
   value: string;
@@ -82,31 +76,18 @@ const SearchBarAdvanced = ({ value, onChange, debounceMs = 300 }: SearchBarAdvan
               <X className="w-4 h-4 text-muted-foreground" />
             </button>
           )}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button className="p-1 rounded-full hover:bg-muted transition-colors">
-                  <HelpCircle className="w-5 h-5 text-primary" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-xs p-4">
-                <p className="font-semibold text-primary mb-2">Hướng dẫn tìm kiếm:</p>
-                <ul className="text-sm space-y-1.5">
-                  <li><code className="bg-muted px-1 rounded">6789</code> → Chứa "6789"</li>
-                  <li><code className="bg-muted px-1 rounded">0903*</code> → Bắt đầu bằng "0903"</li>
-                  <li><code className="bg-muted px-1 rounded">*8888</code> → Kết thúc bằng "8888"</li>
-                  <li><code className="bg-muted px-1 rounded">090*6789</code> → Đầu "090", đuôi "6789"</li>
-                  <li><code className="bg-muted px-1 rounded">=0903123456</code> → Chính xác số này</li>
-                </ul>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
         </div>
       </div>
-      <p className="mt-2 text-xs text-muted-foreground text-center">
-        💡 Sử dụng <code className="bg-muted px-1 rounded">*</code> để tìm theo đầu/đuôi số. 
-        Bỏ qua dấu chấm khi tìm kiếm.
-      </p>
+      <div className="mt-3 rounded-lg border border-border bg-secondary/60 px-4 py-3 text-[13px] text-muted-foreground">
+        <p className="mb-2 font-semibold text-foreground text-sm">Hướng dẫn tìm kiếm:</p>
+        <ul className="space-y-1">
+          <li><strong className="text-foreground">6789</strong> → Chứa "6789"</li>
+          <li><strong className="text-foreground">0903*</strong> → Bắt đầu bằng "0903"</li>
+          <li><strong className="text-foreground">090*6789</strong> → Đầu "090", đuôi "6789"</li>
+          <li><strong className="text-foreground">*8888</strong> → Kết thúc bằng "8888"</li>
+          <li><strong className="text-foreground">0909123456</strong> → Chính xác số này</li>
+        </ul>
+      </div>
     </div>
   );
 };
