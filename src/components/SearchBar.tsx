@@ -49,19 +49,15 @@ const SearchBar = ({
       )}
       
       {showHints && (
-        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
-          <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-primary"></span>
-            Gõ <strong className="text-foreground">6789</strong> → tìm số chứa 6789
-          </span>
-          <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-primary"></span>
-            Gõ <strong className="text-foreground">090*8888</strong> → đầu 090 đuôi 8888
-          </span>
-          <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-primary"></span>
-            Gõ <strong className="text-foreground">0914*</strong> → đầu 0914
-          </span>
+        <div className="mt-3 rounded-lg border border-border bg-secondary/60 px-4 py-3 text-[13px] text-muted-foreground">
+          <p className="mb-2 font-semibold text-foreground text-sm">Hướng dẫn tìm kiếm:</p>
+          <ul className="space-y-1">
+            <li><strong className="text-foreground">6789</strong> → Chứa "6789"</li>
+            <li><strong className="text-foreground">0903*</strong> → Bắt đầu bằng "0903"</li>
+            <li><strong className="text-foreground">090*6789</strong> → Đầu "090", đuôi "6789"</li>
+            <li><strong className="text-foreground">*8888</strong> → Kết thúc bằng "8888"</li>
+            <li><strong className="text-foreground">0909123456</strong> → Chính xác số này</li>
+          </ul>
         </div>
       )}
     </div>
