@@ -154,9 +154,11 @@ export const createHighlightedNumber = (
 
   const cleanQuery = query.replace(/[\.\s]/g, '');
   const starCount = (cleanQuery.match(/\*/g) || []).length;
+  let processedWildcard = false;
 
   // Strict wildcard mode: if exactly 1 '*', handle prefix/suffix/mid and return immediately
   if (starCount === 1) {
+    processedWildcard = true;
     const starIdx = cleanQuery.indexOf('*');
     const isStart = starIdx === 0;
     const isEnd = starIdx === cleanQuery.length - 1;
@@ -187,8 +189,8 @@ export const createHighlightedNumber = (
       }
     }
 
+    // Wildcard processed: no fallback allowed
     if (hlSet.size === 0) return [displayNumber];
-
     return buildSpansFromHlSet(displayNumber, hlSet);
   }
 
