@@ -167,6 +167,8 @@ export const createHighlightedNumber = (
     const candidateDigits = rawDigits.replace(/\D/g, '');
     const len = candidateDigits.length;
 
+    
+
     const hlSet = new Set<number>();
 
     if (!isStart && !isEnd) {
@@ -285,6 +287,14 @@ const buildSpansFromHlSet = (displayNumber: string, hlSet: Set<number>): React.R
       buf += ch;
       digitIdx++;
     } else {
+      // Non-digit character: flush current buffer if needed, then add dot to result or next buffer
+      // We want dots to NOT be highlighted, so flush highlighted content first
+      if (buf && bufHl) {
+        // Current buffer is highlighted, flush it before adding the dot
+        flush();
+      }
+      // Add the non-digit to the buffer as non-highlighted
+      bufHl = false;
       buf += ch;
     }
   }

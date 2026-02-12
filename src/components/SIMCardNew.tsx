@@ -176,7 +176,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
         {searchQuery?.trim()
           ? createHighlightedNumber(
               sim.displayNumber || sim.formattedNumber,
-              sim.rawDigits || (sim.displayNumber || sim.formattedNumber).replace(/\D/g, ''),
+              sim.displayNumber.replace(/\D/g, ''),
               searchQuery
             )
           : formatWithHighlight(sim.displayNumber || sim.formattedNumber)
