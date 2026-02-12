@@ -173,7 +173,14 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
         className="sim-number-auto mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis"
         style={{ fontSize: 'clamp(14px, 3.5vw, 22px)' }}
       >
-        {formatWithHighlight(sim.displayNumber || sim.formattedNumber)}
+        {searchQuery?.trim()
+          ? createHighlightedNumber(
+              sim.displayNumber || sim.formattedNumber,
+              sim.rawDigits || (sim.displayNumber || sim.formattedNumber).replace(/\D/g, ''),
+              searchQuery
+            )
+          : formatWithHighlight(sim.displayNumber || sim.formattedNumber)
+        }
       </div>
 
       <div className="flex flex-wrap gap-0.5 mb-1.5 max-w-full overflow-hidden">
