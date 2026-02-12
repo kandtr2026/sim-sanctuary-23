@@ -151,22 +151,63 @@ export const createHighlightedNumber = (
   if (!query || !displayNumber) {
     return [displayNumber];
   }
-  
+
+  const cleanQuery = query.replace(/[\.\s]/g, '');
+  const starCount = (cleanQuery.match(/\*/g) || []).length;
+
+  // Strict wildcard mode: if exactly 1 '*', handle prefix/suffix/mid and return immediately
+  if (starCount === 1) {
+    const starIdx = cleanQuery.indexOf('*');
+    const isStart = starIdx === 0;
+    const isEnd = starIdx === cleanQuery.length - 1;
+    const prefixDigits = cleanQuery.substring(0, starIdx).replace(/\D/g, '');
+    const suffixDigits = cleanQuery.substring(starIdx + 1).replace(/\D/g, '');
+    const candidateDigits = rawDigits.replace(/\D/g, '');
+    const len = candidateDigits.length;
+
+    const hlSet = new Set<number>();
+
+    if (!isStart && !isEnd) {
+      // prefix*suffix
+      if (prefixDigits && candidateDigits.startsWith(prefixDigits)) {
+        for (let i = 0; i < prefixDigits.length; i++) hlSet.add(i);
+      }
+      if (suffixDigits && candidateDigits.endsWith(suffixDigits)) {
+        for (let i = len - suffixDigits.length; i < len; i++) hlSet.add(i);
+      }
+    } else if (isEnd && prefixDigits) {
+      // prefix*
+      if (candidateDigits.startsWith(prefixDigits)) {
+        for (let i = 0; i < prefixDigits.length; i++) hlSet.add(i);
+      }
+    } else if (isStart && suffixDigits) {
+      // *suffix
+      if (candidateDigits.endsWith(suffixDigits)) {
+        for (let i = len - suffixDigits.length; i < len; i++) hlSet.add(i);
+      }
+    }
+
+    if (hlSet.size === 0) return [displayNumber];
+
+    return buildSpansFromHlSet(displayNumber, hlSet);
+  }
+
+  // Non-wildcard: use existing findHighlightRanges
   const ranges = findHighlightRanges(rawDigits, query);
   if (ranges.length === 0) {
     return [displayNumber];
   }
-  
+
   // Map raw ranges to display ranges
   const displayRanges: HighlightRange[] = ranges.map(range => ({
     start: mapRawIndexToDisplay(range.start, displayNumber),
     end: mapRawIndexToDisplay(range.end - 1, displayNumber) + 1
   }));
-  
+
   // Merge overlapping ranges
   const mergedRanges: HighlightRange[] = [];
   const sortedRanges = [...displayRanges].sort((a, b) => a.start - b.start);
-  
+
   for (const range of sortedRanges) {
     if (mergedRanges.length === 0) {
       mergedRanges.push({ ...range });
@@ -179,44 +220,75 @@ export const createHighlightedNumber = (
       }
     }
   }
-  
+
   // Build spans
   const spans: React.ReactNode[] = [];
   let lastEnd = 0;
-  
+
   for (let i = 0; i < mergedRanges.length; i++) {
     const range = mergedRanges[i];
-    
-    // Non-highlighted part before this range
     if (range.start > lastEnd) {
       spans.push(
-        React.createElement('span', { key: `normal-${i}`, className: 'opacity-80' }, 
+        React.createElement('span', { key: `normal-${i}`, className: 'opacity-80' },
           displayNumber.slice(lastEnd, range.start)
         )
       );
     }
-    
-    // Highlighted part - RED color + font-semibold as requested
     spans.push(
-      React.createElement('span', { 
-        key: `highlight-${i}`, 
+      React.createElement('span', {
+        key: `highlight-${i}`,
         className: 'font-semibold text-red-600'
       }, displayNumber.slice(range.start, range.end))
     );
-    
     lastEnd = range.end;
   }
-  
-  // Remaining non-highlighted part
+
   if (lastEnd < displayNumber.length) {
     spans.push(
-      React.createElement('span', { key: 'normal-end', className: 'opacity-80' }, 
+      React.createElement('span', { key: 'normal-end', className: 'opacity-80' },
         displayNumber.slice(lastEnd)
       )
     );
   }
-  
+
   return spans;
+};
+
+/**
+ * Build React spans from a digit-index highlight set, preserving non-digit chars in display
+ */
+const buildSpansFromHlSet = (displayNumber: string, hlSet: Set<number>): React.ReactNode[] => {
+  const result: React.ReactNode[] = [];
+  let digitIdx = 0;
+  let buf = '';
+  let bufHl = false;
+
+  const flush = () => {
+    if (buf) {
+      result.push(
+        React.createElement('span', {
+          key: `s-${result.length}`,
+          className: bufHl ? 'font-semibold text-red-600' : 'opacity-80'
+        }, buf)
+      );
+      buf = '';
+    }
+  };
+
+  for (const ch of displayNumber) {
+    if (/\d/.test(ch)) {
+      const isHl = hlSet.has(digitIdx);
+      if (buf && bufHl !== isHl) flush();
+      bufHl = isHl;
+      buf += ch;
+      digitIdx++;
+    } else {
+      buf += ch;
+    }
+  }
+  flush();
+
+  return result;
 };
 
 /**
