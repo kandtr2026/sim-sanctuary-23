@@ -57,11 +57,8 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
   };
 
   const formatWithHighlight = (displayNumber: string): React.ReactNode => {
-    const q = String(searchQuery || '').replace(/[^0-9*]/g, '');
-    const digitsOnly = q.replace(/\*/g, '');
-    const candidateDigits = (sim.rawDigits || displayNumber).replace(/\D/g, '');
-
-    if (!digitsOnly) {
+    // Empty query: show VIP highlight (last segment in gold)
+    if (!searchQuery) {
       const parts = displayNumber.split('.');
       if (parts.length === 3) {
         return (
@@ -75,91 +72,16 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
       return displayNumber;
     }
 
-    const hlSet = new Set<number>();
-    let processedWildcard = false;
+    // Use createHighlightedNumber from highlightUtils for consistent wildcard handling
+    const rawDigits = sim.rawDigits || displayNumber.replace(/\D/g, '');
+    const highlighted = createHighlightedNumber(displayNumber, rawDigits, searchQuery);
 
-    if (q.includes('*')) {
-      processedWildcard = true;
-      const starCount = q.split('*').length - 1;
-      
-      if (starCount === 1) {
-        const starIdx = q.indexOf('*');
-        const hasAsteriskAtStart = q.startsWith('*');
-        const hasAsteriskAtEnd = q.endsWith('*');
-
-        if (!hasAsteriskAtStart && !hasAsteriskAtEnd) {
-          // prefix*suffix pattern
-          const prefix = q.substring(0, starIdx);
-          const suffix = q.substring(starIdx + 1);
-          
-          if (prefix && candidateDigits.startsWith(prefix)) {
-            for (let i = 0; i < prefix.length; i++) hlSet.add(i);
-          }
-          
-          if (suffix && candidateDigits.endsWith(suffix)) {
-            const start = candidateDigits.length - suffix.length;
-            for (let i = start; i < candidateDigits.length; i++) hlSet.add(i);
-          }
-        } else if (hasAsteriskAtEnd) {
-          // prefix* pattern
-          const prefix = q.substring(0, starIdx);
-          if (prefix && candidateDigits.startsWith(prefix)) {
-            for (let i = 0; i < prefix.length; i++) hlSet.add(i);
-          }
-        } else if (hasAsteriskAtStart) {
-          // *suffix pattern
-          const suffix = q.substring(starIdx + 1);
-          if (suffix && candidateDigits.endsWith(suffix)) {
-            const start = candidateDigits.length - suffix.length;
-            for (let i = start; i < candidateDigits.length; i++) hlSet.add(i);
-          }
-        }
-      }
-    } else if (digitsOnly.length === 10 && !processedWildcard) {
-      // Exact 10-digit match
-      if (candidateDigits === digitsOnly) {
-        for (let i = 0; i < candidateDigits.length; i++) hlSet.add(i);
-      }
-    } else if (!processedWildcard) {
-      // Contains search - ONLY if no wildcard was processed
-      const idx = candidateDigits.indexOf(digitsOnly);
-      if (idx !== -1) {
-        for (let i = idx; i < idx + digitsOnly.length; i++) hlSet.add(i);
-      }
+    // If it's still just the display number (no highlights), return it as-is
+    if (highlighted.length === 1 && typeof highlighted[0] === 'string') {
+      return highlighted[0];
     }
 
-    if (hlSet.size === 0) return displayNumber;
-
-    const result: React.ReactNode[] = [];
-    let digitIdx = 0;
-    let buf = '';
-    let bufHl = false;
-
-    const flush = () => {
-      if (buf) {
-        result.push(
-          <span key={result.length} className={bufHl ? 'font-semibold text-red-600' : 'opacity-80'}>
-            {buf}
-          </span>
-        );
-        buf = '';
-      }
-    };
-
-    for (const ch of displayNumber) {
-      if (/\d/.test(ch)) {
-        const isHl = hlSet.has(digitIdx);
-        if (buf && bufHl !== isHl) flush();
-        bufHl = isHl;
-        buf += ch;
-        digitIdx++;
-      } else {
-        buf += ch;
-      }
-    }
-    flush();
-
-    return <>{result}</>;
+    return <>{highlighted}</>;
   };
 
   const networkColors: Record<string, string> = {
