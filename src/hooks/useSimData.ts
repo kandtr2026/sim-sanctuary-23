@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
   normalizeSIM,
-  searchSIM,
+  
   sortSIMs,
   countTags,
   getUniquePrefixes,
@@ -630,28 +630,55 @@ export const useSimData = () => {
   };
 
   const filteredSims = useMemo(() => {
-    // --- EXACT MATCH PRIORITY RULE ---
-    // If user enters exactly 10 digits (no wildcards), return exact match immediately
+    // --- NEW SEARCH RULES (5 cases) ---
     const qRaw = String(filters.searchQuery || "").trim();
-    const qDigits = normalizeDigits(qRaw);
-    
-    // Exact rule: 10 digits, no wildcard '*'
-    if (qDigits.length === 10 && !qRaw.includes('*')) {
-      const exactInAll = allSims.filter(sim => getSimDigitsRobust(sim) === qDigits);
-      if (exactInAll.length > 0) {
-        // RETURN IMMEDIATELY - bypass all other filters for exact match
-        console.log(`[Search] Exact match found for ${qDigits}: ${exactInAll.length} result(s)`);
-        return exactInAll;
-      }
-    }
-    // --- END EXACT MATCH PRIORITY ---
+    const q = qRaw.replace(/[^0-9*]/g, '');
+    const digitsOnly = q.replace(/\*/g, '');
 
     let result = [...allSims];
 
-    if (filters.searchQuery) {
-      const digitCount = filters.searchQuery.replace(/\D/g, '').length;
-      if (digitCount >= 2) {
-        result = result.filter(sim => searchSIM(sim, filters.searchQuery));
+    if (q.length > 0 && digitsOnly.length > 0) {
+      // RULE A: Exact 10 digits, no wildcard -> exact match, bypass all filters
+      if (digitsOnly.length === 10 && !q.includes('*')) {
+        const exact = allSims.filter(sim => getSimDigitsRobust(sim) === digitsOnly);
+        if (exact.length > 0) {
+          return exact;
+        }
+        // No exact match -> empty, suggestions will handle
+        result = [];
+      }
+      // RULE B: Wildcard patterns
+      else if (q.includes('*')) {
+        const startsWithStar = q.startsWith('*');
+        const endsWithStar = q.endsWith('*');
+        const parts = q.split('*').filter(Boolean);
+
+        if (endsWithStar && !startsWithStar && parts.length >= 1) {
+          // "0903*" -> startsWith prefix
+          const prefix = parts[0];
+          result = result.filter(sim => getSimDigitsRobust(sim).startsWith(prefix));
+        } else if (startsWithStar && !endsWithStar && parts.length >= 1) {
+          // "*8888" -> endsWith suffix
+          const suffix = parts[parts.length - 1];
+          result = result.filter(sim => getSimDigitsRobust(sim).endsWith(suffix));
+        } else if (!startsWithStar && !endsWithStar && parts.length === 2) {
+          // "090*6789" -> startsWith AND endsWith
+          const prefix = parts[0];
+          const suffix = parts[1];
+          result = result.filter(sim => {
+            const d = getSimDigitsRobust(sim);
+            return d.startsWith(prefix) && d.endsWith(suffix);
+          });
+        } else {
+          // Fallback for complex wildcard patterns
+          if (digitsOnly.length >= 2) {
+            result = result.filter(sim => getSimDigitsRobust(sim).includes(digitsOnly));
+          }
+        }
+      }
+      // RULE C: Substring (no *, 1-9 digits) -> contains
+      else {
+        result = result.filter(sim => getSimDigitsRobust(sim).includes(digitsOnly));
       }
     }
 
@@ -746,6 +773,106 @@ export const useSimData = () => {
 
     return result;
   }, [allSims, filters]);
+
+  // --- SEARCH SUGGESTIONS (per 5 rules, shown when primary results empty) ---
+  const searchSuggestions = useMemo((): NormalizedSIM[] => {
+    if (filteredSims.length > 0) return [];
+
+    const qRaw = String(filters.searchQuery || "").trim();
+    const q = qRaw.replace(/[^0-9*]/g, '');
+    const digitsOnly = q.replace(/\*/g, '');
+
+    if (q.length === 0 || digitsOnly.length === 0) return [];
+
+    const MAX_SUGGESTIONS = 40;
+
+    // Rule 5: 10 digits exact, no match -> suggest endsWith last 4 digits
+    if (digitsOnly.length === 10 && !q.includes('*')) {
+      const tail4 = digitsOnly.slice(-4);
+      return allSims
+        .filter(sim => getSimDigitsRobust(sim).endsWith(tail4))
+        .slice(0, MAX_SUGGESTIONS);
+    }
+
+    // Rule 1: Substring (no *, 1-9 digits) -> suggest by 3-char substrings
+    if (!q.includes('*') && digitsOnly.length >= 1 && digitsOnly.length < 10) {
+      const subs: string[] = [];
+      for (let i = 0; i <= digitsOnly.length - 3; i++) {
+        subs.push(digitsOnly.slice(i, i + 3));
+      }
+      if (subs.length === 0) {
+        // Query < 3 chars, use full query as substring
+        return allSims
+          .filter(sim => getSimDigitsRobust(sim).includes(digitsOnly))
+          .slice(0, MAX_SUGGESTIONS);
+      }
+
+      const scored: { sim: NormalizedSIM; score: number }[] = [];
+      for (const sim of allSims) {
+        const d = getSimDigitsRobust(sim);
+        let score = 0;
+        for (const sub of subs) {
+          if (d.includes(sub)) score++;
+        }
+        // Prefer later substrings (suffix match)
+        if (subs.length > 1 && d.includes(subs[subs.length - 1])) score += 1;
+        if (score > 0) scored.push({ sim, score });
+      }
+      scored.sort((a, b) => b.score - a.score);
+      return scored.slice(0, MAX_SUGGESTIONS).map(s => s.sim);
+    }
+
+    // Rule 2: "0903*" -> suggest startsWith shorter prefix (first 2 digits)
+    if (q.endsWith('*') && !q.startsWith('*')) {
+      const prefix = digitsOnly;
+      if (prefix.length >= 2) {
+        const shortPrefix = prefix.slice(0, 2);
+        return allSims
+          .filter(sim => getSimDigitsRobust(sim).startsWith(shortPrefix))
+          .slice(0, MAX_SUGGESTIONS);
+      }
+      return [];
+    }
+
+    // Rule 4: "*8888" -> suggest endsWith shorter suffix
+    if (q.startsWith('*') && !q.endsWith('*')) {
+      const suffix = digitsOnly;
+      if (suffix.length >= 2) {
+        for (let drop = 1; drop < suffix.length - 1; drop++) {
+          const shorter = suffix.slice(drop);
+          const candidates = allSims.filter(sim =>
+            getSimDigitsRobust(sim).endsWith(shorter)
+          );
+          if (candidates.length > 0) return candidates.slice(0, MAX_SUGGESTIONS);
+        }
+      }
+      return [];
+    }
+
+    // Rule 3: "090*6789" -> suggest startsWith short prefix AND endsWith suffix
+    if (!q.startsWith('*') && !q.endsWith('*') && q.includes('*')) {
+      const parts = q.split('*').filter(Boolean);
+      if (parts.length === 2) {
+        const prefixDigits = parts[0];
+        const suffixDigits = parts[1];
+        const shortPrefix = prefixDigits.slice(0, Math.min(2, prefixDigits.length));
+
+        let candidates = allSims.filter(sim => {
+          const d = getSimDigitsRobust(sim);
+          return d.startsWith(shortPrefix) && d.endsWith(suffixDigits);
+        });
+        if (candidates.length > 0) return candidates.slice(0, MAX_SUGGESTIONS);
+
+        // Fallback: just endsWith suffix
+        candidates = allSims.filter(sim =>
+          getSimDigitsRobust(sim).endsWith(suffixDigits)
+        );
+        return candidates.slice(0, MAX_SUGGESTIONS);
+      }
+    }
+
+    return [];
+  }, [filteredSims.length, filters.searchQuery, allSims]);
 
   const tagCounts = useMemo(() => countTags(allSims), [allSims]);
   const filteredTagCounts = useMemo(() => countTags(filteredSims), [filteredSims]);
@@ -1076,6 +1203,7 @@ export const useSimData = () => {
     activeConstraints,
     relaxFilters,
     relaxAllFilters,
-    searchSuggestion
+    searchSuggestion,
+    searchSuggestions
   };
 };
