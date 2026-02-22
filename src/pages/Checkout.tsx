@@ -14,7 +14,8 @@ import type { NormalizedSIM, PromotionalData } from '@/lib/simUtils';
 import { normalizeSIM, parsePrice, detectNetwork } from '@/lib/simUtils';
 
 const ORDER_WEBAPP_URL = "https://script.google.com/macros/s/AKfycby_3QYkdJSBo43QiJlJ88rSLCsXN7baZtnW5v9VeF3AZJAVzZOjB35bhfFCHZBrVwA/exec";
-const MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/efsf9n3n5vco1t2zbjcg4xlileflcmnn";
+// Use edge function proxy to avoid CORS issues with Make.com
+const MAKE_WEBHOOK_PROXY = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/make-webhook-proxy`;
 
 // Extended SIM data for checkout (includes sheet-specific fields)
 interface CheckoutSimData {
@@ -253,7 +254,7 @@ const Checkout = () => {
 
     try {
       // Send to Make.com webhook (with cors, check 200 OK)
-      const makeResponse = await fetch(MAKE_WEBHOOK_URL, {
+      const makeResponse = await fetch(MAKE_WEBHOOK_PROXY, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
