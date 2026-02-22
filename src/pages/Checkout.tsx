@@ -14,6 +14,7 @@ import type { NormalizedSIM, PromotionalData } from '@/lib/simUtils';
 import { normalizeSIM, parsePrice, detectNetwork } from '@/lib/simUtils';
 
 const ORDER_WEBAPP_URL = "https://script.google.com/macros/s/AKfycby_3QYkdJSBo43QiJlJ88rSLCsXN7baZtnW5v9VeF3AZJAVzZOjB35bhfFCHZBrVwA/exec";
+const MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/efsf9n3n5vco1t2zbjcg4xlileflcmnn";
 
 // Extended SIM data for checkout (includes sheet-specific fields)
 interface CheckoutSimData {
@@ -251,12 +252,24 @@ const Checkout = () => {
     };
 
     try {
-      await fetch(ORDER_WEBAPP_URL, {
+      // Send to Make.com webhook (with cors, check 200 OK)
+      const makeResponse = await fetch(MAKE_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!makeResponse.ok) {
+        throw new Error(`Make.com webhook failed: ${makeResponse.status}`);
+      }
+
+      // Also send to Google Apps Script (no-cors, fire-and-forget)
+      fetch(ORDER_WEBAPP_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
         mode: 'no-cors'
-      });
+      }).catch(err => console.error('Google Apps Script error:', err));
       
       setIsSuccess(true);
       toast.success('Đặt hàng thành công!');
