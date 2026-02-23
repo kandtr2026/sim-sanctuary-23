@@ -143,27 +143,28 @@
   /* 3D Emboss Effect for Menu */
   .menu-pill {
     @apply relative px-4 py-2 rounded-full font-medium transition-all duration-200;
-    background: linear-gradient(180deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%);
+    background: linear-gradient(180deg, #00FF00 0%, #00cc00 100%);
+    color: #000;
     box-shadow: 
-      0 2px 0 hsl(var(--primary-dark)),
+      0 2px 0 #009900,
       0 4px 8px -2px hsl(0 0% 0% / 0.4),
-      inset 0 1px 0 hsl(var(--primary-light) / 0.3);
+      inset 0 1px 0 rgba(255,255,255,0.3);
   }
 
   .menu-pill:hover {
     transform: translateY(-1px);
     box-shadow: 
-      0 3px 0 hsl(var(--primary-dark)),
+      0 3px 0 #009900,
       0 6px 12px -2px hsl(0 0% 0% / 0.5),
-      inset 0 1px 0 hsl(var(--primary-light) / 0.4);
+      inset 0 1px 0 rgba(255,255,255,0.4);
   }
 
   .menu-pill:active {
     transform: translateY(1px);
     box-shadow: 
-      0 1px 0 hsl(var(--primary-dark)),
+      0 1px 0 #009900,
       0 2px 4px -2px hsl(0 0% 0% / 0.4),
-      inset 0 1px 0 hsl(var(--primary-light) / 0.2);
+      inset 0 1px 0 rgba(255,255,255,0.2);
   }
 
   /* Filter Button */
