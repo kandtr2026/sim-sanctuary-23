@@ -95,7 +95,7 @@ const Footer = () => {
         <div className="border-t border-header-foreground/10 mt-8 pt-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-header-foreground/50">
             <p>© 2024 CHONSOMOBIFONE.COM - Đại lý SIM số đẹp Mobifone ủy quyền</p>
-            <p>GPKD: 0123456789 - Cấp ngày 01/01/2020</p>
+            <p>GPKD: 0317861294 - Cấp ngày 31/05/2023</p>
           </div>
         </div>
       </div>
