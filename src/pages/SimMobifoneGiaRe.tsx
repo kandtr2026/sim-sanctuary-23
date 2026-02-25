@@ -66,7 +66,16 @@ const SimMobifoneGiaRe = () => {
   const [priceMax, setPriceMax] = useState<number>(1000000);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
-  const { allSims } = useSimData();
+  const { allSims, isLoading } = useSimData();
+
+  // Featured hero SIM: cheapest Mobifone 199K–1M, fallback any Mobifone
+  const heroSim = useMemo(() => {
+    const mobifones = allSims.filter((s) => s.network === 'Mobifone' && s.price > 0);
+    const inRange = mobifones.filter((s) => s.price >= 199000 && s.price < 1000000).sort((a, b) => a.price - b.price);
+    if (inRange.length > 0) return inRange[0];
+    if (mobifones.length > 0) return mobifones.sort((a, b) => a.price - b.price)[0];
+    return null;
+  }, [allSims]);
 
   // Filter SIMs under price threshold
   const filteredSims = useMemo(() => {
@@ -144,17 +153,62 @@ const SimMobifoneGiaRe = () => {
                 </a>
               </div>
 
-              {/* Right side: SIM card mockup */}
+              {/* Right side: Featured SIM card */}
               <div className="hidden md:flex justify-center">
                 <div className="relative w-64 h-80">
                   <div className="absolute inset-0 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl flex flex-col items-center justify-center p-6">
-                    <div className="w-16 h-16 rounded-full bg-yellow-400 flex items-center justify-center mb-4">
-                      <span className="text-2xl font-black text-green-900">M</span>
-                    </div>
-                    <p className="text-white/60 text-xs uppercase tracking-widest mb-2">Mobifone</p>
-                    <p className="text-white text-2xl font-bold tracking-wider mb-4">0901.***. ***</p>
-                    <div className="w-12 h-8 rounded bg-yellow-400/80 mb-4" />
-                    <p className="text-yellow-300 text-sm font-semibold">Số Đẹp Chính Chủ</p>
+                    {isLoading ? (
+                      <>
+                        <div className="w-16 h-16 rounded-full bg-white/20 animate-pulse mb-4" />
+                        <div className="w-32 h-4 rounded bg-white/20 animate-pulse mb-2" />
+                        <div className="w-40 h-6 rounded bg-white/20 animate-pulse mb-2" />
+                        <div className="w-28 h-5 rounded bg-white/20 animate-pulse mb-4" />
+                        <div className="w-36 h-8 rounded bg-white/20 animate-pulse" />
+                      </>
+                    ) : heroSim ? (
+                      <>
+                        <p className="text-yellow-300 text-[10px] uppercase tracking-widest font-bold mb-3">SIM MOBIFONE NỔI BẬT</p>
+                        <div className="w-14 h-14 rounded-full bg-yellow-400 flex items-center justify-center mb-3">
+                          <span className="text-xl font-black text-green-900">M</span>
+                        </div>
+                        <p className="text-white text-xl font-bold tracking-wider mb-1">{heroSim.formattedNumber}</p>
+                        <p className="text-yellow-300 font-bold text-base mb-4">
+                          Giá: {heroSim.price.toLocaleString('vi-VN')}đ
+                        </p>
+                        <div className="flex flex-col gap-2 w-full">
+                          <a
+                            href={`tel:${HOTLINE.replace(/\./g, '')}`}
+                            className="w-full px-3 py-2 rounded-lg font-bold text-xs text-white text-center transition-all hover:scale-105"
+                            style={{ background: 'linear-gradient(180deg, #fb8c00 0%, #e65100 100%)' }}
+                          >
+                            GIỮ SIM 30 PHÚT
+                          </a>
+                          <a
+                            href={`tel:${HOTLINE.replace(/\./g, '')}`}
+                            className="w-full px-3 py-2 rounded-lg font-bold text-xs text-white text-center transition-all hover:scale-105"
+                            style={{ background: 'linear-gradient(180deg, #1976d2 0%, #0d47a1 100%)' }}
+                          >
+                            GỌI NGAY
+                          </a>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-14 h-14 rounded-full bg-yellow-400/30 flex items-center justify-center mb-4">
+                          <Phone className="w-7 h-7 text-yellow-300" />
+                        </div>
+                        <p className="text-white/80 text-sm text-center leading-relaxed mb-3">Kho đang cập nhật, bấm Tư vấn miễn phí để nhận số đẹp</p>
+                        <a
+                          href={ZALO_URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 rounded-lg font-bold text-xs text-white text-center"
+                          style={{ background: 'rgba(255,255,255,0.2)' }}
+                        >
+                          TƯ VẤN MIỄN PHÍ
+                        </a>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
