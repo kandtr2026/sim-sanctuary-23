@@ -19,6 +19,7 @@ import NotFound from "./pages/NotFound";
 import SimNamSinh from "./pages/SimNamSinh";
 import SimDuoi1Trieu from "./pages/SimDuoi1Trieu";
 import SimTamHoaGiaRe from "./pages/SimTamHoaGiaRe";
+import SimMobifoneGiaRe from "./pages/SimMobifoneGiaRe";
 import FloatingContactButtons from "./components/FloatingContactButtons";
 import MessengerChatPlugin from "./components/MessengerChatPlugin";
 import MessengerQuickTemplates from "./components/MessengerQuickTemplates";
@@ -46,6 +47,7 @@ const App = () => (
           <Route path="/tin-tuc/cach-tranh-mat-tien-oan-khi-mua-sim-so-dep" element={<TinTucBai5 />} />
           <Route path="/sim-duoi-1-trieu" element={<SimDuoi1Trieu />} />
           <Route path="/sim-tam-hoa-gia-re" element={<SimTamHoaGiaRe />} />
+          <Route path="/sim-mobifone-gia-re" element={<SimMobifoneGiaRe />} />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="/:slug" element={<SimNamSinh />} />
