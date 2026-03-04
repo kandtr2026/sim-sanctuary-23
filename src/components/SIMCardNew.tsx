@@ -97,10 +97,8 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
 
   const networkColors: Record<string, string> = {
     Mobifone: 'bg-primary text-primary-foreground',
-    Viettel: 'bg-red-500 text-white',
     Vinaphone: 'bg-blue-500 text-white',
-    iTelecom: 'bg-orange-500 text-white',
-    
+    Gmobile: 'bg-emerald-600 text-white',
   };
 
   const getQuyBadge = (): string | null => {
@@ -153,7 +151,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
       <div className={cn("flex items-center gap-1 mb-1.5 flex-wrap max-w-full", hasDiscount && "mt-8")}>
         {carrier && (
           <span
-            className="px-1.5 py-px rounded font-medium bg-white text-black"
+            className={cn("px-1.5 py-px rounded font-medium", networkColors[carrier] || 'bg-white text-black')}
             style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
           >
             {carrier}
