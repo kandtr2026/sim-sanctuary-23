@@ -41,8 +41,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
     }
     return '';
   })();
-  const carrier = detectCarrier(rawNumber);
-
+const carrier = sim.network !== 'Khác' ? sim.network : detectCarrier(rawNumber);
   const handleBuyClick = () => {
     const targetId = simId || sim.id;
     navigate(`/mua-ngay/${encodeURIComponent(targetId)}`);
