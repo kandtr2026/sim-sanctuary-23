@@ -166,7 +166,7 @@ const carrier = sim.network !== 'Khác' ? sim.network : detectCarrier(rawNumber)
     {sim.network}
   </span>
 )}
-        {carrier && sim.beautyScore >= 50 && (
+        {sim.network && sim.network !== 'Khác' && sim.beautyScore >= 50 && (
           <span 
             className="px-1.5 py-px rounded font-medium bg-gold/20 text-gold-dark"
             style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
