@@ -89,7 +89,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
     Viettel: 'bg-red-500 text-white',
     Vinaphone: 'bg-blue-500 text-white',
     iTelecom: 'bg-orange-500 text-white',
-    Khác: 'bg-gray-500 text-white'
+    
   };
 
   const getQuyBadge = (): string | null => {
@@ -111,11 +111,6 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
       "sim-card-compact group relative overflow-hidden",
       hasDiscount && "ring-1 ring-cta/30 shadow-promo-sm"
     )}>
-      {sim.isVIP && (
-        <div className="absolute top-1 right-1">
-          <span className="badge-vip-sm">VIP</span>
-        </div>
-      )}
 
       {hasDiscount && (
         <>
@@ -149,9 +144,9 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
           className="px-1.5 py-px rounded font-medium bg-white text-black"
           style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
         >
-          {sim.network}
+        {sim.network !== 'Khác' ? sim.network : ''}
         </span>
-        {sim.beautyScore >= 50 && (
+        {sim.network !== 'Khác' && sim.beautyScore >= 50 && (
           <span 
             className="px-1.5 py-px rounded font-medium bg-gold/20 text-gold-dark"
             style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
