@@ -158,14 +158,14 @@ const carrier = sim.network !== 'Khác' ? sim.network : detectCarrier(rawNumber)
       )}
 
       <div className={cn("flex items-center gap-1 mb-1.5 flex-wrap max-w-full", hasDiscount && "mt-8")}>
-        {carrier && (
-          <span
-            className={cn("px-1.5 py-px rounded font-medium", networkColors[carrier] || 'bg-white text-black')}
-            style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
-          >
-            {carrier}
-          </span>
-        )}
+        {sim.network && sim.network !== 'Khác' && (
+  <span
+    className={cn("px-1.5 py-px rounded font-medium", networkColors[sim.network] || 'bg-gray-500 text-white')}
+    style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+  >
+    {sim.network}
+  </span>
+)}
         {carrier && sim.beautyScore >= 50 && (
           <span 
             className="px-1.5 py-px rounded font-medium bg-gold/20 text-gold-dark"
