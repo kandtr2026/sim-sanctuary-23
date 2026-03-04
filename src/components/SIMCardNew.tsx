@@ -46,7 +46,7 @@ const carrier = sim.network !== 'Khác' ? sim.network : detectCarrier(rawNumber)
     const targetId = simId || sim.id;
     navigate(`/mua-ngay/${encodeURIComponent(targetId)}`);
   };
-
+console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
   const formatPrice = (price: number | undefined): string => {
     if (price === undefined || price === null || isNaN(price) || price <= 0) return 'Liên hệ';
     if (price >= 1000000000) {
