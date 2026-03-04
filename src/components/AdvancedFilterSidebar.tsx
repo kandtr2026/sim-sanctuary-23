@@ -122,43 +122,8 @@ const AdvancedFilterSidebar = ({
           })}
         </div>
 
-        <div className="mt-2">
-          <button
-            onClick={() => setShowCustomPrice(!showCustomPrice)}
-            className="text-[9px] text-primary underline"
-          >
-            {showCustomPrice ? 'Ẩn tùy chỉnh' : 'Giá tùy chỉnh'}
-          </button>
-          
-          {showCustomPrice && (
-            <div className="mt-1.5 space-y-1.5">
-              <div className="flex gap-1 items-center">
-                <Input
-                  type="number"
-                  placeholder="Từ (triệu)"
-                  value={customMinInput}
-                  onChange={(e) => setCustomMinInput(e.target.value)}
-                  className="text-[10px] h-6 px-1.5"
-                />
-                <span className="text-muted-foreground text-[10px]">-</span>
-                <Input
-                  type="number"
-                  placeholder="Đến (triệu)"
-                  value={customMaxInput}
-                  onChange={(e) => setCustomMaxInput(e.target.value)}
-                  className="text-[10px] h-6 px-1.5"
-                />
-              </div>
-              <button
-                onClick={handleApplyCustomPrice}
-                className="btn-cta-sm w-full py-1 text-[10px]"
-              >
-                Áp dụng
-              </button>
-            </div>
-          )}
-        </div>
       </FilterSection>
+
 
       {/* Tag Filter - Quý (position-agnostic) */}
       <FilterSection title="SIM số quý">
@@ -245,22 +210,6 @@ const AdvancedFilterSidebar = ({
           ))}
         </div>
         
-        {/* Mobifone First Toggle */}
-        <div className="mt-1.5 pt-1.5 border-t border-border">
-          <div className="flex items-center justify-between">
-            <Label className="text-[9px] text-muted-foreground">Mobifone ưu tiên</Label>
-            <Switch
-              checked={filters.mobifoneFirst}
-              onCheckedChange={(checked) => 
-                onUpdateFilter('mobifoneFirst', checked)
-              }
-              className="scale-75"
-            />
-          </div>
-          <p className="text-[8px] text-muted-foreground mt-0.5">
-            Sắp xếp Mobifone lên đầu (không ẩn mạng khác)
-          </p>
-        </div>
       </FilterSection>
 
       {/* Prefix Filter */}
