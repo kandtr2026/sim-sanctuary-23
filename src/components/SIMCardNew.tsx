@@ -30,7 +30,7 @@ interface SIMCardNewProps {
 
 const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SIMCardNewProps) => {
   const navigate = useNavigate();
-  const carrier = sim.network && sim.network !== 'Khác' ? sim.network : detectCarrier(sim.rawDigits || sim.displayNumber || sim.formattedNumber);
+  const carrier = sim.network && sim.network !== 'Khác' ? sim.network : detectCarrier(sim.rawDigits);
 
   const handleBuyClick = () => {
     const targetId = simId || sim.id;
