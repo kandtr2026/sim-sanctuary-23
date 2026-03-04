@@ -11,6 +11,15 @@ import {
 import { cn } from '@/lib/utils';
 import { createHighlightedNumber } from '@/lib/highlightUtils';
 
+const detectCarrier = (number: string): string => {
+  const digits = (number || '').replace(/\D/g, '');
+  const prefix = digits.substring(0, 3);
+  if (['090', '093', '089', '070', '076', '077', '078', '079'].includes(prefix)) return 'Mobifone';
+  if (['088', '091', '094', '081', '082', '083', '084', '085'].includes(prefix)) return 'Vinaphone';
+  if (['099', '059'].includes(prefix)) return 'Gmobile';
+  return '';
+};
+
 interface SIMCardNewProps {
   sim: NormalizedSIM;
   promotional?: PromotionalData;
@@ -21,6 +30,7 @@ interface SIMCardNewProps {
 
 const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SIMCardNewProps) => {
   const navigate = useNavigate();
+  const carrier = sim.network && sim.network !== 'Khác' ? sim.network : detectCarrier(sim.rawDigits || sim.displayNumber || sim.formattedNumber);
 
   const handleBuyClick = () => {
     const targetId = simId || sim.id;
@@ -140,13 +150,15 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
       )}
 
       <div className={cn("flex items-center gap-1 mb-1.5 flex-wrap max-w-full", hasDiscount && "mt-8")}>
-        <span
-          className="px-1.5 py-px rounded font-medium bg-white text-black"
-          style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
-        >
-        {sim.network !== 'Khác' ? sim.network : ''}
-        </span>
-        {sim.network !== 'Khác' && sim.beautyScore >= 50 && (
+        {carrier && (
+          <span
+            className="px-1.5 py-px rounded font-medium bg-white text-black"
+            style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+          >
+            {carrier}
+          </span>
+        )}
+        {carrier && sim.beautyScore >= 50 && (
           <span 
             className="px-1.5 py-px rounded font-medium bg-gold/20 text-gold-dark"
             style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
