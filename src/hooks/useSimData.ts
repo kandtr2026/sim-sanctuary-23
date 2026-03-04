@@ -510,7 +510,13 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
       toast.warning('Không thể tải dữ liệu mới. Đang dùng dữ liệu tạm (cache).', {
         duration: 5000
       });
-      return cachedData.data;
+      // Re-normalize cached SIMs to ensure network field is populated
+      return cachedData.data.map(sim => {
+        if (!sim.network || sim.network === 'Khác') {
+          return normalizeSIM(sim.rawDigits, sim.displayNumber, sim.price, sim.id);
+        }
+        return sim;
+      });
     }
     
     throw error;
