@@ -42,11 +42,6 @@ const SIMCard = ({ sim }: SIMCardProps) => {
         <span className={`px-2 py-0.5 rounded text-xs font-medium ${networkColors[sim.network]}`}>
           {sim.network}
         </span>
-        {sim.isVIP && (
-          <span className="badge-vip flex items-center gap-1">
-            <span>⭐</span> VIP
-          </span>
-        )}
       </div>
 
       {/* SIM Number */}
