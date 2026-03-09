@@ -114,29 +114,24 @@ const MuaSimTuQuy = () => {
   const [isSearching, setIsSearching] = useState(false);
   const { allSims, isLoading } = useSimData();
 
-  // Filter SIMs with trailing tứ quý (4 identical last digits) - default display
-  const tuQuySims = useMemo(() => {
+  // Filter all tứ quý sims ONCE, then derive both lists
+  const allTuQuySims = useMemo(() => {
     const pattern = /(0{4}|1{4}|2{4}|3{4}|4{4}|5{4}|6{4}|7{4}|8{4}|9{4})$/;
-    return allSims
-      .filter((s) => {
-        const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
-        return pattern.test(digits) && s.price > 0;
-      })
-      .sort((a, b) => a.price - b.price)
-      .slice(0, 12);
+    return allSims.filter((s) => {
+      const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
+      return pattern.test(digits) && s.price > 0;
+    });
   }, [allSims]);
 
-  // Featured tứ quý sims: 4 identical trailing digits, sorted by price desc, top 10
+  // Cheap sims sorted by price asc (for "Kho Sim Tứ Quý Cập Nhật")
+  const tuQuySims = useMemo(() => {
+    return [...allTuQuySims].sort((a, b) => a.price - b.price).slice(0, 12);
+  }, [allTuQuySims]);
+
+  // Expensive sims sorted by price desc (for "Sim Tứ Quý Nổi Bật")
   const featuredTuQuySims = useMemo(() => {
-    const pattern = /(0{4}|1{4}|2{4}|3{4}|4{4}|5{4}|6{4}|7{4}|8{4}|9{4})$/;
-    return allSims
-      .filter((s) => {
-        const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
-        return pattern.test(digits) && s.price > 0;
-      })
-      .sort((a, b) => b.price - a.price)
-      .slice(0, 10);
-  }, [allSims]);
+    return [...allTuQuySims].sort((a, b) => b.price - a.price).slice(0, 10);
+  }, [allTuQuySims]);
 
 
   const searchResults = useMemo(() => {
@@ -284,7 +279,16 @@ const MuaSimTuQuy = () => {
               Sim Tứ Quý Nổi Bật
             </h2>
             {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground">Đang tải danh sách sim...</div>
+              <div className="space-y-3 py-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 animate-pulse">
+                    <div className="h-5 w-32 bg-muted rounded" />
+                    <div className="h-5 w-20 bg-muted rounded hidden sm:block" />
+                    <div className="h-5 w-24 bg-muted rounded ml-auto" />
+                    <div className="h-7 w-20 bg-muted rounded" />
+                  </div>
+                ))}
+              </div>
             ) : featuredTuQuySims.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -338,7 +342,16 @@ const MuaSimTuQuy = () => {
               </button>
             )}
             {isLoading || isSearching ? (
-              <div className="text-center py-8 text-muted-foreground">Đang tải kho sim...</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="animate-pulse rounded-xl border border-border bg-card p-4 space-y-3">
+                    <div className="h-4 w-16 bg-muted rounded" />
+                    <div className="h-6 w-full bg-muted rounded" />
+                    <div className="h-4 w-20 bg-muted rounded" />
+                    <div className="h-8 w-full bg-muted rounded" />
+                  </div>
+                ))}
+              </div>
             ) : displaySims.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {displaySims.map((sim) => (
