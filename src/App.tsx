@@ -20,6 +20,7 @@ import SimNamSinh from "./pages/SimNamSinh";
 import SimDuoi1Trieu from "./pages/SimDuoi1Trieu";
 import SimTamHoaGiaRe from "./pages/SimTamHoaGiaRe";
 import SimMobifoneGiaRe from "./pages/SimMobifoneGiaRe";
+import MuaSimTuQuy from "./pages/MuaSimTuQuy";
 import FloatingContactButtons from "./components/FloatingContactButtons";
 import MessengerChatPlugin from "./components/MessengerChatPlugin";
 import MessengerQuickTemplates from "./components/MessengerQuickTemplates";
@@ -48,6 +49,7 @@ const App = () => (
           <Route path="/sim-duoi-1-trieu" element={<SimDuoi1Trieu />} />
           <Route path="/sim-tam-hoa-gia-re" element={<SimTamHoaGiaRe />} />
           <Route path="/sim-mobifone-gia-re" element={<SimMobifoneGiaRe />} />
+          <Route path="/mua-sim-tu-quy" element={<MuaSimTuQuy />} />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="/:slug" element={<SimNamSinh />} />
