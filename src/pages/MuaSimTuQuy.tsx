@@ -11,21 +11,21 @@ import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+  AccordionTrigger } from
+'@/components/ui/accordion';
 import type { NormalizedSIM } from '@/lib/simUtils';
 
 const HOTLINE = '0901.19.1111';
 const ZALO_URL = 'https://zalo.me/0901191111';
 
 const faqItems = [
-  { q: 'Sim tứ quý giá bao nhiêu?', a: 'Giá sim tứ quý dao động từ vài trăm nghìn đến hàng trăm triệu đồng, tùy thuộc vào số quý (1111, 8888, 9999...), đầu số và nhà mạng. Sim tứ quý 8 và tứ quý 9 thường có giá cao nhất do ý nghĩa phong thủy đặc biệt.' },
-  { q: 'Mua sim tứ quý ở đâu uy tín?', a: 'CHONSOMOBIFONE.COM là địa chỉ uy tín để mua sim tứ quý với kho số lớn, giá minh bạch, hỗ trợ sang tên chính chủ và giao sim toàn quốc. Mọi giao dịch đều an toàn, có hóa đơn đầy đủ.' },
-  { q: 'Sim tứ quý có sang tên được không?', a: 'Có. Tất cả sim tứ quý tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ miễn phí. Bạn chỉ cần mang CMND/CCCD đến cửa hàng nhà mạng gần nhất hoặc sử dụng ứng dụng My Mobifone.' },
-  { q: 'Sim tứ quý nhà mạng nào tốt nhất?', a: 'Mỗi nhà mạng đều có ưu điểm riêng. Mobifone nổi bật với chất lượng cuộc gọi và data 4G/5G. Viettel có vùng phủ sóng rộng. Vinaphone phù hợp người dùng truyền thống. Quan trọng nhất là chọn số hợp phong thủy với bạn.' },
-  { q: 'Sim tứ quý có hợp phong thủy không?', a: 'Sim tứ quý mang ý nghĩa phong thủy rất mạnh vì sự lặp lại 4 lần tạo nên năng lượng tập trung. Mỗi con số có ý nghĩa riêng: 1111 (khởi đầu), 6666 (lộc lá), 8888 (phát tài), 9999 (quyền lực). Bạn nên chọn số phù hợp với mệnh và tuổi.' },
-  { q: 'Giao sim tứ quý mất bao lâu?', a: 'Nội thành TP.HCM và Hà Nội: 30 phút – 2 tiếng. Các tỉnh thành khác: 1–2 ngày làm việc qua chuyển phát nhanh. Thanh toán COD khi nhận hàng hoặc chuyển khoản trước.' },
-];
+{ q: 'Sim tứ quý giá bao nhiêu?', a: 'Giá sim tứ quý dao động từ vài trăm nghìn đến hàng trăm triệu đồng, tùy thuộc vào số quý (1111, 8888, 9999...), đầu số và nhà mạng. Sim tứ quý 8 và tứ quý 9 thường có giá cao nhất do ý nghĩa phong thủy đặc biệt.' },
+{ q: 'Mua sim tứ quý ở đâu uy tín?', a: 'CHONSOMOBIFONE.COM là địa chỉ uy tín để mua sim tứ quý với kho số lớn, giá minh bạch, hỗ trợ sang tên chính chủ và giao sim toàn quốc. Mọi giao dịch đều an toàn, có hóa đơn đầy đủ.' },
+{ q: 'Sim tứ quý có sang tên được không?', a: 'Có. Tất cả sim tứ quý tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ miễn phí. Bạn chỉ cần mang CMND/CCCD đến cửa hàng nhà mạng gần nhất hoặc sử dụng ứng dụng My Mobifone.' },
+{ q: 'Sim tứ quý nhà mạng nào tốt nhất?', a: 'Mỗi nhà mạng đều có ưu điểm riêng. Mobifone nổi bật với chất lượng cuộc gọi và data 4G/5G. Viettel có vùng phủ sóng rộng. Vinaphone phù hợp người dùng truyền thống. Quan trọng nhất là chọn số hợp phong thủy với bạn.' },
+{ q: 'Sim tứ quý có hợp phong thủy không?', a: 'Sim tứ quý mang ý nghĩa phong thủy rất mạnh vì sự lặp lại 4 lần tạo nên năng lượng tập trung. Mỗi con số có ý nghĩa riêng: 1111 (khởi đầu), 6666 (lộc lá), 8888 (phát tài), 9999 (quyền lực). Bạn nên chọn số phù hợp với mệnh và tuổi.' },
+{ q: 'Giao sim tứ quý mất bao lâu?', a: 'Nội thành TP.HCM và Hà Nội: 30 phút – 2 tiếng. Các tỉnh thành khác: 1–2 ngày làm việc qua chuyển phát nhanh. Thanh toán COD khi nhận hàng hoặc chuyển khoản trước.' }];
+
 
 const faqJsonLd = {
   '@context': 'https://schema.org',
@@ -33,79 +33,79 @@ const faqJsonLd = {
   mainEntity: faqItems.map((item) => ({
     '@type': 'Question',
     name: item.q,
-    acceptedAnswer: { '@type': 'Answer', text: item.a },
-  })),
+    acceptedAnswer: { '@type': 'Answer', text: item.a }
+  }))
 };
 
 const tuQuyTypes = [
-  {
-    num: '1',
-    title: 'Sim Tứ Quý 1 (1111)',
-    content: 'Sim tứ quý 1 mang ý nghĩa của sự khởi đầu mới, tiên phong và độc lập. Trong phong thủy, số 1 tượng trưng cho nguyên khí, sự sáng tạo và ý chí mạnh mẽ. Người sở hữu sim tứ quý 1 thường là người có tố chất lãnh đạo, thích đi đầu và không ngại thử thách. Đối tượng phù hợp nhất là doanh nhân khởi nghiệp, nhà quản lý hoặc những ai muốn bắt đầu một chương mới trong cuộc sống. Mua sim tứ quý 1 là lựa chọn thông minh cho người muốn khẳng định bản thân và xây dựng thương hiệu cá nhân từ con số may mắn.',
-  },
-  {
-    num: '2',
-    title: 'Sim Tứ Quý 2 (2222)',
-    content: 'Sim tứ quý 2 đại diện cho sự cân bằng, hài hòa và hợp tác. Số 2 trong phong thủy tượng trưng cho âm dương giao hòa, mối quan hệ bền vững và sự đồng thuận. Người dùng sim tứ quý 2 thường gặp thuận lợi trong các mối quan hệ đối tác, hôn nhân và kinh doanh cần sự hợp tác. Đặc biệt phù hợp với người làm việc nhóm, nhà ngoại giao, hoặc những ai coi trọng tình cảm gia đình. Mua sim tứ quý 2 giúp thu hút năng lượng hòa hợp và mang lại sự ổn định trong cuộc sống.',
-  },
-  {
-    num: '3',
-    title: 'Sim Tứ Quý 3 (3333)',
-    content: 'Sim tứ quý 3 biểu tượng cho tài lộc, thịnh vượng và sự phát triển bền vững. Số 3 gắn liền với tam tài (Thiên – Địa – Nhân), mang ý nghĩa viên mãn trong cả sự nghiệp lẫn cuộc sống. Người sở hữu sim tứ quý 3 thường gặp may mắn trong tài chính, kinh doanh phát đạt và được quý nhân phù trợ. Đối tượng lý tưởng là thương nhân, nhà đầu tư hoặc người muốn cải thiện vận tài lộc. Mua sim tứ quý 3 là cách đầu tư khôn ngoan cho vận may dài hạn.',
-  },
-  {
-    num: '4',
-    title: 'Sim Tứ Quý 4 (4444)',
-    content: 'Sim tứ quý 4 mang ý nghĩa của sự ổn định, vững chắc và nền tảng bền vững. Dù nhiều người e ngại số 4, nhưng trong phong thủy, tứ tượng trưng cho bốn phương, bốn mùa – biểu hiện của sự toàn vẹn và kiên cố. Sim tứ quý 4 thường có giá mềm hơn nhưng mang giá trị thực tế cao, phù hợp với người coi trọng sự bền bỉ và kiên trì. Đối tượng phù hợp là kỹ sư, nhà xây dựng, hoặc người làm nghề cần sự chính xác. Mua sim tứ quý 4 là lựa chọn thực dụng và đáng cân nhắc.',
-  },
-  {
-    num: '5',
-    title: 'Sim Tứ Quý 5 (5555)',
-    content: 'Sim tứ quý 5 tượng trưng cho sự sinh sôi, phát triển và biến đổi tích cực. Số 5 đứng giữa thập phân, mang ý nghĩa trung tâm, cân bằng giữa các yếu tố. Trong ngũ hành, số 5 liên quan đến hành Thổ – nền tảng của mọi sự phát triển. Người dùng sim tứ quý 5 thường linh hoạt, sáng tạo và có khả năng thích nghi cao. Phù hợp với doanh nhân đa ngành, người làm truyền thông hoặc freelancer. Mua sim tứ quý 5 giúp kích hoạt năng lượng sáng tạo và mở rộng cơ hội.',
-  },
-  {
-    num: '6',
-    title: 'Sim Tứ Quý 6 (6666)',
-    content: 'Sim tứ quý 6 là biểu tượng của lộc lá, thuận lợi và may mắn trong mọi việc. Số 6 trong văn hóa Á Đông được xem là "lục lộc" – phú quý, bình an. Sim tứ quý 6 là một trong những số được săn đón nhiều nhất vì mang lại cảm giác thịnh vượng và hanh thông. Đối tượng phù hợp rộng: từ doanh nhân, nhân viên văn phòng đến người kinh doanh tự do. Mua sim tứ quý 6 là cách đầu tư vào vận lộc cá nhân, vừa đẹp vừa mang ý nghĩa tích cực.',
-  },
-  {
-    num: '7',
-    title: 'Sim Tứ Quý 7 (7777)',
-    content: 'Sim tứ quý 7 đại diện cho sức mạnh, quyết đoán và thành công. Số 7 được coi là con số may mắn trong nhiều nền văn hóa trên thế giới, tượng trưng cho sự hoàn thiện và chiến thắng. Người sở hữu sim tứ quý 7 thường toát lên phong thái tự tin, có sức ảnh hưởng mạnh mẽ. Đặc biệt phù hợp với người làm lãnh đạo, luật sư, bác sĩ hoặc những ngành nghề đòi hỏi uy tín. Mua sim tứ quý 7 không chỉ là chọn số đẹp mà còn là đầu tư vào hình ảnh cá nhân.',
-  },
-  {
-    num: '8',
-    title: 'Sim Tứ Quý 8 (8888)',
-    content: 'Sim tứ quý 8 là ông vua trong các sim số đẹp, mang ý nghĩa "phát" – phát tài, phát đạt, phát triển. Số 8 là con số được yêu thích nhất trong phong thủy Á Đông, tượng trưng cho sự giàu có và thịnh vượng vô tận. Sim tứ quý 8 luôn nằm trong top tìm kiếm và có giá trị tăng theo thời gian. Phù hợp với doanh nhân, nhà đầu tư, người kinh doanh muốn thu hút tài lộc. Mua sim tứ quý 8 là quyết định đầu tư giá trị, vừa sử dụng vừa có thể tăng giá.',
-  },
-  {
-    num: '9',
-    title: 'Sim Tứ Quý 9 (9999)',
-    content: 'Sim tứ quý 9 tượng trưng cho đỉnh cao, quyền lực và sự trường tồn. Số 9 là con số lớn nhất trong hàng đơn vị, mang ý nghĩa cửu trùng – vĩnh cửu, bất diệt. Người sở hữu sim tứ quý 9 thường có tham vọng lớn, muốn đạt đến đỉnh cao sự nghiệp và được xã hội tôn trọng. Đối tượng phù hợp: CEO, chính trị gia, người có vị thế xã hội cao. Mua sim tứ quý 9 không chỉ khẳng định đẳng cấp mà còn mang lại năng lượng mạnh mẽ cho chủ nhân.',
-  },
-];
+{
+  num: '1',
+  title: 'Sim Tứ Quý 1 (1111)',
+  content: 'Sim tứ quý 1 mang ý nghĩa của sự khởi đầu mới, tiên phong và độc lập. Trong phong thủy, số 1 tượng trưng cho nguyên khí, sự sáng tạo và ý chí mạnh mẽ. Người sở hữu sim tứ quý 1 thường là người có tố chất lãnh đạo, thích đi đầu và không ngại thử thách. Đối tượng phù hợp nhất là doanh nhân khởi nghiệp, nhà quản lý hoặc những ai muốn bắt đầu một chương mới trong cuộc sống. Mua sim tứ quý 1 là lựa chọn thông minh cho người muốn khẳng định bản thân và xây dựng thương hiệu cá nhân từ con số may mắn.'
+},
+{
+  num: '2',
+  title: 'Sim Tứ Quý 2 (2222)',
+  content: 'Sim tứ quý 2 đại diện cho sự cân bằng, hài hòa và hợp tác. Số 2 trong phong thủy tượng trưng cho âm dương giao hòa, mối quan hệ bền vững và sự đồng thuận. Người dùng sim tứ quý 2 thường gặp thuận lợi trong các mối quan hệ đối tác, hôn nhân và kinh doanh cần sự hợp tác. Đặc biệt phù hợp với người làm việc nhóm, nhà ngoại giao, hoặc những ai coi trọng tình cảm gia đình. Mua sim tứ quý 2 giúp thu hút năng lượng hòa hợp và mang lại sự ổn định trong cuộc sống.'
+},
+{
+  num: '3',
+  title: 'Sim Tứ Quý 3 (3333)',
+  content: 'Sim tứ quý 3 biểu tượng cho tài lộc, thịnh vượng và sự phát triển bền vững. Số 3 gắn liền với tam tài (Thiên – Địa – Nhân), mang ý nghĩa viên mãn trong cả sự nghiệp lẫn cuộc sống. Người sở hữu sim tứ quý 3 thường gặp may mắn trong tài chính, kinh doanh phát đạt và được quý nhân phù trợ. Đối tượng lý tưởng là thương nhân, nhà đầu tư hoặc người muốn cải thiện vận tài lộc. Mua sim tứ quý 3 là cách đầu tư khôn ngoan cho vận may dài hạn.'
+},
+{
+  num: '4',
+  title: 'Sim Tứ Quý 4 (4444)',
+  content: 'Sim tứ quý 4 mang ý nghĩa của sự ổn định, vững chắc và nền tảng bền vững. Dù nhiều người e ngại số 4, nhưng trong phong thủy, tứ tượng trưng cho bốn phương, bốn mùa – biểu hiện của sự toàn vẹn và kiên cố. Sim tứ quý 4 thường có giá mềm hơn nhưng mang giá trị thực tế cao, phù hợp với người coi trọng sự bền bỉ và kiên trì. Đối tượng phù hợp là kỹ sư, nhà xây dựng, hoặc người làm nghề cần sự chính xác. Mua sim tứ quý 4 là lựa chọn thực dụng và đáng cân nhắc.'
+},
+{
+  num: '5',
+  title: 'Sim Tứ Quý 5 (5555)',
+  content: 'Sim tứ quý 5 tượng trưng cho sự sinh sôi, phát triển và biến đổi tích cực. Số 5 đứng giữa thập phân, mang ý nghĩa trung tâm, cân bằng giữa các yếu tố. Trong ngũ hành, số 5 liên quan đến hành Thổ – nền tảng của mọi sự phát triển. Người dùng sim tứ quý 5 thường linh hoạt, sáng tạo và có khả năng thích nghi cao. Phù hợp với doanh nhân đa ngành, người làm truyền thông hoặc freelancer. Mua sim tứ quý 5 giúp kích hoạt năng lượng sáng tạo và mở rộng cơ hội.'
+},
+{
+  num: '6',
+  title: 'Sim Tứ Quý 6 (6666)',
+  content: 'Sim tứ quý 6 là biểu tượng của lộc lá, thuận lợi và may mắn trong mọi việc. Số 6 trong văn hóa Á Đông được xem là "lục lộc" – phú quý, bình an. Sim tứ quý 6 là một trong những số được săn đón nhiều nhất vì mang lại cảm giác thịnh vượng và hanh thông. Đối tượng phù hợp rộng: từ doanh nhân, nhân viên văn phòng đến người kinh doanh tự do. Mua sim tứ quý 6 là cách đầu tư vào vận lộc cá nhân, vừa đẹp vừa mang ý nghĩa tích cực.'
+},
+{
+  num: '7',
+  title: 'Sim Tứ Quý 7 (7777)',
+  content: 'Sim tứ quý 7 đại diện cho sức mạnh, quyết đoán và thành công. Số 7 được coi là con số may mắn trong nhiều nền văn hóa trên thế giới, tượng trưng cho sự hoàn thiện và chiến thắng. Người sở hữu sim tứ quý 7 thường toát lên phong thái tự tin, có sức ảnh hưởng mạnh mẽ. Đặc biệt phù hợp với người làm lãnh đạo, luật sư, bác sĩ hoặc những ngành nghề đòi hỏi uy tín. Mua sim tứ quý 7 không chỉ là chọn số đẹp mà còn là đầu tư vào hình ảnh cá nhân.'
+},
+{
+  num: '8',
+  title: 'Sim Tứ Quý 8 (8888)',
+  content: 'Sim tứ quý 8 là ông vua trong các sim số đẹp, mang ý nghĩa "phát" – phát tài, phát đạt, phát triển. Số 8 là con số được yêu thích nhất trong phong thủy Á Đông, tượng trưng cho sự giàu có và thịnh vượng vô tận. Sim tứ quý 8 luôn nằm trong top tìm kiếm và có giá trị tăng theo thời gian. Phù hợp với doanh nhân, nhà đầu tư, người kinh doanh muốn thu hút tài lộc. Mua sim tứ quý 8 là quyết định đầu tư giá trị, vừa sử dụng vừa có thể tăng giá.'
+},
+{
+  num: '9',
+  title: 'Sim Tứ Quý 9 (9999)',
+  content: 'Sim tứ quý 9 tượng trưng cho đỉnh cao, quyền lực và sự trường tồn. Số 9 là con số lớn nhất trong hàng đơn vị, mang ý nghĩa cửu trùng – vĩnh cửu, bất diệt. Người sở hữu sim tứ quý 9 thường có tham vọng lớn, muốn đạt đến đỉnh cao sự nghiệp và được xã hội tôn trọng. Đối tượng phù hợp: CEO, chính trị gia, người có vị thế xã hội cao. Mua sim tứ quý 9 không chỉ khẳng định đẳng cấp mà còn mang lại năng lượng mạnh mẽ cho chủ nhân.'
+}];
+
 
 const fengShuiTable = [
-  { sim: '1111', meaning: 'Sự khởi đầu, tiên phong, độc lập' },
-  { sim: '2222', meaning: 'Cân bằng, hài hòa, hợp tác' },
-  { sim: '3333', meaning: 'Tài lộc, thịnh vượng, phát triển' },
-  { sim: '4444', meaning: 'Ổn định, vững chắc, bền bỉ' },
-  { sim: '5555', meaning: 'Sinh sôi, sáng tạo, linh hoạt' },
-  { sim: '6666', meaning: 'Lộc lá, thuận lợi, may mắn' },
-  { sim: '7777', meaning: 'Sức mạnh, quyết đoán, thành công' },
-  { sim: '8888', meaning: 'Phát tài, phát đạt, thịnh vượng' },
-  { sim: '9999', meaning: 'Quyền lực, đỉnh cao, trường tồn' },
-];
+{ sim: '1111', meaning: 'Sự khởi đầu, tiên phong, độc lập' },
+{ sim: '2222', meaning: 'Cân bằng, hài hòa, hợp tác' },
+{ sim: '3333', meaning: 'Tài lộc, thịnh vượng, phát triển' },
+{ sim: '4444', meaning: 'Ổn định, vững chắc, bền bỉ' },
+{ sim: '5555', meaning: 'Sinh sôi, sáng tạo, linh hoạt' },
+{ sim: '6666', meaning: 'Lộc lá, thuận lợi, may mắn' },
+{ sim: '7777', meaning: 'Sức mạnh, quyết đoán, thành công' },
+{ sim: '8888', meaning: 'Phát tài, phát đạt, thịnh vượng' },
+{ sim: '9999', meaning: 'Quyền lực, đỉnh cao, trường tồn' }];
+
 
 
 const benefits = [
-  { icon: Star, text: 'Kho sim tứ quý lớn nhất' },
-  { icon: Shield, text: 'Giao dịch an toàn, bảo mật' },
-  { icon: CheckCircle, text: 'Sang tên chính chủ miễn phí' },
-  { icon: DollarSign, text: 'Giá cạnh tranh, minh bạch' },
-  { icon: Truck, text: 'Giao sim toàn quốc nhanh chóng' },
-  { icon: Users, text: 'Hỗ trợ tư vấn 24/7' },
-];
+{ icon: Star, text: 'Kho sim tứ quý lớn nhất' },
+{ icon: Shield, text: 'Giao dịch an toàn, bảo mật' },
+{ icon: CheckCircle, text: 'Sang tên chính chủ miễn phí' },
+{ icon: DollarSign, text: 'Giá cạnh tranh, minh bạch' },
+{ icon: Truck, text: 'Giao sim toàn quốc nhanh chóng' },
+{ icon: Users, text: 'Hỗ trợ tư vấn 24/7' }];
+
 
 const MuaSimTuQuy = () => {
   const navigate = useNavigate();
@@ -137,30 +137,30 @@ const MuaSimTuQuy = () => {
   const searchResults = useMemo(() => {
     if (!activeSearch.trim()) return null;
     const raw = activeSearch.replace(/\s/g, '');
-    
+
     // Suffix search: *7777 → ends with 7777
     if (raw.startsWith('*')) {
       const suffix = raw.slice(1).replace(/\D/g, '');
       if (!suffix) return null;
-      return allSims
-        .filter((s) => {
-          const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
-          return digits.endsWith(suffix);
-        })
-        .sort((a, b) => a.price - b.price)
-        .slice(0, 60);
+      return allSims.
+      filter((s) => {
+        const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
+        return digits.endsWith(suffix);
+      }).
+      sort((a, b) => a.price - b.price).
+      slice(0, 60);
     }
-    
+
     // Default: contains search
     const q = raw.replace(/\D/g, '');
     if (!q) return null;
-    return allSims
-      .filter((s) => {
-        const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
-        return digits.includes(q);
-      })
-      .sort((a, b) => a.price - b.price)
-      .slice(0, 60);
+    return allSims.
+    filter((s) => {
+      const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
+      return digits.includes(q);
+    }).
+    sort((a, b) => a.price - b.price).
+    slice(0, 60);
   }, [allSims, activeSearch]);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -207,8 +207,8 @@ const MuaSimTuQuy = () => {
         {/* ===== 1. HERO SECTION ===== */}
         <section style={{ height: 'clamp(340px, 45vw, 420px)' }} className="relative bg-gradient-to-b from-primary via-primary-dark to-primary text-primary-foreground overflow-hidden flex items-center">
           {/* Subtle background pattern */}
-          <div className="absolute inset-0 opacity-[0.07]" style={{
-            backgroundImage: `radial-gradient(circle at 25% 50%, hsl(var(--gold)) 0%, transparent 50%), radial-gradient(circle at 75% 50%, hsl(var(--gold)) 0%, transparent 50%)`,
+          <div className="absolute inset-0 opacity-[0.07] border-0 px-0 mx-[190px]" style={{
+            backgroundImage: `radial-gradient(circle at 25% 50%, hsl(var(--gold)) 0%, transparent 50%), radial-gradient(circle at 75% 50%, hsl(var(--gold)) 0%, transparent 50%)`
           }} />
 
           <div className="relative container mx-auto px-4 py-4 text-center">
@@ -240,8 +240,8 @@ const MuaSimTuQuy = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value.replace(/[^0-9*]/g, ''))}
                     placeholder="Nhập số cần tìm hoặc *7777 để tìm đuôi..."
-                    className="w-full pl-12 pr-3 py-3 md:py-3.5 bg-card text-foreground text-base focus:outline-none"
-                  />
+                    className="w-full pl-12 pr-3 py-3 md:py-3.5 bg-card text-foreground text-base focus:outline-none" />
+                  
                 </div>
                 <button type="submit" className="btn-cta px-5 md:px-7 flex items-center gap-2 rounded-none text-sm md:text-base font-bold whitespace-nowrap">
                   <Search className="w-4 h-4" />
@@ -289,19 +289,19 @@ const MuaSimTuQuy = () => {
               <span className="w-1 h-8 bg-primary rounded-full" />
               Sim Tứ Quý Nổi Bật
             </h2>
-            {isLoading ? (
-              <div className="space-y-3 py-4">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-4 animate-pulse">
+            {isLoading ?
+            <div className="space-y-3 py-4">
+                {Array.from({ length: 5 }).map((_, i) =>
+              <div key={i} className="flex items-center gap-4 animate-pulse">
                     <div className="h-5 w-32 bg-muted rounded" />
                     <div className="h-5 w-20 bg-muted rounded hidden sm:block" />
                     <div className="h-5 w-24 bg-muted rounded ml-auto" />
                     <div className="h-7 w-20 bg-muted rounded" />
                   </div>
-                ))}
-              </div>
-            ) : featuredTuQuySims.length > 0 ? (
-              <div className="overflow-x-auto">
+              )}
+              </div> :
+            featuredTuQuySims.length > 0 ?
+            <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-secondary/50">
@@ -312,33 +312,33 @@ const MuaSimTuQuy = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {featuredTuQuySims.map((s) => (
-                      <tr key={s.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
+                    {featuredTuQuySims.map((s) =>
+                  <tr key={s.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
                         <td className="py-3 px-4 font-bold text-foreground tracking-wide">{s.displayNumber}</td>
-                        <td className="py-3 px-4 text-muted-foreground hidden sm:table-cell">{(() => { const digits = (s.displayNumber || '').replace(/\D/g, ''); const p = digits.slice(0, 3); if (['090','093','089','070','076','077','078','079'].includes(p)) return 'Mobifone'; if (['091','094','088','081','082','083','084','085'].includes(p)) return 'Vinaphone'; if (['099','059'].includes(p)) return 'Gmobile'; return 'Khác'; })()}</td>
+                        <td className="py-3 px-4 text-muted-foreground hidden sm:table-cell">{(() => {const digits = (s.displayNumber || '').replace(/\D/g, '');const p = digits.slice(0, 3);if (['090', '093', '089', '070', '076', '077', '078', '079'].includes(p)) return 'Mobifone';if (['091', '094', '088', '081', '082', '083', '084', '085'].includes(p)) return 'Vinaphone';if (['099', '059'].includes(p)) return 'Gmobile';return 'Khác';})()}</td>
                         <td className="py-3 px-4 text-right font-semibold text-primary whitespace-nowrap">
-                          {s.price >= 1_000_000
-                            ? `${(s.price / 1_000_000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} triệu`
-                            : s.price.toLocaleString('vi-VN') + 'đ'}
+                          {s.price >= 1_000_000 ?
+                      `${(s.price / 1_000_000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} triệu` :
+                      s.price.toLocaleString('vi-VN') + 'đ'}
                         </td>
                         <td className="py-3 px-4 text-center">
                           <a
-                            href={`${ZALO_URL}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 bg-primary text-primary-foreground px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-primary/90 transition"
-                          >
+                        href={`${ZALO_URL}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 bg-primary text-primary-foreground px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-primary/90 transition">
+                        
                             <Phone className="w-3 h-3" /> Liên hệ
                           </a>
                         </td>
                       </tr>
-                    ))}
+                  )}
                   </tbody>
                 </table>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">Chưa có sim tứ quý nổi bật. Vui lòng quay lại sau.</div>
-            )}
+              </div> :
+
+            <div className="text-center py-8 text-muted-foreground">Chưa có sim tứ quý nổi bật. Vui lòng quay lại sau.</div>
+            }
           </section>
 
           {/* ===== 3b. KHO SIM TỨ QUÝ THỰC TẾ ===== */}
@@ -347,37 +347,37 @@ const MuaSimTuQuy = () => {
               <span className="w-1 h-8 bg-primary rounded-full" />
               {hasActiveSearch ? `Kết quả tìm kiếm "${activeSearch}"` : 'Kho Sim Tứ Quý Cập Nhật'}
             </h2>
-            {hasActiveSearch && (
-              <button onClick={clearSearch} className="mb-4 text-sm text-primary hover:underline">
+            {hasActiveSearch &&
+            <button onClick={clearSearch} className="mb-4 text-sm text-primary hover:underline">
                 ← Quay lại kho sim tứ quý
               </button>
-            )}
-            {isLoading || isSearching ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="animate-pulse rounded-xl border border-border bg-card p-4 space-y-3">
+            }
+            {isLoading || isSearching ?
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {Array.from({ length: 8 }).map((_, i) =>
+              <div key={i} className="animate-pulse rounded-xl border border-border bg-card p-4 space-y-3">
                     <div className="h-4 w-16 bg-muted rounded" />
                     <div className="h-6 w-full bg-muted rounded" />
                     <div className="h-4 w-20 bg-muted rounded" />
                     <div className="h-8 w-full bg-muted rounded" />
                   </div>
-                ))}
+              )}
+              </div> :
+            displaySims.length > 0 ?
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {displaySims.map((sim) =>
+              <SIMCardNew key={sim.id} sim={sim} />
+              )}
+              </div> :
+
+            <div className="text-center py-8 text-muted-foreground">
+                {hasActiveSearch ?
+              activeSearch.startsWith('*') ?
+              'Không tìm thấy sim có đuôi số bạn đang tìm. Vui lòng thử số khác.' :
+              'Không tìm thấy sim chứa chuỗi số bạn đang tìm. Vui lòng thử số khác.' :
+              'Hiện chưa có sim tứ quý đuôi phù hợp trong kho.'}
               </div>
-            ) : displaySims.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                {displaySims.map((sim) => (
-                  <SIMCardNew key={sim.id} sim={sim} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                {hasActiveSearch
-                  ? activeSearch.startsWith('*')
-                    ? 'Không tìm thấy sim có đuôi số bạn đang tìm. Vui lòng thử số khác.'
-                    : 'Không tìm thấy sim chứa chuỗi số bạn đang tìm. Vui lòng thử số khác.'
-                  : 'Hiện chưa có sim tứ quý đuôi phù hợp trong kho.'}
-              </div>
-            )}
+            }
             <div className="mt-6 text-center">
               <button onClick={() => navigate('/')} className="btn-cta inline-flex items-center gap-2 px-6 py-3">
                 Xem toàn bộ kho sim <ChevronRight className="w-4 h-4" />
@@ -392,8 +392,8 @@ const MuaSimTuQuy = () => {
               Các Loại Sim Tứ Quý Phổ Biến
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {tuQuyTypes.map((t) => (
-                <article key={t.num} className="bg-card rounded-xl shadow-card border border-border p-5 hover:border-primary/30 transition-colors">
+              {tuQuyTypes.map((t) =>
+              <article key={t.num} className="bg-card rounded-xl shadow-card border border-border p-5 hover:border-primary/30 transition-colors">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                       <span className="text-lg font-black text-primary">{t.num}</span>
@@ -402,7 +402,7 @@ const MuaSimTuQuy = () => {
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed">{t.content}</p>
                 </article>
-              ))}
+              )}
             </div>
           </section>
 
@@ -413,14 +413,14 @@ const MuaSimTuQuy = () => {
               Lý Do Nên Mua Sim Tứ Quý Tại CHONSOMOBIFONE
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {benefits.map((b, i) => (
-                <div key={i} className="flex items-start gap-3 p-4 rounded-lg bg-secondary/40">
+              {benefits.map((b, i) =>
+              <div key={i} className="flex items-start gap-3 p-4 rounded-lg bg-secondary/40">
                   <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                     <b.icon className="w-5 h-5 text-primary" />
                   </div>
                   <span className="text-sm font-medium text-foreground">{b.text}</span>
                 </div>
-              ))}
+              )}
             </div>
           </section>
 
@@ -464,12 +464,12 @@ const MuaSimTuQuy = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {fengShuiTable.map((row, i) => (
-                    <tr key={i} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
+                  {fengShuiTable.map((row, i) =>
+                  <tr key={i} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
                       <td className="py-3 px-4 font-bold text-primary text-base">{row.sim}</td>
                       <td className="py-3 px-4 text-muted-foreground">{row.meaning}</td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -482,12 +482,12 @@ const MuaSimTuQuy = () => {
               Câu Hỏi Thường Gặp Về Sim Tứ Quý
             </h2>
             <Accordion type="single" collapsible className="space-y-2">
-              {faqItems.map((faq, index) => (
-                <AccordionItem
-                  key={index}
-                  value={`faq-${index}`}
-                  className="border border-border rounded-lg px-4 data-[state=open]:bg-secondary/30"
-                >
+              {faqItems.map((faq, index) =>
+              <AccordionItem
+                key={index}
+                value={`faq-${index}`}
+                className="border border-border rounded-lg px-4 data-[state=open]:bg-secondary/30">
+                
                   <AccordionTrigger className="text-left font-medium text-foreground hover:text-primary hover:no-underline py-4">
                     {faq.q}
                   </AccordionTrigger>
@@ -495,7 +495,7 @@ const MuaSimTuQuy = () => {
                     {faq.a}
                   </AccordionContent>
                 </AccordionItem>
-              ))}
+              )}
             </Accordion>
           </section>
 
@@ -526,8 +526,8 @@ const MuaSimTuQuy = () => {
       </main>
 
       <Footer />
-    </>
-  );
+    </>);
+
 };
 
 export default MuaSimTuQuy;
