@@ -205,13 +205,13 @@ const MuaSimTuQuy = () => {
 
       <main className="min-h-screen bg-background">
         {/* ===== 1. HERO SECTION ===== */}
-        <section className="relative bg-gradient-to-b from-primary via-primary-dark to-primary text-primary-foreground overflow-hidden">
+        <section className="relative bg-gradient-to-b from-primary via-primary-dark to-primary text-primary-foreground overflow-hidden h-[340px] md:h-[380px] lg:h-[420px] flex items-center">
           {/* Subtle background pattern */}
           <div className="absolute inset-0 opacity-[0.07]" style={{
             backgroundImage: `radial-gradient(circle at 25% 50%, hsl(var(--gold)) 0%, transparent 50%), radial-gradient(circle at 75% 50%, hsl(var(--gold)) 0%, transparent 50%)`,
           }} />
 
-          <div className="relative container mx-auto px-4 py-5 md:py-7 lg:py-9 text-center">
+          <div className="relative container mx-auto px-4 py-4 text-center">
             {/* Icon badge */}
             <div className="flex justify-center mb-2">
               <div className="w-10 h-10 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center">
