@@ -333,7 +333,9 @@ const MuaSimTuQuy = () => {
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 {hasActiveSearch
-                  ? 'Không tìm thấy sim chứa chuỗi số bạn đang tìm. Vui lòng thử số khác.'
+                  ? activeSearch.startsWith('*')
+                    ? 'Không tìm thấy sim có đuôi số bạn đang tìm. Vui lòng thử số khác.'
+                    : 'Không tìm thấy sim chứa chuỗi số bạn đang tìm. Vui lòng thử số khác.'
                   : `Không tìm thấy sim tứ quý phù hợp. Vui lòng liên hệ hotline ${HOTLINE} để được tư vấn.`}
               </div>
             )}
