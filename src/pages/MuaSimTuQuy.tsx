@@ -114,16 +114,16 @@ const MuaSimTuQuy = () => {
   const [isSearching, setIsSearching] = useState(false);
   const { allSims, isLoading } = useSimData();
 
-  // Filter SIMs that contain 4 repeated digits (tứ quý) - default display
+  // Filter SIMs with trailing tứ quý (4 identical last digits) - default display
   const tuQuySims = useMemo(() => {
-    const pattern = /(0{4}|1{4}|2{4}|3{4}|4{4}|5{4}|6{4}|7{4}|8{4}|9{4})/;
+    const pattern = /(0{4}|1{4}|2{4}|3{4}|4{4}|5{4}|6{4}|7{4}|8{4}|9{4})$/;
     return allSims
       .filter((s) => {
         const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
         return pattern.test(digits) && s.price > 0;
       })
       .sort((a, b) => a.price - b.price)
-      .slice(0, 24);
+      .slice(0, 12);
   }, [allSims]);
 
   // Featured tứ quý sims: 4 identical trailing digits, sorted by price desc, top 10
