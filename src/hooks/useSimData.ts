@@ -582,24 +582,25 @@ const RELAX_ORDER: (keyof FilterState)[] = [
   'selectedNetworks',
   'searchQuery'
 ];
+// Pre-compute cached initial data at module level (not inside hook)
+const getCachedInitialData = (): NormalizedSIM[] => {
+  const cached = loadFromCache();
+  if (cached && cached.data.length > 0) {
+    return cached.data.map(sim => {
+      if (!sim.network || sim.network === 'Khác') {
+        return normalizeSIM(sim.rawDigits, sim.displayNumber, sim.price, sim.id);
+      }
+      return sim;
+    });
+  }
+  return SEED_SIMS;
+};
+
+const INITIAL_PLACEHOLDER = getCachedInitialData();
 
 export const useSimData = () => {
   const [filters, setFilters] = useState<FilterState>(defaultFilterState);
   const queryClient = useQueryClient();
-
-  // Use cached real data as initialData for instant rendering (stale-while-revalidate)
-  const cachedInitialData = useMemo(() => {
-    const cached = loadFromCache();
-    if (cached && cached.data.length > 0) {
-      return cached.data.map(sim => {
-        if (!sim.network || sim.network === 'Khác') {
-          return normalizeSIM(sim.rawDigits, sim.displayNumber, sim.price, sim.id);
-        }
-        return sim;
-      });
-    }
-    return SEED_SIMS;
-  }, []);
 
   const { data: allSims = [], isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['simData'],
@@ -609,7 +610,7 @@ export const useSimData = () => {
     retry: 1,
     refetchInterval: AUTO_REFRESH_INTERVAL,
     refetchIntervalInBackground: false,
-    placeholderData: cachedInitialData
+    placeholderData: INITIAL_PLACEHOLDER
   });
 
   const forceReload = useCallback(() => {
