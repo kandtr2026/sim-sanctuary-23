@@ -20,6 +20,7 @@ import SimNamSinh from "./pages/SimNamSinh";
 
 
 import MuaSimTuQuy from "./pages/MuaSimTuQuy";
+import MuaSimGiaRe from "./pages/MuaSimGiaRe";
 import FloatingContactButtons from "./components/FloatingContactButtons";
 import MessengerChatPlugin from "./components/MessengerChatPlugin";
 import MessengerQuickTemplates from "./components/MessengerQuickTemplates";
