@@ -19,7 +19,6 @@ import NotFound from "./pages/NotFound";
 import SimNamSinh from "./pages/SimNamSinh";
 
 
-import SimMobifoneGiaRe from "./pages/SimMobifoneGiaRe";
 import MuaSimTuQuy from "./pages/MuaSimTuQuy";
 import FloatingContactButtons from "./components/FloatingContactButtons";
 import MessengerChatPlugin from "./components/MessengerChatPlugin";
@@ -46,9 +45,6 @@ const App = () => (
           <Route path="/tin-tuc/y-nghia-cac-con-so-1-9" element={<TinTucBai3 />} />
           <Route path="/tin-tuc/cach-xem-sim-phong-thuy-hop-tuoi" element={<TinTucBai4 />} />
           <Route path="/tin-tuc/cach-tranh-mat-tien-oan-khi-mua-sim-so-dep" element={<TinTucBai5 />} />
-          
-          
-          <Route path="/sim-mobifone-gia-re" element={<SimMobifoneGiaRe />} />
           <Route path="/mua-sim-tu-quy" element={<MuaSimTuQuy />} />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
