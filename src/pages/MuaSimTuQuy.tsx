@@ -211,7 +211,7 @@ const MuaSimTuQuy = () => {
       <main className="min-h-screen bg-background">
         {/* ===== 1. HERO SECTION ===== */}
         <section className="bg-gradient-to-br from-primary via-primary-dark to-primary text-primary-foreground">
-          <div className="container mx-auto px-4 py-12 md:py-16 lg:py-20 text-center">
+          <div className="container mx-auto px-4 py-6 md:py-8 lg:py-10 text-center">
             <div className="flex justify-center mb-4">
               <div className="w-14 h-14 rounded-full bg-gold/20 flex items-center justify-center">
                 <Sparkles className="w-7 h-7 text-gold" />
