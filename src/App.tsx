@@ -18,7 +18,7 @@ import TinTucBai5 from "./pages/TinTucBai5";
 import NotFound from "./pages/NotFound";
 import SimNamSinh from "./pages/SimNamSinh";
 import SimDuoi1Trieu from "./pages/SimDuoi1Trieu";
-import SimTamHoaGiaRe from "./pages/SimTamHoaGiaRe";
+
 import SimMobifoneGiaRe from "./pages/SimMobifoneGiaRe";
 import MuaSimTuQuy from "./pages/MuaSimTuQuy";
 import FloatingContactButtons from "./components/FloatingContactButtons";
@@ -47,7 +47,7 @@ const App = () => (
           <Route path="/tin-tuc/cach-xem-sim-phong-thuy-hop-tuoi" element={<TinTucBai4 />} />
           <Route path="/tin-tuc/cach-tranh-mat-tien-oan-khi-mua-sim-so-dep" element={<TinTucBai5 />} />
           <Route path="/sim-duoi-1-trieu" element={<SimDuoi1Trieu />} />
-          <Route path="/sim-tam-hoa-gia-re" element={<SimTamHoaGiaRe />} />
+          
           <Route path="/sim-mobifone-gia-re" element={<SimMobifoneGiaRe />} />
           <Route path="/mua-sim-tu-quy" element={<MuaSimTuQuy />} />
 
