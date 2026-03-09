@@ -325,7 +325,6 @@ const MuaSimTuQuy = () => {
               <div className="text-center py-8 text-muted-foreground">Chưa có sim tứ quý nổi bật. Vui lòng quay lại sau.</div>
             )}
           </section>
-          </section>
 
           {/* ===== 3b. KHO SIM TỨ QUÝ THỰC TẾ ===== */}
           <section id="kho-sim-tu-quy" className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
