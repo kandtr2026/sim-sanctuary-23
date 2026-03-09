@@ -140,7 +140,23 @@ const MuaSimTuQuy = () => {
   // Search results: query ALL sims, not just tứ quý
   const searchResults = useMemo(() => {
     if (!activeSearch.trim()) return null;
-    const q = activeSearch.replace(/\D/g, '');
+    const raw = activeSearch.replace(/\s/g, '');
+    
+    // Suffix search: *7777 → ends with 7777
+    if (raw.startsWith('*')) {
+      const suffix = raw.slice(1).replace(/\D/g, '');
+      if (!suffix) return null;
+      return allSims
+        .filter((s) => {
+          const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
+          return digits.endsWith(suffix);
+        })
+        .sort((a, b) => a.price - b.price)
+        .slice(0, 60);
+    }
+    
+    // Default: contains search
+    const q = raw.replace(/\D/g, '');
     if (!q) return null;
     return allSims
       .filter((s) => {
@@ -213,11 +229,11 @@ const MuaSimTuQuy = () => {
                 <div className="relative flex-1">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <input
-                    type="tel"
+                    type="text"
                     inputMode="tel"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Nhập số tứ quý cần tìm..."
+                    placeholder="Nhập số cần tìm hoặc *7777 để tìm đuôi..."
                     className="w-full pl-12 pr-4 py-4 bg-card text-foreground text-base focus:outline-none"
                   />
                 </div>
@@ -317,7 +333,9 @@ const MuaSimTuQuy = () => {
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 {hasActiveSearch
-                  ? 'Không tìm thấy sim chứa chuỗi số bạn đang tìm. Vui lòng thử số khác.'
+                  ? activeSearch.startsWith('*')
+                    ? 'Không tìm thấy sim có đuôi số bạn đang tìm. Vui lòng thử số khác.'
+                    : 'Không tìm thấy sim chứa chuỗi số bạn đang tìm. Vui lòng thử số khác.'
                   : `Không tìm thấy sim tứ quý phù hợp. Vui lòng liên hệ hotline ${HOTLINE} để được tư vấn.`}
               </div>
             )}
