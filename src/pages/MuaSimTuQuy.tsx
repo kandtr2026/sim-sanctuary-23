@@ -297,21 +297,28 @@ const MuaSimTuQuy = () => {
 
           {/* ===== 3b. KHO SIM TỨ QUÝ THỰC TẾ ===== */}
           <section id="kho-sim-tu-quy" className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
-            <h2 className="text-2xl font-bold text-primary mb-6 flex items-center gap-3">
+            <h2 className="text-2xl font-bold text-primary mb-4 flex items-center gap-3">
               <span className="w-1 h-8 bg-primary rounded-full" />
-              Kho Sim Tứ Quý Cập Nhật
+              {hasActiveSearch ? `Kết quả tìm kiếm "${activeSearch}"` : 'Kho Sim Tứ Quý Cập Nhật'}
             </h2>
-            {isLoading ? (
+            {hasActiveSearch && (
+              <button onClick={clearSearch} className="mb-4 text-sm text-primary hover:underline">
+                ← Quay lại kho sim tứ quý
+              </button>
+            )}
+            {isLoading || isSearching ? (
               <div className="text-center py-8 text-muted-foreground">Đang tải kho sim...</div>
-            ) : filteredSims.length > 0 ? (
+            ) : displaySims.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                {filteredSims.map((sim) => (
+                {displaySims.map((sim) => (
                   <SIMCardNew key={sim.id} sim={sim} />
                 ))}
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
-                Không tìm thấy sim tứ quý phù hợp. Vui lòng liên hệ hotline {HOTLINE} để được tư vấn.
+                {hasActiveSearch
+                  ? 'Không tìm thấy sim chứa chuỗi số bạn đang tìm. Vui lòng thử số khác.'
+                  : `Không tìm thấy sim tứ quý phù hợp. Vui lòng liên hệ hotline ${HOTLINE} để được tư vấn.`}
               </div>
             )}
             <div className="mt-6 text-center">
