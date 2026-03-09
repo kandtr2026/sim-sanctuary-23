@@ -137,8 +137,9 @@ const CSV_CACHE_KEY = 'sim_csv_cache';
 const CSV_CACHE_TIME_KEY = 'sim_csv_cache_time';
 const STORAGE_KEY = 'chonsomobifone_sim_cache';
 
-const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
+const AUTO_REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes
 const MAX_CACHE_AGE = 60 * 60 * 1000; // 1 hour
+const STALE_TIME = 5 * 60 * 1000; // 5 minutes stale-while-revalidate
 
 // Module-level promotional data storage (keyed by SIM id)
 let promotionalDataStore = new Map<string, PromotionalData>();
@@ -586,16 +587,29 @@ export const useSimData = () => {
   const [filters, setFilters] = useState<FilterState>(defaultFilterState);
   const queryClient = useQueryClient();
 
+  // Use cached real data as initialData for instant rendering (stale-while-revalidate)
+  const cachedInitialData = useMemo(() => {
+    const cached = loadFromCache();
+    if (cached && cached.data.length > 0) {
+      return cached.data.map(sim => {
+        if (!sim.network || sim.network === 'Khác') {
+          return normalizeSIM(sim.rawDigits, sim.displayNumber, sim.price, sim.id);
+        }
+        return sim;
+      });
+    }
+    return SEED_SIMS;
+  }, []);
+
   const { data: allSims = [], isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['simData'],
     queryFn: fetchSimData,
-    staleTime: 2 * 60 * 1000,
+    staleTime: STALE_TIME,
     gcTime: 30 * 60 * 1000,
     retry: 1,
     refetchInterval: AUTO_REFRESH_INTERVAL,
     refetchIntervalInBackground: false,
-    // Seed data for instant rendering - prevents loading screen on first load
-    placeholderData: SEED_SIMS
+    placeholderData: cachedInitialData
   });
 
   const forceReload = useCallback(() => {
