@@ -140,7 +140,23 @@ const MuaSimTuQuy = () => {
   // Search results: query ALL sims, not just tứ quý
   const searchResults = useMemo(() => {
     if (!activeSearch.trim()) return null;
-    const q = activeSearch.replace(/\D/g, '');
+    const raw = activeSearch.replace(/\s/g, '');
+    
+    // Suffix search: *7777 → ends with 7777
+    if (raw.startsWith('*')) {
+      const suffix = raw.slice(1).replace(/\D/g, '');
+      if (!suffix) return null;
+      return allSims
+        .filter((s) => {
+          const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
+          return digits.endsWith(suffix);
+        })
+        .sort((a, b) => a.price - b.price)
+        .slice(0, 60);
+    }
+    
+    // Default: contains search
+    const q = raw.replace(/\D/g, '');
     if (!q) return null;
     return allSims
       .filter((s) => {
