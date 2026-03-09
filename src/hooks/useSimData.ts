@@ -587,16 +587,29 @@ export const useSimData = () => {
   const [filters, setFilters] = useState<FilterState>(defaultFilterState);
   const queryClient = useQueryClient();
 
+  // Use cached real data as initialData for instant rendering (stale-while-revalidate)
+  const cachedInitialData = useMemo(() => {
+    const cached = loadFromCache();
+    if (cached && cached.data.length > 0) {
+      return cached.data.map(sim => {
+        if (!sim.network || sim.network === 'Khác') {
+          return normalizeSIM(sim.rawDigits, sim.displayNumber, sim.price, sim.id);
+        }
+        return sim;
+      });
+    }
+    return SEED_SIMS;
+  }, []);
+
   const { data: allSims = [], isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['simData'],
     queryFn: fetchSimData,
-    staleTime: 2 * 60 * 1000,
+    staleTime: STALE_TIME,
     gcTime: 30 * 60 * 1000,
     retry: 1,
     refetchInterval: AUTO_REFRESH_INTERVAL,
     refetchIntervalInBackground: false,
-    // Seed data for instant rendering - prevents loading screen on first load
-    placeholderData: SEED_SIMS
+    placeholderData: cachedInitialData
   });
 
   const forceReload = useCallback(() => {
