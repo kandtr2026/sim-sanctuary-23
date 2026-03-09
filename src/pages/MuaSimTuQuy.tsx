@@ -211,26 +211,26 @@ const MuaSimTuQuy = () => {
             backgroundImage: `radial-gradient(circle at 25% 50%, hsl(var(--gold)) 0%, transparent 50%), radial-gradient(circle at 75% 50%, hsl(var(--gold)) 0%, transparent 50%)`,
           }} />
 
-          <div className="relative container mx-auto px-4 py-6 md:py-8 lg:py-10 text-center">
+          <div className="relative container mx-auto px-4 py-5 md:py-7 lg:py-9 text-center">
             {/* Icon badge */}
-            <div className="flex justify-center mb-3">
-              <div className="w-11 h-11 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center">
+            <div className="flex justify-center mb-2">
+              <div className="w-10 h-10 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-gold" />
               </div>
             </div>
 
             {/* Title */}
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-[2.25rem] font-extrabold leading-tight max-w-2xl mx-auto mb-3">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-[2.25rem] font-extrabold leading-tight max-w-2xl mx-auto mb-2">
               Mua Sim Tứ Quý Giá Tốt – Kho Sim Tứ Quý Đẹp Toàn Quốc
             </h1>
 
             {/* Description */}
-            <p className="text-primary-foreground/80 text-sm md:text-base leading-relaxed max-w-xl mx-auto mb-6">
+            <p className="text-primary-foreground/80 text-sm md:text-base leading-relaxed max-w-xl mx-auto mb-4">
               Kho sim tứ quý đẹp với hàng nghìn số từ CHONSOMOBIFONE.COM. Giao dịch an toàn, hỗ trợ sang tên chính chủ và giao sim toàn quốc.
             </p>
 
             {/* Search bar */}
-            <form onSubmit={handleSearch} className="max-w-lg mx-auto mb-5">
+            <form onSubmit={handleSearch} className="max-w-lg mx-auto mb-4">
               <div className="flex bg-card rounded-xl overflow-hidden shadow-elevated ring-1 ring-gold/20">
                 <div className="relative flex-1">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -240,7 +240,7 @@ const MuaSimTuQuy = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Nhập số cần tìm hoặc *7777 để tìm đuôi..."
-                    className="w-full pl-12 pr-3 py-3.5 md:py-4 bg-card text-foreground text-base focus:outline-none"
+                    className="w-full pl-12 pr-3 py-3 md:py-3.5 bg-card text-foreground text-base focus:outline-none"
                   />
                 </div>
                 <button type="submit" className="btn-cta px-5 md:px-7 flex items-center gap-2 rounded-none text-sm md:text-base font-bold whitespace-nowrap">
@@ -251,11 +251,11 @@ const MuaSimTuQuy = () => {
             </form>
 
             {/* CTA buttons */}
-            <div className="flex flex-col sm:flex-row justify-center gap-3 max-w-md mx-auto">
-              <button onClick={scrollToSims} className="bg-gold hover:bg-gold-light text-header-bg font-bold px-7 py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+            <div className="flex flex-col sm:flex-row justify-center gap-2.5 max-w-md mx-auto">
+              <button onClick={scrollToSims} className="bg-gold hover:bg-gold-light text-header-bg font-bold px-7 py-2.5 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
                 <Star className="w-4 h-4" /> Xem kho sim
               </button>
-              <a href={ZALO_URL} target="_blank" rel="noopener noreferrer" className="bg-primary-foreground/10 border border-primary-foreground/25 text-primary-foreground font-semibold px-7 py-3 rounded-lg hover:bg-primary-foreground/20 transition-all duration-200 flex items-center justify-center gap-2">
+              <a href={ZALO_URL} target="_blank" rel="noopener noreferrer" className="bg-primary-foreground/10 border border-primary-foreground/25 text-primary-foreground font-semibold px-7 py-2.5 rounded-lg hover:bg-primary-foreground/20 transition-all duration-200 flex items-center justify-center gap-2">
                 <Phone className="w-4 h-4" /> Tư vấn chọn sim
               </a>
             </div>
