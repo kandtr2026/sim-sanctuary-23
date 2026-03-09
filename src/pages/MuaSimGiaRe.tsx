@@ -1,0 +1,538 @@
+import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import { Phone, Shield, Star, Truck, CheckCircle, Search, ChevronRight, Sparkles, Award, Users, DollarSign, Tag } from 'lucide-react';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import Navigation from '@/components/Navigation';
+import { useSimData } from '@/hooks/useSimData';
+import SIMCardNew from '@/components/SIMCardNew';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+
+const HOTLINE = '0901.19.1111';
+const ZALO_URL = 'https://zalo.me/0901191111';
+
+const faqItems = [
+  {
+    q: 'Sim giá rẻ có dùng tốt không?',
+    a: 'Có. Sim giá rẻ vẫn sử dụng cùng hạ tầng mạng với các sim giá cao hơn. Bạn vẫn được gọi điện, nhắn tin, dùng data 4G/5G bình thường. Sự khác biệt chủ yếu nằm ở tính thẩm mỹ của dãy số, không ảnh hưởng đến chất lượng dịch vụ.',
+  },
+  {
+    q: 'Sim dưới 500k có sang tên được không?',
+    a: 'Hoàn toàn được. Tất cả sim tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ, bất kể mức giá. Bạn chỉ cần mang CMND/CCCD đến cửa hàng nhà mạng gần nhất hoặc dùng ứng dụng My Mobifone để đăng ký.',
+  },
+  {
+    q: 'Mua sim giá rẻ ở đâu uy tín?',
+    a: 'CHONSOMOBIFONE.COM là địa chỉ uy tín với kho sim cập nhật hàng ngày, giá minh bạch, hỗ trợ sang tên chính chủ miễn phí và giao sim toàn quốc. Mọi giao dịch an toàn, có xác nhận đơn hàng rõ ràng.',
+  },
+  {
+    q: 'Sim giá rẻ có dùng lâu dài được không?',
+    a: 'Có. Sim giá rẻ hoạt động giống hệt sim thường, bạn có thể dùng lâu dài mà không gặp vấn đề gì. Chỉ cần duy trì nạp tiền hoặc đăng ký gói cước theo quy định nhà mạng là sim sẽ hoạt động bình thường.',
+  },
+];
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqItems.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+};
+
+const sampleSims = [
+  { number: '0777.123.456', network: 'Mobifone', price: '99.000đ' },
+  { number: '0888.234.567', network: 'Vinaphone', price: '120.000đ' },
+  { number: '0932.456.789', network: 'Mobifone', price: '180.000đ' },
+  { number: '0706.789.012', network: 'Mobifone', price: '250.000đ' },
+  { number: '0785.111.234', network: 'Mobifone', price: '350.000đ' },
+  { number: '0936.222.345', network: 'Mobifone', price: '490.000đ' },
+];
+
+const MuaSimGiaRe = () => {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSearch, setActiveSearch] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const { allSims, isLoading } = useSimData();
+
+  // Filter cheap sims (under 1 million)
+  const cheapSims = useMemo(() => {
+    return allSims
+      .filter((s) => s.price > 0 && s.price < 1_000_000)
+      .sort((a, b) => a.price - b.price)
+      .slice(0, 12);
+  }, [allSims]);
+
+  // Featured cheap sims (best value - slightly higher price range for "nổi bật")
+  const featuredCheapSims = useMemo(() => {
+    return allSims
+      .filter((s) => s.price >= 100_000 && s.price < 1_000_000)
+      .sort((a, b) => b.price - a.price)
+      .slice(0, 10);
+  }, [allSims]);
+
+  const searchResults = useMemo(() => {
+    if (!activeSearch.trim()) return null;
+    const raw = activeSearch.replace(/\s/g, '');
+
+    if (raw.startsWith('*')) {
+      const suffix = raw.slice(1).replace(/\D/g, '');
+      if (!suffix) return null;
+      return allSims
+        .filter((s) => {
+          const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
+          return digits.endsWith(suffix) && s.price > 0 && s.price < 1_000_000;
+        })
+        .sort((a, b) => a.price - b.price)
+        .slice(0, 60);
+    }
+
+    const q = raw.replace(/\D/g, '');
+    if (!q) return null;
+    return allSims
+      .filter((s) => {
+        const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
+        return digits.includes(q) && s.price > 0 && s.price < 1_000_000;
+      })
+      .sort((a, b) => a.price - b.price)
+      .slice(0, 60);
+  }, [allSims, activeSearch]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSearching(true);
+    setActiveSearch(searchQuery);
+    setTimeout(() => setIsSearching(false), 300);
+    setTimeout(() => {
+      document.getElementById('kho-sim-gia-re')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setActiveSearch('');
+  };
+
+  const displaySims = searchResults ?? cheapSims;
+  const hasActiveSearch = !!activeSearch.trim();
+
+  const scrollToSims = () => {
+    document.getElementById('kho-sim-gia-re')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  return (
+    <>
+      <Helmet>
+        <title>Mua Sim Giá Rẻ – Kho Sim Số Đẹp Giá Tốt Toàn Quốc</title>
+        <meta
+          name="description"
+          content="Kho sim giá rẻ từ Viettel, Mobifone, Vinaphone với hàng nghìn số đẹp dễ nhớ chỉ từ vài chục nghìn đến dưới 1 triệu. Cập nhật kho sim mỗi ngày, hỗ trợ giao sim và sang tên toàn quốc."
+        />
+        <link rel="canonical" href="https://chonsomobifone.com/mua-sim-gia-re" />
+        <meta property="og:title" content="Mua Sim Giá Rẻ – Kho Sim Số Đẹp Giá Tốt Toàn Quốc" />
+        <meta
+          property="og:description"
+          content="Kho sim giá rẻ với hàng nghìn số đẹp dễ nhớ. Giá chỉ từ vài chục nghìn, cập nhật mỗi ngày."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://chonsomobifone.com/mua-sim-gia-re" />
+        <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
+      </Helmet>
+
+      <Header />
+      <Navigation />
+
+      <main className="min-h-screen bg-background">
+        {/* ===== 1. HERO SECTION ===== */}
+        <section
+          style={{ height: 'clamp(340px, 45vw, 420px)' }}
+          className="relative bg-gradient-to-b from-primary via-primary-dark to-primary text-primary-foreground overflow-hidden flex items-center"
+        >
+          <div
+            className="absolute inset-0 opacity-[0.07] border-0 px-0 mx-[190px]"
+            style={{
+              backgroundImage: `radial-gradient(circle at 25% 50%, hsl(var(--gold)) 0%, transparent 50%), radial-gradient(circle at 75% 50%, hsl(var(--gold)) 0%, transparent 50%)`,
+            }}
+          />
+
+          <div className="relative container mx-auto px-4 py-4 text-center">
+            <div className="flex justify-center mb-2">
+              <div className="w-10 h-10 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center">
+                <Tag className="w-5 h-5 text-gold" />
+              </div>
+            </div>
+
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-[2.25rem] font-extrabold leading-tight max-w-2xl mx-auto mb-2">
+              Mua Sim Giá Rẻ – Kho Sim Số Đẹp Giá Tốt Toàn Quốc
+            </h1>
+
+            <p className="text-primary-foreground/80 text-sm md:text-base leading-relaxed max-w-xl mx-auto mb-4">
+              Kho sim giá rẻ với hàng nghìn số đẹp từ CHONSOMOBIFONE.COM. Giá chỉ từ vài trăm nghìn đến dưới 1 triệu, phù hợp cho mọi nhu cầu sử dụng.
+            </p>
+
+            {/* Search bar */}
+            <form onSubmit={handleSearch} className="max-w-lg mx-auto mb-4">
+              <div className="flex bg-card rounded-xl overflow-hidden shadow-elevated ring-1 ring-gold/20">
+                <div className="relative flex-1">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <input
+                    type="text"
+                    inputMode="tel"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value.replace(/[^0-9*]/g, ''))}
+                    placeholder="Nhập số cần tìm..."
+                    className="w-full pl-12 pr-3 py-3 md:py-3.5 bg-card text-foreground text-base focus:outline-none"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="btn-cta px-5 md:px-7 flex items-center gap-2 rounded-none text-sm md:text-base font-bold whitespace-nowrap"
+                >
+                  <Search className="w-4 h-4" />
+                  <span className="hidden sm:inline">Tìm SIM</span>
+                </button>
+              </div>
+            </form>
+
+            {/* CTA buttons */}
+            <div className="flex flex-col sm:flex-row justify-center gap-2.5 max-w-md mx-auto">
+              <button
+                onClick={scrollToSims}
+                className="bg-gold hover:bg-gold-light text-header-bg font-bold px-7 py-2.5 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              >
+                <Star className="w-4 h-4" /> Xem kho sim giá rẻ
+              </button>
+              <a
+                href={ZALO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-primary-foreground/10 border border-primary-foreground/25 text-primary-foreground font-semibold px-7 py-2.5 rounded-lg hover:bg-primary-foreground/20 transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                <Phone className="w-4 h-4" /> Tư vấn chọn sim
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <div className="container mx-auto px-4 py-8 md:py-12 space-y-12 md:space-y-16">
+          {/* ===== 2. GIỚI THIỆU SIM GIÁ RẺ ===== */}
+          <section className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
+            <h2 className="text-2xl font-bold text-primary mb-4 flex items-center gap-3">
+              <span className="w-1 h-8 bg-primary rounded-full" />
+              Sim Giá Rẻ Là Gì?
+            </h2>
+            <div className="text-muted-foreground leading-relaxed space-y-4">
+              <p>
+                <strong>Sim giá rẻ</strong> là những sim số điện thoại có mức giá phải chăng, thường từ vài chục nghìn đến dưới 1 triệu đồng. Dù giá thấp, nhiều sim trong phân khúc này vẫn sở hữu dãy số dễ nhớ, có quy luật hoặc mang ý nghĩa riêng. Đây là lựa chọn thông minh cho những ai cần một số điện thoại mới mà không muốn chi quá nhiều.
+              </p>
+              <p>
+                Vì sao nhiều người tìm <strong>mua sim giá rẻ</strong>? Lý do rất đa dạng: dùng làm số phụ để đăng ký các tài khoản mạng xã hội, ứng dụng ngân hàng; dùng cho việc bán hàng online để tách biệt số cá nhân và số kinh doanh; hoặc đơn giản là cần một số mới với chi phí tiết kiệm nhất. Sim giá rẻ đặc biệt phù hợp với sinh viên, người mới đi làm, hoặc bất kỳ ai muốn có thêm một số điện thoại dự phòng mà vẫn dễ nhớ, dễ sử dụng.
+              </p>
+            </div>
+          </section>
+
+          {/* ===== 3. SIM GIÁ RẺ NỔI BẬT ===== */}
+          <section className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
+            <h2 className="text-2xl font-bold text-primary mb-6 flex items-center gap-3">
+              <span className="w-1 h-8 bg-primary rounded-full" />
+              Sim Giá Rẻ Nổi Bật
+            </h2>
+            {isLoading ? (
+              <div className="space-y-3 py-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 animate-pulse">
+                    <div className="h-5 w-32 bg-muted rounded" />
+                    <div className="h-5 w-20 bg-muted rounded hidden sm:block" />
+                    <div className="h-5 w-24 bg-muted rounded ml-auto" />
+                    <div className="h-7 w-20 bg-muted rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : featuredCheapSims.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-secondary/50">
+                      <th className="text-left py-3 px-4 font-semibold text-foreground">Số SIM</th>
+                      <th className="text-left py-3 px-4 font-semibold text-foreground hidden sm:table-cell">Nhà mạng</th>
+                      <th className="text-right py-3 px-4 font-semibold text-foreground">Giá</th>
+                      <th className="text-center py-3 px-4 font-semibold text-foreground">Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {featuredCheapSims.map((s) => (
+                      <tr key={s.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
+                        <td className="py-3 px-4 font-bold text-foreground tracking-wide">{s.displayNumber}</td>
+                        <td className="py-3 px-4 text-muted-foreground hidden sm:table-cell">
+                          {(() => {
+                            const digits = (s.displayNumber || '').replace(/\D/g, '');
+                            const p = digits.slice(0, 3);
+                            if (['090', '093', '089', '070', '076', '077', '078', '079'].includes(p)) return 'Mobifone';
+                            if (['091', '094', '088', '081', '082', '083', '084', '085'].includes(p)) return 'Vinaphone';
+                            if (['086', '096', '097', '098', '032', '033', '034', '035', '036', '037', '038', '039'].includes(p)) return 'Viettel';
+                            if (['099', '059'].includes(p)) return 'Gmobile';
+                            return 'Khác';
+                          })()}
+                        </td>
+                        <td className="py-3 px-4 text-right font-semibold text-primary whitespace-nowrap">
+                          {s.price.toLocaleString('vi-VN')}đ
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <a
+                            href={ZALO_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 bg-primary text-primary-foreground px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-primary/90 transition"
+                          >
+                            <Phone className="w-3 h-3" /> Mua ngay
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                Đang cập nhật kho sim giá rẻ. Vui lòng quay lại sau.
+              </div>
+            )}
+          </section>
+
+          {/* ===== 3b. KHO SIM GIÁ RẺ ===== */}
+          <section id="kho-sim-gia-re" className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
+            <h2 className="text-2xl font-bold text-primary mb-4 flex items-center gap-3">
+              <span className="w-1 h-8 bg-primary rounded-full" />
+              {hasActiveSearch ? `Kết quả tìm kiếm "${activeSearch}"` : 'Kho Sim Giá Rẻ Cập Nhật'}
+            </h2>
+            {hasActiveSearch && (
+              <button onClick={clearSearch} className="mb-4 text-sm text-primary hover:underline">
+                ← Quay lại kho sim giá rẻ
+              </button>
+            )}
+            {isLoading || isSearching ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="animate-pulse rounded-xl border border-border bg-card p-4 space-y-3">
+                    <div className="h-4 w-16 bg-muted rounded" />
+                    <div className="h-6 w-full bg-muted rounded" />
+                    <div className="h-4 w-20 bg-muted rounded" />
+                    <div className="h-8 w-full bg-muted rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : displaySims.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {displaySims.map((sim) => (
+                  <SIMCardNew key={sim.id} sim={sim} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                {hasActiveSearch
+                  ? 'Không tìm thấy sim giá rẻ phù hợp. Vui lòng thử số khác.'
+                  : 'Hiện chưa có sim giá rẻ trong kho. Vui lòng quay lại sau.'}
+              </div>
+            )}
+            <div className="mt-6 text-center">
+              <button onClick={() => navigate('/')} className="btn-cta inline-flex items-center gap-2 px-6 py-3">
+                Xem toàn bộ kho sim <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </section>
+
+          {/* ===== 4. CÁC LOẠI SIM GIÁ RẺ ===== */}
+          <section className="space-y-8">
+            <h2 className="text-2xl font-bold text-primary flex items-center gap-3">
+              <span className="w-1 h-8 bg-primary rounded-full" />
+              Các Loại Sim Giá Rẻ Phổ Biến
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <article className="bg-card rounded-xl shadow-card border border-border p-5 hover:border-primary/30 transition-colors">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <DollarSign className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-bold text-foreground">Sim Dưới 500k</h3>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Phân khúc sim dưới 500k là lựa chọn phổ biến nhất cho những ai cần số mới với chi phí tiết kiệm. Dù giá mềm, nhiều sim trong tầm giá này vẫn có dãy số khá đẹp, dễ nhớ và phù hợp cho mọi mục đích sử dụng. Đặc biệt thích hợp làm số phụ, số kinh doanh hoặc số đăng ký tài khoản.
+                </p>
+              </article>
+
+              <article className="bg-card rounded-xl shadow-card border border-border p-5 hover:border-primary/30 transition-colors">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-bold text-foreground">Sim Giá Rẻ Dễ Nhớ</h3>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  <strong>Sim dễ nhớ giá rẻ</strong> là những sim có quy luật số rõ ràng: số lặp (11, 22, 33), số tiến (123, 456, 789), số cân bằng (1221, 3443), hoặc số gánh (1881, 2992). Những dạng số này giúp người khác dễ ghi nhớ số của bạn, rất có lợi khi dùng trong kinh doanh hoặc giao tiếp hàng ngày.
+                </p>
+              </article>
+
+              <article className="bg-card rounded-xl shadow-card border border-border p-5 hover:border-primary/30 transition-colors">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Phone className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-bold text-foreground">Sim Mobi Dễ Nhớ</h3>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  <strong>Sim mobi dễ nhớ</strong> sử dụng các đầu số Mobifone phổ biến: 090, 093, 089, 070, 076, 077, 078, 079. Mobifone được đánh giá cao về chất lượng cuộc gọi HD, data 4G/5G tốc độ nhanh và gói cước linh hoạt. Kết hợp đầu số đẹp với giá rẻ, đây là lựa chọn hàng đầu cho người dùng thông minh.
+                </p>
+              </article>
+            </div>
+          </section>
+
+          {/* ===== 5. SIM GIÁ RẺ THEO NHÀ MẠNG ===== */}
+          <section className="space-y-6">
+            <h2 className="text-2xl font-bold text-primary flex items-center gap-3">
+              <span className="w-1 h-8 bg-primary rounded-full" />
+              Sim Giá Rẻ Theo Nhà Mạng
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <article className="bg-card rounded-xl shadow-card border border-border p-5 hover:border-primary/30 transition-colors">
+                <h3 className="text-lg font-bold text-foreground mb-3">Sim Mobifone Giá Rẻ</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  <strong>Sim Mobifone giá rẻ</strong> là lựa chọn được nhiều người ưa chuộng nhờ chất lượng mạng ổn định, data 4G/5G tốc độ cao và đa dạng gói cước. Các đầu số 090, 093, 089, 070–079 của Mobifone đều có nhiều sim số đẹp giá mềm. CHONSOMOBIFONE.COM cập nhật kho sim Mobifone giá rẻ mỗi ngày, giúp bạn dễ dàng chọn được số ưng ý.
+                </p>
+              </article>
+
+              <article className="bg-card rounded-xl shadow-card border border-border p-5 hover:border-primary/30 transition-colors">
+                <h3 className="text-lg font-bold text-foreground mb-3">Sim Vinaphone Giá Rẻ</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Sim Vinaphone giá rẻ phù hợp cho người dùng ưu tiên sự ổn định và truyền thống. Vinaphone có các đầu số quen thuộc như 091, 094, 088, 081–085 với vùng phủ sóng rộng, đặc biệt mạnh ở khu vực nông thôn. Nhiều sim Vinaphone dễ nhớ có giá chỉ từ vài chục nghìn đồng, rất phù hợp cho nhu cầu sử dụng hàng ngày.
+                </p>
+              </article>
+
+              <article className="bg-card rounded-xl shadow-card border border-border p-5 hover:border-primary/30 transition-colors">
+                <h3 className="text-lg font-bold text-foreground mb-3">Sim Viettel Giá Rẻ</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Sim Viettel giá rẻ là sự lựa chọn của đa số người dùng Việt Nam nhờ vùng phủ sóng rộng nhất cả nước. Với các đầu số 096, 097, 098, 086, 032–039, Viettel cung cấp nhiều sim số đẹp ở mọi phân khúc giá. Sim Viettel giá rẻ dưới 500k vẫn có thể sở hữu dãy số dễ nhớ, thuận tiện cho mọi nhu cầu liên lạc.
+                </p>
+              </article>
+            </div>
+          </section>
+
+          {/* ===== 6. LÝ DO NÊN MUA SIM GIÁ RẺ ===== */}
+          <section className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
+            <h2 className="text-2xl font-bold text-primary mb-6 flex items-center gap-3">
+              <span className="w-1 h-8 bg-primary rounded-full" />
+              Vì Sao Nên Mua Sim Giá Rẻ?
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                { icon: DollarSign, text: 'Chi phí thấp, tiết kiệm ngân sách' },
+                { icon: Users, text: 'Phù hợp làm số phụ, số dự phòng' },
+                { icon: Shield, text: 'Dễ đăng ký tài khoản, xác minh OTP' },
+                { icon: Sparkles, text: 'Có thể chọn số dễ nhớ, có quy luật' },
+                { icon: Star, text: 'Phù hợp bán hàng online, kinh doanh' },
+                { icon: Truck, text: 'Giao sim toàn quốc, sang tên miễn phí' },
+              ].map((b, i) => (
+                <div key={i} className="flex items-start gap-3 p-4 rounded-lg bg-secondary/40">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <b.icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <span className="text-sm font-medium text-foreground">{b.text}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ===== 7. HƯỚNG DẪN CHỌN SIM GIÁ RẺ ===== */}
+          <section className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
+            <h2 className="text-2xl font-bold text-primary mb-4 flex items-center gap-3">
+              <span className="w-1 h-8 bg-primary rounded-full" />
+              Cách Chọn Sim Giá Rẻ Phù Hợp
+            </h2>
+            <div className="text-muted-foreground leading-relaxed space-y-4">
+              <p>
+                Khi tìm <strong>mua sim giá rẻ</strong>, việc chọn đúng số phù hợp sẽ giúp bạn vừa tiết kiệm vừa hài lòng lâu dài. Dưới đây là một số tiêu chí quan trọng giúp bạn đưa ra quyết định:
+              </p>
+              <p>
+                <strong>Chọn theo ngân sách:</strong> Xác định rõ mức chi phí bạn sẵn sàng bỏ ra. Sim dưới 200k phù hợp cho nhu cầu cơ bản. Sim từ 200k–500k thường có dãy số đẹp hơn. Sim từ 500k–1 triệu là phân khúc "giá rẻ nhưng số đẹp" với nhiều lựa chọn hấp dẫn.
+              </p>
+              <p>
+                <strong>Chọn theo đầu số:</strong> Mỗi đầu số gắn liền với nhà mạng và có độ "quen thuộc" khác nhau. Đầu số 09x thường được đánh giá cao hơn 07x hay 08x. Hãy chọn đầu số phù hợp với thói quen sử dụng và vùng phủ sóng nơi bạn sinh sống.
+              </p>
+              <p>
+                <strong>Chọn theo nhà mạng:</strong> Nếu bạn cần phủ sóng rộng, Viettel là lựa chọn an toàn. Nếu ưu tiên data nhanh và gói cước linh hoạt, Mobifone rất phù hợp. Vinaphone thì ổn định cho người dùng truyền thống. Quan trọng là chọn nhà mạng phù hợp nhu cầu thực tế.
+              </p>
+              <p>
+                <strong>Chọn theo <em>sim dễ nhớ giá rẻ</em>:</strong> Ưu tiên các dạng số có quy luật: số tiến (1234), số lặp (1199), số gánh (1881) hoặc số đuôi đẹp. Những <strong>sim giá rẻ dễ nhớ</strong> này giúp người khác dễ ghi nhớ số của bạn, tạo lợi thế khi giao tiếp và kinh doanh.
+              </p>
+            </div>
+          </section>
+
+          {/* ===== 8. FAQ ===== */}
+          <section className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
+            <h2 className="text-2xl font-bold text-primary mb-6 flex items-center gap-3">
+              <span className="w-1 h-8 bg-primary rounded-full" />
+              Câu Hỏi Thường Gặp Khi Mua Sim Giá Rẻ
+            </h2>
+            <Accordion type="single" collapsible className="space-y-2">
+              {faqItems.map((faq, index) => (
+                <AccordionItem
+                  key={index}
+                  value={`faq-${index}`}
+                  className="border border-border rounded-lg px-4 data-[state=open]:bg-secondary/30"
+                >
+                  <AccordionTrigger className="text-left font-medium text-foreground hover:text-primary hover:no-underline py-4">
+                    {faq.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground pb-4">
+                    {faq.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </section>
+
+          {/* ===== 9. CTA CUỐI TRANG ===== */}
+          <section className="bg-gradient-to-br from-primary via-primary-dark to-primary rounded-xl p-8 md:p-12 text-center text-primary-foreground">
+            <div className="flex justify-center mb-4">
+              <div className="w-14 h-14 rounded-full bg-gold/20 flex items-center justify-center">
+                <Award className="w-7 h-7 text-gold" />
+              </div>
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold mb-3">
+              Tìm Ngay Sim Giá Rẻ Phù Hợp Với Bạn
+            </h2>
+            <p className="text-primary-foreground/80 mb-6 max-w-lg mx-auto">
+              Hàng nghìn sim giá rẻ số đẹp đang chờ bạn. Kho sim cập nhật mỗi ngày, hỗ trợ giao sim và sang tên toàn quốc.
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <button
+                onClick={scrollToSims}
+                className="bg-gold text-header-bg font-bold px-6 py-3 rounded-lg hover:bg-gold/90 transition flex items-center gap-2"
+              >
+                <Star className="w-4 h-4" /> Xem toàn bộ kho sim giá rẻ
+              </button>
+              <a
+                href={ZALO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-primary-foreground/10 border border-primary-foreground/30 text-primary-foreground font-semibold px-6 py-3 rounded-lg hover:bg-primary-foreground/20 transition flex items-center gap-2"
+              >
+                <Phone className="w-4 h-4" /> Liên hệ tư vấn
+              </a>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <Footer />
+    </>
+  );
+};
+
+export default MuaSimGiaRe;
