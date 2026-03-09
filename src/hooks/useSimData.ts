@@ -137,8 +137,9 @@ const CSV_CACHE_KEY = 'sim_csv_cache';
 const CSV_CACHE_TIME_KEY = 'sim_csv_cache_time';
 const STORAGE_KEY = 'chonsomobifone_sim_cache';
 
-const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
+const AUTO_REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes
 const MAX_CACHE_AGE = 60 * 60 * 1000; // 1 hour
+const STALE_TIME = 5 * 60 * 1000; // 5 minutes stale-while-revalidate
 
 // Module-level promotional data storage (keyed by SIM id)
 let promotionalDataStore = new Map<string, PromotionalData>();
