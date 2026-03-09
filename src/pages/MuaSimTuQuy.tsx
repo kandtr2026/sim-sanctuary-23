@@ -351,7 +351,7 @@ const MuaSimTuQuy = () => {
                   ? activeSearch.startsWith('*')
                     ? 'Không tìm thấy sim có đuôi số bạn đang tìm. Vui lòng thử số khác.'
                     : 'Không tìm thấy sim chứa chuỗi số bạn đang tìm. Vui lòng thử số khác.'
-                  : `Không tìm thấy sim tứ quý phù hợp. Vui lòng liên hệ hotline ${HOTLINE} để được tư vấn.`}
+                  : 'Hiện chưa có sim tứ quý đuôi phù hợp trong kho.'}
               </div>
             )}
             <div className="mt-6 text-center">
