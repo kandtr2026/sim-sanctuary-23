@@ -121,9 +121,11 @@ const benefits = [
 const MuaSimTuQuy = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeSearch, setActiveSearch] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const { allSims, isLoading } = useSimData();
 
-  // Filter SIMs that contain 4 repeated digits (tứ quý)
+  // Filter SIMs that contain 4 repeated digits (tứ quý) - default display
   const tuQuySims = useMemo(() => {
     const pattern = /(0{4}|1{4}|2{4}|3{4}|4{4}|5{4}|6{4}|7{4}|8{4}|9{4})/;
     return allSims
@@ -135,18 +137,39 @@ const MuaSimTuQuy = () => {
       .slice(0, 24);
   }, [allSims]);
 
-  const filteredSims = useMemo(() => {
-    if (!searchQuery.trim()) return tuQuySims;
-    const q = searchQuery.replace(/\D/g, '');
-    return tuQuySims.filter((s) => {
-      const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
-      return digits.includes(q);
-    });
-  }, [tuQuySims, searchQuery]);
+  // Search results: query ALL sims, not just tứ quý
+  const searchResults = useMemo(() => {
+    if (!activeSearch.trim()) return null;
+    const q = activeSearch.replace(/\D/g, '');
+    if (!q) return null;
+    return allSims
+      .filter((s) => {
+        const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
+        return digits.includes(q);
+      })
+      .sort((a, b) => a.price - b.price)
+      .slice(0, 60);
+  }, [allSims, activeSearch]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSearching(true);
+    setActiveSearch(searchQuery);
+    // Simulate brief loading for UX
+    setTimeout(() => setIsSearching(false), 300);
+    // Scroll to results
+    setTimeout(() => {
+      document.getElementById('kho-sim-tu-quy')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setActiveSearch('');
+  };
+
+  const displaySims = searchResults ?? tuQuySims;
+  const hasActiveSearch = !!activeSearch.trim();
 
   const scrollToSims = () => {
     document.getElementById('kho-sim-tu-quy')?.scrollIntoView({ behavior: 'smooth' });
