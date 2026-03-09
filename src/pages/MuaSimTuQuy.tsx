@@ -97,17 +97,6 @@ const fengShuiTable = [
   { sim: '9999', meaning: 'Quyền lực, đỉnh cao, trường tồn' },
 ];
 
-const sampleSims = [
-  { number: '0909.1111.88', carrier: 'Mobifone', price: '45 triệu' },
-  { number: '0933.2222.68', carrier: 'Mobifone', price: '28 triệu' },
-  { number: '0903.3333.99', carrier: 'Mobifone', price: '65 triệu' },
-  { number: '0789.4444.86', carrier: 'Mobifone', price: '12 triệu' },
-  { number: '0938.5555.79', carrier: 'Mobifone', price: '35 triệu' },
-  { number: '0908.6666.39', carrier: 'Mobifone', price: '88 triệu' },
-  { number: '0937.7777.68', carrier: 'Mobifone', price: '55 triệu' },
-  { number: '0909.8888.68', carrier: 'Mobifone', price: '150 triệu' },
-  { number: '0939.9999.86', carrier: 'Mobifone', price: '120 triệu' },
-];
 
 const benefits = [
   { icon: Star, text: 'Kho sim tứ quý lớn nhất' },
