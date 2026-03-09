@@ -300,7 +300,7 @@ const MuaSimTuQuy = () => {
                     {featuredTuQuySims.map((s) => (
                       <tr key={s.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
                         <td className="py-3 px-4 font-bold text-foreground tracking-wide">{s.displayNumber}</td>
-                        <td className="py-3 px-4 text-muted-foreground hidden sm:table-cell">{s.network || 'Mobifone'}</td>
+                        <td className="py-3 px-4 text-muted-foreground hidden sm:table-cell">{(() => { const digits = (s.displayNumber || '').replace(/\D/g, ''); const p = digits.slice(0, 3); if (['090','093','089','070','076','077','078','079'].includes(p)) return 'Mobifone'; if (['091','094','088','081','082','083','084','085'].includes(p)) return 'Vinaphone'; if (['099','059'].includes(p)) return 'Gmobile'; return 'Khác'; })()}</td>
                         <td className="py-3 px-4 text-right font-semibold text-primary whitespace-nowrap">
                           {s.price >= 1_000_000
                             ? `${(s.price / 1_000_000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} triệu`
