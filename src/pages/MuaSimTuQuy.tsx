@@ -238,7 +238,7 @@ const MuaSimTuQuy = () => {
                     type="text"
                     inputMode="tel"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => setSearchQuery(e.target.value.replace(/[^0-9*]/g, ''))}
                     placeholder="Nhập số cần tìm hoặc *7777 để tìm đuôi..."
                     className="w-full pl-12 pr-3 py-3 md:py-3.5 bg-card text-foreground text-base focus:outline-none"
                   />
