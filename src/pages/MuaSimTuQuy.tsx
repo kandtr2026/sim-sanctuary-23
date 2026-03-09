@@ -211,7 +211,7 @@ const MuaSimTuQuy = () => {
             backgroundImage: `radial-gradient(circle at 25% 50%, hsl(var(--gold)) 0%, transparent 50%), radial-gradient(circle at 75% 50%, hsl(var(--gold)) 0%, transparent 50%)`,
           }} />
 
-          <div className="relative container mx-auto px-4 py-10 md:py-14 lg:py-16 text-center">
+          <div className="relative container mx-auto px-4 py-6 md:py-8 lg:py-10 text-center">
             {/* Icon badge */}
             <div className="flex justify-center mb-3">
               <div className="w-11 h-11 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center">
