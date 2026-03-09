@@ -97,17 +97,6 @@ const fengShuiTable = [
   { sim: '9999', meaning: 'Quyền lực, đỉnh cao, trường tồn' },
 ];
 
-const sampleSims = [
-  { number: '0909.1111.88', carrier: 'Mobifone', price: '45 triệu' },
-  { number: '0933.2222.68', carrier: 'Mobifone', price: '28 triệu' },
-  { number: '0903.3333.99', carrier: 'Mobifone', price: '65 triệu' },
-  { number: '0789.4444.86', carrier: 'Mobifone', price: '12 triệu' },
-  { number: '0938.5555.79', carrier: 'Mobifone', price: '35 triệu' },
-  { number: '0908.6666.39', carrier: 'Mobifone', price: '88 triệu' },
-  { number: '0937.7777.68', carrier: 'Mobifone', price: '55 triệu' },
-  { number: '0909.8888.68', carrier: 'Mobifone', price: '150 triệu' },
-  { number: '0939.9999.86', carrier: 'Mobifone', price: '120 triệu' },
-];
 
 const benefits = [
   { icon: Star, text: 'Kho sim tứ quý lớn nhất' },
@@ -137,7 +126,19 @@ const MuaSimTuQuy = () => {
       .slice(0, 24);
   }, [allSims]);
 
-  // Search results: query ALL sims, not just tứ quý
+  // Featured tứ quý sims: 4 identical trailing digits, sorted by price desc, top 10
+  const featuredTuQuySims = useMemo(() => {
+    const pattern = /(0{4}|1{4}|2{4}|3{4}|4{4}|5{4}|6{4}|7{4}|8{4}|9{4})$/;
+    return allSims
+      .filter((s) => {
+        const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
+        return pattern.test(digits) && s.price > 0;
+      })
+      .sort((a, b) => b.price - a.price)
+      .slice(0, 10);
+  }, [allSims]);
+
+
   const searchResults = useMemo(() => {
     if (!activeSearch.trim()) return null;
     const raw = activeSearch.replace(/\s/g, '');
@@ -276,39 +277,53 @@ const MuaSimTuQuy = () => {
             </div>
           </section>
 
-          {/* ===== 3. SIM TỨ QUÝ NỔI BẬT (sample table) ===== */}
+          {/* ===== 3. SIM TỨ QUÝ NỔI BẬT ===== */}
           <section className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
             <h2 className="text-2xl font-bold text-primary mb-6 flex items-center gap-3">
               <span className="w-1 h-8 bg-primary rounded-full" />
               Sim Tứ Quý Nổi Bật
             </h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-secondary/50">
-                    <th className="text-left py-3 px-4 font-semibold text-foreground">Số SIM</th>
-                    <th className="text-left py-3 px-4 font-semibold text-foreground">Nhà mạng</th>
-                    <th className="text-right py-3 px-4 font-semibold text-foreground">Giá</th>
-                    <th className="text-center py-3 px-4 font-semibold text-foreground">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sampleSims.map((s, i) => (
-                    <tr key={i} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
-                      <td className="py-3 px-4 font-bold text-foreground tracking-wide">{s.number}</td>
-                      <td className="py-3 px-4 text-muted-foreground">{s.carrier}</td>
-                      <td className="py-3 px-4 text-right font-semibold text-primary">{s.price}</td>
-                      <td className="py-3 px-4 text-center">
-                        <a href={`tel:+84901191111`} className="inline-flex items-center gap-1 bg-primary text-primary-foreground px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-primary/90 transition">
-                          <Phone className="w-3 h-3" /> Liên hệ
-                        </a>
-                      </td>
+            {isLoading ? (
+              <div className="text-center py-8 text-muted-foreground">Đang tải danh sách sim...</div>
+            ) : featuredTuQuySims.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-secondary/50">
+                      <th className="text-left py-3 px-4 font-semibold text-foreground">Số SIM</th>
+                      <th className="text-left py-3 px-4 font-semibold text-foreground hidden sm:table-cell">Nhà mạng</th>
+                      <th className="text-right py-3 px-4 font-semibold text-foreground">Giá</th>
+                      <th className="text-center py-3 px-4 font-semibold text-foreground">Hành động</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="mt-4 text-xs text-muted-foreground italic">* Giá minh họa, liên hệ hotline {HOTLINE} để nhận báo giá chính xác.</p>
+                  </thead>
+                  <tbody>
+                    {featuredTuQuySims.map((s) => (
+                      <tr key={s.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
+                        <td className="py-3 px-4 font-bold text-foreground tracking-wide">{s.displayNumber}</td>
+                        <td className="py-3 px-4 text-muted-foreground hidden sm:table-cell">{s.network || 'Mobifone'}</td>
+                        <td className="py-3 px-4 text-right font-semibold text-primary whitespace-nowrap">
+                          {s.price >= 1_000_000
+                            ? `${(s.price / 1_000_000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} triệu`
+                            : s.price.toLocaleString('vi-VN') + 'đ'}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <a
+                            href={`${ZALO_URL}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 bg-primary text-primary-foreground px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-primary/90 transition"
+                          >
+                            <Phone className="w-3 h-3" /> Liên hệ
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">Chưa có sim tứ quý nổi bật. Vui lòng quay lại sau.</div>
+            )}
           </section>
 
           {/* ===== 3b. KHO SIM TỨ QUÝ THỰC TẾ ===== */}
