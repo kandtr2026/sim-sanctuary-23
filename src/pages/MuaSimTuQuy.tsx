@@ -126,7 +126,19 @@ const MuaSimTuQuy = () => {
       .slice(0, 24);
   }, [allSims]);
 
-  // Search results: query ALL sims, not just tứ quý
+  // Featured tứ quý sims: 4 identical trailing digits, sorted by price desc, top 10
+  const featuredTuQuySims = useMemo(() => {
+    const pattern = /(0{4}|1{4}|2{4}|3{4}|4{4}|5{4}|6{4}|7{4}|8{4}|9{4})$/;
+    return allSims
+      .filter((s) => {
+        const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
+        return pattern.test(digits) && s.price > 0;
+      })
+      .sort((a, b) => b.price - a.price)
+      .slice(0, 10);
+  }, [allSims]);
+
+
   const searchResults = useMemo(() => {
     if (!activeSearch.trim()) return null;
     const raw = activeSearch.replace(/\s/g, '');
