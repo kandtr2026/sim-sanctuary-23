@@ -205,23 +205,33 @@ const MuaSimTuQuy = () => {
 
       <main className="min-h-screen bg-background">
         {/* ===== 1. HERO SECTION ===== */}
-        <section className="bg-gradient-to-br from-primary via-primary-dark to-primary text-primary-foreground">
-          <div className="container mx-auto px-4 py-6 md:py-8 lg:py-10 text-center">
-            <div className="flex justify-center mb-4">
-              <div className="w-14 h-14 rounded-full bg-gold/20 flex items-center justify-center">
-                <Sparkles className="w-7 h-7 text-gold" />
+        <section className="relative bg-gradient-to-b from-primary via-primary-dark to-primary text-primary-foreground overflow-hidden">
+          {/* Subtle background pattern */}
+          <div className="absolute inset-0 opacity-[0.07]" style={{
+            backgroundImage: `radial-gradient(circle at 25% 50%, hsl(var(--gold)) 0%, transparent 50%), radial-gradient(circle at 75% 50%, hsl(var(--gold)) 0%, transparent 50%)`,
+          }} />
+
+          <div className="relative container mx-auto px-4 py-10 md:py-14 lg:py-16 text-center">
+            {/* Icon badge */}
+            <div className="flex justify-center mb-3">
+              <div className="w-11 h-11 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-gold" />
               </div>
             </div>
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 leading-tight">
+
+            {/* Title */}
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-[2.25rem] font-extrabold leading-tight max-w-2xl mx-auto mb-3">
               Mua Sim Tứ Quý Giá Tốt – Kho Sim Tứ Quý Đẹp Toàn Quốc
             </h1>
-            <p className="text-primary-foreground/85 text-base md:text-lg max-w-2xl mx-auto mb-8">
-              Kho sim tứ quý đẹp với hàng nghìn số từ Viettel, Mobifone và Vinaphone. Giao dịch an toàn, hỗ trợ sang tên chính chủ và giao sim toàn quốc.
+
+            {/* Description */}
+            <p className="text-primary-foreground/80 text-sm md:text-base leading-relaxed max-w-xl mx-auto mb-6">
+              Kho sim tứ quý đẹp với hàng nghìn số từ CHONSOMOBIFONE.COM. Giao dịch an toàn, hỗ trợ sang tên chính chủ và giao sim toàn quốc.
             </p>
 
             {/* Search bar */}
-            <form onSubmit={handleSearch} className="max-w-xl mx-auto mb-6">
-              <div className="flex bg-card rounded-lg overflow-hidden shadow-lg">
+            <form onSubmit={handleSearch} className="max-w-lg mx-auto mb-5">
+              <div className="flex bg-card rounded-xl overflow-hidden shadow-elevated ring-1 ring-gold/20">
                 <div className="relative flex-1">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <input
@@ -230,21 +240,22 @@ const MuaSimTuQuy = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Nhập số cần tìm hoặc *7777 để tìm đuôi..."
-                    className="w-full pl-12 pr-4 py-4 bg-card text-foreground text-base focus:outline-none"
+                    className="w-full pl-12 pr-3 py-3.5 md:py-4 bg-card text-foreground text-base focus:outline-none"
                   />
                 </div>
-                <button type="submit" className="btn-cta px-6 flex items-center gap-2 rounded-none">
+                <button type="submit" className="btn-cta px-5 md:px-7 flex items-center gap-2 rounded-none text-sm md:text-base font-bold whitespace-nowrap">
                   <Search className="w-4 h-4" />
                   <span className="hidden sm:inline">Tìm SIM</span>
                 </button>
               </div>
             </form>
 
-            <div className="flex flex-wrap justify-center gap-3">
-              <button onClick={scrollToSims} className="bg-gold text-header-bg font-bold px-6 py-3 rounded-lg hover:bg-gold/90 transition flex items-center gap-2">
+            {/* CTA buttons */}
+            <div className="flex flex-col sm:flex-row justify-center gap-3 max-w-md mx-auto">
+              <button onClick={scrollToSims} className="bg-gold hover:bg-gold-light text-header-bg font-bold px-7 py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
                 <Star className="w-4 h-4" /> Xem kho sim
               </button>
-              <a href={ZALO_URL} target="_blank" rel="noopener noreferrer" className="bg-primary-foreground/10 border border-primary-foreground/30 text-primary-foreground font-semibold px-6 py-3 rounded-lg hover:bg-primary-foreground/20 transition flex items-center gap-2">
+              <a href={ZALO_URL} target="_blank" rel="noopener noreferrer" className="bg-primary-foreground/10 border border-primary-foreground/25 text-primary-foreground font-semibold px-7 py-3 rounded-lg hover:bg-primary-foreground/20 transition-all duration-200 flex items-center justify-center gap-2">
                 <Phone className="w-4 h-4" /> Tư vấn chọn sim
               </a>
             </div>
