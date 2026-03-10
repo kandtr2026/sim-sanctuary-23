@@ -386,7 +386,7 @@ const MuaSimGiaRe = () => {
                 );
               })()}
             </section>
-          )
+          )}
 
           {/* ===== 3. GIỚI THIỆU SIM GIÁ RẺ ===== */}
           <section className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
