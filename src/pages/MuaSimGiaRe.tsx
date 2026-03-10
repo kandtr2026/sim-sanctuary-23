@@ -5,7 +5,7 @@ import { Phone, Shield, Star, Truck, CheckCircle, Search, ChevronRight, Sparkles
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Navigation from '@/components/Navigation';
-import { useSimData } from '@/hooks/useSimData';
+import { useCheapSimData } from '@/hooks/useCheapSimData';
 import SIMCardNew from '@/components/SIMCardNew';
 import {
   Accordion,
