@@ -257,10 +257,22 @@ const MuaSimGiaRe = () => {
             </h2>
             <div className="text-muted-foreground leading-relaxed space-y-4">
               <p>
-                <strong>Sim giá rẻ</strong> là những sim số điện thoại có mức giá phải chăng, thường từ vài chục nghìn đến dưới 1 triệu đồng. Dù giá thấp, nhiều sim trong phân khúc này vẫn sở hữu dãy số dễ nhớ, có quy luật hoặc mang ý nghĩa riêng. Đây là lựa chọn thông minh cho những ai cần một số điện thoại mới mà không muốn chi quá nhiều.
+                <strong>Sim giá rẻ</strong> là những số điện thoại có mức giá thấp nhưng vẫn đáp ứng đầy đủ nhu cầu nghe gọi và truy cập internet hằng ngày. Với nhu cầu sử dụng ngày càng phổ biến như bán hàng online, đăng ký tài khoản hoặc dùng làm số phụ, nhiều người lựa chọn <strong>mua sim giá rẻ</strong> để tiết kiệm chi phí nhưng vẫn tiện lợi khi sử dụng.
               </p>
               <p>
-                Vì sao nhiều người tìm <strong>mua sim giá rẻ</strong>? Lý do rất đa dạng: dùng làm số phụ để đăng ký các tài khoản mạng xã hội, ứng dụng ngân hàng; dùng cho việc bán hàng online để tách biệt số cá nhân và số kinh doanh; hoặc đơn giản là cần một số mới với chi phí tiết kiệm nhất. Sim giá rẻ đặc biệt phù hợp với sinh viên, người mới đi làm, hoặc bất kỳ ai muốn có thêm một số điện thoại dự phòng mà vẫn dễ nhớ, dễ sử dụng.
+                Tại kho sim của chúng tôi, mỗi sim chỉ có giá <strong>229.000đ</strong> và được tặng kèm gói cước <strong>TK179</strong> với nhiều ưu đãi hấp dẫn trong 30 ngày sử dụng.
+              </p>
+              <div>
+                <p className="font-semibold text-foreground mb-2">Ưu đãi khi mua sim:</p>
+                <ul className="space-y-1.5">
+                  <li>✔ 7GB data tốc độ cao mỗi ngày (hết dung lượng ngừng truy cập)</li>
+                  <li>✔ Miễn phí thoại nội mạng dưới 20 phút mỗi cuộc (tối đa 1500 phút)</li>
+                  <li>✔ Miễn phí 200 phút thoại liên mạng</li>
+                  <li>✔ Thời gian sử dụng 30 ngày</li>
+                </ul>
+              </div>
+              <p>
+                Với mức giá chỉ 229.000đ, người dùng có thể sở hữu một <strong>sim dễ nhớ giá rẻ</strong>, vừa phục vụ liên lạc vừa đáp ứng nhu cầu data và gọi thoại hằng ngày.
               </p>
             </div>
           </section>
