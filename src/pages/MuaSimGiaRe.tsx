@@ -46,14 +46,6 @@ const faqJsonLd = {
   })),
 };
 
-const sampleSims = [
-  { number: '0777.123.456', network: 'Mobifone', price: '99.000đ' },
-  { number: '0888.234.567', network: 'Vinaphone', price: '120.000đ' },
-  { number: '0932.456.789', network: 'Mobifone', price: '180.000đ' },
-  { number: '0706.789.012', network: 'Mobifone', price: '250.000đ' },
-  { number: '0785.111.234', network: 'Mobifone', price: '350.000đ' },
-  { number: '0936.222.345', network: 'Mobifone', price: '490.000đ' },
-];
 
 const MuaSimGiaRe = () => {
   const navigate = useNavigate();
