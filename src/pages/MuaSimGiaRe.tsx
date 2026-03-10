@@ -321,36 +321,6 @@ const MuaSimGiaRe = () => {
             </div>
           </section>
 
-          {/* ===== 5. SIM GIÁ RẺ THEO NHÀ MẠNG ===== */}
-          <section className="space-y-6">
-            <h2 className="text-2xl font-bold text-primary flex items-center gap-3">
-              <span className="w-1 h-8 bg-primary rounded-full" />
-              Sim Giá Rẻ Theo Nhà Mạng
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <article className="bg-card rounded-xl shadow-card border border-border p-5 hover:border-primary/30 transition-colors">
-                <h3 className="text-lg font-bold text-foreground mb-3">Sim Mobifone Giá Rẻ</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  <strong>Sim Mobifone giá rẻ</strong> là lựa chọn được nhiều người ưa chuộng nhờ chất lượng mạng ổn định, data 4G/5G tốc độ cao và đa dạng gói cước. Các đầu số 090, 093, 089, 070–079 của Mobifone đều có nhiều sim số đẹp giá mềm. CHONSOMOBIFONE.COM cập nhật kho sim Mobifone giá rẻ mỗi ngày, giúp bạn dễ dàng chọn được số ưng ý.
-                </p>
-              </article>
-
-              <article className="bg-card rounded-xl shadow-card border border-border p-5 hover:border-primary/30 transition-colors">
-                <h3 className="text-lg font-bold text-foreground mb-3">Sim Vinaphone Giá Rẻ</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Sim Vinaphone giá rẻ phù hợp cho người dùng ưu tiên sự ổn định và truyền thống. Vinaphone có các đầu số quen thuộc như 091, 094, 088, 081–085 với vùng phủ sóng rộng, đặc biệt mạnh ở khu vực nông thôn. Nhiều sim Vinaphone dễ nhớ có giá chỉ từ vài chục nghìn đồng, rất phù hợp cho nhu cầu sử dụng hàng ngày.
-                </p>
-              </article>
-
-              <article className="bg-card rounded-xl shadow-card border border-border p-5 hover:border-primary/30 transition-colors">
-                <h3 className="text-lg font-bold text-foreground mb-3">Sim Viettel Giá Rẻ</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Sim Viettel giá rẻ là sự lựa chọn của đa số người dùng Việt Nam nhờ vùng phủ sóng rộng nhất cả nước. Với các đầu số 096, 097, 098, 086, 032–039, Viettel cung cấp nhiều sim số đẹp ở mọi phân khúc giá. Sim Viettel giá rẻ dưới 500k vẫn có thể sở hữu dãy số dễ nhớ, thuận tiện cho mọi nhu cầu liên lạc.
-                </p>
-              </article>
-            </div>
-          </section>
-
           {/* ===== 6. LÝ DO NÊN MUA SIM GIÁ RẺ ===== */}
           <section className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
             <h2 className="text-2xl font-bold text-primary mb-6 flex items-center gap-3">
