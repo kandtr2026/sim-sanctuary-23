@@ -93,25 +93,23 @@ const MuaSimGiaRe = () => {
     if (raw.startsWith('*')) {
       const suffix = raw.slice(1).replace(/\D/g, '');
       if (!suffix) return null;
-      return allSims
+      return allCheapSims
         .filter((s) => {
           const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
-          return digits.endsWith(suffix) && s.price > 0 && s.price < 1_000_000;
+          return digits.endsWith(suffix);
         })
-        .sort((a, b) => a.price - b.price)
         .slice(0, 60);
     }
 
     const q = raw.replace(/\D/g, '');
     if (!q) return null;
-    return allSims
+    return allCheapSims
       .filter((s) => {
         const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
-        return digits.includes(q) && s.price > 0 && s.price < 1_000_000;
+        return digits.includes(q);
       })
-      .sort((a, b) => a.price - b.price)
       .slice(0, 60);
-  }, [allSims, activeSearch]);
+  }, [allCheapSims, activeSearch]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
