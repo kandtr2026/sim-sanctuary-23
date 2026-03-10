@@ -5,7 +5,7 @@ import { Phone, Shield, Star, Truck, CheckCircle, Search, ChevronRight, Sparkles
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Navigation from '@/components/Navigation';
-import { useSimData } from '@/hooks/useSimData';
+import { useCheapSimData } from '@/hooks/useCheapSimData';
 import SIMCardNew from '@/components/SIMCardNew';
 import {
   Accordion,
@@ -52,15 +52,38 @@ const MuaSimGiaRe = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSearch, setActiveSearch] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const { allSims, isLoading } = useSimData();
+  const { sims: cheapSimsRaw, isLoading } = useCheapSimData();
 
-  // Filter cheap sims (under 1 million)
-  const cheapSims = useMemo(() => {
-    return allSims
-      .filter((s) => s.price > 0 && s.price < 1_000_000)
-      .sort((a, b) => a.price - b.price)
-      .slice(0, 12);
-  }, [allSims]);
+  // Map cheap sims to NormalizedSIM shape for SIMCardNew
+  const allCheapSims = useMemo(() => {
+    return cheapSimsRaw.map((s) => {
+      const digits = s.rawDigits;
+      const counts = Array(10).fill(0);
+      for (const d of digits) counts[parseInt(d)]++;
+      return {
+        id: s.id,
+        rawDigits: digits,
+        displayNumber: s.displayNumber,
+        formattedNumber: s.displayNumber,
+        price: s.price,
+        prefix3: digits.substring(0, 3),
+        prefix4: digits.substring(0, 4),
+        last2: digits.slice(-2),
+        last3: digits.slice(-3),
+        last4: digits.slice(-4),
+        last5: digits.slice(-5),
+        last6: digits.slice(-6),
+        digitCounts: counts,
+        sumDigits: digits.split('').reduce((a: number, b: string) => a + parseInt(b), 0),
+        tags: [] as string[],
+        isVIP: false,
+        network: s.network as 'Mobifone' | 'Vinaphone' | 'Gmobile' | 'Khác',
+        beautyScore: 0,
+      };
+    });
+  }, [cheapSimsRaw]);
+
+  const cheapSims = useMemo(() => allCheapSims.slice(0, 12), [allCheapSims]);
 
 
   const searchResults = useMemo(() => {
@@ -70,25 +93,23 @@ const MuaSimGiaRe = () => {
     if (raw.startsWith('*')) {
       const suffix = raw.slice(1).replace(/\D/g, '');
       if (!suffix) return null;
-      return allSims
+      return allCheapSims
         .filter((s) => {
           const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
-          return digits.endsWith(suffix) && s.price > 0 && s.price < 1_000_000;
+          return digits.endsWith(suffix);
         })
-        .sort((a, b) => a.price - b.price)
         .slice(0, 60);
     }
 
     const q = raw.replace(/\D/g, '');
     if (!q) return null;
-    return allSims
+    return allCheapSims
       .filter((s) => {
         const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
-        return digits.includes(q) && s.price > 0 && s.price < 1_000_000;
+        return digits.includes(q);
       })
-      .sort((a, b) => a.price - b.price)
       .slice(0, 60);
-  }, [allSims, activeSearch]);
+  }, [allCheapSims, activeSearch]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
