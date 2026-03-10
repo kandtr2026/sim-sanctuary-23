@@ -268,11 +268,125 @@ const MuaSimGiaRe = () => {
               </div>
             )}
             <div className="mt-6 text-center">
-              <button onClick={() => navigate('/')} className="btn-cta inline-flex items-center gap-2 px-6 py-3">
+              <button
+                onClick={() => {
+                  setShowFullInventory(true);
+                  setCurrentPage(1);
+                  setTimeout(() => fullInventoryRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+                }}
+                className="btn-cta inline-flex items-center gap-2 px-6 py-3"
+              >
                 Xem toàn bộ kho sim <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </section>
+
+          {/* ===== FULL INVENTORY WITH PAGINATION ===== */}
+          {showFullInventory && (
+            <section ref={fullInventoryRef} className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
+              <h2 className="text-2xl font-bold text-primary mb-4 flex items-center gap-3">
+                <span className="w-1 h-8 bg-primary rounded-full" />
+                Toàn Bộ Kho Sim Giá Rẻ
+              </h2>
+              {(() => {
+                const totalPages = Math.ceil(allCheapSims.length / ITEMS_PER_PAGE);
+                const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+                const pageSims = allCheapSims.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+
+                if (isLoading) {
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {Array.from({ length: 8 }).map((_, i) => (
+                        <div key={i} className="animate-pulse rounded-xl border border-border bg-card p-4 space-y-3">
+                          <div className="h-4 w-16 bg-muted rounded" />
+                          <div className="h-6 w-full bg-muted rounded" />
+                          <div className="h-4 w-20 bg-muted rounded" />
+                          <div className="h-8 w-full bg-muted rounded" />
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }
+
+                if (pageSims.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Hiện chưa có sim giá rẻ trong kho. Vui lòng quay lại sau.
+                    </div>
+                  );
+                }
+
+                const getPageNumbers = () => {
+                  const pages: (number | '...')[] = [];
+                  if (totalPages <= 7) {
+                    for (let i = 1; i <= totalPages; i++) pages.push(i);
+                  } else {
+                    pages.push(1);
+                    if (currentPage > 3) pages.push('...');
+                    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+                      pages.push(i);
+                    }
+                    if (currentPage < totalPages - 2) pages.push('...');
+                    pages.push(totalPages);
+                  }
+                  return pages;
+                };
+
+                const handlePageChange = (page: number) => {
+                  setCurrentPage(page);
+                  setTimeout(() => fullInventoryRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+                };
+
+                return (
+                  <>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Hiển thị {startIdx + 1}–{Math.min(startIdx + ITEMS_PER_PAGE, allCheapSims.length)} trong tổng số {allCheapSims.length} sim
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {pageSims.map((sim) => (
+                        <SIMCardNew key={sim.id} sim={sim} />
+                      ))}
+                    </div>
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-center gap-1.5 mt-6 flex-wrap">
+                        <button
+                          onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                          disabled={currentPage === 1}
+                          className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium border border-border bg-card hover:bg-secondary/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <ChevronLeft className="w-4 h-4" /> Trước
+                        </button>
+                        {getPageNumbers().map((p, i) =>
+                          p === '...' ? (
+                            <span key={`e-${i}`} className="px-2 py-2 text-muted-foreground text-sm">…</span>
+                          ) : (
+                            <button
+                              key={p}
+                              onClick={() => handlePageChange(p)}
+                              className={`min-w-[36px] h-9 rounded-lg text-sm font-medium transition-colors ${
+                                currentPage === p
+                                  ? 'bg-primary text-primary-foreground'
+                                  : 'border border-border bg-card hover:bg-secondary/50 text-foreground'
+                              }`}
+                            >
+                              {p}
+                            </button>
+                          )
+                        )}
+                        <button
+                          onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                          disabled={currentPage === totalPages}
+                          className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium border border-border bg-card hover:bg-secondary/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Sau <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </section>
+          )
 
           {/* ===== 3. GIỚI THIỆU SIM GIÁ RẺ ===== */}
           <section className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
