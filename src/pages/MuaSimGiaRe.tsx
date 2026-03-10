@@ -62,13 +62,6 @@ const MuaSimGiaRe = () => {
       .slice(0, 12);
   }, [allSims]);
 
-  // Featured cheap sims (best value - slightly higher price range for "nổi bật")
-  const featuredCheapSims = useMemo(() => {
-    return allSims
-      .filter((s) => s.price >= 100_000 && s.price < 1_000_000)
-      .sort((a, b) => b.price - a.price)
-      .slice(0, 10);
-  }, [allSims]);
 
   const searchResults = useMemo(() => {
     if (!activeSearch.trim()) return null;
