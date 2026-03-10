@@ -52,7 +52,11 @@ const MuaSimGiaRe = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSearch, setActiveSearch] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [showFullInventory, setShowFullInventory] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const fullInventoryRef = useRef<HTMLDivElement>(null);
   const { sims: cheapSimsRaw, isLoading } = useCheapSimData();
+  const ITEMS_PER_PAGE = 16;
 
   // Map cheap sims to NormalizedSIM shape for SIMCardNew
   const allCheapSims = useMemo(() => {
