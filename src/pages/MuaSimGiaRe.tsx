@@ -264,7 +264,22 @@ const MuaSimGiaRe = () => {
             </div>
           </section>
 
-          {/* ===== 4. CÁC LOẠI SIM GIÁ RẺ ===== */}
+          {/* ===== 3. GIỚI THIỆU SIM GIÁ RẺ ===== */}
+          <section className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
+            <h2 className="text-2xl font-bold text-primary mb-4 flex items-center gap-3">
+              <span className="w-1 h-8 bg-primary rounded-full" />
+              Sim Giá Rẻ Là Gì?
+            </h2>
+            <div className="text-muted-foreground leading-relaxed space-y-4">
+              <p>
+                <strong>Sim giá rẻ</strong> là những sim số điện thoại có mức giá phải chăng, thường từ vài chục nghìn đến dưới 1 triệu đồng. Dù giá thấp, nhiều sim trong phân khúc này vẫn sở hữu dãy số dễ nhớ, có quy luật hoặc mang ý nghĩa riêng. Đây là lựa chọn thông minh cho những ai cần một số điện thoại mới mà không muốn chi quá nhiều.
+              </p>
+              <p>
+                Vì sao nhiều người tìm <strong>mua sim giá rẻ</strong>? Lý do rất đa dạng: dùng làm số phụ để đăng ký các tài khoản mạng xã hội, ứng dụng ngân hàng; dùng cho việc bán hàng online để tách biệt số cá nhân và số kinh doanh; hoặc đơn giản là cần một số mới với chi phí tiết kiệm nhất. Sim giá rẻ đặc biệt phù hợp với sinh viên, người mới đi làm, hoặc bất kỳ ai muốn có thêm một số điện thoại dự phòng mà vẫn dễ nhớ, dễ sử dụng.
+              </p>
+            </div>
+          </section>
+
           <section className="space-y-8">
             <h2 className="text-2xl font-bold text-primary flex items-center gap-3">
               <span className="w-1 h-8 bg-primary rounded-full" />
