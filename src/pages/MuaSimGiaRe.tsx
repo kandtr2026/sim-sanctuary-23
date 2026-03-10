@@ -1,12 +1,18 @@
 import { useState, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { Phone, Shield, Star, Truck, CheckCircle, Search, ChevronRight, ChevronLeft, Sparkles, Award, Users, DollarSign, Tag } from 'lucide-react';
+import { Phone, Shield, Star, Truck, CheckCircle, Search, ChevronRight, ChevronLeft, Sparkles, Award, Users, DollarSign, Tag, X, Loader2 } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Navigation from '@/components/Navigation';
 import { useCheapSimData } from '@/hooks/useCheapSimData';
-import SIMCardNew from '@/components/SIMCardNew';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import {
   Accordion,
   AccordionContent,
@@ -16,6 +22,8 @@ import {
 
 const HOTLINE = '0901.19.1111';
 const ZALO_URL = 'https://zalo.me/0901191111';
+const ORDER_WEBAPP_URL = "https://script.google.com/macros/s/AKfycby_3QYkdJSBo43QiJlJ88rSLCsXN7baZtnW5v9VeF3AZJAVzZOjB35bhfFCHZBrVwA/exec";
+const MAKE_WEBHOOK_PROXY = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/make-webhook-proxy`;
 
 const faqItems = [
   {
@@ -46,9 +54,105 @@ const faqJsonLd = {
   })),
 };
 
+// ===== LOCAL TYPES =====
+interface CheapSimNormalized {
+  id: string;
+  rawDigits: string;
+  displayNumber: string;
+  formattedNumber: string;
+  price: number;
+  prefix3: string;
+  prefix4: string;
+  last2: string;
+  last3: string;
+  last4: string;
+  last5: string;
+  last6: string;
+  digitCounts: number[];
+  sumDigits: number;
+  tags: string[];
+  isVIP: boolean;
+  network: string;
+  beautyScore: number;
+}
 
+// ===== LOCAL SIM CARD (same style as SIMCardNew, but opens modal) =====
+const networkColors: Record<string, string> = {
+  Mobifone: 'bg-primary text-primary-foreground',
+  Vinaphone: 'bg-blue-500 text-white',
+  Gmobile: 'bg-emerald-600 text-white',
+};
+
+const formatPriceDisplay = (price: number): string => {
+  if (!price || isNaN(price) || price <= 0) return 'Liên hệ';
+  if (price >= 1000000000) {
+    const b = Math.round((price / 1000000000) * 10) / 10;
+    return Number.isInteger(b) ? `${b} tỷ` : `${b.toString().replace('.', ',')} tỷ`;
+  }
+  if (price >= 1000000) {
+    const m = Math.round((price / 1000000) * 10) / 10;
+    return Number.isInteger(m) ? `${m} triệu` : `${m.toString().replace('.', ',')} triệu`;
+  }
+  return `${price.toLocaleString('vi-VN')} đ`;
+};
+
+const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: CheapSimNormalized) => void }) => {
+  const formatWithHighlight = (displayNumber: string) => {
+    const parts = displayNumber.split('.');
+    if (parts.length === 3) {
+      return (
+        <>
+          <span className="opacity-80">{parts[0]}.</span>
+          <span className="opacity-80">{parts[1]}.</span>
+          <span className="text-gold font-extrabold">{parts[2]}</span>
+        </>
+      );
+    }
+    return displayNumber;
+  };
+
+  return (
+    <div className="sim-card-compact group relative overflow-hidden">
+      <div className="flex items-center gap-1 mb-1.5 flex-wrap max-w-full">
+        {sim.network && sim.network !== 'Khác' && (
+          <span
+            className={cn("px-1.5 py-px rounded font-medium", networkColors[sim.network] || 'bg-gray-500 text-white')}
+            style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+          >
+            {sim.network}
+          </span>
+        )}
+      </div>
+
+      <div
+        className="sim-number-auto mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis"
+        style={{ fontSize: 'clamp(14px, 3.5vw, 22px)' }}
+      >
+        {formatWithHighlight(sim.displayNumber || sim.formattedNumber)}
+      </div>
+
+      <div className="flex items-center justify-between mt-auto pt-1">
+        <span
+          className="font-bold"
+          style={{ fontSize: 'clamp(14px, 3vw, 21px)', color: '#FFFFFF' }}
+        >
+          {formatPriceDisplay(sim.price)}
+        </span>
+        <button
+          onClick={() => onBuy(sim)}
+          className="btn-cta-sm flex items-center gap-1 py-1 px-2"
+          style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+        >
+          <Phone style={{ width: 'clamp(8px, 1.8vw, 12px)', height: 'clamp(8px, 1.8vw, 12px)' }} />
+          MUA NGAY
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ===== MAIN PAGE =====
 const MuaSimGiaRe = () => {
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSearch, setActiveSearch] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -58,8 +162,87 @@ const MuaSimGiaRe = () => {
   const { sims: cheapSimsRaw, isLoading } = useCheapSimData();
   const ITEMS_PER_PAGE = 16;
 
-  // Map cheap sims to NormalizedSIM shape for SIMCardNew
-  const allCheapSims = useMemo(() => {
+  // Order modal state
+  const [selectedSim, setSelectedSim] = useState<CheapSimNormalized | null>(null);
+  const [orderOpen, setOrderOpen] = useState(false);
+  const [formData, setFormData] = useState({ fullName: '', phone: '', address: '', note: '', paymentMethod: 'COD' as 'COD' | 'BANK' });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleBuy = (sim: CheapSimNormalized) => {
+    setSelectedSim(sim);
+    setFormData({ fullName: '', phone: '', address: '', note: '', paymentMethod: 'COD' });
+    setFormErrors({});
+    setIsSuccess(false);
+    setOrderOpen(true);
+  };
+
+  const validateForm = () => {
+    const errs: Record<string, string> = {};
+    if (!formData.fullName.trim()) errs.fullName = 'Vui lòng nhập họ tên';
+    if (!formData.phone.trim()) {
+      errs.phone = 'Vui lòng nhập số điện thoại';
+    } else {
+      const d = formData.phone.replace(/\D/g, '');
+      if (d.length < 9 || d.length > 11) errs.phone = 'Số điện thoại phải có 9-11 chữ số';
+    }
+    if (!formData.address.trim()) errs.address = 'Vui lòng nhập địa chỉ';
+    setFormErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleSubmitOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm() || !selectedSim) return;
+    setIsSubmitting(true);
+
+    const payload = {
+      createdAt: new Date().toISOString(),
+      simId: selectedSim.id,
+      simRawDigits: selectedSim.rawDigits,
+      simDisplayNumber: selectedSim.displayNumber,
+      originalPriceVnd: selectedSim.price,
+      priceVnd: selectedSim.price,
+      fullName: formData.fullName.trim(),
+      phone: formData.phone.replace(/\D/g, ''),
+      address: formData.address.trim(),
+      note: formData.note.trim(),
+      paymentMethod: formData.paymentMethod,
+      source: 'LovableWeb-CheapSim',
+    };
+
+    try {
+      const res = await fetch(MAKE_WEBHOOK_PROXY, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      fetch(ORDER_WEBAPP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        mode: 'no-cors',
+      }).catch(() => {});
+
+      setIsSuccess(true);
+      toast.success('Đặt hàng thành công!');
+    } catch {
+      toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (formErrors[field]) setFormErrors((prev) => ({ ...prev, [field]: '' }));
+  };
+
+  // Map cheap sims to NormalizedSIM shape
+  const allCheapSims: CheapSimNormalized[] = useMemo(() => {
     return cheapSimsRaw.map((s) => {
       const digits = s.rawDigits;
       const counts = Array(10).fill(0);
@@ -81,7 +264,7 @@ const MuaSimGiaRe = () => {
         sumDigits: digits.split('').reduce((a: number, b: string) => a + parseInt(b), 0),
         tags: [] as string[],
         isVIP: false,
-        network: s.network as 'Mobifone' | 'Vinaphone' | 'Gmobile' | 'Khác',
+        network: s.network,
         beautyScore: 0,
       };
     });
@@ -89,30 +272,17 @@ const MuaSimGiaRe = () => {
 
   const cheapSims = useMemo(() => allCheapSims.slice(0, 12), [allCheapSims]);
 
-
   const searchResults = useMemo(() => {
     if (!activeSearch.trim()) return null;
     const raw = activeSearch.replace(/\s/g, '');
-
     if (raw.startsWith('*')) {
       const suffix = raw.slice(1).replace(/\D/g, '');
       if (!suffix) return null;
-      return allCheapSims
-        .filter((s) => {
-          const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
-          return digits.endsWith(suffix);
-        })
-        .slice(0, 60);
+      return allCheapSims.filter((s) => (s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '').endsWith(suffix)).slice(0, 60);
     }
-
     const q = raw.replace(/\D/g, '');
     if (!q) return null;
-    return allCheapSims
-      .filter((s) => {
-        const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
-        return digits.includes(q);
-      })
-      .slice(0, 60);
+    return allCheapSims.filter((s) => (s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '').includes(q)).slice(0, 60);
   }, [allCheapSims, activeSearch]);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -147,10 +317,7 @@ const MuaSimGiaRe = () => {
         />
         <link rel="canonical" href="https://chonsomobifone.com/mua-sim-gia-re" />
         <meta property="og:title" content="Mua Sim Giá Rẻ – Kho Sim Số Đẹp Giá Tốt Toàn Quốc" />
-        <meta
-          property="og:description"
-          content="Kho sim giá rẻ với hàng nghìn số đẹp dễ nhớ. Giá chỉ từ vài chục nghìn, cập nhật mỗi ngày."
-        />
+        <meta property="og:description" content="Kho sim giá rẻ với hàng nghìn số đẹp dễ nhớ. Giá chỉ từ vài chục nghìn, cập nhật mỗi ngày." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://chonsomobifone.com/mua-sim-gia-re" />
         <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
@@ -171,23 +338,18 @@ const MuaSimGiaRe = () => {
               backgroundImage: `radial-gradient(circle at 25% 50%, hsl(var(--gold)) 0%, transparent 50%), radial-gradient(circle at 75% 50%, hsl(var(--gold)) 0%, transparent 50%)`,
             }}
           />
-
           <div className="relative container mx-auto px-4 py-4 text-center">
             <div className="flex justify-center mb-2">
               <div className="w-10 h-10 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center">
                 <Tag className="w-5 h-5 text-gold" />
               </div>
             </div>
-
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-[2.25rem] font-extrabold leading-tight max-w-2xl mx-auto mb-2">
               Mua Sim Giá Rẻ – Kho Sim Số Đẹp Giá Tốt Toàn Quốc
             </h1>
-
             <p className="text-primary-foreground/80 text-sm md:text-base leading-relaxed max-w-xl mx-auto mb-4">
               Kho sim giá rẻ với hàng nghìn số đẹp từ CHONSOMOBIFONE.COM. Giá chỉ từ vài trăm nghìn đến dưới 1 triệu, phù hợp cho mọi nhu cầu sử dụng.
             </p>
-
-            {/* Search bar */}
             <form onSubmit={handleSearch} className="max-w-lg mx-auto mb-4">
               <div className="flex bg-card rounded-xl overflow-hidden shadow-elevated ring-1 ring-gold/20">
                 <div className="relative flex-1">
@@ -201,30 +363,17 @@ const MuaSimGiaRe = () => {
                     className="w-full pl-12 pr-3 py-3 md:py-3.5 bg-card text-foreground text-base focus:outline-none"
                   />
                 </div>
-                <button
-                  type="submit"
-                  className="btn-cta px-5 md:px-7 flex items-center gap-2 rounded-none text-sm md:text-base font-bold whitespace-nowrap"
-                >
+                <button type="submit" className="btn-cta px-5 md:px-7 flex items-center gap-2 rounded-none text-sm md:text-base font-bold whitespace-nowrap">
                   <Search className="w-4 h-4" />
                   <span className="hidden sm:inline">Tìm SIM</span>
                 </button>
               </div>
             </form>
-
-            {/* CTA buttons */}
             <div className="flex flex-col sm:flex-row justify-center gap-2.5 max-w-md mx-auto">
-              <button
-                onClick={scrollToSims}
-                className="bg-gold hover:bg-gold-light text-header-bg font-bold px-7 py-2.5 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-              >
+              <button onClick={scrollToSims} className="bg-gold hover:bg-gold-light text-header-bg font-bold px-7 py-2.5 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
                 <Star className="w-4 h-4" /> Xem kho sim giá rẻ
               </button>
-              <a
-                href={ZALO_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-primary-foreground/10 border border-primary-foreground/25 text-primary-foreground font-semibold px-7 py-2.5 rounded-lg hover:bg-primary-foreground/20 transition-all duration-200 flex items-center justify-center gap-2"
-              >
+              <a href={ZALO_URL} target="_blank" rel="noopener noreferrer" className="bg-primary-foreground/10 border border-primary-foreground/25 text-primary-foreground font-semibold px-7 py-2.5 rounded-lg hover:bg-primary-foreground/20 transition-all duration-200 flex items-center justify-center gap-2">
                 <Phone className="w-4 h-4" /> Tư vấn chọn sim
               </a>
             </div>
@@ -257,7 +406,7 @@ const MuaSimGiaRe = () => {
             ) : displaySims.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {displaySims.map((sim) => (
-                  <SIMCardNew key={sim.id} sim={sim} />
+                  <CheapSimCard key={sim.id} sim={sim} onBuy={handleBuy} />
                 ))}
               </div>
             ) : (
@@ -323,9 +472,7 @@ const MuaSimGiaRe = () => {
                   } else {
                     pages.push(1);
                     if (currentPage > 3) pages.push('...');
-                    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
-                      pages.push(i);
-                    }
+                    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i);
                     if (currentPage < totalPages - 2) pages.push('...');
                     pages.push(totalPages);
                   }
@@ -344,7 +491,7 @@ const MuaSimGiaRe = () => {
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                       {pageSims.map((sim) => (
-                        <SIMCardNew key={sim.id} sim={sim} />
+                        <CheapSimCard key={sim.id} sim={sim} onBuy={handleBuy} />
                       ))}
                     </div>
                     {totalPages > 1 && (
@@ -433,7 +580,6 @@ const MuaSimGiaRe = () => {
                   Phân khúc sim dưới 500k là lựa chọn phổ biến nhất cho những ai cần số mới với chi phí tiết kiệm. Dù giá mềm, nhiều sim trong tầm giá này vẫn có dãy số khá đẹp, dễ nhớ và phù hợp cho mọi mục đích sử dụng. Đặc biệt thích hợp làm số phụ, số kinh doanh hoặc số đăng ký tài khoản.
                 </p>
               </article>
-
               <article className="bg-card rounded-xl shadow-card border border-border p-5 hover:border-primary/30 transition-colors">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -445,7 +591,6 @@ const MuaSimGiaRe = () => {
                   <strong>Sim dễ nhớ giá rẻ</strong> là những sim có quy luật số rõ ràng: số lặp (11, 22, 33), số tiến (123, 456, 789), số cân bằng (1221, 3443), hoặc số gánh (1881, 2992). Những dạng số này giúp người khác dễ ghi nhớ số của bạn, rất có lợi khi dùng trong kinh doanh hoặc giao tiếp hàng ngày.
                 </p>
               </article>
-
               <article className="bg-card rounded-xl shadow-card border border-border p-5 hover:border-primary/30 transition-colors">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -492,21 +637,11 @@ const MuaSimGiaRe = () => {
               Cách Chọn Sim Giá Rẻ Phù Hợp
             </h2>
             <div className="text-muted-foreground leading-relaxed space-y-4">
-              <p>
-                Khi tìm <strong>mua sim giá rẻ</strong>, việc chọn đúng số phù hợp sẽ giúp bạn vừa tiết kiệm vừa hài lòng lâu dài. Dưới đây là một số tiêu chí quan trọng giúp bạn đưa ra quyết định:
-              </p>
-              <p>
-                <strong>Chọn theo ngân sách:</strong> Xác định rõ mức chi phí bạn sẵn sàng bỏ ra. Sim dưới 200k phù hợp cho nhu cầu cơ bản. Sim từ 200k–500k thường có dãy số đẹp hơn. Sim từ 500k–1 triệu là phân khúc "giá rẻ nhưng số đẹp" với nhiều lựa chọn hấp dẫn.
-              </p>
-              <p>
-                <strong>Chọn theo đầu số:</strong> Mỗi đầu số gắn liền với nhà mạng và có độ "quen thuộc" khác nhau. Đầu số 09x thường được đánh giá cao hơn 07x hay 08x. Hãy chọn đầu số phù hợp với thói quen sử dụng và vùng phủ sóng nơi bạn sinh sống.
-              </p>
-              <p>
-                <strong>Chọn theo nhà mạng:</strong> Nếu bạn cần phủ sóng rộng, Viettel là lựa chọn an toàn. Nếu ưu tiên data nhanh và gói cước linh hoạt, Mobifone rất phù hợp. Vinaphone thì ổn định cho người dùng truyền thống. Quan trọng là chọn nhà mạng phù hợp nhu cầu thực tế.
-              </p>
-              <p>
-                <strong>Chọn theo <em>sim dễ nhớ giá rẻ</em>:</strong> Ưu tiên các dạng số có quy luật: số tiến (1234), số lặp (1199), số gánh (1881) hoặc số đuôi đẹp. Những <strong>sim giá rẻ dễ nhớ</strong> này giúp người khác dễ ghi nhớ số của bạn, tạo lợi thế khi giao tiếp và kinh doanh.
-              </p>
+              <p>Khi tìm <strong>mua sim giá rẻ</strong>, việc chọn đúng số phù hợp sẽ giúp bạn vừa tiết kiệm vừa hài lòng lâu dài. Dưới đây là một số tiêu chí quan trọng giúp bạn đưa ra quyết định:</p>
+              <p><strong>Chọn theo ngân sách:</strong> Xác định rõ mức chi phí bạn sẵn sàng bỏ ra. Sim dưới 200k phù hợp cho nhu cầu cơ bản. Sim từ 200k–500k thường có dãy số đẹp hơn. Sim từ 500k–1 triệu là phân khúc "giá rẻ nhưng số đẹp" với nhiều lựa chọn hấp dẫn.</p>
+              <p><strong>Chọn theo đầu số:</strong> Mỗi đầu số gắn liền với nhà mạng và có độ "quen thuộc" khác nhau. Đầu số 09x thường được đánh giá cao hơn 07x hay 08x. Hãy chọn đầu số phù hợp với thói quen sử dụng và vùng phủ sóng nơi bạn sinh sống.</p>
+              <p><strong>Chọn theo nhà mạng:</strong> Nếu bạn cần phủ sóng rộng, Viettel là lựa chọn an toàn. Nếu ưu tiên data nhanh và gói cước linh hoạt, Mobifone rất phù hợp. Vinaphone thì ổn định cho người dùng truyền thống. Quan trọng là chọn nhà mạng phù hợp nhu cầu thực tế.</p>
+              <p><strong>Chọn theo <em>sim dễ nhớ giá rẻ</em>:</strong> Ưu tiên các dạng số có quy luật: số tiến (1234), số lặp (1199), số gánh (1881) hoặc số đuôi đẹp. Những <strong>sim giá rẻ dễ nhớ</strong> này giúp người khác dễ ghi nhớ số của bạn, tạo lợi thế khi giao tiếp và kinh doanh.</p>
             </div>
           </section>
 
@@ -518,17 +653,9 @@ const MuaSimGiaRe = () => {
             </h2>
             <Accordion type="single" collapsible className="space-y-2">
               {faqItems.map((faq, index) => (
-                <AccordionItem
-                  key={index}
-                  value={`faq-${index}`}
-                  className="border border-border rounded-lg px-4 data-[state=open]:bg-secondary/30"
-                >
-                  <AccordionTrigger className="text-left font-medium text-foreground hover:text-primary hover:no-underline py-4">
-                    {faq.q}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground pb-4">
-                    {faq.a}
-                  </AccordionContent>
+                <AccordionItem key={index} value={`faq-${index}`} className="border border-border rounded-lg px-4 data-[state=open]:bg-secondary/30">
+                  <AccordionTrigger className="text-left font-medium text-foreground hover:text-primary hover:no-underline py-4">{faq.q}</AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground pb-4">{faq.a}</AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>
@@ -541,25 +668,13 @@ const MuaSimGiaRe = () => {
                 <Award className="w-7 h-7 text-gold" />
               </div>
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold mb-3">
-              Tìm Ngay Sim Giá Rẻ Phù Hợp Với Bạn
-            </h2>
-            <p className="text-primary-foreground/80 mb-6 max-w-lg mx-auto">
-              Hàng nghìn sim giá rẻ số đẹp đang chờ bạn. Kho sim cập nhật mỗi ngày, hỗ trợ giao sim và sang tên toàn quốc.
-            </p>
+            <h2 className="text-2xl md:text-3xl font-bold mb-3">Tìm Ngay Sim Giá Rẻ Phù Hợp Với Bạn</h2>
+            <p className="text-primary-foreground/80 mb-6 max-w-lg mx-auto">Hàng nghìn sim giá rẻ số đẹp đang chờ bạn. Kho sim cập nhật mỗi ngày, hỗ trợ giao sim và sang tên toàn quốc.</p>
             <div className="flex flex-wrap justify-center gap-3">
-              <button
-                onClick={scrollToSims}
-                className="bg-gold text-header-bg font-bold px-6 py-3 rounded-lg hover:bg-gold/90 transition flex items-center gap-2"
-              >
+              <button onClick={scrollToSims} className="bg-gold text-header-bg font-bold px-6 py-3 rounded-lg hover:bg-gold/90 transition flex items-center gap-2">
                 <Star className="w-4 h-4" /> Xem toàn bộ kho sim giá rẻ
               </button>
-              <a
-                href={ZALO_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-primary-foreground/10 border border-primary-foreground/30 text-primary-foreground font-semibold px-6 py-3 rounded-lg hover:bg-primary-foreground/20 transition flex items-center gap-2"
-              >
+              <a href={ZALO_URL} target="_blank" rel="noopener noreferrer" className="bg-primary-foreground/10 border border-primary-foreground/30 text-primary-foreground font-semibold px-6 py-3 rounded-lg hover:bg-primary-foreground/20 transition flex items-center gap-2">
                 <Phone className="w-4 h-4" /> Liên hệ tư vấn
               </a>
             </div>
@@ -568,6 +683,93 @@ const MuaSimGiaRe = () => {
       </main>
 
       <Footer />
+
+      {/* ===== ORDER MODAL ===== */}
+      <Dialog open={orderOpen} onOpenChange={(open) => { if (!open) { setOrderOpen(false); } }}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          {isSuccess ? (
+            <div className="text-center py-6">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8 text-primary" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Đã nhận đơn!</h2>
+              <p className="text-muted-foreground mb-6">Chúng tôi sẽ liên hệ sớm để xác nhận đơn hàng của bạn.</p>
+              <Button onClick={() => setOrderOpen(false)} size="lg" className="gap-2">
+                Đóng
+              </Button>
+            </div>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-lg font-bold">Đặt mua SIM</DialogTitle>
+              </DialogHeader>
+
+              {/* SIM Info */}
+              {selectedSim && (
+                <div className="bg-secondary/30 rounded-lg p-4 space-y-2">
+                  <p className="text-sm text-muted-foreground">THÔNG TIN SIM</p>
+                  <div className="text-xl font-bold text-primary tracking-wide">
+                    {selectedSim.displayNumber}
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="text-muted-foreground">Mạng:</span>
+                    <span className={cn("px-2 py-0.5 rounded text-xs font-medium", networkColors[selectedSim.network] || 'bg-gray-500 text-white')}>
+                      {selectedSim.network}
+                    </span>
+                  </div>
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">Giá: </span>
+                    <span className="font-semibold text-cta text-lg">{formatPriceDisplay(selectedSim.price)}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Order Form */}
+              <form onSubmit={handleSubmitOrder} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="modal-fullName">Họ tên <span className="text-destructive">*</span></Label>
+                  <Input id="modal-fullName" placeholder="Nguyễn Văn A" value={formData.fullName} onChange={(e) => handleInputChange('fullName', e.target.value)} className={formErrors.fullName ? 'border-destructive' : ''} />
+                  {formErrors.fullName && <p className="text-xs text-destructive">{formErrors.fullName}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="modal-phone">Điện thoại liên hệ <span className="text-destructive">*</span></Label>
+                  <Input id="modal-phone" type="tel" placeholder="0909 123 456" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} className={formErrors.phone ? 'border-destructive' : ''} />
+                  {formErrors.phone && <p className="text-xs text-destructive">{formErrors.phone}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="modal-address">Địa chỉ <span className="text-destructive">*</span></Label>
+                  <Input id="modal-address" placeholder="123 Đường ABC, Quận 1, TP.HCM" value={formData.address} onChange={(e) => handleInputChange('address', e.target.value)} className={formErrors.address ? 'border-destructive' : ''} />
+                  {formErrors.address && <p className="text-xs text-destructive">{formErrors.address}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="modal-note">Yêu cầu khác</Label>
+                  <Textarea id="modal-note" placeholder="Ghi chú thêm (nếu có)" value={formData.note} onChange={(e) => handleInputChange('note', e.target.value)} rows={2} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Hình thức thanh toán</Label>
+                  <RadioGroup value={formData.paymentMethod} onValueChange={(v) => handleInputChange('paymentMethod', v)} className="space-y-2">
+                    <div className="flex items-center space-x-3 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/50">
+                      <RadioGroupItem value="COD" id="modal-cod" />
+                      <Label htmlFor="modal-cod" className="cursor-pointer flex-1">Thanh toán khi nhận sim</Label>
+                    </div>
+                    <div className="flex items-center space-x-3 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/50">
+                      <RadioGroupItem value="BANK" id="modal-bank" />
+                      <Label htmlFor="modal-bank" className="cursor-pointer flex-1">Thanh toán online (chuyển khoản)</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                <Button type="submit" size="lg" className="w-full gap-2 text-base" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Đang xử lý...</>
+                  ) : (
+                    <><Phone className="w-4 h-4" /> MUA NGAY</>
+                  )}
+                </Button>
+              </form>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
