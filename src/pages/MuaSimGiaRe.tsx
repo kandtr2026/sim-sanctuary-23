@@ -747,16 +747,12 @@ const MuaSimGiaRe = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Hình thức thanh toán</Label>
-                  <RadioGroup value={formData.paymentMethod} onValueChange={(v) => handleInputChange('paymentMethod', v)} className="space-y-2">
-                    <div className="flex items-center space-x-3 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/50">
-                      <RadioGroupItem value="COD" id="modal-cod" />
-                      <Label htmlFor="modal-cod" className="cursor-pointer flex-1">Thanh toán khi nhận sim</Label>
+                  <div className="flex items-center space-x-3 rounded-lg border border-border p-3 bg-muted/30">
+                    <div className="w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center">
+                      <div className="w-2.5 h-2.5 rounded-full bg-primary" />
                     </div>
-                    <div className="flex items-center space-x-3 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/50">
-                      <RadioGroupItem value="BANK" id="modal-bank" />
-                      <Label htmlFor="modal-bank" className="cursor-pointer flex-1">Thanh toán online (chuyển khoản)</Label>
-                    </div>
-                  </RadioGroup>
+                    <Label className="flex-1">Thanh toán khi nhận sim</Label>
+                  </div>
                 </div>
                 <Button type="submit" size="lg" className="w-full gap-2 text-base" disabled={isSubmitting}>
                   {isSubmitting ? (
