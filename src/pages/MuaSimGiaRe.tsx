@@ -328,6 +328,7 @@ const MuaSimGiaRe = () => {
     e.preventDefault();
     setIsSearching(true);
     setActiveSearch(searchQuery);
+    setCurrentPage(1);
     setTimeout(() => setIsSearching(false), 300);
     setTimeout(() => {
       document.getElementById('kho-sim-gia-re')?.scrollIntoView({ behavior: 'smooth' });
@@ -337,9 +338,9 @@ const MuaSimGiaRe = () => {
   const clearSearch = () => {
     setSearchQuery('');
     setActiveSearch('');
+    setCurrentPage(1);
   };
 
-  const displaySims = searchResults ?? cheapSims;
   const hasActiveSearch = !!activeSearch.trim();
 
   const scrollToSims = () => {
@@ -425,14 +426,46 @@ const MuaSimGiaRe = () => {
           {/* ===== FULL INVENTORY WITH PAGINATION ===== */}
           {showFullInventory && (
             <section ref={fullInventoryRef} className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
-              <h2 className="text-2xl font-bold text-primary mb-4 flex items-center gap-3">
-                <span className="w-1 h-8 bg-primary rounded-full" />
-                KHO SIM ĐỒNG GIÁ 229K
-              </h2>
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <h2 className="text-2xl font-bold text-primary flex items-center gap-3">
+                  <span className="w-1 h-8 bg-primary rounded-full" />
+                  {hasActiveSearch ? `Kết quả tìm kiếm "${activeSearch}"` : 'KHO SIM ĐỒNG GIÁ 229K'}
+                </h2>
+                {hasActiveSearch && (
+                  <button
+                    onClick={clearSearch}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border border-border bg-card hover:bg-secondary/50 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" /> Xóa tìm kiếm
+                  </button>
+                )}
+              </div>
               {(() => {
-                const totalPages = Math.ceil(allCheapSims.length / ITEMS_PER_PAGE);
-                const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
-                const pageSims = allCheapSims.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+                if (isSearching) {
+                  return (
+                    <div className="flex items-center justify-center py-12 gap-3">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      <span className="text-muted-foreground">Đang tìm kiếm...</span>
+                    </div>
+                  );
+                }
+
+                const sourceData = hasActiveSearch ? (searchResults ?? []) : allCheapSims;
+
+                if (hasActiveSearch && sourceData.length === 0) {
+                  return (
+                    <div className="text-center py-12">
+                      <Search className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
+                      <p className="text-lg font-medium text-foreground mb-1">Không tìm thấy sim phù hợp với số bạn đang tìm.</p>
+                      <p className="text-sm text-muted-foreground">Thử nhập chuỗi số khác hoặc ngắn hơn.</p>
+                    </div>
+                  );
+                }
+
+                const totalPages = Math.ceil(sourceData.length / ITEMS_PER_PAGE);
+                const safePage = Math.min(currentPage, totalPages || 1);
+                const startIdx = (safePage - 1) * ITEMS_PER_PAGE;
+                const pageSims = sourceData.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
                 if (isLoading) {
                   return (
@@ -463,9 +496,9 @@ const MuaSimGiaRe = () => {
                     for (let i = 1; i <= totalPages; i++) pages.push(i);
                   } else {
                     pages.push(1);
-                    if (currentPage > 3) pages.push('...');
-                    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i);
-                    if (currentPage < totalPages - 2) pages.push('...');
+                    if (safePage > 3) pages.push('...');
+                    for (let i = Math.max(2, safePage - 1); i <= Math.min(totalPages - 1, safePage + 1); i++) pages.push(i);
+                    if (safePage < totalPages - 2) pages.push('...');
                     pages.push(totalPages);
                   }
                   return pages;
@@ -479,7 +512,7 @@ const MuaSimGiaRe = () => {
                 return (
                   <>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Hiển thị {startIdx + 1}–{Math.min(startIdx + ITEMS_PER_PAGE, allCheapSims.length)} trong tổng số {allCheapSims.length} sim
+                      Hiển thị {startIdx + 1}–{Math.min(startIdx + ITEMS_PER_PAGE, sourceData.length)} trong tổng số {sourceData.length} sim
                     </p>
                     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">
                       {pageSims.map((sim) => (
@@ -489,8 +522,8 @@ const MuaSimGiaRe = () => {
                     {totalPages > 1 && (
                       <div className="flex items-center justify-center gap-1.5 mt-6 flex-wrap">
                         <button
-                          onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                          disabled={currentPage === 1}
+                          onClick={() => handlePageChange(Math.max(1, safePage - 1))}
+                          disabled={safePage === 1}
                           className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium border border-border bg-card hover:bg-secondary/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                         >
                           <ChevronLeft className="w-4 h-4" /> Trước
@@ -503,7 +536,7 @@ const MuaSimGiaRe = () => {
                               key={p}
                               onClick={() => handlePageChange(p)}
                               className={`min-w-[36px] h-9 rounded-lg text-sm font-medium transition-colors ${
-                                currentPage === p
+                                safePage === p
                                   ? 'bg-primary text-primary-foreground'
                                   : 'border border-border bg-card hover:bg-secondary/50 text-foreground'
                               }`}
@@ -513,8 +546,8 @@ const MuaSimGiaRe = () => {
                           )
                         )}
                         <button
-                          onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                          disabled={currentPage === totalPages}
+                          onClick={() => handlePageChange(Math.min(totalPages, safePage + 1))}
+                          disabled={safePage === totalPages}
                           className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium border border-border bg-card hover:bg-secondary/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                         >
                           Sau <ChevronRight className="w-4 h-4" />
@@ -526,6 +559,8 @@ const MuaSimGiaRe = () => {
               })()}
             </section>
           )}
+
+
 
           {/* ===== 3. GIỚI THIỆU SIM GIÁ RẺ ===== */}
           <section className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
