@@ -380,6 +380,26 @@ const MuaSimGiaRe = () => {
           </div>
         </section>
 
+        {/* ===== HIGHLIGHT ƯU ĐÃI ===== */}
+        <div className="bg-secondary border-b border-border">
+          <div className="container mx-auto px-4 py-3 md:py-4">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 md:gap-x-6 text-sm md:text-base">
+              {[
+                'SIM Mobifone chỉ 229.000đ',
+                'Tặng gói TK179',
+                '7GB data/ngày',
+                '200 phút liên mạng',
+                'Miễn phí nội mạng',
+              ].map((text) => (
+                <span key={text} className="flex items-center gap-1.5 text-gold font-medium whitespace-nowrap">
+                  <CheckCircle className="w-4 h-4 text-green-400 shrink-0" />
+                  {text}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div className="container mx-auto px-4 py-8 md:py-12 space-y-12 md:space-y-16">
           {/* ===== 2. KHO SIM GIÁ RẺ ===== */}
           <section id="kho-sim-gia-re" className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
