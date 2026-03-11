@@ -409,7 +409,7 @@ const MuaSimGiaRe = () => {
             <section ref={fullInventoryRef} className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
               <h2 className="text-2xl font-bold text-primary mb-4 flex items-center gap-3">
                 <span className="w-1 h-8 bg-primary rounded-full" />
-                Toàn Bộ Kho Sim Giá Rẻ
+                KHO SIM ĐỒNG GIÁ 229K
               </h2>
               {(() => {
                 const totalPages = Math.ceil(allCheapSims.length / ITEMS_PER_PAGE);
