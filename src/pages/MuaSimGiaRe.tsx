@@ -145,14 +145,15 @@ const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: Ch
         )}
       </div>
 
+      {/* Sim number - larger on mobile */}
       <div
-        className="sim-number-auto mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis"
-        style={{ fontSize: 'clamp(14px, 3.5vw, 22px)' }}
+        className="sim-number-auto mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis md:text-[clamp(14px,3.5vw,22px)] text-[clamp(22px,7vw,32px)]"
       >
         {formatWithHighlight(sim.displayNumber || sim.formattedNumber)}
       </div>
 
-      <div className="flex items-center justify-between mt-auto pt-1">
+      {/* Desktop: price + button inline | Mobile: stacked */}
+      <div className="hidden md:flex items-center justify-between mt-auto pt-1">
         <span
           className="font-bold"
           style={{ fontSize: 'clamp(14px, 3vw, 21px)', color: '#FFFFFF' }}
@@ -165,6 +166,20 @@ const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: Ch
           style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
         >
           <Phone style={{ width: 'clamp(8px, 1.8vw, 12px)', height: 'clamp(8px, 1.8vw, 12px)' }} />
+          MUA NGAY
+        </button>
+      </div>
+
+      {/* Mobile only: stacked price + button */}
+      <div className="flex md:hidden flex-col gap-1 mt-auto">
+        <span className="font-bold text-base" style={{ color: '#FFFFFF' }}>
+          {formatPriceDisplay(sim.price)}
+        </span>
+        <button
+          onClick={() => onBuy(sim)}
+          className="btn-cta-sm flex items-center justify-center gap-1 py-1.5 px-2 w-full text-xs"
+        >
+          <Phone className="w-3 h-3" />
           MUA NGAY
         </button>
       </div>
