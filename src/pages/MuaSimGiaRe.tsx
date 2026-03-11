@@ -181,7 +181,7 @@ const MuaSimGiaRe = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const fullInventoryRef = useRef<HTMLDivElement>(null);
   const { sims: cheapSimsRaw, isLoading } = useCheapSimData();
-  const ITEMS_PER_PAGE = 16;
+  const ITEMS_PER_PAGE = 30;
 
   // Order modal state
   const [selectedSim, setSelectedSim] = useState<CheapSimNormalized | null>(null);
@@ -409,7 +409,7 @@ const MuaSimGiaRe = () => {
             <section ref={fullInventoryRef} className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
               <h2 className="text-2xl font-bold text-primary mb-4 flex items-center gap-3">
                 <span className="w-1 h-8 bg-primary rounded-full" />
-                Toàn Bộ Kho Sim Giá Rẻ
+                KHO SIM ĐỒNG GIÁ 229K
               </h2>
               {(() => {
                 const totalPages = Math.ceil(allCheapSims.length / ITEMS_PER_PAGE);
@@ -418,8 +418,8 @@ const MuaSimGiaRe = () => {
 
                 if (isLoading) {
                   return (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                      {Array.from({ length: 8 }).map((_, i) => (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                      {Array.from({ length: 10 }).map((_, i) => (
                         <div key={i} className="animate-pulse rounded-xl border border-border bg-card p-4 space-y-3">
                           <div className="h-4 w-16 bg-muted rounded" />
                           <div className="h-6 w-full bg-muted rounded" />
@@ -463,7 +463,7 @@ const MuaSimGiaRe = () => {
                     <p className="text-sm text-muted-foreground mb-4">
                       Hiển thị {startIdx + 1}–{Math.min(startIdx + ITEMS_PER_PAGE, allCheapSims.length)} trong tổng số {allCheapSims.length} sim
                     </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                       {pageSims.map((sim) => (
                         <CheapSimCard key={sim.id} sim={sim} onBuy={handleBuy} />
                       ))}
