@@ -181,7 +181,7 @@ const MuaSimGiaRe = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const fullInventoryRef = useRef<HTMLDivElement>(null);
   const { sims: cheapSimsRaw, isLoading } = useCheapSimData();
-  const ITEMS_PER_PAGE = 16;
+  const ITEMS_PER_PAGE = 30;
 
   // Order modal state
   const [selectedSim, setSelectedSim] = useState<CheapSimNormalized | null>(null);
