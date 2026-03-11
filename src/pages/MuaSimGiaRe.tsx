@@ -97,6 +97,8 @@ const formatPriceDisplay = (price: number): string => {
 };
 
 const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: CheapSimNormalized) => void }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+
   const formatWithHighlight = (displayNumber: string) => {
     const parts = displayNumber.split('.');
     if (parts.length === 3) {
@@ -112,7 +114,26 @@ const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: Ch
   };
 
   return (
-    <div className="sim-card-compact group relative overflow-hidden">
+    <div
+      className="sim-card-compact group relative overflow-visible"
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
+      {/* TK179 Hover Tooltip */}
+      {showTooltip && (
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 pointer-events-none hidden md:block">
+          <div className="bg-card border border-border rounded-lg shadow-lg p-3 whitespace-nowrap text-xs space-y-1">
+            <p className="font-bold text-gold text-sm">Ưu đãi gói TK179</p>
+            <p className="text-foreground">✔ SIM Mobifone chỉ 229.000đ</p>
+            <p className="text-foreground">✔ Tặng gói TK179</p>
+            <p className="text-foreground">✔ 7GB data/ngày</p>
+            <p className="text-foreground">✔ 200 phút liên mạng</p>
+            <p className="text-foreground">✔ Miễn phí nội mạng</p>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-border" />
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center gap-1 mb-1.5 flex-wrap max-w-full">
         {sim.network && sim.network !== 'Khác' && (
           <span
