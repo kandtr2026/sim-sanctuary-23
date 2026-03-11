@@ -197,6 +197,7 @@ const MuaSimGiaRe = () => {
   const [showFullInventory, setShowFullInventory] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const fullInventoryRef = useRef<HTMLDivElement>(null);
+  const { sims: cheapSimsRaw, isLoading } = useCheapSimData();
   const isMobile = useIsMobile();
   const ITEMS_PER_PAGE = isMobile ? 20 : 30;
 
