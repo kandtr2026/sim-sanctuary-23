@@ -74,6 +74,7 @@ interface CheapSimNormalized {
   isVIP: boolean;
   network: string;
   beautyScore: number;
+  category: string;
 }
 
 // ===== LOCAL SIM CARD (same style as SIMCardNew, but opens modal) =====
