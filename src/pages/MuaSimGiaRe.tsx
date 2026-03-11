@@ -463,7 +463,7 @@ const MuaSimGiaRe = () => {
                     <p className="text-sm text-muted-foreground mb-4">
                       Hiển thị {startIdx + 1}–{Math.min(startIdx + ITEMS_PER_PAGE, allCheapSims.length)} trong tổng số {allCheapSims.length} sim
                     </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                       {pageSims.map((sim) => (
                         <CheapSimCard key={sim.id} sim={sim} onBuy={handleBuy} />
                       ))}
