@@ -328,6 +328,7 @@ const MuaSimGiaRe = () => {
     e.preventDefault();
     setIsSearching(true);
     setActiveSearch(searchQuery);
+    setCurrentPage(1);
     setTimeout(() => setIsSearching(false), 300);
     setTimeout(() => {
       document.getElementById('kho-sim-gia-re')?.scrollIntoView({ behavior: 'smooth' });
@@ -337,6 +338,7 @@ const MuaSimGiaRe = () => {
   const clearSearch = () => {
     setSearchQuery('');
     setActiveSearch('');
+    setCurrentPage(1);
   };
 
   const hasActiveSearch = !!activeSearch.trim();
