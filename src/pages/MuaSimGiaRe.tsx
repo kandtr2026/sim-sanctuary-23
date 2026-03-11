@@ -115,7 +115,7 @@ const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: Ch
 
   return (
     <div
-      className="sim-card-compact group relative overflow-visible"
+      className="sim-card-compact group relative overflow-visible md:p-2 p-1.5 md:min-h-[140px] min-h-[auto]"
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
