@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Navigation from '@/components/Navigation';
 import { useCheapSimData } from '@/hooks/useCheapSimData';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -115,7 +116,7 @@ const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: Ch
 
   return (
     <div
-      className="sim-card-compact group relative overflow-visible md:p-2 p-1.5 md:min-h-[140px] min-h-[auto]"
+      className="sim-card-compact group relative overflow-visible md:p-2 p-1 md:min-h-[140px] min-h-[auto]"
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
@@ -134,11 +135,11 @@ const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: Ch
         </div>
       )}
 
-      <div className="flex items-center gap-1 mb-1.5 flex-wrap max-w-full">
+      <div className="flex items-center gap-0.5 md:gap-1 mb-1 md:mb-1.5 flex-wrap max-w-full">
         {sim.network && sim.network !== 'Khác' && (
           <span
-            className={cn("px-1.5 py-px rounded font-medium", networkColors[sim.network] || 'bg-gray-500 text-white')}
-            style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+            className={cn("px-1 md:px-1.5 py-px rounded font-medium", networkColors[sim.network] || 'bg-gray-500 text-white')}
+            style={{ fontSize: 'clamp(7px, 1.6vw, 11px)' }}
           >
             {sim.network}
           </span>
@@ -147,7 +148,7 @@ const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: Ch
 
       {/* Sim number - larger on mobile */}
       <div
-        className="sim-number-auto mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis md:text-[clamp(14px,3.5vw,22px)] text-[clamp(22px,7vw,32px)]"
+        className="sim-number-auto mb-1 md:mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis md:text-[clamp(14px,3.5vw,22px)] text-[clamp(14px,4.2vw,20px)]"
       >
         {formatWithHighlight(sim.displayNumber || sim.formattedNumber)}
       </div>
@@ -171,13 +172,14 @@ const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: Ch
       </div>
 
       {/* Mobile only: stacked price + button */}
-      <div className="flex md:hidden flex-col gap-1 mt-auto">
-        <span className="font-bold text-base" style={{ color: '#FFFFFF' }}>
+      <div className="flex md:hidden flex-col gap-0.5 mt-auto">
+        <span className="font-bold text-sm" style={{ color: '#FFFFFF' }}>
           {formatPriceDisplay(sim.price)}
         </span>
         <button
           onClick={() => onBuy(sim)}
-          className="btn-cta-sm flex items-center justify-center gap-1 py-1.5 px-2 w-full text-xs"
+          className="btn-cta-sm flex items-center justify-center gap-1 py-1 px-1.5 w-full"
+          style={{ fontSize: 'clamp(9px, 2.5vw, 12px)' }}
         >
           <Phone className="w-3 h-3" />
           MUA NGAY
@@ -196,7 +198,8 @@ const MuaSimGiaRe = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const fullInventoryRef = useRef<HTMLDivElement>(null);
   const { sims: cheapSimsRaw, isLoading } = useCheapSimData();
-  const ITEMS_PER_PAGE = 30;
+  const isMobile = useIsMobile();
+  const ITEMS_PER_PAGE = isMobile ? 20 : 30;
 
   // Order modal state
   const [selectedSim, setSelectedSim] = useState<CheapSimNormalized | null>(null);
@@ -433,7 +436,7 @@ const MuaSimGiaRe = () => {
 
                 if (isLoading) {
                   return (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">
                       {Array.from({ length: 10 }).map((_, i) => (
                         <div key={i} className="animate-pulse rounded-xl border border-border bg-card p-4 space-y-3">
                           <div className="h-4 w-16 bg-muted rounded" />
@@ -478,7 +481,7 @@ const MuaSimGiaRe = () => {
                     <p className="text-sm text-muted-foreground mb-4">
                       Hiển thị {startIdx + 1}–{Math.min(startIdx + ITEMS_PER_PAGE, allCheapSims.length)} trong tổng số {allCheapSims.length} sim
                     </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">
                       {pageSims.map((sim) => (
                         <CheapSimCard key={sim.id} sim={sim} onBuy={handleBuy} />
                       ))}
