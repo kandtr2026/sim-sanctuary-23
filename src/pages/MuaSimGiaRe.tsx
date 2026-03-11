@@ -381,42 +381,7 @@ const MuaSimGiaRe = () => {
         </section>
 
         <div className="container mx-auto px-4 py-8 md:py-12 space-y-12 md:space-y-16">
-          {/* ===== 2. KHO SIM GIÁ RẺ ===== */}
-          <section id="kho-sim-gia-re" className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
-            <h2 className="text-2xl font-bold text-primary mb-4 flex items-center gap-3">
-              <span className="w-1 h-8 bg-primary rounded-full" />
-              {hasActiveSearch ? `Kết quả tìm kiếm "${activeSearch}"` : 'Kho Sim Giá Rẻ Cập Nhật'}
-            </h2>
-            {hasActiveSearch && (
-              <button onClick={clearSearch} className="mb-4 text-sm text-primary hover:underline">
-                ← Quay lại kho sim giá rẻ
-              </button>
-            )}
-            {isLoading || isSearching ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="animate-pulse rounded-xl border border-border bg-card p-4 space-y-3">
-                    <div className="h-4 w-16 bg-muted rounded" />
-                    <div className="h-6 w-full bg-muted rounded" />
-                    <div className="h-4 w-20 bg-muted rounded" />
-                    <div className="h-8 w-full bg-muted rounded" />
-                  </div>
-                ))}
-              </div>
-            ) : displaySims.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                {displaySims.map((sim) => (
-                  <CheapSimCard key={sim.id} sim={sim} onBuy={handleBuy} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                {hasActiveSearch
-                  ? 'Không tìm thấy sim giá rẻ phù hợp. Vui lòng thử số khác.'
-                  : 'Hiện chưa có sim giá rẻ trong kho. Vui lòng quay lại sau.'}
-              </div>
-            )}
-          </section>
+          {/* Section "Kho Sim Giá Rẻ Cập Nhật" đã được xóa theo yêu cầu */}
 
           {/* ===== FULL INVENTORY WITH PAGINATION ===== */}
           {showFullInventory && (
