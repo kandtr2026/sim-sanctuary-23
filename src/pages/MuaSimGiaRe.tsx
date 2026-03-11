@@ -434,7 +434,7 @@ const MuaSimGiaRe = () => {
 
                 if (isLoading) {
                   return (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">
                       {Array.from({ length: 10 }).map((_, i) => (
                         <div key={i} className="animate-pulse rounded-xl border border-border bg-card p-4 space-y-3">
                           <div className="h-4 w-16 bg-muted rounded" />
