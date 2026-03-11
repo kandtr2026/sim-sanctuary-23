@@ -172,13 +172,14 @@ const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: Ch
       </div>
 
       {/* Mobile only: stacked price + button */}
-      <div className="flex md:hidden flex-col gap-1 mt-auto">
-        <span className="font-bold text-base" style={{ color: '#FFFFFF' }}>
+      <div className="flex md:hidden flex-col gap-0.5 mt-auto">
+        <span className="font-bold text-sm" style={{ color: '#FFFFFF' }}>
           {formatPriceDisplay(sim.price)}
         </span>
         <button
           onClick={() => onBuy(sim)}
-          className="btn-cta-sm flex items-center justify-center gap-1 py-1.5 px-2 w-full text-xs"
+          className="btn-cta-sm flex items-center justify-center gap-1 py-1 px-1.5 w-full"
+          style={{ fontSize: 'clamp(9px, 2.5vw, 12px)' }}
         >
           <Phone className="w-3 h-3" />
           MUA NGAY
