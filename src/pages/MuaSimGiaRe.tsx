@@ -559,51 +559,6 @@ const MuaSimGiaRe = () => {
           )}
 
 
-                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">
-                      {pageSims.map((sim) => (
-                        <CheapSimCard key={sim.id} sim={sim} onBuy={handleBuy} />
-                      ))}
-                    </div>
-                    {totalPages > 1 && (
-                      <div className="flex items-center justify-center gap-1.5 mt-6 flex-wrap">
-                        <button
-                          onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                          disabled={currentPage === 1}
-                          className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium border border-border bg-card hover:bg-secondary/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                        >
-                          <ChevronLeft className="w-4 h-4" /> Trước
-                        </button>
-                        {getPageNumbers().map((p, i) =>
-                          p === '...' ? (
-                            <span key={`e-${i}`} className="px-2 py-2 text-muted-foreground text-sm">…</span>
-                          ) : (
-                            <button
-                              key={p}
-                              onClick={() => handlePageChange(p)}
-                              className={`min-w-[36px] h-9 rounded-lg text-sm font-medium transition-colors ${
-                                currentPage === p
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'border border-border bg-card hover:bg-secondary/50 text-foreground'
-                              }`}
-                            >
-                              {p}
-                            </button>
-                          )
-                        )}
-                        <button
-                          onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                          disabled={currentPage === totalPages}
-                          className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium border border-border bg-card hover:bg-secondary/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                        >
-                          Sau <ChevronRight className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-            </section>
-          )}
 
           {/* ===== 3. GIỚI THIỆU SIM GIÁ RẺ ===== */}
           <section className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
