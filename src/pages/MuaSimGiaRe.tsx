@@ -416,18 +416,6 @@ const MuaSimGiaRe = () => {
                   : 'Hiện chưa có sim giá rẻ trong kho. Vui lòng quay lại sau.'}
               </div>
             )}
-            <div className="mt-6 text-center">
-              <button
-                onClick={() => {
-                  setShowFullInventory(true);
-                  setCurrentPage(1);
-                  setTimeout(() => fullInventoryRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-                }}
-                className="btn-cta inline-flex items-center gap-2 px-6 py-3"
-              >
-                Xem toàn bộ kho sim <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
           </section>
 
           {/* ===== FULL INVENTORY WITH PAGINATION ===== */}
