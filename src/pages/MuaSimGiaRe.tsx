@@ -344,7 +344,12 @@ const MuaSimGiaRe = () => {
   const hasActiveSearch = !!activeSearch.trim();
 
   const scrollToSims = () => {
-    document.getElementById('kho-sim-gia-re')?.scrollIntoView({ behavior: 'smooth' });
+    setSearchQuery('');
+    setActiveSearch('');
+    setCurrentPage(1);
+    setTimeout(() => {
+      document.getElementById('kho-sim-gia-re')?.scrollIntoView({ behavior: 'smooth' });
+    }, 50);
   };
 
   return (
