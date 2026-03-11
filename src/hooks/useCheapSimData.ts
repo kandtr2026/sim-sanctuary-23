@@ -11,7 +11,6 @@ interface CheapSim {
   rawDigits: string;
   price: number;
   network: string;
-  category: string;
 }
 
 const detectNetwork = (digits: string): string => {
@@ -49,7 +48,6 @@ const parseCSV = (csv: string): CheapSim[] => {
   const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim().toUpperCase());
   const stb1Idx = headers.findIndex(h => h === 'STB1');
   const priceIdx = headers.findIndex(h => h.includes('GIÁ BÁN') || h.includes('GIA BAN') || h === 'GIÁBAN');
-  const catIdx = headers.findIndex(h => h.includes('PHÂN LOẠI') || h.includes('PHAN LOAI') || h === 'PHÂNLOẠI');
 
   if (stb1Idx === -1 || priceIdx === -1) {
     console.warn('[useCheapSimData] Missing columns. Headers:', headers);
@@ -70,14 +68,12 @@ const parseCSV = (csv: string): CheapSim[] => {
     const price = parsePrice(priceRaw);
     if (price <= 0) continue;
 
-    const category = catIdx !== -1 ? (vals[catIdx] || '') : '';
     sims.push({
       id: `cheap-${i}-${fullDigits}`,
       displayNumber: stb1,
       rawDigits: fullDigits,
       price,
       network: detectNetwork(fullDigits),
-      category,
     });
   }
   return sims;
