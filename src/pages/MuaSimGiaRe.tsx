@@ -148,7 +148,7 @@ const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: Ch
 
       {/* Sim number - larger on mobile */}
       <div
-        className="sim-number-auto mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis md:text-[clamp(14px,3.5vw,22px)] text-[clamp(22px,7vw,32px)]"
+        className="sim-number-auto mb-1 md:mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis md:text-[clamp(14px,3.5vw,22px)] text-[clamp(14px,4.2vw,20px)]"
       >
         {formatWithHighlight(sim.displayNumber || sim.formattedNumber)}
       </div>
