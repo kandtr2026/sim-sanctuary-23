@@ -558,53 +558,7 @@ const MuaSimGiaRe = () => {
             </section>
           )}
 
-                if (isLoading) {
-                  return (
-                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">
-                      {Array.from({ length: 10 }).map((_, i) => (
-                        <div key={i} className="animate-pulse rounded-xl border border-border bg-card p-4 space-y-3">
-                          <div className="h-4 w-16 bg-muted rounded" />
-                          <div className="h-6 w-full bg-muted rounded" />
-                          <div className="h-4 w-20 bg-muted rounded" />
-                          <div className="h-8 w-full bg-muted rounded" />
-                        </div>
-                      ))}
-                    </div>
-                  );
-                }
 
-                if (pageSims.length === 0) {
-                  return (
-                    <div className="text-center py-8 text-muted-foreground">
-                      Hiện chưa có sim giá rẻ trong kho. Vui lòng quay lại sau.
-                    </div>
-                  );
-                }
-
-                const getPageNumbers = () => {
-                  const pages: (number | '...')[] = [];
-                  if (totalPages <= 7) {
-                    for (let i = 1; i <= totalPages; i++) pages.push(i);
-                  } else {
-                    pages.push(1);
-                    if (currentPage > 3) pages.push('...');
-                    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i);
-                    if (currentPage < totalPages - 2) pages.push('...');
-                    pages.push(totalPages);
-                  }
-                  return pages;
-                };
-
-                const handlePageChange = (page: number) => {
-                  setCurrentPage(page);
-                  setTimeout(() => fullInventoryRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
-                };
-
-                return (
-                  <>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Hiển thị {startIdx + 1}–{Math.min(startIdx + ITEMS_PER_PAGE, allCheapSims.length)} trong tổng số {allCheapSims.length} sim
-                    </p>
                     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">
                       {pageSims.map((sim) => (
                         <CheapSimCard key={sim.id} sim={sim} onBuy={handleBuy} />
