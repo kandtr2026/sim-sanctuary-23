@@ -702,10 +702,7 @@ const MuaSimGiaRe = () => {
             </div>
             <h2 className="text-2xl md:text-3xl font-bold mb-3">Tìm Ngay Sim Giá Rẻ Phù Hợp Với Bạn</h2>
             <p className="text-primary-foreground/80 mb-6 max-w-lg mx-auto">Hàng nghìn sim giá rẻ số đẹp đang chờ bạn. Kho sim cập nhật mỗi ngày, hỗ trợ giao sim và sang tên toàn quốc.</p>
-            <div className="flex flex-wrap justify-center gap-3">
-              <button onClick={scrollToSims} className="bg-gold text-header-bg font-bold px-6 py-3 rounded-lg hover:bg-gold/90 transition flex items-center gap-2">
-                <Star className="w-4 h-4" /> Xem toàn bộ kho sim giá rẻ
-              </button>
+            <div className="flex justify-center">
               <a href={ZALO_URL} target="_blank" rel="noopener noreferrer" className="bg-primary-foreground/10 border border-primary-foreground/30 text-primary-foreground font-semibold px-6 py-3 rounded-lg hover:bg-primary-foreground/20 transition flex items-center gap-2">
                 <Phone className="w-4 h-4" /> Liên hệ tư vấn
               </a>
