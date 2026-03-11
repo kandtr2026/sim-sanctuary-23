@@ -74,6 +74,7 @@ interface CheapSimNormalized {
   isVIP: boolean;
   network: string;
   beautyScore: number;
+  category: string;
 }
 
 // ===== LOCAL SIM CARD (same style as SIMCardNew, but opens modal) =====
@@ -120,6 +121,14 @@ const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: Ch
             style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
           >
             {sim.network}
+          </span>
+        )}
+        {sim.category === 'TK179' && (
+          <span
+            className="px-1.5 py-px rounded font-semibold bg-gold text-accent-foreground leading-tight"
+            style={{ fontSize: 'clamp(7px, 1.6vw, 10px)' }}
+          >
+            TK179 · 7GB/ngày
           </span>
         )}
       </div>
@@ -266,6 +275,7 @@ const MuaSimGiaRe = () => {
         isVIP: false,
         network: s.network,
         beautyScore: 0,
+        category: s.category || '',
       };
     });
   }, [cheapSimsRaw]);
