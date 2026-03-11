@@ -267,6 +267,7 @@ const MuaSimGiaRe = () => {
         isVIP: false,
         network: s.network,
         beautyScore: 0,
+        category: s.category || '',
       };
     });
   }, [cheapSimsRaw]);
