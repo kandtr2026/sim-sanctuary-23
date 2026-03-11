@@ -366,10 +366,10 @@ const MuaSimGiaRe = () => {
               </div>
             </div>
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-[2.25rem] font-extrabold leading-tight max-w-2xl mx-auto mb-2">
-              Mua Sim Giá Rẻ – Kho Sim Số Đẹp Giá Tốt Toàn Quốc
+              Mua Sim Giá Rẻ – KHO SIM ĐỒNG GIÁ 229K CAM KẾT RẺ NHẤT HỆ MẶT TRỜI
             </h1>
             <p className="text-primary-foreground/80 text-sm md:text-base leading-relaxed max-w-xl mx-auto mb-4">
-              Kho sim giá rẻ với hàng nghìn số đẹp từ CHONSOMOBIFONE.COM. Giá chỉ từ vài trăm nghìn đến dưới 1 triệu, phù hợp cho mọi nhu cầu sử dụng.
+              Kho sim giá rẻ với hàng nghìn số đẹp từ CHONSOMOBIFONE.COM. Giá chỉ 229k tặng kèm gói cước TK179 thoải mái lướt web, chơi game, xem phim thả ga, phù hợp mọi nhu cầu mọi lứa tuổi.
             </p>
             <form onSubmit={handleSearch} className="max-w-lg mx-auto mb-4">
               <div className="flex bg-card rounded-xl overflow-hidden shadow-elevated ring-1 ring-gold/20">
