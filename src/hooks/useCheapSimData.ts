@@ -11,6 +11,7 @@ interface CheapSim {
   rawDigits: string;
   price: number;
   network: string;
+  category: string;
 }
 
 const detectNetwork = (digits: string): string => {
