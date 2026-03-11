@@ -135,11 +135,11 @@ const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: Ch
         </div>
       )}
 
-      <div className="flex items-center gap-1 mb-1.5 flex-wrap max-w-full">
+      <div className="flex items-center gap-0.5 md:gap-1 mb-1 md:mb-1.5 flex-wrap max-w-full">
         {sim.network && sim.network !== 'Khác' && (
           <span
-            className={cn("px-1.5 py-px rounded font-medium", networkColors[sim.network] || 'bg-gray-500 text-white')}
-            style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+            className={cn("px-1 md:px-1.5 py-px rounded font-medium", networkColors[sim.network] || 'bg-gray-500 text-white')}
+            style={{ fontSize: 'clamp(7px, 1.6vw, 11px)' }}
           >
             {sim.network}
           </span>
