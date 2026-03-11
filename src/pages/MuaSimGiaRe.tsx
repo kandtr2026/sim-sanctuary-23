@@ -339,7 +339,6 @@ const MuaSimGiaRe = () => {
     setActiveSearch('');
   };
 
-  const displaySims = searchResults ?? cheapSims;
   const hasActiveSearch = !!activeSearch.trim();
 
   const scrollToSims = () => {
