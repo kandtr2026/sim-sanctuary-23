@@ -70,12 +70,14 @@ const parseCSV = (csv: string): CheapSim[] => {
     const price = parsePrice(priceRaw);
     if (price <= 0) continue;
 
+    const category = catIdx !== -1 ? (vals[catIdx] || '') : '';
     sims.push({
       id: `cheap-${i}-${fullDigits}`,
       displayNumber: stb1,
       rawDigits: fullDigits,
       price,
       network: detectNetwork(fullDigits),
+      category,
     });
   }
   return sims;

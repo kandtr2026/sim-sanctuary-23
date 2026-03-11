@@ -123,6 +123,14 @@ const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: Ch
             {sim.network}
           </span>
         )}
+        {sim.category === 'TK179' && (
+          <span
+            className="px-1.5 py-px rounded font-semibold bg-gold text-accent-foreground leading-tight"
+            style={{ fontSize: 'clamp(7px, 1.6vw, 10px)' }}
+          >
+            TK179 · 7GB/ngày
+          </span>
+        )}
       </div>
 
       <div
