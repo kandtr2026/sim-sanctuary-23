@@ -581,8 +581,10 @@ const Index = () => {
       </svg>
     </div>
   </a>
+  <p className="mt-2 text-[11px] md:text-sm text-white/90 font-medium">
+    Bấm để xem thêm sim
+  </p>
 </div>
-            </div>
           </section>
         )}
 
