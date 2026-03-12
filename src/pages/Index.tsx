@@ -585,6 +585,7 @@ const Index = () => {
     Bấm để xem thêm sim
   </p>
 </div>
+            </div>
           </section>
         )}
 
