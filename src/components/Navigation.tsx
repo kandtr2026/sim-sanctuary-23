@@ -5,6 +5,7 @@ const menuItems = [
   { label: 'SIM SỐ', href: '/' },
   { label: 'SIM PHONG THỦY', href: '/sim-phong-thuy' },
   { label: 'SIM TRẢ GÓP', href: '/sim-tra-gop' },
+  { label: 'SIM 229K', href: '/mua-sim-gia-re' },
   { label: 'ĐỊNH GIÁ SIM', href: '/dinh-gia-sim' },
   { label: 'THANH TOÁN', href: '/thanh-toan' },
   { label: 'TIN TỨC', href: '/tin-tuc' },
