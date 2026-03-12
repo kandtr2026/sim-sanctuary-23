@@ -517,26 +517,71 @@ const Index = () => {
             <div className="rounded-xl overflow-hidden relative">
               <img src="/home-banner.png" alt="CHONSOMOBIFONE.COM banner" className="w-full h-full object-cover" />
               {/* CTA Button - KHO SIM ĐỒNG GIÁ 229K */}
-              <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center">
-                <a
-                  href="/mua-sim-gia-re"
-                  className="group inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:via-orange-300 hover:to-amber-400 text-white font-bold text-sm md:text-base uppercase rounded-full shadow-lg hover:shadow-xl border-2 border-white/30 transition-all duration-300 hover:scale-105"
-                >
-                  <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-white/20 flex items-center justify-center">
-                    <span className="text-base md:text-lg">💰</span>
-                  </div>
-                  <span className="tracking-wide">KHO SIM ĐỒNG GIÁ 229K</span>
-                  <svg
-                    className="w-4 h-4 md:w-5 md:h-5 ml-1 group-hover:translate-x-1 transition-transform"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                  </svg>
-                </a>
-              </div>
-            </div>
+<div className="absolute bottom-4 md:bottom-6 left-0 right-0 flex flex-col items-center">
+  <a
+    href="/mua-sim-gia-re"
+    className="
+      group relative inline-flex items-center gap-3
+      rounded-full
+      px-5 md:px-7
+      py-2.5 md:py-3
+      border border-yellow-300/80
+      bg-gradient-to-r from-[#7a0f0f] via-[#a61b12] to-[#7a0f0f]
+      text-[#ffd36b]
+      font-extrabold
+      text-sm md:text-xl
+      shadow-[0_0_0_2px_rgba(255,190,60,0.35),0_0_18px_rgba(255,170,0,0.22)]
+      hover:brightness-110 hover:shadow-[0_0_0_2px_rgba(255,190,60,0.45),0_0_24px_rgba(255,170,0,0.32)]
+      transition-all duration-200
+    "
+  >
+    {/* vòng tròn icon trái */}
+    <div
+      className="
+        flex h-8 w-8 md:h-10 md:w-10
+        items-center justify-center
+        rounded-full
+        bg-gradient-to-b from-yellow-300 to-yellow-500
+        text-[#7a0f0f]
+        shadow-inner
+        shrink-0
+      "
+    >
+      <span className="text-sm md:text-lg font-black">$</span>
+    </div>
+
+    {/* text */}
+    <span className="tracking-wide whitespace-nowrap">
+      KHO SIM ĐỒNG GIÁ 229K
+    </span>
+
+    {/* mũi tên phải */}
+    <div
+      className="
+        flex h-8 w-8 md:h-10 md:w-10
+        items-center justify-center
+        rounded-full
+        bg-white/10
+        border border-yellow-300/40
+        shrink-0
+      "
+    >
+      <svg
+        className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2.5}
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
+    </div>
+  </a>
+</div>
           </section>
         )}
 
