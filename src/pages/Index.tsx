@@ -1,23 +1,23 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
-import Header from '@/components/Header';
-import Navigation from '@/components/Navigation';
-import SearchBarAdvanced from '@/components/SearchBarAdvanced';
+import { useState, useMemo, useCallback, useEffect } from "react";
+import Header from "@/components/Header";
+import Navigation from "@/components/Navigation";
+import SearchBarAdvanced from "@/components/SearchBarAdvanced";
 
-import AdvancedFilterSidebar from '@/components/AdvancedFilterSidebar';
-import SIMCardNew from '@/components/SIMCardNew';
-import RightSidebar from '@/components/RightSidebar';
-import IntroSection from '@/components/IntroSection';
-import FAQSection from '@/components/FAQSection';
-import Footer from '@/components/Footer';
-import ActiveFilterChips from '@/components/ActiveFilterChips';
-import SortDropdown from '@/components/SortDropdown';
-import MobileFilterDrawer from '@/components/MobileFilterDrawer';
-import EmptyStateHelper from '@/components/EmptyStateHelper';
-import { useSimData, getLastUpdateInfo, getPromotionalData } from '@/hooks/useSimData';
-import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff, Cloud, CloudOff } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import AdvancedFilterSidebar from "@/components/AdvancedFilterSidebar";
+import SIMCardNew from "@/components/SIMCardNew";
+import RightSidebar from "@/components/RightSidebar";
+import IntroSection from "@/components/IntroSection";
+import FAQSection from "@/components/FAQSection";
+import Footer from "@/components/Footer";
+import ActiveFilterChips from "@/components/ActiveFilterChips";
+import SortDropdown from "@/components/SortDropdown";
+import MobileFilterDrawer from "@/components/MobileFilterDrawer";
+import EmptyStateHelper from "@/components/EmptyStateHelper";
+import { useSimData, getLastUpdateInfo, getPromotionalData } from "@/hooks/useSimData";
+import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff, Cloud, CloudOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-import type { NormalizedSIM } from '@/lib/simUtils';
+import type { NormalizedSIM } from "@/lib/simUtils";
 const ITEMS_PER_PAGE = 100;
 
 // Helper: normalize any value to digit-only string
@@ -26,16 +26,26 @@ const normalizeSim = (v?: any) => String(v ?? "").replace(/\D/g, "");
 // Helper: robust digit extraction from SIM object
 const getDigits = (sim: any) => {
   // Try common fields first
-  const direct = sim?.rawDigits ?? sim?.sim_normalized ?? sim?.number ?? sim?.formattedNumber ?? sim?.sim ?? sim?.phone ?? sim?.msisdn ?? sim?.value ?? sim?.simNumber ?? sim?.displayNumber;
+  const direct =
+    sim?.rawDigits ??
+    sim?.sim_normalized ??
+    sim?.number ??
+    sim?.formattedNumber ??
+    sim?.sim ??
+    sim?.phone ??
+    sim?.msisdn ??
+    sim?.value ??
+    sim?.simNumber ??
+    sim?.displayNumber;
 
   const d1 = normalizeSim(direct);
   if (d1.length >= 8) return d1;
 
   // Fallback: scan object values for a string containing many digits
-  if (sim && typeof sim === 'object') {
+  if (sim && typeof sim === "object") {
     for (const k of Object.keys(sim)) {
       const v = (sim as any)[k];
-      if (typeof v === 'string' || typeof v === 'number') {
+      if (typeof v === "string" || typeof v === "number") {
         const d = normalizeSim(v);
         if (d.length >= 8) return d;
       }
@@ -49,12 +59,7 @@ const getDigits = (sim: any) => {
 const simDigits = (sim: any) => getDigits(sim);
 
 // Helper: normalize string for comparison
-const norm = (s: any) =>
-  (s ?? "")
-    .toString()
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, " ");
+const norm = (s: any) => (s ?? "").toString().trim().toLowerCase().replace(/\s+/g, " ");
 
 // Helper: check if array includes a label (case-insensitive)
 const includesLabel = (arr: any, label: string) => {
@@ -62,7 +67,7 @@ const includesLabel = (arr: any, label: string) => {
   const target = norm(label);
   return arr.some((x) => {
     // Handle both string and object with label property
-    const val = typeof x === 'object' && x !== null ? x.label : x;
+    const val = typeof x === "object" && x !== null ? x.label : x;
     return norm(val) === target;
   });
 };
@@ -92,11 +97,11 @@ const isHexAnywhere = (sim: any) => {
 
 // Seeded random number generator (Mulberry32)
 function createSeededRandom(seed: number): () => number {
-  return function() {
-    let t = seed += 0x6D2B79F5;
-    t = Math.imul(t ^ t >>> 15, t | 1);
-    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  return function () {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
 
@@ -170,15 +175,11 @@ function reorderForLanding(list: any[], seed: number = 0): any[] {
   const pickedKeys = new Set(initial100.map(getSimKey));
 
   // Build rest: remaining from 3-5M, then <3M (not picked), then others
-  const rest = [
-    ...shuffled3to5.slice(100),
-    ...shuffledLower.filter(s => !pickedKeys.has(getSimKey(s))),
-    ...others,
-  ];
+  const rest = [...shuffled3to5.slice(100), ...shuffledLower.filter((s) => !pickedKeys.has(getSimKey(s))), ...others];
 
   // Final deduplication
   const seen = new Set<string>();
-  return [...initial100, ...rest].filter(s => {
+  return [...initial100, ...rest].filter((s) => {
     const k = getSimKey(s);
     if (!k) return true;
     if (seen.has(k)) return false;
@@ -190,12 +191,12 @@ function reorderForLanding(list: any[], seed: number = 0): any[] {
 const Index = () => {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [showBackToTop, setShowBackToTop] = useState(false);
-  
+
   // Landing list freeze state - prevents re-randomization on scroll
   const [landingSeed, setLandingSeed] = useState(0);
   const [landingFrozenList, setLandingFrozenList] = useState<NormalizedSIM[]>([]);
   const [hasInteracted, setHasInteracted] = useState(false);
-  
+
   // Flag to prevent duplicate hash processing
   const [hashProcessed, setHashProcessed] = useState(false);
   const {
@@ -219,7 +220,7 @@ const Index = () => {
     relaxFilters,
     relaxAllFilters,
     searchSuggestion,
-    searchSuggestions
+    searchSuggestions,
   } = useSimData();
 
   // Mark interaction and increment seed to trigger new random order
@@ -230,30 +231,45 @@ const Index = () => {
   }, []);
 
   // Wrapped filter handlers that trigger re-randomization
-  const updateFilterWithSeed = useCallback(<K extends keyof typeof filters>(key: K, value: typeof filters[K]) => {
-    markInteracted();
-    return updateFilter(key, value);
-  }, [updateFilter, markInteracted]);
+  const updateFilterWithSeed = useCallback(
+    <K extends keyof typeof filters>(key: K, value: (typeof filters)[K]) => {
+      markInteracted();
+      return updateFilter(key, value);
+    },
+    [updateFilter, markInteracted],
+  );
 
-  const togglePriceRangeWithSeed = useCallback((index: number) => {
-    markInteracted();
-    return togglePriceRange(index);
-  }, [togglePriceRange, markInteracted]);
+  const togglePriceRangeWithSeed = useCallback(
+    (index: number) => {
+      markInteracted();
+      return togglePriceRange(index);
+    },
+    [togglePriceRange, markInteracted],
+  );
 
-  const toggleTagWithSeed = useCallback((tag: string) => {
-    markInteracted();
-    return toggleTag(tag);
-  }, [toggleTag, markInteracted]);
+  const toggleTagWithSeed = useCallback(
+    (tag: string) => {
+      markInteracted();
+      return toggleTag(tag);
+    },
+    [toggleTag, markInteracted],
+  );
 
-  const toggleNetworkWithSeed = useCallback((network: string) => {
-    markInteracted();
-    return toggleNetwork(network);
-  }, [toggleNetwork, markInteracted]);
+  const toggleNetworkWithSeed = useCallback(
+    (network: string) => {
+      markInteracted();
+      return toggleNetwork(network);
+    },
+    [toggleNetwork, markInteracted],
+  );
 
-  const toggleSuffixWithSeed = useCallback((suffix: string) => {
-    markInteracted();
-    return toggleSuffix(suffix);
-  }, [toggleSuffix, markInteracted]);
+  const toggleSuffixWithSeed = useCallback(
+    (suffix: string) => {
+      markInteracted();
+      return toggleSuffix(suffix);
+    },
+    [toggleSuffix, markInteracted],
+  );
 
   const resetFiltersWithSeed = useCallback(() => {
     markInteracted();
@@ -273,24 +289,24 @@ const Index = () => {
   // Auto-fill search when URL has hash #ns=YYYY (SEO landing page for birth year)
   useEffect(() => {
     if (hashProcessed) return;
-    
+
     const hash = window.location.hash || "";
     const m = hash.match(/^#ns=(\d{4})$/);
     if (!m) return;
-    
+
     const year = m[1];
-    
-    // 1) Bật filter "Năm sinh" 
-    updateFilter('selectedTags', ['Năm sinh']);
-    
+
+    // 1) Bật filter "Năm sinh"
+    updateFilter("selectedTags", ["Năm sinh"]);
+
     // 2) Đợi filter apply rồi mới search
     setTimeout(() => {
-      updateFilter('searchQuery', `*${year}`);
+      updateFilter("searchQuery", `*${year}`);
     }, 0);
-    
+
     // 3) Xoá hash để URL sạch
     history.replaceState(null, "", window.location.pathname + window.location.search);
-    
+
     // Mark as processed to prevent re-running
     setHashProcessed(true);
   }, [hashProcessed, updateFilter]);
@@ -298,16 +314,16 @@ const Index = () => {
   // Auto-filter for price landing page (#price=under-1m)
   useEffect(() => {
     if (hashProcessed) return;
-    
+
     const hash = window.location.hash || "";
     if (hash !== "#price=under-1m") return;
-    
+
     // Bật filter giá "Dưới 1 triệu" (index 0 trong priceRanges)
     togglePriceRange(0);
-    
+
     // Xoá hash để URL sạch
     history.replaceState(null, "", window.location.pathname + window.location.search);
-    
+
     // Mark as processed to prevent re-running
     setHashProcessed(true);
   }, [hashProcessed, togglePriceRange]);
@@ -315,19 +331,19 @@ const Index = () => {
   // Auto-filter for tam hoa landing page (#landing=tamhoa-1-3tr)
   useEffect(() => {
     if (hashProcessed) return;
-    
+
     const hash = window.location.hash || "";
     if (hash !== "#landing=tamhoa-1-3tr") return;
-    
+
     // 1) Bật filter Loại số = "Tam hoa"
     toggleTag("Tam hoa");
-    
+
     // 2) Bật filter giá "1 - 3 triệu" (index 1 trong PRICE_RANGES)
     togglePriceRange(1);
-    
+
     // 3) Xoá hash để URL sạch
     history.replaceState(null, "", window.location.pathname + window.location.search);
-    
+
     // Mark as processed to prevent re-running
     setHashProcessed(true);
   }, [hashProcessed, toggleTag, togglePriceRange]);
@@ -341,16 +357,13 @@ const Index = () => {
 
   // Check multiple sources for quý filter state
   // Include: filters.selectedTags (toggle chips), filters.quyType (dropdown), activeFilters (chips)
-  const typeSources = [
-    filters?.selectedTags,
-    activeFilters,
-  ].filter(Boolean);
+  const typeSources = [filters?.selectedTags, activeFilters].filter(Boolean);
 
   // Also check quyType directly (it's a separate filter field)
   const quyTypeOn = filters?.quyType;
-  const isQuadOn = quyTypeOn === 'Tứ quý' || typeSources.some((src) => includesLabel(src, "Tứ quý"));
-  const isQuintOn = quyTypeOn === 'Ngũ quý' || typeSources.some((src) => includesLabel(src, "Ngũ quý"));
-  const isHexOn = quyTypeOn === 'Lục quý' || typeSources.some((src) => includesLabel(src, "Lục quý"));
+  const isQuadOn = quyTypeOn === "Tứ quý" || typeSources.some((src) => includesLabel(src, "Tứ quý"));
+  const isQuintOn = quyTypeOn === "Ngũ quý" || typeSources.some((src) => includesLabel(src, "Ngũ quý"));
+  const isHexOn = quyTypeOn === "Lục quý" || typeSources.some((src) => includesLabel(src, "Lục quý"));
   const anyQuyOn = isQuadOn || isQuintOn || isHexOn;
 
   // Helper: apply quý filter to a list (defined after quý state variables)
@@ -362,7 +375,8 @@ const Index = () => {
   };
 
   // Check if any type selection is active (for landing detection)
-  const hasTypeSelection = (Array.isArray(filters?.selectedTags) && filters.selectedTags.length > 0) || !!filters?.quyType;
+  const hasTypeSelection =
+    (Array.isArray(filters?.selectedTags) && filters.selectedTags.length > 0) || !!filters?.quyType;
 
   // Landing page: check if in default state (no search query AND no active filters AND no quý filter)
   const isDefaultLanding =
@@ -377,9 +391,13 @@ const Index = () => {
     : combinedSuggestions;
 
   // Apply quý filter to suggestions
-  const finalSuggestionsWithQuy = useMemo(() => applyQuyFilter(finalCombinedSuggestions), [finalCombinedSuggestions, anyQuyOn, isHexOn, isQuintOn, isQuadOn]);
+  const finalSuggestionsWithQuy = useMemo(
+    () => applyQuyFilter(finalCombinedSuggestions),
+    [finalCombinedSuggestions, anyQuyOn, isHexOn, isQuintOn, isQuadOn],
+  );
 
-  const isNoResultsWithSuggestions = filteredSims.length === 0 && finalSuggestionsWithQuy.length > 0 && !isLoading && !error;
+  const isNoResultsWithSuggestions =
+    filteredSims.length === 0 && finalSuggestionsWithQuy.length > 0 && !isLoading && !error;
 
   // Freeze landing list when in default landing state (random once, keep on scroll)
   // Uses seeded shuffle for deterministic ordering based on landingSeed
@@ -391,17 +409,17 @@ const Index = () => {
     // Freeze the list based on seed (random once, stable during scroll)
     // reorderForLanding: prioritizes 3-5M SIMs (by finalPricePick), supplements from <3M if needed
     const next = reorderForLanding(allSims, landingSeed);
-    
+
     // Debug: log first 5 prices to verify correct field is used
     if (next.length > 0) {
-      const sample = next.slice(0, 5).map(s => ({
+      const sample = next.slice(0, 5).map((s) => ({
         id: s.id,
         finalPricePick: s.finalPricePick,
-        priceUsed: getFinalPriceForLanding(s)
+        priceUsed: getFinalPriceForLanding(s),
       }));
-      console.log('[Landing] First 5 SIMs price check:', sample);
+      console.log("[Landing] First 5 SIMs price check:", sample);
     }
-    
+
     setLandingFrozenList(next);
   }, [isDefaultLanding, landingSeed, allSims]);
 
@@ -430,12 +448,22 @@ const Index = () => {
     // If search is empty, filter directly from allSims (full dataset)
     // This ensures we get results even when filteredSims is empty
     const sourceList = isSearchEmpty ? allSims : filteredSims;
-    
+
     // Priority: Lục > Ngũ > Tứ
     if (isHexOn) return sourceList.filter(isHexAnywhere);
     if (isQuintOn) return sourceList.filter(isQuintAnywhere);
     return sourceList.filter(isQuadTail);
-  }, [filteredSims, allSims, isDefaultLanding, landingFrozenList, isSearchEmpty, anyQuyOn, isQuadOn, isQuintOn, isHexOn]);
+  }, [
+    filteredSims,
+    allSims,
+    isDefaultLanding,
+    landingFrozenList,
+    isSearchEmpty,
+    anyQuyOn,
+    isQuadOn,
+    isQuintOn,
+    isHexOn,
+  ]);
 
   // Base list for display: use filteredByQuy directly (it already handles landing vs filtered logic)
   const baseListForDisplay = filteredByQuy;
@@ -465,7 +493,7 @@ const Index = () => {
   }, [baseListForDisplay.length]);
 
   const scrollToTop = useCallback(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   // Track scroll position for back-to-top button
@@ -473,10 +501,9 @@ const Index = () => {
     const handleScroll = () => {
       setShowBackToTop(window.scrollY > 500);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
 
   return (
     <div className="min-h-screen bg-background">
@@ -488,11 +515,7 @@ const Index = () => {
         {!isNoResultsWithSuggestions && (
           <section className="mb-4">
             <div className="rounded-xl overflow-hidden relative">
-              <img 
-                src="/home-banner.png" 
-                alt="CHONSOMOBIFONE.COM banner" 
-                className="w-full h-full object-cover"
-              />
+              <img src="/home-banner.png" alt="CHONSOMOBIFONE.COM banner" className="w-full h-full object-cover" />
               {/* CTA Button - KHO SIM ĐỒNG GIÁ 229K */}
               <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center">
                 <a
@@ -503,13 +526,15 @@ const Index = () => {
                     <span className="text-base md:text-lg">💰</span>
                   </div>
                   <span className="tracking-wide">KHO SIM ĐỒNG GIÁ 229K</span>
-                  <svg className="w-4 h-4 md:w-5 md:h-5 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="w-4 h-4 md:w-5 md:h-5 ml-1 group-hover:translate-x-1 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                   </svg>
                 </a>
-                <span className="mt-2 text-xs md:text-sm text-white/90 font-medium bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
-                  Bấm để xem landing page mua sim giá rẻ
-                </span>
               </div>
             </div>
           </section>
@@ -519,7 +544,7 @@ const Index = () => {
         <section id="sim-so" className="mb-5">
           <SearchBarAdvanced
             value={filters.searchQuery}
-            onChange={(value) => updateFilterWithSeed('searchQuery', value)}
+            onChange={(value) => updateFilterWithSeed("searchQuery", value)}
           />
         </section>
 
@@ -537,10 +562,7 @@ const Index = () => {
             onUpdateFilter={updateFilterWithSeed}
             onReset={resetFiltersWithSeed}
           />
-          <SortDropdown
-            value={filters.sortBy}
-            onChange={(value) => updateFilterWithSeed('sortBy', value)}
-          />
+          <SortDropdown value={filters.sortBy} onChange={(value) => updateFilterWithSeed("sortBy", value)} />
         </div>
 
         {/* Main 3-Column Layout */}
@@ -565,13 +587,9 @@ const Index = () => {
               {/* Header with sort and reload */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-4 mb-4">
                 <div className="hidden lg:block">
-                  <SortDropdown
-                    value={filters.sortBy}
-                    onChange={(value) => updateFilterWithSeed('sortBy', value)}
-                  />
+                  <SortDropdown value={filters.sortBy} onChange={(value) => updateFilterWithSeed("sortBy", value)} />
                 </div>
               </div>
-
 
               {/* Active Filters */}
               <ActiveFilterChips
@@ -586,9 +604,7 @@ const Index = () => {
                 <div className="flex flex-col items-center justify-center py-12">
                   <Loader2 className="w-10 h-10 text-primary animate-spin mb-3" />
                   <span className="text-muted-foreground">Đang tải dữ liệu...</span>
-                  <span className="text-xs text-muted-foreground mt-1">
-                    Lần đầu có thể mất vài giây
-                  </span>
+                  <span className="text-xs text-muted-foreground mt-1">Lần đầu có thể mất vài giây</span>
                 </div>
               )}
 
@@ -599,11 +615,9 @@ const Index = () => {
                     <WifiOff className="w-8 h-8 text-destructive" />
                   </div>
                   <p className="text-destructive text-lg font-medium">Không thể tải dữ liệu</p>
-                  <p className="text-sm text-muted-foreground mt-2 mb-4">
-                    Vui lòng kiểm tra kết nối mạng và thử lại
-                  </p>
+                  <p className="text-sm text-muted-foreground mt-2 mb-4">Vui lòng kiểm tra kết nối mạng và thử lại</p>
                   <Button onClick={forceReload} disabled={isFetching} className="gap-2">
-                    <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`w-4 h-4 ${isFetching ? "animate-spin" : ""}`} />
                     Tải lại dữ liệu
                   </Button>
                 </div>
@@ -615,8 +629,8 @@ const Index = () => {
                   <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-4">
                     {displayedSIMs.map((sim) => (
                       <div key={sim.id} className="min-w-0">
-                        <SIMCardNew 
-                          sim={sim} 
+                        <SIMCardNew
+                          sim={sim}
                           promotional={getPromotionalData(sim.id)}
                           quyFilter={filters.quyType}
                           searchQuery={filters.searchQuery}
@@ -697,7 +711,6 @@ const Index = () => {
         <section id="phong-thuy" className="mb-8">
           <FAQSection />
         </section>
-
       </main>
 
       <Footer />
