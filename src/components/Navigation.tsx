@@ -1,14 +1,15 @@
-import { useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
 
 const menuItems = [
-  { label: 'SIM SỐ', href: '/' },
-  { label: 'SIM PHONG THỦY', href: '/sim-phong-thuy' },
-  { label: 'SIM TRẢ GÓP', href: '/sim-tra-gop' },
-  { label: 'SIM 229K', href: '/mua-sim-gia-re' },
-  { label: 'ĐỊNH GIÁ SIM', href: '/dinh-gia-sim' },
-  { label: 'THANH TOÁN', href: '/thanh-toan' },
-  { label: 'TIN TỨC', href: '/tin-tuc' },
+  { label: "SIM SỐ", href: "/" },
+  { label: "SIM ĐỒNG GIÁ 229K", href: "/mua-sim-gia-re" },
+  { label: "SIM PHONG THỦY", href: "/sim-phong-thuy" },
+  { label: "SIM TRẢ GÓP", href: "/sim-tra-gop" },
+
+  { label: "ĐỊNH GIÁ SIM", href: "/dinh-gia-sim" },
+  { label: "THANH TOÁN", href: "/thanh-toan" },
+  { label: "TIN TỨC", href: "/tin-tuc" },
 ];
 
 const Navigation = () => {
