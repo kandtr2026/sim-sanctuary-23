@@ -487,12 +487,30 @@ const Index = () => {
         {/* Hero Banner - Compact, near menu - Hidden when no results with suggestions */}
         {!isNoResultsWithSuggestions && (
           <section className="mb-4">
-            <div className="rounded-xl overflow-hidden">
+            <div className="rounded-xl overflow-hidden relative">
               <img 
                 src="/home-banner.png" 
                 alt="CHONSOMOBIFONE.COM banner" 
                 className="w-full h-full object-cover"
               />
+              {/* CTA Button - KHO SIM ĐỒNG GIÁ 229K */}
+              <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center">
+                <a
+                  href="/mua-sim-gia-re"
+                  className="group inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:via-orange-300 hover:to-amber-400 text-white font-bold text-sm md:text-base uppercase rounded-full shadow-lg hover:shadow-xl border-2 border-white/30 transition-all duration-300 hover:scale-105"
+                >
+                  <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-white/20 flex items-center justify-center">
+                    <span className="text-base md:text-lg">💰</span>
+                  </div>
+                  <span className="tracking-wide">KHO SIM ĐỒNG GIÁ 229K</span>
+                  <svg className="w-4 h-4 md:w-5 md:h-5 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                  </svg>
+                </a>
+                <span className="mt-2 text-xs md:text-sm text-white/90 font-medium bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
+                  Bấm để xem landing page mua sim giá rẻ
+                </span>
+              </div>
             </div>
           </section>
         )}
