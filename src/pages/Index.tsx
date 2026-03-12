@@ -497,16 +497,6 @@ const Index = () => {
           </section>
         )}
 
-        {/* CTA Button - KHO SIM ĐỒNG GIÁ 229K */}
-        <section className="mb-4">
-          <a
-            href="/mua-sim-gia-re"
-            className="block w-full bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-light))] text-[hsl(0_0%_6%)] font-bold text-lg md:text-xl py-3 md:py-4 px-6 rounded-xl text-center transition-all duration-200 shadow-lg hover:shadow-xl"
-          >
-            🔥 KHO SIM ĐỒNG GIÁ 229K
-          </a>
-        </section>
-
         {/* Search Section - Below banner */}
         <section id="sim-so" className="mb-5">
           <SearchBarAdvanced
