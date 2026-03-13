@@ -469,6 +469,10 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
       const sims: NormalizedSIM[] = [];
       
       rows.forEach((row, index) => {
+        // Filter by TRẠNG THÁI: hide SIMs marked as ẨN, sold, or reserved
+        const trangThai = (row['TRANG_THAI'] || row['TRẠNG THÁI'] || row['TRANG THAI'] || '').trim().toLowerCase();
+        if (trangThai === 'sold' || trangThai === 'reserved' || trangThai === 'ẩn') return;
+
         const sheetSimId = row['SIMID'] || '';
         const rawNumber = row['RAW'] || row['DISPLAY'] || '';
         const displayNumber = row['DISPLAY'] || row['RAW'] || rawNumber;
