@@ -1,4 +1,4 @@
-import { MapPin, Phone, Mail, Clock, Navigation } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Navigation } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -15,7 +15,8 @@ const Footer = () => {
               </a>
             </h3>
             <p className="text-header-foreground/70 text-sm leading-relaxed mb-4 break-words">
-              Kho SIM số đẹp uy tín hàng đầu Việt Nam. Chuyên SIM Mobifone, SIM phong thủy, SIM tài lộc với giá tốt nhất thị trường.
+              Kho SIM số đẹp uy tín hàng đầu Việt Nam. Chuyên SIM Mobifone, SIM phong thủy, SIM tài lộc với giá tốt nhất
+              thị trường.
             </p>
             <div className="flex items-center gap-2 text-gold">
               <Phone className="w-4 h-4 flex-shrink-0" />
@@ -27,11 +28,31 @@ const Footer = () => {
           <div className="w-full min-w-0 lg:px-2">
             <h4 className="text-lg font-bold mb-4 text-gold uppercase">CHÍNH SÁCH</h4>
             <ul className="space-y-2 text-sm text-header-foreground/70">
-              <li><a href="#" className="hover:text-gold transition-colors">Chính sách bảo mật</a></li>
-              <li><a href="#" className="hover:text-gold transition-colors">Điều khoản sử dụng</a></li>
-              <li><a href="#" className="hover:text-gold transition-colors">Chính sách đổi trả</a></li>
-              <li><a href="#" className="hover:text-gold transition-colors">Chính sách giao hàng</a></li>
-              <li><a href="#" className="hover:text-gold transition-colors">Hướng dẫn thanh toán</a></li>
+              <li>
+                <a href="#" className="hover:text-gold transition-colors">
+                  Chính sách bảo mật
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-gold transition-colors">
+                  Điều khoản sử dụng
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-gold transition-colors">
+                  Chính sách đổi trả
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-gold transition-colors">
+                  Chính sách giao hàng
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-gold transition-colors">
+                  Hướng dẫn thanh toán
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -44,7 +65,7 @@ const Footer = () => {
                 <span className="break-words">43A Đường số 9 Phường Tân Hưng TPHCM</span>
               </li>
             </ul>
-            
+
             {/* Google Maps Embed */}
             <div className="mt-3 rounded-xl overflow-hidden">
               <iframe
@@ -59,7 +80,7 @@ const Footer = () => {
                 title="Địa chỉ cửa hàng CHONSOMOBIFONE"
               />
             </div>
-            
+
             {/* Directions CTA */}
             <a
               href="https://maps.app.goo.gl/AgPJ8cqdaWxbaQys5"
@@ -94,7 +115,7 @@ const Footer = () => {
 
         <div className="border-t border-header-foreground/10 mt-8 pt-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-header-foreground/50">
-            <p>© 2024 CHONSOMOBIFONE.COM - Đại lý SIM số đẹp Mobifone ủy quyền</p>
+            <p>CÔNG TY TNHH TM DV VIỄN THÔNG NAM KHANG</p>
             <p>GPKD: 0317861294 - Cấp ngày 31/05/2023</p>
           </div>
         </div>
