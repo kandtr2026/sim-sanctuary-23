@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 
 const SHEET_ID = '1gwlG7hsd_na7XB3d4maI99nhMVRUEmAlpx9ueYOELL4';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Tongkho`;
+const SIM_SOLD_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sim_Sold`;
 const CACHE_KEY = 'cheap_sim_cache';
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
