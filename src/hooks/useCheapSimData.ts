@@ -137,15 +137,28 @@ export const useCheapSimData = () => {
     const fetchData = async () => {
       try {
         const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'pfeyyyvhzsuoccwoweco';
-        const url = `https://${projectId}.supabase.co/functions/v1/sheet-proxy?url=${encodeURIComponent(SHEET_URL)}`;
-        const res = await fetch(url, {
-          headers: {
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmZXl5eXZoenN1b2Njd293ZWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NTIzODEsImV4cCI6MjA4NDAyODM4MX0.RGOXDxNXOZn93fnZliCy48Hn2dH4tjogfAcdhp8KQiQ',
-          },
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const csv = await res.text();
-        const parsed = parseCSV(csv);
+        const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmZXl5eXZoenN1b2Njd293ZWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NTIzODEsImV4cCI6MjA4NDAyODM4MX0.RGOXDxNXOZn93fnZliCy48Hn2dH4tjogfAcdhp8KQiQ';
+        const baseUrl = `https://${projectId}.supabase.co/functions/v1/sheet-proxy`;
+        const headers = { 'apikey': apiKey };
+
+        // Fetch both sheets in parallel
+        const [mainRes, soldRes] = await Promise.all([
+          fetch(`${baseUrl}?url=${encodeURIComponent(SHEET_URL)}`, { headers }),
+          fetch(`${baseUrl}?url=${encodeURIComponent(SIM_SOLD_URL)}`, { headers }).catch(() => null),
+        ]);
+
+        if (!mainRes.ok) throw new Error(`HTTP ${mainRes.status}`);
+        const mainCsv = await mainRes.text();
+
+        // Parse sold IDs
+        let soldIds = new Set<string>();
+        if (soldRes && soldRes.ok) {
+          const soldCsv = await soldRes.text();
+          soldIds = parseSoldIds(soldCsv);
+          console.log(`[useCheapSimData] Parsed ${soldIds.size} sold SIMs`);
+        }
+
+        const parsed = parseCSV(mainCsv, soldIds);
         if (parsed.length > 0) {
           setSims(parsed);
           saveCache(parsed);
