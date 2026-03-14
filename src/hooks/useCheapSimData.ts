@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 
 const SHEET_ID = '1gwlG7hsd_na7XB3d4maI99nhMVRUEmAlpx9ueYOELL4';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Tongkho`;
+const SIM_SOLD_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sim_Sold`;
 const CACHE_KEY = 'cheap_sim_cache';
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
@@ -41,13 +42,31 @@ const parseCSVLine = (line: string): string[] => {
   return values;
 };
 
-const parseCSV = (csv: string): CheapSim[] => {
+const parseSoldIds = (csv: string): Set<string> => {
+  const result = new Set<string>();
+  const lines = csv.trim().split('\n').filter(l => l.trim());
+  if (lines.length < 2) return result;
+
+  const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim().toUpperCase());
+  const colIdx = headers.findIndex(h => h === 'SOTHUEBAO' || h === 'SO THUE BAO' || h === 'SỐTHUÊBAO');
+  if (colIdx === -1) return result;
+
+  for (let i = 1; i < lines.length; i++) {
+    const vals = parseCSVLine(lines[i]).map(v => v.replace(/^"|"$/g, '').trim());
+    const val = (vals[colIdx] || '').trim().toUpperCase();
+    if (val) result.add(val);
+  }
+  return result;
+};
+
+const parseCSV = (csv: string, soldIds?: Set<string>): CheapSim[] => {
   const lines = csv.trim().split('\n').filter(l => l.trim());
   if (lines.length < 2) return [];
 
   const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim().toUpperCase());
   const stb1Idx = headers.findIndex(h => h === 'STB1');
   const priceIdx = headers.findIndex(h => h.includes('GIÁ BÁN') || h.includes('GIA BAN') || h === 'GIÁBAN');
+  const simIdIdx = headers.findIndex(h => h === 'SIMID' || h === 'SIM_ID' || h === 'SIM ID');
 
   if (stb1Idx === -1 || priceIdx === -1) {
     console.warn('[useCheapSimData] Missing columns. Headers:', headers);
@@ -57,6 +76,13 @@ const parseCSV = (csv: string): CheapSim[] => {
   const sims: CheapSim[] = [];
   for (let i = 1; i < lines.length; i++) {
     const vals = parseCSVLine(lines[i]).map(v => v.replace(/^"|"$/g, '').trim());
+
+    // Filter sold SIMs by SimID
+    if (soldIds && soldIds.size > 0 && simIdIdx !== -1) {
+      const simId = (vals[simIdIdx] || '').trim().toUpperCase();
+      if (simId && soldIds.has(simId)) continue;
+    }
+
     const stb1 = vals[stb1Idx] || '';
     const priceRaw = vals[priceIdx] || '';
     if (!stb1 || !priceRaw) continue;
@@ -111,15 +137,28 @@ export const useCheapSimData = () => {
     const fetchData = async () => {
       try {
         const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'pfeyyyvhzsuoccwoweco';
-        const url = `https://${projectId}.supabase.co/functions/v1/sheet-proxy?url=${encodeURIComponent(SHEET_URL)}`;
-        const res = await fetch(url, {
-          headers: {
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmZXl5eXZoenN1b2Njd293ZWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NTIzODEsImV4cCI6MjA4NDAyODM4MX0.RGOXDxNXOZn93fnZliCy48Hn2dH4tjogfAcdhp8KQiQ',
-          },
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const csv = await res.text();
-        const parsed = parseCSV(csv);
+        const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmZXl5eXZoenN1b2Njd293ZWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NTIzODEsImV4cCI6MjA4NDAyODM4MX0.RGOXDxNXOZn93fnZliCy48Hn2dH4tjogfAcdhp8KQiQ';
+        const baseUrl = `https://${projectId}.supabase.co/functions/v1/sheet-proxy`;
+        const headers = { 'apikey': apiKey };
+
+        // Fetch both sheets in parallel
+        const [mainRes, soldRes] = await Promise.all([
+          fetch(`${baseUrl}?url=${encodeURIComponent(SHEET_URL)}`, { headers }),
+          fetch(`${baseUrl}?url=${encodeURIComponent(SIM_SOLD_URL)}`, { headers }).catch(() => null),
+        ]);
+
+        if (!mainRes.ok) throw new Error(`HTTP ${mainRes.status}`);
+        const mainCsv = await mainRes.text();
+
+        // Parse sold IDs
+        let soldIds = new Set<string>();
+        if (soldRes && soldRes.ok) {
+          const soldCsv = await soldRes.text();
+          soldIds = parseSoldIds(soldCsv);
+          console.log(`[useCheapSimData] Parsed ${soldIds.size} sold SIMs`);
+        }
+
+        const parsed = parseCSV(mainCsv, soldIds);
         if (parsed.length > 0) {
           setSims(parsed);
           saveCache(parsed);
