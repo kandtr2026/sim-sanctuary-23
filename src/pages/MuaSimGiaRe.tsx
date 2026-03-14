@@ -219,18 +219,40 @@ const MuaSimGiaRe = () => {
     setOrderOpen(true);
   };
 
+  const normalizeName = (v: string) => v.trim().replace(/\s{2,}/g, ' ');
+  const normalizePhone = (v: string) => v.replace(/\D/g, '');
+  const normalizeAddress = (v: string) => v.trim().replace(/\s{2,}/g, ' ');
+
   const validateForm = () => {
     const errs: Record<string, string> = {};
-    if (!formData.fullName.trim()) errs.fullName = 'Vui lòng nhập họ tên';
-    if (!formData.phone.trim()) {
-      errs.phone = 'Vui lòng nhập số điện thoại';
-    } else {
-      const d = formData.phone.replace(/\D/g, '');
-      if (d.length < 9 || d.length > 11) errs.phone = 'Số điện thoại phải có 9-11 chữ số';
+
+    // Name validation
+    const name = normalizeName(formData.fullName);
+    const nameRegex = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵýỷỹ\s]+$/;
+    if (!name || name.length < 20 || name.length > 50 || !nameRegex.test(name)) {
+      errs.fullName = 'Họ tên phải từ 20 đến 50 ký tự và không chứa số hoặc ký tự đặc biệt.';
     }
-    if (!formData.address.trim()) errs.address = 'Vui lòng nhập địa chỉ';
+
+    // Phone validation
+    const phone = normalizePhone(formData.phone);
+    if (phone.length !== 10) {
+      errs.phone = 'Số điện thoại phải gồm đúng 10 chữ số.';
+    }
+
+    // Address validation
+    const address = normalizeAddress(formData.address);
+    if (!address || address.length < 20 || address.length > 200) {
+      errs.address = 'Địa chỉ nhận hàng phải từ 20 đến 200 ký tự.';
+    }
+
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
+  };
+
+  const generateOrderCode = () => {
+    const ts = Date.now();
+    const rand = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    return `ORD${ts}${rand}`;
   };
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
@@ -238,16 +260,22 @@ const MuaSimGiaRe = () => {
     if (!validateForm() || !selectedSim) return;
     setIsSubmitting(true);
 
+    const orderCode = generateOrderCode();
+    const cleanName = normalizeName(formData.fullName);
+    const cleanPhone = normalizePhone(formData.phone);
+    const cleanAddress = normalizeAddress(formData.address);
+
     const payload = {
+      orderCode,
       createdAt: new Date().toISOString(),
       simId: selectedSim.id,
       simRawDigits: selectedSim.rawDigits,
       simDisplayNumber: selectedSim.displayNumber,
       originalPriceVnd: selectedSim.price,
       priceVnd: selectedSim.price,
-      fullName: formData.fullName.trim(),
-      phone: formData.phone.replace(/\D/g, ''),
-      address: formData.address.trim(),
+      fullName: cleanName,
+      phone: cleanPhone,
+      address: cleanAddress,
       note: formData.note.trim(),
       paymentMethod: formData.paymentMethod,
       source: 'LovableWeb-CheapSim',
@@ -268,6 +296,7 @@ const MuaSimGiaRe = () => {
         mode: 'no-cors',
       }).catch(() => {});
 
+      setConfirmationData({ orderCode, fullName: cleanName, phone: cleanPhone, address: cleanAddress });
       setIsSuccess(true);
       toast.success('Đặt hàng thành công!');
     } catch {
