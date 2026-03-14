@@ -208,6 +208,8 @@ const MuaSimGiaRe = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [confirmationData, setConfirmationData] = useState<{ orderCode: string; fullName: string; phone: string; address: string } | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const handleBuy = (sim: CheapSimNormalized) => {
     setSelectedSim(sim);
