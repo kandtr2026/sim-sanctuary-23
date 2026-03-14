@@ -747,15 +747,32 @@ const MuaSimGiaRe = () => {
       {/* ===== ORDER MODAL ===== */}
       <Dialog open={orderOpen} onOpenChange={(open) => { if (!open) { setOrderOpen(false); } }}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          {isSuccess ? (
-            <div className="text-center py-6">
+          {isSuccess && confirmationData ? (
+            <div className="py-4">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-primary" />
               </div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">Đã nhận đơn!</h2>
-              <p className="text-muted-foreground mb-6">Chúng tôi sẽ liên hệ sớm để xác nhận đơn hàng của bạn.</p>
-              <Button onClick={() => setOrderOpen(false)} size="lg" className="gap-2">
-                Đóng
+              <h2 className="text-xl font-bold text-foreground text-center mb-4">Xác nhận thông tin đơn hàng</h2>
+              <div className="bg-secondary/30 rounded-lg p-4 space-y-3 mb-6">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Mã đơn hàng:</span>
+                  <span className="font-semibold text-foreground">{confirmationData.orderCode}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Họ tên:</span>
+                  <span className="font-medium text-foreground">{confirmationData.fullName}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Số điện thoại:</span>
+                  <span className="font-medium text-foreground">{confirmationData.phone}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Địa chỉ nhận hàng:</span>
+                  <span className="font-medium text-foreground text-right max-w-[60%]">{confirmationData.address}</span>
+                </div>
+              </div>
+              <Button onClick={() => { setOrderOpen(false); setIsSuccess(false); setConfirmationData(null); }} size="lg" className="w-full gap-2">
+                <CheckCircle className="w-4 h-4" /> Xác nhận
               </Button>
             </div>
           ) : (
