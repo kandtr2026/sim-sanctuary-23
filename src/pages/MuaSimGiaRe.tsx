@@ -220,29 +220,28 @@ const MuaSimGiaRe = () => {
   };
 
   const normalizeName = (v: string) => v.trim().replace(/\s{2,}/g, ' ');
-  const normalizePhone = (v: string) => v.replace(/\D/g, '');
+  const normalizePhone = (v: string) => v.replace(/\D/g, '').slice(0, 10);
   const normalizeAddress = (v: string) => v.trim().replace(/\s{2,}/g, ' ');
 
   const validateForm = () => {
     const errs: Record<string, string> = {};
 
-    // Name validation
+    // Name: only letters + Vietnamese diacritics + spaces, 20-50 chars
     const name = normalizeName(formData.fullName);
-    const nameRegex = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵýỷỹ\s]+$/;
-    if (!name || name.length < 20 || name.length > 50 || !nameRegex.test(name)) {
+    if (!name || !/^[A-Za-zÀ-ỹ\s]{20,50}$/.test(name)) {
       errs.fullName = 'Họ tên phải từ 20 đến 50 ký tự và không chứa số hoặc ký tự đặc biệt.';
     }
 
-    // Phone validation
+    // Phone: exactly 10 digits after normalization
     const phone = normalizePhone(formData.phone);
-    if (phone.length !== 10) {
+    if (!/^[0-9]{10}$/.test(phone)) {
       errs.phone = 'Số điện thoại phải gồm đúng 10 chữ số.';
     }
 
-    // Address validation
+    // Address: 20-200 chars, must contain at least 1 letter, allow letters/digits/spaces/,.-
     const address = normalizeAddress(formData.address);
-    if (!address || address.length < 20 || address.length > 200) {
-      errs.address = 'Địa chỉ nhận hàng phải từ 20 đến 200 ký tự.';
+    if (!address || !/^(?=.*[A-Za-zÀ-ỹ])[A-Za-zÀ-ỹ0-9\s,.\-/]{20,200}$/.test(address)) {
+      errs.address = 'Địa chỉ nhận hàng phải từ 20 đến 200 ký tự và chứa nội dung hợp lệ.';
     }
 
     setFormErrors(errs);
