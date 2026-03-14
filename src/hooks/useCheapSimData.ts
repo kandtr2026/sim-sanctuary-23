@@ -42,13 +42,31 @@ const parseCSVLine = (line: string): string[] => {
   return values;
 };
 
-const parseCSV = (csv: string): CheapSim[] => {
+const parseSoldIds = (csv: string): Set<string> => {
+  const result = new Set<string>();
+  const lines = csv.trim().split('\n').filter(l => l.trim());
+  if (lines.length < 2) return result;
+
+  const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim().toUpperCase());
+  const colIdx = headers.findIndex(h => h === 'SOTHUEBAO' || h === 'SO THUE BAO' || h === 'SỐTHUÊBAO');
+  if (colIdx === -1) return result;
+
+  for (let i = 1; i < lines.length; i++) {
+    const vals = parseCSVLine(lines[i]).map(v => v.replace(/^"|"$/g, '').trim());
+    const val = (vals[colIdx] || '').trim().toUpperCase();
+    if (val) result.add(val);
+  }
+  return result;
+};
+
+const parseCSV = (csv: string, soldIds?: Set<string>): CheapSim[] => {
   const lines = csv.trim().split('\n').filter(l => l.trim());
   if (lines.length < 2) return [];
 
   const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim().toUpperCase());
   const stb1Idx = headers.findIndex(h => h === 'STB1');
   const priceIdx = headers.findIndex(h => h.includes('GIÁ BÁN') || h.includes('GIA BAN') || h === 'GIÁBAN');
+  const simIdIdx = headers.findIndex(h => h === 'SIMID' || h === 'SIM_ID' || h === 'SIM ID');
 
   if (stb1Idx === -1 || priceIdx === -1) {
     console.warn('[useCheapSimData] Missing columns. Headers:', headers);
@@ -58,6 +76,13 @@ const parseCSV = (csv: string): CheapSim[] => {
   const sims: CheapSim[] = [];
   for (let i = 1; i < lines.length; i++) {
     const vals = parseCSVLine(lines[i]).map(v => v.replace(/^"|"$/g, '').trim());
+
+    // Filter sold SIMs by SimID
+    if (soldIds && soldIds.size > 0 && simIdIdx !== -1) {
+      const simId = (vals[simIdIdx] || '').trim().toUpperCase();
+      if (simId && soldIds.has(simId)) continue;
+    }
+
     const stb1 = vals[stb1Idx] || '';
     const priceRaw = vals[priceIdx] || '';
     if (!stb1 || !priceRaw) continue;
