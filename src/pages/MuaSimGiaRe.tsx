@@ -208,6 +208,8 @@ const MuaSimGiaRe = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [confirmationData, setConfirmationData] = useState<{ orderCode: string; fullName: string; phone: string; address: string } | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const handleBuy = (sim: CheapSimNormalized) => {
     setSelectedSim(sim);
@@ -217,18 +219,40 @@ const MuaSimGiaRe = () => {
     setOrderOpen(true);
   };
 
+  const normalizeName = (v: string) => v.trim().replace(/\s{2,}/g, ' ');
+  const normalizePhone = (v: string) => v.replace(/\D/g, '');
+  const normalizeAddress = (v: string) => v.trim().replace(/\s{2,}/g, ' ');
+
   const validateForm = () => {
     const errs: Record<string, string> = {};
-    if (!formData.fullName.trim()) errs.fullName = 'Vui lòng nhập họ tên';
-    if (!formData.phone.trim()) {
-      errs.phone = 'Vui lòng nhập số điện thoại';
-    } else {
-      const d = formData.phone.replace(/\D/g, '');
-      if (d.length < 9 || d.length > 11) errs.phone = 'Số điện thoại phải có 9-11 chữ số';
+
+    // Name validation
+    const name = normalizeName(formData.fullName);
+    const nameRegex = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵýỷỹ\s]+$/;
+    if (!name || name.length < 20 || name.length > 50 || !nameRegex.test(name)) {
+      errs.fullName = 'Họ tên phải từ 20 đến 50 ký tự và không chứa số hoặc ký tự đặc biệt.';
     }
-    if (!formData.address.trim()) errs.address = 'Vui lòng nhập địa chỉ';
+
+    // Phone validation
+    const phone = normalizePhone(formData.phone);
+    if (phone.length !== 10) {
+      errs.phone = 'Số điện thoại phải gồm đúng 10 chữ số.';
+    }
+
+    // Address validation
+    const address = normalizeAddress(formData.address);
+    if (!address || address.length < 20 || address.length > 200) {
+      errs.address = 'Địa chỉ nhận hàng phải từ 20 đến 200 ký tự.';
+    }
+
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
+  };
+
+  const generateOrderCode = () => {
+    const ts = Date.now();
+    const rand = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    return `ORD${ts}${rand}`;
   };
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
@@ -236,16 +260,22 @@ const MuaSimGiaRe = () => {
     if (!validateForm() || !selectedSim) return;
     setIsSubmitting(true);
 
+    const orderCode = generateOrderCode();
+    const cleanName = normalizeName(formData.fullName);
+    const cleanPhone = normalizePhone(formData.phone);
+    const cleanAddress = normalizeAddress(formData.address);
+
     const payload = {
+      orderCode,
       createdAt: new Date().toISOString(),
       simId: selectedSim.id,
       simRawDigits: selectedSim.rawDigits,
       simDisplayNumber: selectedSim.displayNumber,
       originalPriceVnd: selectedSim.price,
       priceVnd: selectedSim.price,
-      fullName: formData.fullName.trim(),
-      phone: formData.phone.replace(/\D/g, ''),
-      address: formData.address.trim(),
+      fullName: cleanName,
+      phone: cleanPhone,
+      address: cleanAddress,
       note: formData.note.trim(),
       paymentMethod: formData.paymentMethod,
       source: 'LovableWeb-CheapSim',
@@ -266,6 +296,7 @@ const MuaSimGiaRe = () => {
         mode: 'no-cors',
       }).catch(() => {});
 
+      setConfirmationData({ orderCode, fullName: cleanName, phone: cleanPhone, address: cleanAddress });
       setIsSuccess(true);
       toast.success('Đặt hàng thành công!');
     } catch {
@@ -716,15 +747,32 @@ const MuaSimGiaRe = () => {
       {/* ===== ORDER MODAL ===== */}
       <Dialog open={orderOpen} onOpenChange={(open) => { if (!open) { setOrderOpen(false); } }}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          {isSuccess ? (
-            <div className="text-center py-6">
+          {isSuccess && confirmationData ? (
+            <div className="py-4">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-primary" />
               </div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">Đã nhận đơn!</h2>
-              <p className="text-muted-foreground mb-6">Chúng tôi sẽ liên hệ sớm để xác nhận đơn hàng của bạn.</p>
-              <Button onClick={() => setOrderOpen(false)} size="lg" className="gap-2">
-                Đóng
+              <h2 className="text-xl font-bold text-foreground text-center mb-4">Xác nhận thông tin đơn hàng</h2>
+              <div className="bg-secondary/30 rounded-lg p-4 space-y-3 mb-6">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Mã đơn hàng:</span>
+                  <span className="font-semibold text-foreground">{confirmationData.orderCode}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Họ tên:</span>
+                  <span className="font-medium text-foreground">{confirmationData.fullName}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Số điện thoại:</span>
+                  <span className="font-medium text-foreground">{confirmationData.phone}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Địa chỉ nhận hàng:</span>
+                  <span className="font-medium text-foreground text-right max-w-[60%]">{confirmationData.address}</span>
+                </div>
+              </div>
+              <Button onClick={() => { setOrderOpen(false); setIsSuccess(false); setConfirmationData(null); }} size="lg" className="w-full gap-2">
+                <CheckCircle className="w-4 h-4" /> Xác nhận
               </Button>
             </div>
           ) : (
