@@ -7,17 +7,109 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
 import { getPromotionalData } from '@/hooks/useSimData';
 import type { NormalizedSIM, PromotionalData } from '@/lib/simUtils';
 import { normalizeSIM, parsePrice, detectNetwork } from '@/lib/simUtils';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 const ORDER_WEBAPP_URL = "https://script.google.com/macros/s/AKfycby_3QYkdJSBo43QiJlJ88rSLCsXN7baZtnW5v9VeF3AZJAVzZOjB35bhfFCHZBrVwA/exec";
-// Use edge function proxy to avoid CORS issues with Make.com
 const MAKE_WEBHOOK_PROXY = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/make-webhook-proxy`;
 
-// Extended SIM data for checkout (includes sheet-specific fields)
+// --- Helpers ---
+
+/** Normalize a phone/SIM number to digits only, pad to 10 if 9 digits */
+const normalizePhoneNumber = (input: string): string => {
+  const digits = input.replace(/\D/g, '');
+  if (digits.length === 9) return '0' + digits;
+  return digits;
+};
+
+/** Detect network from prefix (3-digit) */
+const detectNetworkByPrefix = (rawDigits: string): string => {
+  const digits = normalizePhoneNumber(rawDigits);
+  if (digits.length < 3) return 'Khác';
+  const prefix = digits.substring(0, 3);
+  if (['090', '093', '089', '070', '076', '077', '078', '079'].includes(prefix)) return 'Mobifone';
+  if (['088', '091', '094', '081', '082', '083', '084', '085'].includes(prefix)) return 'Vinaphone';
+  if (['099', '059'].includes(prefix)) return 'Gmobile';
+  return 'Khác';
+};
+
+/** Generate order code: DHyymmdd-random4 */
+const generateOrderCode = (): string => {
+  const now = new Date();
+  const yy = String(now.getFullYear()).slice(-2);
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const rand = String(Math.floor(1000 + Math.random() * 9000));
+  return `DH${yy}${mm}${dd}-${rand}`;
+};
+
+/** Format price as full VND: 3300000 → "3.300.000 đ" */
+const formatFullPrice = (price: number | undefined): string => {
+  if (price === undefined || price === null || isNaN(price) || price <= 0) return 'Liên hệ';
+  return `${price.toLocaleString('vi-VN').replace(/,/g, '.')} đ`;
+};
+
+/** Validate Vietnamese name: only Vietnamese letters + spaces, 6-20 chars, no digits/special */
+const VIETNAMESE_NAME_REGEX = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵýỷỹ\s]+$/;
+
+interface FieldErrors {
+  fullName?: string;
+  phone?: string;
+  address?: string;
+}
+
+const validateField = (field: keyof FieldErrors, value: string): string | undefined => {
+  switch (field) {
+    case 'fullName': {
+      const v = value.trim();
+      if (!v) return 'Vui lòng nhập họ tên';
+      if (v.length < 6) return 'Họ tên phải từ 6 ký tự trở lên';
+      if (v.length > 20) return 'Họ tên không quá 20 ký tự';
+      if (!VIETNAMESE_NAME_REGEX.test(v)) return 'Họ tên chỉ gồm chữ cái tiếng Việt và khoảng trắng';
+      return undefined;
+    }
+    case 'phone': {
+      const digits = value.replace(/\D/g, '');
+      if (!digits) return 'Vui lòng nhập số điện thoại';
+      if (digits.length !== 10) return 'Số điện thoại phải đúng 10 chữ số';
+      return undefined;
+    }
+    case 'address': {
+      const v = value.trim();
+      if (!v) return 'Vui lòng nhập địa chỉ';
+      if (v.length < 20) return 'Địa chỉ phải từ 20 ký tự trở lên';
+      if (v.length > 50) return 'Địa chỉ không quá 50 ký tự';
+      return undefined;
+    }
+  }
+};
+
+const validateAll = (formData: { fullName: string; phone: string; address: string }): FieldErrors => {
+  const errors: FieldErrors = {};
+  const fn = validateField('fullName', formData.fullName);
+  if (fn) errors.fullName = fn;
+  const ph = validateField('phone', formData.phone);
+  if (ph) errors.phone = ph;
+  const ad = validateField('address', formData.address);
+  if (ad) errors.address = ad;
+  return errors;
+};
+
+const isFormValid = (formData: { fullName: string; phone: string; address: string }): boolean => {
+  return Object.keys(validateAll(formData)).length === 0;
+};
+
+// --- CSV Parsing (unchanged logic) ---
+
 interface CheckoutSimData {
   simId: string;
   rawDigits: string;
@@ -34,40 +126,31 @@ interface CheckoutSimData {
   tags: string[];
 }
 
-// Parse CSV and find SIM by id
 const parseCSVAndFindSim = (csvText: string, targetSimId: string): CheckoutSimData | null => {
   const lines = csvText.split('\n').filter(line => line.trim());
   if (lines.length < 2) return null;
 
   const headerLine = lines[0].replace(/^\uFEFF/, '');
-  const rawHeaders = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-  
-  // Find header indices - use exact match first, then partial match
+  const rawHeaders = headerLine.split(',').map(h => h.trim().replace(/^\"|\"$/g, ''));
+
   const getHeaderIndexExact = (names: string[]): number => {
     for (const name of names) {
-      const idx = rawHeaders.findIndex(h => 
-        h.toUpperCase().replace(/\s+/g, ' ').trim() === name.toUpperCase()
-      );
-      if (idx !== -1) return idx;
-    }
-    return -1;
-  };
-  
-  const getHeaderIndexPartial = (names: string[]): number => {
-    for (const name of names) {
-      const idx = rawHeaders.findIndex(h => 
-        h.toUpperCase().replace(/\s+/g, ' ').includes(name.toUpperCase())
-      );
+      const idx = rawHeaders.findIndex(h => h.toUpperCase().replace(/\s+/g, ' ').trim() === name.toUpperCase());
       if (idx !== -1) return idx;
     }
     return -1;
   };
 
-  // Map headers: SimID → simId, SỐ THUÊ BAO → displayNumber (exact match to avoid confusion with CHUẨN)
+  const getHeaderIndexPartial = (names: string[]): number => {
+    for (const name of names) {
+      const idx = rawHeaders.findIndex(h => h.toUpperCase().replace(/\s+/g, ' ').includes(name.toUpperCase()));
+      if (idx !== -1) return idx;
+    }
+    return -1;
+  };
+
   const simIdIdx = getHeaderIndexPartial(['SIMID', 'SIM ID', 'SimID']);
-  // CRITICAL: "SỐ THUÊ BAO" must be exact match to not accidentally match "SỐ THUÊ BAO CHUẨN"
   const displayIdx = getHeaderIndexExact(['SỐ THUÊ BAO', 'SO THUE BAO']);
-  // rawIdx can use partial match for "CHUẨN" variants
   const rawIdx = getHeaderIndexPartial(['SỐ THUÊ BAO CHUẨN', 'THUÊ BAO CHUẨN', 'THUE BAO CHUAN', 'SO THUE BAO CHUAN']);
   const finalPriceIdx = getHeaderIndexPartial(['FINAL_PRICE', 'Final_Price']);
   const priceIdx = getHeaderIndexPartial(['GIÁ BÁN', 'GIA BAN']);
@@ -81,37 +164,28 @@ const parseCSVAndFindSim = (csvText: string, targetSimId: string): CheckoutSimDa
     const values: string[] = [];
     let current = '';
     let inQuotes = false;
-    
+
     for (const char of lines[i]) {
-      if (char === '"') {
-        inQuotes = !inQuotes;
-      } else if (char === ',' && !inQuotes) {
-        values.push(current.trim());
-        current = '';
-      } else {
-        current += char;
-      }
+      if (char === '\"') { inQuotes = !inQuotes; }
+      else if (char === ',' && !inQuotes) { values.push(current.trim()); current = ''; }
+      else { current += char; }
     }
     values.push(current.trim());
 
     const rowSimId = simIdIdx >= 0 ? values[simIdIdx]?.trim() : '';
-    
+
     if (rowSimId === targetSimId) {
-      // Get displayNumber exactly as-is from "SỐ THUÊ BAO" column (keeps dots)
       const displayNumber = displayIdx >= 0 ? (values[displayIdx] || '').trim() : '';
-      // Get rawDigits from "SỐ THUÊ BAO CHUẨN" column (digits only)
       const rawNumber = rawIdx >= 0 ? (values[rawIdx] || '').trim() : '';
       const rawDigits = rawNumber.replace(/\D/g, '') || displayNumber.replace(/\D/g, '');
-      
-      // Price: prioritize Final_Price, fallback to GIÁ BÁN
+
       const finalPriceStr = finalPriceIdx >= 0 ? (values[finalPriceIdx] || '').trim() : '';
       const originalPriceStr = priceIdx >= 0 ? (values[priceIdx] || '').trim() : '';
       const effectivePrice = parsePrice(finalPriceStr) || parsePrice(originalPriceStr) || 0;
-      
+
       return {
         simId: rowSimId,
         rawDigits,
-        // displayNumber: exact string from "SỐ THUÊ BAO" with dots preserved
         displayNumber: displayNumber || rawNumber || rawDigits,
         originalPriceVnd: parsePrice(originalPriceStr) || effectivePrice,
         finalPriceVnd: parsePrice(finalPriceStr) || undefined,
@@ -120,40 +194,38 @@ const parseCSVAndFindSim = (csvText: string, targetSimId: string): CheckoutSimDa
         kho: khoIdx >= 0 ? values[khoIdx] : undefined,
         tinhTrang: tinhTrangIdx >= 0 ? values[tinhTrangIdx] : undefined,
         trangThai: trangThaiIdx >= 0 ? values[trangThaiIdx] : undefined,
-        network: detectNetwork(rawDigits),
+        network: detectNetworkByPrefix(rawDigits),
         tags: []
       };
     }
   }
-  
   return null;
 };
+
+// --- Component ---
 
 const Checkout = () => {
   const { simId } = useParams<{ simId: string }>();
   const navigate = useNavigate();
-  
+
+  const [orderCode] = useState(() => generateOrderCode());
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
     address: '',
     note: '',
-    paymentMethod: 'COD' as 'COD' | 'BANK'
   });
-  
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  // Fetch SIM data directly from edge function
   const { data: simData, isLoading, error } = useQuery({
     queryKey: ['checkoutSim', simId],
     queryFn: async (): Promise<CheckoutSimData | null> => {
       if (!simId) return null;
-      
       const { data, error } = await supabase.functions.invoke('fetch-sim-data');
       if (error) throw error;
-      
       const csvText = typeof data === 'string' ? data : String(data);
       return parseCSVAndFindSim(csvText, simId);
     },
@@ -161,119 +233,108 @@ const Checkout = () => {
     staleTime: 5 * 60 * 1000
   });
 
-  // Get tags and formattedNumber from normalized SIM
   const simWithTags = useMemo(() => {
     if (!simData) return null;
     const normalized = normalizeSIM(simData.rawDigits, simData.displayNumber, simData.originalPriceVnd, simData.simId);
     return {
       ...simData,
       tags: normalized.tags,
-      formattedNumber: normalized.formattedNumber
+      formattedNumber: normalized.formattedNumber,
+      // Use our own network detection
+      network: detectNetworkByPrefix(simData.rawDigits),
     };
   }, [simData]);
 
-  // Format price for display - exact formatting without rounding
-  const formatPrice = (price: number | undefined): string => {
-    if (price === undefined || price === null || isNaN(price) || price <= 0) return 'Liên hệ';
-    
-    if (price >= 1000000000) {
-      const billions = price / 1000000000;
-      const rounded = Math.round(billions * 10) / 10;
-      if (Number.isInteger(rounded)) {
-        return `${rounded} tỷ`;
-      }
-      return `${rounded.toString().replace('.', ',')} tỷ`;
+  // Determine the display price (same as SIM card on homepage)
+  const displayPrice = useMemo(() => {
+    if (!simWithTags) return 0;
+    if (simWithTags.finalPriceVnd && simWithTags.finalPriceVnd > 0) return simWithTags.finalPriceVnd;
+    return simWithTags.originalPriceVnd;
+  }, [simWithTags]);
+
+  const formValid = isFormValid(formData);
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    setTouched(prev => ({ ...prev, [field]: true }));
+    // Live validation
+    if (touched[field] || value) {
+      const fieldError = validateField(field as keyof FieldErrors, value);
+      setErrors(prev => {
+        const next = { ...prev };
+        if (fieldError) (next as any)[field] = fieldError;
+        else delete (next as any)[field];
+        return next;
+      });
     }
-    
-    if (price >= 1000000) {
-      const millions = price / 1000000;
-      const rounded = Math.round(millions * 10) / 10;
-      if (Number.isInteger(rounded)) {
-        return `${rounded} triệu`;
-      }
-      return `${rounded.toString().replace('.', ',')} triệu`;
-    }
-    
-    return `${price.toLocaleString('vi-VN')} đ`;
   };
 
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-    
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Vui lòng nhập họ tên';
-    }
-    
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Vui lòng nhập số điện thoại';
-    } else {
-      const phoneDigits = formData.phone.replace(/\D/g, '');
-      if (phoneDigits.length < 9 || phoneDigits.length > 11) {
-        newErrors.phone = 'Số điện thoại phải có 9-11 chữ số';
-      }
-    }
-    
-    if (!formData.address.trim()) {
-      newErrors.address = 'Vui lòng nhập địa chỉ';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleBlur = (field: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    const fieldError = validateField(field as keyof FieldErrors, (formData as any)[field]);
+    setErrors(prev => {
+      const next = { ...prev };
+      if (fieldError) (next as any)[field] = fieldError;
+      else delete (next as any)[field];
+      return next;
+    });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm() || !simWithTags) return;
-    
+    // Validate all
+    const allErrors = validateAll(formData);
+    setErrors(allErrors);
+    setTouched({ fullName: true, phone: true, address: true });
+    if (Object.keys(allErrors).length > 0 || !simWithTags) return;
+    setShowConfirm(true);
+  };
+
+  const handleConfirmOrder = async () => {
+    if (!simWithTags) return;
     setIsSubmitting(true);
-    
-    const hasValidPromo = simWithTags.finalPriceVnd && 
-                          simWithTags.finalPriceVnd < simWithTags.originalPriceVnd;
-    
+
     const payload = {
       createdAt: new Date().toISOString(),
+      orderCode,
       simId: simWithTags.simId,
       simRawDigits: simWithTags.rawDigits,
       simDisplayNumber: simWithTags.displayNumber,
       originalPriceVnd: simWithTags.originalPriceVnd,
       finalPriceVnd: simWithTags.finalPriceVnd,
-      priceVnd: hasValidPromo ? simWithTags.finalPriceVnd : simWithTags.originalPriceVnd,
+      priceVnd: displayPrice,
       discountType: simWithTags.discountType,
       discountValue: simWithTags.discountValue,
       kho: simWithTags.kho,
       tinhTrang: simWithTags.tinhTrang,
       trangThai: simWithTags.trangThai,
+      network: simWithTags.network,
       fullName: formData.fullName.trim(),
       phone: formData.phone.replace(/\D/g, ''),
       address: formData.address.trim(),
       note: formData.note.trim(),
-      paymentMethod: formData.paymentMethod,
+      paymentMethod: 'COD',
       source: 'LovableWeb'
     };
 
     try {
-      // Send to Make.com webhook (with cors, check 200 OK)
       const makeResponse = await fetch(MAKE_WEBHOOK_PROXY, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      if (!makeResponse.ok) throw new Error(`Webhook failed: ${makeResponse.status}`);
 
-      if (!makeResponse.ok) {
-        throw new Error(`Make.com webhook failed: ${makeResponse.status}`);
-      }
-
-      // Also send to Google Apps Script (no-cors, fire-and-forget)
       fetch(ORDER_WEBAPP_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
         mode: 'no-cors'
       }).catch(err => console.error('Google Apps Script error:', err));
-      
-      setIsSuccess(true);
+
       toast.success('Đặt hàng thành công!');
+      setShowConfirm(false);
+      navigate('/');
     } catch (err) {
       console.error('Order submission error:', err);
       toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
@@ -282,14 +343,7 @@ const Checkout = () => {
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
-
-  // Loading state
+  // Loading
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -301,7 +355,7 @@ const Checkout = () => {
     );
   }
 
-  // Error or not found state
+  // Not found
   if (error || !simWithTags) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -319,35 +373,10 @@ const Checkout = () => {
     );
   }
 
-  // Success state
-  if (isSuccess) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-primary" />
-          </div>
-          <h1 className="text-2xl font-bold text-foreground mb-2">Đã nhận đơn!</h1>
-          <p className="text-muted-foreground mb-6">
-            Chúng tôi sẽ liên hệ sớm để xác nhận đơn hàng của bạn.
-          </p>
-          <Button onClick={() => navigate('/')} size="lg" className="gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            Quay lại trang chủ
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  const hasPromotion = simWithTags.finalPriceVnd && 
-                       simWithTags.finalPriceVnd < simWithTags.originalPriceVnd;
-
   const networkColors: Record<string, string> = {
     Mobifone: 'bg-primary text-primary-foreground',
-    Viettel: 'bg-red-500 text-white',
     Vinaphone: 'bg-blue-500 text-white',
-    iTelecom: 'bg-orange-500 text-white',
+    Gmobile: 'bg-emerald-600 text-white',
     Khác: 'bg-gray-500 text-white'
   };
 
@@ -356,142 +385,101 @@ const Checkout = () => {
       {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-50">
         <div className="container max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => navigate('/')}
-            className="shrink-0"
-          >
+          <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="shrink-0">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-lg font-bold text-foreground truncate">
-            Đặt mua SIM
-          </h1>
+          <h1 className="text-lg font-bold text-foreground truncate">Đặt mua SIM</h1>
         </div>
       </header>
 
       <main className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
-        {/* SIM Summary Card */}
+        {/* KHỐI THÔNG TIN SIM */}
         <div className="bg-card rounded-xl border border-border p-4 shadow-sm">
-          <h2 className="text-sm font-medium text-muted-foreground mb-3">
-            THÔNG TIN SIM
-          </h2>
-          
-          {/* SIM Number - prioritize displayNumber (from Sheet "SỐ THUÊ BAO"), keep dots as-is */}
+          <h2 className="text-sm font-medium text-muted-foreground mb-3">THÔNG TIN SIM</h2>
+
           <div className="text-2xl font-bold text-primary mb-3 tracking-wide">
             {simWithTags.displayNumber || simWithTags.formattedNumber || simWithTags.rawDigits?.replace(/(\d{4})(\d{3})(\d{3})/, '$1.$2.$3') || simWithTags.simId}
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-sm">
-            {/* Price */}
             <div>
               <span className="text-muted-foreground">Giá bán:</span>
-              <div className="font-semibold">
-                {hasPromotion ? (
-                  <div className="flex flex-col">
-                    <span className="text-muted-foreground line-through text-xs">
-                      {formatPrice(simWithTags.originalPriceVnd)}
-                    </span>
-                    <span className="text-cta text-lg">
-                      {formatPrice(simWithTags.finalPriceVnd)}
-                    </span>
-                  </div>
-                ) : (
-                  <span className="text-cta text-lg">
-                    {formatPrice(simWithTags.originalPriceVnd)}
-                  </span>
-                )}
+              <div className="font-semibold text-cta text-lg">
+                {formatFullPrice(displayPrice)}
               </div>
             </div>
-
-            {/* Network */}
             <div>
               <span className="text-muted-foreground">Mạng:</span>
               <div className="mt-1">
-                <span className={`px-2 py-0.5 rounded text-xs font-medium ${networkColors[simWithTags.network]}`}>
+                <span className={`px-2 py-0.5 rounded text-xs font-medium ${networkColors[simWithTags.network] || networkColors['Khác']}`}>
                   {simWithTags.network}
                 </span>
               </div>
             </div>
-
-            {/* Tags */}
-            {simWithTags.tags.length > 0 && (
-              <div className="col-span-2">
-                <span className="text-muted-foreground">Kiểu số đẹp:</span>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {simWithTags.tags.slice(0, 2).map(tag => (
-                    <span 
-                      key={tag} 
-                      className="px-2 py-0.5 rounded-full text-xs font-medium bg-gold/20 text-gold-dark"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div className="col-span-2">
+              <span className="text-muted-foreground">Mã đơn hàng:</span>
+              <div className="font-semibold text-foreground">{orderCode}</div>
+            </div>
           </div>
         </div>
 
-        {/* Order Form */}
+        {/* KHỐI THÔNG TIN NGƯỜI MUA */}
         <form onSubmit={handleSubmit} className="bg-card rounded-xl border border-border p-4 shadow-sm space-y-4">
-          <h2 className="text-sm font-medium text-muted-foreground mb-3">
-            THÔNG TIN NGƯỜI MUA
-          </h2>
+          <h2 className="text-sm font-medium text-muted-foreground mb-3">THÔNG TIN NGƯỜI MUA</h2>
 
-          {/* Full Name */}
+          {/* Họ tên */}
           <div className="space-y-1.5">
-            <Label htmlFor="fullName">
-              Họ tên <span className="text-destructive">*</span>
-            </Label>
+            <Label htmlFor="fullName">Họ tên <span className="text-destructive">*</span></Label>
             <Input
               id="fullName"
               placeholder="Nguyễn Văn A"
               value={formData.fullName}
               onChange={(e) => handleInputChange('fullName', e.target.value)}
-              className={errors.fullName ? 'border-destructive' : ''}
+              onBlur={() => handleBlur('fullName')}
+              className={touched.fullName && errors.fullName ? 'border-destructive' : ''}
+              maxLength={20}
             />
-            {errors.fullName && (
+            {touched.fullName && errors.fullName && (
               <p className="text-xs text-destructive">{errors.fullName}</p>
             )}
           </div>
 
-          {/* Phone */}
+          {/* Điện thoại */}
           <div className="space-y-1.5">
-            <Label htmlFor="phone">
-              Điện thoại liên hệ <span className="text-destructive">*</span>
-            </Label>
+            <Label htmlFor="phone">Điện thoại liên hệ <span className="text-destructive">*</span></Label>
             <Input
               id="phone"
               type="tel"
               placeholder="0909 123 456"
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
-              className={errors.phone ? 'border-destructive' : ''}
+              onBlur={() => handleBlur('phone')}
+              className={touched.phone && errors.phone ? 'border-destructive' : ''}
+              maxLength={15}
             />
-            {errors.phone && (
+            {touched.phone && errors.phone && (
               <p className="text-xs text-destructive">{errors.phone}</p>
             )}
           </div>
 
-          {/* Address */}
+          {/* Địa chỉ */}
           <div className="space-y-1.5">
-            <Label htmlFor="address">
-              Địa chỉ <span className="text-destructive">*</span>
-            </Label>
+            <Label htmlFor="address">Địa chỉ <span className="text-destructive">*</span></Label>
             <Input
               id="address"
               placeholder="123 Đường ABC, Quận 1, TP.HCM"
               value={formData.address}
               onChange={(e) => handleInputChange('address', e.target.value)}
-              className={errors.address ? 'border-destructive' : ''}
+              onBlur={() => handleBlur('address')}
+              className={touched.address && errors.address ? 'border-destructive' : ''}
+              maxLength={50}
             />
-            {errors.address && (
+            {touched.address && errors.address && (
               <p className="text-xs text-destructive">{errors.address}</p>
             )}
           </div>
 
-          {/* Note */}
+          {/* Yêu cầu khác */}
           <div className="space-y-1.5">
             <Label htmlFor="note">Yêu cầu khác</Label>
             <Textarea
@@ -503,7 +491,7 @@ const Checkout = () => {
             />
           </div>
 
-          {/* Payment Method */}
+          {/* Thanh toán */}
           <div className="space-y-2">
             <Label>Hình thức thanh toán</Label>
             <div className="flex items-center space-x-3 rounded-lg border border-border p-3 bg-muted/30">
@@ -514,12 +502,16 @@ const Checkout = () => {
             </div>
           </div>
 
-          {/* Submit Button */}
-          <Button 
-            type="submit" 
-            size="lg" 
+          {/* Nút MUA NGAY */}
+          <Button
+            type="submit"
+            size="lg"
             className="w-full gap-2 text-base"
-            disabled={isSubmitting}
+            disabled={!formValid || isSubmitting}
+            style={{
+              backgroundColor: formValid ? undefined : 'hsl(var(--muted))',
+              color: formValid ? undefined : 'hsl(var(--muted-foreground))',
+            }}
           >
             {isSubmitting ? (
               <>
@@ -535,6 +527,74 @@ const Checkout = () => {
           </Button>
         </form>
       </main>
+
+      {/* POPUP XÁC NHẬN */}
+      <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-lg">Xác nhận đơn hàng</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3 text-sm">
+            <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2">
+              <span className="text-muted-foreground">Mã đơn hàng:</span>
+              <span className="font-semibold">{orderCode}</span>
+
+              <span className="text-muted-foreground">Số thuê bao:</span>
+              <span className="font-semibold text-primary">
+                {simWithTags.displayNumber || simWithTags.formattedNumber}
+              </span>
+
+              <span className="text-muted-foreground">Giá tiền:</span>
+              <span className="font-semibold text-cta">{formatFullPrice(displayPrice)}</span>
+
+              <span className="text-muted-foreground">Mạng:</span>
+              <span>
+                <span className={`px-2 py-0.5 rounded text-xs font-medium ${networkColors[simWithTags.network] || networkColors['Khác']}`}>
+                  {simWithTags.network}
+                </span>
+              </span>
+
+              <span className="text-muted-foreground">Họ tên:</span>
+              <span className="font-medium">{formData.fullName.trim()}</span>
+
+              <span className="text-muted-foreground">Số điện thoại:</span>
+              <span className="font-medium">{formData.phone}</span>
+
+              <span className="text-muted-foreground">Địa chỉ:</span>
+              <span className="font-medium">{formData.address.trim()}</span>
+
+              {formData.note.trim() && (
+                <>
+                  <span className="text-muted-foreground">Yêu cầu khác:</span>
+                  <span className="font-medium">{formData.note.trim()}</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="mt-4">
+            <Button
+              onClick={handleConfirmOrder}
+              disabled={isSubmitting}
+              className="w-full gap-2"
+              size="lg"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Đang xử lý...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  Xác nhận
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
