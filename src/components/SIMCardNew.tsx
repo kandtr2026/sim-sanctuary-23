@@ -206,6 +206,12 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
           >
             {formatPrice(sim.price)}
           </span>
+          <span 
+            className="text-muted-foreground block"
+            style={{ fontSize: 'clamp(8px, 1.6vw, 10px)' }}
+          >
+            HCM giao ngay hôm nay
+          </span>
         </div>
         <button 
           onClick={handleBuyClick}
