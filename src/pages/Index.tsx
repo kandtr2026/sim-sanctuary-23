@@ -592,6 +592,9 @@ const Index = () => {
           </section>
         )}
 
+        {/* Process Steps Section - Below banner */}
+        {!isNoResultsWithSuggestions && <ProcessSteps />}
+
         {/* Search Section - Below banner */}
         <section id="sim-so" className="mb-5">
           <SearchBarAdvanced
