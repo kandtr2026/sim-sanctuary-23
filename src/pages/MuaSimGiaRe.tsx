@@ -400,6 +400,7 @@ const MuaSimGiaRe = () => {
       </Helmet>
 
       <Header />
+      <TrustBar />
       <Navigation />
 
       <main className="min-h-screen bg-background">
