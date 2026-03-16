@@ -186,37 +186,6 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
         }
       </div>
 
-      <div className="flex flex-wrap gap-0.5 mb-1.5 max-w-full overflow-hidden">
-        {sim.tags
-          .filter(tag => !['Số đẹp', 'SỐ ĐẸP', 'SO DEP', 'Số Đẹp'].includes(tag))
-          .slice(0, 3)
-          .map((tag) => (
-          <span 
-            key={tag} 
-            className="badge-type-sm"
-            style={{ fontSize: 'clamp(8px, 1.6vw, 11px)' }}
-          >
-            {tag}
-          </span>
-        ))}
-        {sim.tags.length > 3 && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span 
-                  className="badge-type-sm cursor-help"
-                  style={{ fontSize: 'clamp(8px, 1.6vw, 11px)' }}
-                >
-                  +{sim.tags.length - 3}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{sim.tags.slice(3).join(', ')}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </div>
 
       <div className="flex items-center justify-between mt-auto pt-1">
         <div className="flex flex-col">
