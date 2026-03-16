@@ -1,4 +1,4 @@
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Zap } from 'lucide-react';
 
 const ProcessSteps = () => {
   const steps = [
@@ -29,7 +29,26 @@ const ProcessSteps = () => {
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 max-w-5xl mx-auto">
           {steps.map((step, index) => (
             <div key={index} className="flex items-center w-full md:w-auto">
-              <div className="bg-card border border-border rounded-lg p-4 md:p-6 flex-1 md:flex-none md:w-64 shadow-card">
+              <div className="bg-card border border-border rounded-lg p-4 md:p-6 flex-1 md:flex-none md:w-64 shadow-card relative">
+                {/* Badge "HỎA TỐC" cho bước 3 */}
+                {index === 2 && (
+                  <div 
+                    className="absolute -top-2 -right-2 md:-top-3 md:-right-3 px-2 py-0.5 rounded-md text-[10px] md:text-xs font-bold whitespace-nowrap animate-fire-badge"
+                    style={{ 
+                      background: 'linear-gradient(135deg, #DC2626 0%, #EA580C 50%, #F59E0B 100%)',
+                      color: '#FFFFFF',
+                      boxShadow: '0 0 15px 3px rgba(220, 38, 38, 0.8), 0 0 30px 6px rgba(234, 88, 12, 0.5), inset 0 1px 0 rgba(255,255,255,0.3)',
+                      textShadow: '0 0 4px rgba(255,255,255,0.8)',
+                      border: '1px solid rgba(255,255,255,0.4)',
+                      zIndex: 10
+                    }}
+                  >
+                    <span className="inline-flex items-center gap-0.5">
+                      <Zap size={10} className="fill-white" />
+                      HỎA TỐC
+                    </span>
+                  </div>
+                )}
                 <div className="flex flex-col items-center text-center">
                   <div 
                     className="w-12 h-12 rounded-full flex items-center justify-center mb-3 font-bold text-2xl"
