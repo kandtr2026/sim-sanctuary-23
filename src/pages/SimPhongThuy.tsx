@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
+import TrustBar from '@/components/TrustBar';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import ZaloChatCard from '@/components/ZaloChatCard';
@@ -627,6 +628,7 @@ const SimPhongThuy = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950">
       <Header />
+      <TrustBar />
       <Navigation />
 
       <main className="flex-1 container mx-auto px-4 py-8">

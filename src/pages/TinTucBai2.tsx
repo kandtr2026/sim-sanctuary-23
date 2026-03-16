@@ -1,4 +1,5 @@
 import Header from '@/components/Header';
+import TrustBar from '@/components/TrustBar';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 
@@ -6,6 +7,7 @@ const TinTucBai2 = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <TrustBar />
       <Navigation />
       
       <main className="container mx-auto px-4 py-8">

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import Header from '@/components/Header';
+import TrustBar from '@/components/TrustBar';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { Calculator, Phone, TrendingUp, Smartphone, ExternalLink, Loader2, Info } from 'lucide-react';
@@ -223,6 +224,7 @@ const DinhGiaSim = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <TrustBar />
       <Navigation />
 
       <main className="container mx-auto px-4 pt-3 pb-6">
