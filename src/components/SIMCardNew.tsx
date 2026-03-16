@@ -197,17 +197,18 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
             </span>
           )}
           <span 
-            className="font-bold"
+            className="font-bold whitespace-nowrap"
             style={{ 
-              fontSize: 'clamp(14px, 3vw, 21px)', 
-              color: '#FFFFFF' 
+              fontSize: 'clamp(13px, 2.2vw, 17px)', 
+              color: '#FFFFFF',
+              lineHeight: '1.2'
             }}
           >
             {formatPrice(sim.price)}
           </span>
           <span 
             className="text-muted-foreground block"
-            style={{ fontSize: 'clamp(8px, 1.6vw, 10px)' }}
+            style={{ fontSize: 'clamp(10px, 1.8vw, 13px)', lineHeight: '1.3' }}
           >
             HCM giao ngay hôm nay
           </span>
