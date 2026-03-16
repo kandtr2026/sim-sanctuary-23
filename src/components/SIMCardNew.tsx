@@ -5,7 +5,6 @@ import { matchesQuyType } from '@/lib/simUtils';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -49,19 +48,7 @@ const carrier = sim.network !== 'Khác' ? sim.network : detectCarrier(rawNumber)
 console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
   const formatPrice = (price: number | undefined): string => {
     if (price === undefined || price === null || isNaN(price) || price <= 0) return 'Liên hệ';
-    if (price >= 1000000000) {
-      const billions = price / 1000000000;
-      const rounded = Math.round(billions * 10) / 10;
-      if (Number.isInteger(rounded)) return `${rounded} tỷ`;
-      return `${rounded.toString().replace('.', ',')} tỷ`;
-    }
-    if (price >= 1000000) {
-      const millions = price / 1000000;
-      const rounded = Math.round(millions * 10) / 10;
-      if (Number.isInteger(rounded)) return `${rounded} triệu`;
-      return `${rounded.toString().replace('.', ',')} triệu`;
-    }
-    return `${price.toLocaleString('vi-VN')} đ`;
+    return `${price.toLocaleString('vi-VN').replace(/,/g, '.')} đ`;
   };
 
   const formatDiscountAmount = (amount: number): string => {
@@ -198,37 +185,6 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
         }
       </div>
 
-      <div className="flex flex-wrap gap-0.5 mb-1.5 max-w-full overflow-hidden">
-        {sim.tags
-          .filter(tag => !['Số đẹp', 'SỐ ĐẸP', 'SO DEP', 'Số Đẹp'].includes(tag))
-          .slice(0, 3)
-          .map((tag) => (
-          <span 
-            key={tag} 
-            className="badge-type-sm"
-            style={{ fontSize: 'clamp(8px, 1.6vw, 11px)' }}
-          >
-            {tag}
-          </span>
-        ))}
-        {sim.tags.length > 3 && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span 
-                  className="badge-type-sm cursor-help"
-                  style={{ fontSize: 'clamp(8px, 1.6vw, 11px)' }}
-                >
-                  +{sim.tags.length - 3}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{sim.tags.slice(3).join(', ')}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </div>
 
       <div className="flex items-center justify-between mt-auto pt-1">
         <div className="flex flex-col">
@@ -248,6 +204,12 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
             }}
           >
             {formatPrice(sim.price)}
+          </span>
+          <span 
+            className="text-muted-foreground block"
+            style={{ fontSize: 'clamp(8px, 1.6vw, 10px)' }}
+          >
+            HCM giao ngay hôm nay
           </span>
         </div>
         <button 
