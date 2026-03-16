@@ -2,6 +2,7 @@ import { useState, useMemo, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Phone, Shield, Star, Truck, CheckCircle, Search, ChevronRight, ChevronLeft, Sparkles, Award, Users, DollarSign, Tag, X, Loader2 } from 'lucide-react';
 import Header from '@/components/Header';
+import TrustBar from '@/components/TrustBar';
 import Footer from '@/components/Footer';
 import Navigation from '@/components/Navigation';
 import { useCheapSimData } from '@/hooks/useCheapSimData';
