@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Phone, Shield, Star, Truck, CheckCircle, Search, ChevronRight, Sparkles, Award, Users, DollarSign } from 'lucide-react';
 import Header from '@/components/Header';
+import TrustBar from '@/components/TrustBar';
 import Footer from '@/components/Footer';
 import Navigation from '@/components/Navigation';
 import { useSimData } from '@/hooks/useSimData';

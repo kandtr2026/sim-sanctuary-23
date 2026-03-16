@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import Header from '@/components/Header';
+import TrustBar from '@/components/TrustBar';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { Calculator, Phone, TrendingUp, Smartphone, ExternalLink, Loader2, Info } from 'lucide-react';
