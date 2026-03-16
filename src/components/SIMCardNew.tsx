@@ -49,19 +49,7 @@ const carrier = sim.network !== 'Khác' ? sim.network : detectCarrier(rawNumber)
 console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
   const formatPrice = (price: number | undefined): string => {
     if (price === undefined || price === null || isNaN(price) || price <= 0) return 'Liên hệ';
-    if (price >= 1000000000) {
-      const billions = price / 1000000000;
-      const rounded = Math.round(billions * 10) / 10;
-      if (Number.isInteger(rounded)) return `${rounded} tỷ`;
-      return `${rounded.toString().replace('.', ',')} tỷ`;
-    }
-    if (price >= 1000000) {
-      const millions = price / 1000000;
-      const rounded = Math.round(millions * 10) / 10;
-      if (Number.isInteger(rounded)) return `${rounded} triệu`;
-      return `${rounded.toString().replace('.', ',')} triệu`;
-    }
-    return `${price.toLocaleString('vi-VN')} đ`;
+    return `${price.toLocaleString('vi-VN').replace(/,/g, '.')} đ`;
   };
 
   const formatDiscountAmount = (amount: number): string => {
