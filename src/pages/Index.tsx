@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import Header from "@/components/Header";
 import TrustBar from "@/components/TrustBar";
 import Navigation from "@/components/Navigation";
+import ProcessSteps from "@/components/ProcessSteps";
 import SearchBarAdvanced from "@/components/SearchBarAdvanced";
 
 import AdvancedFilterSidebar from "@/components/AdvancedFilterSidebar";
@@ -590,6 +591,9 @@ const Index = () => {
             </div>
           </section>
         )}
+
+        {/* Process Steps Section - Below banner */}
+        {!isNoResultsWithSuggestions && <ProcessSteps />}
 
         {/* Search Section - Below banner */}
         <section id="sim-so" className="mb-5">
