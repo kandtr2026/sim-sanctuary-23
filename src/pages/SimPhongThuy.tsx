@@ -628,6 +628,7 @@ const SimPhongThuy = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950">
       <Header />
+      <TrustBar />
       <Navigation />
 
       <main className="flex-1 container mx-auto px-4 py-8">
