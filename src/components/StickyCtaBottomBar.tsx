@@ -15,6 +15,7 @@ const StickyCtaBottomBar = () => {
       {/* Spacer to prevent content from being hidden behind the bar */}
       <div className="block md:hidden" style={{ height: 70 }} />
       <div
+        id="sticky-cta-bottom"
         className="fixed bottom-0 left-0 right-0 z-[9998] flex items-center gap-2 px-3 md:hidden"
         style={{
           backgroundColor: "hsl(var(--header-bg))",

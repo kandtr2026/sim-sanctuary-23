@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Filter, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Filter } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import AdvancedFilterSidebar from './AdvancedFilterSidebar';
 import type { FilterState } from '@/hooks/useSimData';
@@ -30,6 +30,14 @@ const MobileFilterDrawer = ({
   onReset
 }: MobileFilterDrawerProps) => {
   const [open, setOpen] = useState(false);
+
+  // Hide/show sticky CTA bar when filter drawer opens/closes
+  useEffect(() => {
+    const el = document.getElementById('sticky-cta-bottom');
+    if (el) {
+      el.style.display = open ? 'none' : '';
+    }
+  }, [open]);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
