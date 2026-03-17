@@ -41,9 +41,9 @@ const FilterSection = ({
     <div className="border-b border-border last:border-b-0">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-3 text-left hover:bg-background-secondary transition-colors"
+        className="w-full flex items-center justify-between p-3 max-md:p-2 text-left hover:bg-background-secondary transition-colors"
       >
-        <span className="font-semibold text-white uppercase tracking-wide" style={{ fontSize: 'clamp(14px, 1.2vw, 18px)' }}>{title}</span>
+        <span className="font-semibold text-white uppercase tracking-wide max-md:text-xs" style={{ fontSize: 'clamp(14px, 1.2vw, 18px)' }}>{title}</span>
         {isOpen ? (
           <ChevronUp className="w-4 h-4 text-primary" />
         ) : (
