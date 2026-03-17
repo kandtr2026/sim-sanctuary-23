@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useNavigate } from 'react-router-dom';
 import { Phone, Shield, Star, Truck, CheckCircle, Search, ChevronRight, ChevronLeft, Sparkles, Award, Users, DollarSign, Tag, X, Loader2 } from 'lucide-react';
 import Header from '@/components/Header';
 import TrustBar from '@/components/TrustBar';
@@ -12,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
