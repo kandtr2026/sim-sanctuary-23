@@ -50,7 +50,7 @@ const FilterSection = ({
           <ChevronDown className="w-4 h-4 text-primary" />
         )}
       </button>
-      {isOpen && <div className="px-3 pb-3">{children}</div>}
+      {isOpen && <div className="px-3 pb-3 max-md:px-2 max-md:pb-2">{children}</div>}
     </div>
   );
 };
