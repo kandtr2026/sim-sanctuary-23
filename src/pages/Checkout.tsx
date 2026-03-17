@@ -333,9 +333,11 @@ const Checkout = () => {
         mode: 'no-cors'
       }).catch(err => console.error('Google Apps Script error:', err));
 
-      toast.success('Đặt hàng thành công!');
       setShowConfirm(false);
-      navigate('/');
+      setShowSuccess(true);
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
     } catch (err) {
       console.error('Order submission error:', err);
       toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
