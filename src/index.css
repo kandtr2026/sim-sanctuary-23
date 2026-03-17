@@ -288,14 +288,6 @@
     min-height: 140px; /* Consistent card height */
   }
 
-  @media (max-width: 768px) {
-    .sim-card-compact {
-      @apply p-1.5;
-      min-height: 110px;
-      gap: 0;
-    }
-  }
-
   .sim-card-compact:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-card);
