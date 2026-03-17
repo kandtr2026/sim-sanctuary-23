@@ -172,7 +172,7 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
       </div>
 
       <div 
-        className="sim-number-auto mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis"
+        className="sim-number-auto mb-1 max-md:mb-0.5 group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis"
         style={{ fontSize: 'clamp(14px, 3.5vw, 22px)' }}
       >
         {searchQuery?.trim()
