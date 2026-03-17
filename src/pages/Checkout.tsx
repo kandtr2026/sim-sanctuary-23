@@ -598,6 +598,18 @@ const Checkout = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* POPUP THÀNH CÔNG */}
+      <Dialog open={showSuccess} onOpenChange={() => {}}>
+        <DialogContent className="max-w-sm text-center [&>button]:hidden">
+          <div className="flex flex-col items-center gap-4 py-4">
+            <CheckCircle className="w-16 h-16 text-emerald-500" />
+            <p className="text-lg font-semibold text-foreground leading-relaxed">
+              Cảm ơn bạn đã đặt hàng thành công tại CHONSOMOBIFONE.COM
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
