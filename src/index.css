@@ -195,6 +195,17 @@
     background: transparent;
   }
 
+  /* Mobile-only compact filter buttons */
+  @media (max-width: 768px) {
+    .filter-btn-sm {
+      @apply px-1 py-0.5 rounded;
+      font-size: 11px;
+      line-height: 1.2;
+      min-height: 28px;
+      white-space: nowrap;
+    }
+  }
+
   .filter-btn-sm:hover {
     background: hsl(var(--gold) / 0.1);
     transform: translateY(-1px);

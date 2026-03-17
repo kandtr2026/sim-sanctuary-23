@@ -41,16 +41,16 @@ const FilterSection = ({
     <div className="border-b border-border last:border-b-0">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-3 text-left hover:bg-background-secondary transition-colors"
+        className="w-full flex items-center justify-between p-3 max-md:p-2 text-left hover:bg-background-secondary transition-colors"
       >
-        <span className="font-semibold text-white uppercase tracking-wide" style={{ fontSize: 'clamp(14px, 1.2vw, 18px)' }}>{title}</span>
+        <span className="font-semibold text-white uppercase tracking-wide max-md:text-xs" style={{ fontSize: 'clamp(14px, 1.2vw, 18px)' }}>{title}</span>
         {isOpen ? (
           <ChevronUp className="w-4 h-4 text-primary" />
         ) : (
           <ChevronDown className="w-4 h-4 text-primary" />
         )}
       </button>
-      {isOpen && <div className="px-3 pb-3">{children}</div>}
+      {isOpen && <div className="px-3 pb-3 max-md:px-2 max-md:pb-2">{children}</div>}
     </div>
   );
 };
@@ -98,14 +98,14 @@ const AdvancedFilterSidebar = ({
 
   return (
     <aside className="bg-card rounded-lg shadow-card border border-border overflow-hidden">
-      <div className="bg-primary/5 p-3 border-b border-border flex items-center gap-2">
-        <Filter className="w-5 h-5 text-primary" />
-        <span className="font-bold text-white" style={{ fontSize: 'clamp(14px, 1.2vw, 18px)' }}>BỘ LỌC TÌM KIẾM</span>
+      <div className="bg-primary/5 p-3 max-md:p-2 border-b border-border flex items-center gap-2">
+        <Filter className="w-5 h-5 max-md:w-4 max-md:h-4 text-primary" />
+        <span className="font-bold text-white max-md:text-xs" style={{ fontSize: 'clamp(14px, 1.2vw, 18px)' }}>BỘ LỌC TÌM KIẾM</span>
       </div>
 
       {/* Price Filter */}
       <FilterSection title="SIM theo giá">
-        <div className="space-y-1">
+        <div className="space-y-1 max-md:space-y-0.5">
           {PRICE_RANGES.map((range, index) => {
             const displayLabel = range.label.replace(/\btriệu\b/gi, 'Tr');
             return (
@@ -127,9 +127,9 @@ const AdvancedFilterSidebar = ({
 
       {/* Tag Filter - Quý (position-agnostic) */}
       <FilterSection title="SIM số quý">
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 max-md:space-y-1">
           {/* Main quý type buttons - no position sub-filters */}
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 max-md:gap-0.5">
             {quyTypes.map(quyType => {
               const isSelected = filters.quyType === quyType;
               return (
@@ -145,7 +145,7 @@ const AdvancedFilterSidebar = ({
           </div>
           
           {/* Other quý-related tags (Tam hoa, Tam hoa kép) */}
-          <div className="flex flex-col gap-1 pt-1.5 border-t border-border/50">
+          <div className="flex flex-col gap-1 max-md:gap-0.5 pt-1.5 max-md:pt-1 border-t border-border/50">
             {otherQuyTags.map(tag => (
               <button
                 key={tag}
@@ -161,7 +161,7 @@ const AdvancedFilterSidebar = ({
 
       {/* Tag Filter - Phong thủy */}
       <FilterSection title="SIM phong thủy">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 max-md:gap-0.5">
           {phongThuyTags.map(tag => (
             <button
               key={tag}
@@ -176,7 +176,7 @@ const AdvancedFilterSidebar = ({
 
       {/* Tag Filter - Style */}
       <FilterSection title="Loại số">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 max-md:gap-0.5">
           {styleTags.map(tag => (
             <button
               key={tag}
@@ -191,8 +191,8 @@ const AdvancedFilterSidebar = ({
 
       {/* Network Filter */}
       <FilterSection title="SIM theo mạng">
-        <div className="space-y-1">
-          <p className="text-[9px] text-muted-foreground mb-1">
+        <div className="space-y-1 max-md:space-y-0.5">
+          <p className="text-[9px] max-md:text-[8px] text-muted-foreground mb-1 max-md:mb-0.5">
             {filters.selectedNetworks.length === 0 
               ? '✓ Hiển thị tất cả mạng' 
               : 'Nhấn để bỏ chọn mạng'}
