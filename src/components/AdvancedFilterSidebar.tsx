@@ -161,7 +161,7 @@ const AdvancedFilterSidebar = ({
 
       {/* Tag Filter - Phong thủy */}
       <FilterSection title="SIM phong thủy">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 max-md:gap-0.5">
           {phongThuyTags.map(tag => (
             <button
               key={tag}
