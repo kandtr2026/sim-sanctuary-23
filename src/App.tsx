@@ -24,6 +24,7 @@ import MuaSimGiaRe from "./pages/MuaSimGiaRe";
 import FloatingContactButtons from "./components/FloatingContactButtons";
 import MessengerChatPlugin from "./components/MessengerChatPlugin";
 import MessengerQuickTemplates from "./components/MessengerQuickTemplates";
+import StickyCtaBottomBar from "./components/StickyCtaBottomBar";
 
 const queryClient = new QueryClient();
 
