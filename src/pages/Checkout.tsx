@@ -219,6 +219,7 @@ const Checkout = () => {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const { data: simData, isLoading, error } = useQuery({
     queryKey: ['checkoutSim', simId],
