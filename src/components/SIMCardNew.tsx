@@ -186,7 +186,7 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
       </div>
 
 
-      <div className="flex items-center justify-between mt-auto pt-1">
+      <div className="flex items-center justify-between mt-auto pt-0.5 max-md:pt-0">
         <div className="flex flex-col">
           {hasDiscount && (
             <span 
