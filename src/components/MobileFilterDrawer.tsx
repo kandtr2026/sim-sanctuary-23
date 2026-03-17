@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Filter, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Filter } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import AdvancedFilterSidebar from './AdvancedFilterSidebar';
 import type { FilterState } from '@/hooks/useSimData';
@@ -15,7 +15,6 @@ interface MobileFilterDrawerProps {
   onToggleSuffix: (suffix: string) => void;
   onUpdateFilter: <K extends keyof FilterState>(key: K, value: FilterState[K]) => void;
   onReset: () => void;
-  onOpenChange?: (open: boolean) => void;
 }
 
 const MobileFilterDrawer = ({
@@ -28,18 +27,20 @@ const MobileFilterDrawer = ({
   onToggleNetwork,
   onToggleSuffix,
   onUpdateFilter,
-  onReset,
-  onOpenChange
+  onReset
 }: MobileFilterDrawerProps) => {
   const [open, setOpen] = useState(false);
 
-  const handleOpenChange = (val: boolean) => {
-    setOpen(val);
-    onOpenChange?.(val);
-  };
+  // Hide/show sticky CTA bar when filter drawer opens/closes
+  useEffect(() => {
+    const el = document.getElementById('sticky-cta-bottom');
+    if (el) {
+      el.style.display = open ? 'none' : '';
+    }
+  }, [open]);
 
   return (
-    <Sheet open={open} onOpenChange={handleOpenChange}>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <button className="lg:hidden flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium">
           <Filter className="w-4 h-4" />
@@ -81,7 +82,7 @@ const MobileFilterDrawer = ({
 
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-card border-t border-border sm:max-w-[400px]">
           <button
-            onClick={() => handleOpenChange(false)}
+            onClick={() => setOpen(false)}
             className="btn-cta w-full py-3 text-base"
           >
             Áp dụng bộ lọc

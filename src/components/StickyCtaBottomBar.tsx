@@ -4,17 +4,18 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 const ALLOWED_PATHS = ["/", "/mua-sim-gia-re"];
 
-const StickyCtaBottomBar = ({ hidden = false }: { hidden?: boolean }) => {
+const StickyCtaBottomBar = () => {
   const location = useLocation();
   const isMobile = useIsMobile();
 
-  if (!isMobile || !ALLOWED_PATHS.includes(location.pathname) || hidden) return null;
+  if (!isMobile || !ALLOWED_PATHS.includes(location.pathname)) return null;
 
   return (
     <>
       {/* Spacer to prevent content from being hidden behind the bar */}
       <div className="block md:hidden" style={{ height: 70 }} />
       <div
+        id="sticky-cta-bottom"
         className="fixed bottom-0 left-0 right-0 z-[9998] flex items-center gap-2 px-3 md:hidden"
         style={{
           backgroundColor: "hsl(var(--header-bg))",
