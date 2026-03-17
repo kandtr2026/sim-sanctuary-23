@@ -105,7 +105,7 @@ const AdvancedFilterSidebar = ({
 
       {/* Price Filter */}
       <FilterSection title="SIM theo giá">
-        <div className="space-y-1">
+        <div className="space-y-1 max-md:space-y-0.5">
           {PRICE_RANGES.map((range, index) => {
             const displayLabel = range.label.replace(/\btriệu\b/gi, 'Tr');
             return (
