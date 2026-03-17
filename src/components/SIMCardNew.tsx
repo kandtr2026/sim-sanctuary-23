@@ -144,7 +144,7 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
         </>
       )}
 
-      <div className={cn("flex items-center gap-1 mb-1.5 flex-wrap max-w-full", hasDiscount && "mt-8")}>
+      <div className={cn("flex items-center gap-1 mb-1 max-md:mb-0.5 flex-wrap max-w-full", hasDiscount && "mt-8")}>
         {sim.network && sim.network !== 'Khác' && (
   <span
     className={cn("px-1.5 py-px rounded font-medium", networkColors[sim.network] || 'bg-gray-500 text-white')}
