@@ -219,6 +219,7 @@ const Checkout = () => {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const { data: simData, isLoading, error } = useQuery({
     queryKey: ['checkoutSim', simId],
@@ -332,9 +333,11 @@ const Checkout = () => {
         mode: 'no-cors'
       }).catch(err => console.error('Google Apps Script error:', err));
 
-      toast.success('Đặt hàng thành công!');
       setShowConfirm(false);
-      navigate('/');
+      setShowSuccess(true);
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
     } catch (err) {
       console.error('Order submission error:', err);
       toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
@@ -593,6 +596,18 @@ const Checkout = () => {
               )}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* POPUP THÀNH CÔNG */}
+      <Dialog open={showSuccess} onOpenChange={() => {}}>
+        <DialogContent className="max-w-sm text-center [&>button]:hidden">
+          <div className="flex flex-col items-center gap-4 py-4">
+            <CheckCircle className="w-16 h-16 text-emerald-500" />
+            <p className="text-lg font-semibold text-foreground leading-relaxed">
+              Cảm ơn bạn đã đặt hàng thành công tại CHONSOMOBIFONE.COM
+            </p>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
