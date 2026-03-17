@@ -39,7 +39,7 @@ const MobileFilterDrawer = ({
   };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>
         <button className="lg:hidden flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium">
           <Filter className="w-4 h-4" />
