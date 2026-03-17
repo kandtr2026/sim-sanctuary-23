@@ -127,9 +127,9 @@ const AdvancedFilterSidebar = ({
 
       {/* Tag Filter - Quý (position-agnostic) */}
       <FilterSection title="SIM số quý">
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 max-md:space-y-1">
           {/* Main quý type buttons - no position sub-filters */}
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 max-md:gap-0.5">
             {quyTypes.map(quyType => {
               const isSelected = filters.quyType === quyType;
               return (
