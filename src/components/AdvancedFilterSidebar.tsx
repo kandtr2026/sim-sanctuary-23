@@ -145,7 +145,7 @@ const AdvancedFilterSidebar = ({
           </div>
           
           {/* Other quý-related tags (Tam hoa, Tam hoa kép) */}
-          <div className="flex flex-col gap-1 pt-1.5 border-t border-border/50">
+          <div className="flex flex-col gap-1 max-md:gap-0.5 pt-1.5 max-md:pt-1 border-t border-border/50">
             {otherQuyTags.map(tag => (
               <button
                 key={tag}
