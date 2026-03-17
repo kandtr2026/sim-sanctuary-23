@@ -210,7 +210,7 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
             className="text-muted-foreground block"
             style={{ fontSize: 'clamp(10px, 1.8vw, 13px)', lineHeight: '1.3' }}
           >
-            HCM giao ngay hôm nay
+            GIAO NGAY HÔM NAY
           </span>
         </div>
         <button 
