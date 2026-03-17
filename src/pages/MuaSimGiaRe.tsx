@@ -825,100 +825,152 @@ const MuaSimGiaRe = () => {
       {/* ===== ORDER MODAL ===== */}
       <Dialog open={orderOpen} onOpenChange={(open) => { if (!open) { setOrderOpen(false); } }}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          {isSuccess && confirmationData ? (
-            <div className="py-4">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-primary" />
-              </div>
-              <h2 className="text-xl font-bold text-foreground text-center mb-4">Xác nhận thông tin đơn hàng</h2>
-              <div className="bg-secondary/30 rounded-lg p-4 space-y-3 mb-6">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Mã đơn hàng:</span>
-                  <span className="font-semibold text-foreground">{confirmationData.orderCode}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Họ tên:</span>
-                  <span className="font-medium text-foreground">{confirmationData.fullName}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Số điện thoại:</span>
-                  <span className="font-medium text-foreground">{confirmationData.phone}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Địa chỉ nhận hàng:</span>
-                  <span className="font-medium text-foreground text-right max-w-[60%]">{confirmationData.address}</span>
-                </div>
-              </div>
-              <Button onClick={() => { setOrderOpen(false); setIsSuccess(false); setConfirmationData(null); }} size="lg" className="w-full gap-2">
-                <CheckCircle className="w-4 h-4" /> Xác nhận
-              </Button>
-            </div>
-          ) : (
-            <>
-              <DialogHeader>
-                <DialogTitle className="text-lg font-bold">Đặt mua SIM</DialogTitle>
-              </DialogHeader>
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Đặt mua SIM</DialogTitle>
+          </DialogHeader>
 
-              {/* SIM Info */}
-              {selectedSim && (
-                <div className="bg-secondary/30 rounded-lg p-4 space-y-2">
-                  <p className="text-sm text-muted-foreground">THÔNG TIN SIM</p>
-                  <div className="text-xl font-bold text-primary tracking-wide">
-                    {selectedSim.displayNumber}
-                  </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="text-muted-foreground">Mạng:</span>
-                    <span className={cn("px-2 py-0.5 rounded text-xs font-medium", networkColors[selectedSim.network] || 'bg-gray-500 text-white')}>
-                      {selectedSim.network}
+          {/* SIM Info */}
+          {selectedSim && (
+            <div className="bg-secondary/30 rounded-lg p-4 space-y-2">
+              <p className="text-sm text-muted-foreground">THÔNG TIN SIM</p>
+              <div className="text-xl font-bold text-primary tracking-wide">
+                {selectedSim.displayNumber}
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Giá bán:</span>
+                  <div className="font-semibold text-cta text-lg">{formatPriceDisplay(selectedSim.price)}</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Mạng:</span>
+                  <div className="mt-1">
+                    <span className={cn("px-2 py-0.5 rounded text-xs font-medium", networkColors[detectNetworkByPrefix(selectedSim.rawDigits)] || 'bg-gray-500 text-white')}>
+                      {detectNetworkByPrefix(selectedSim.rawDigits)}
                     </span>
                   </div>
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">Giá: </span>
-                    <span className="font-semibold text-cta text-lg">{formatPriceDisplay(selectedSim.price)}</span>
-                  </div>
                 </div>
-              )}
-
-              {/* Order Form */}
-              <form onSubmit={handleSubmitOrder} className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="modal-fullName">Họ tên <span className="text-destructive">*</span></Label>
-                  <Input id="modal-fullName" placeholder="Nguyễn Văn A" value={formData.fullName} onChange={(e) => handleInputChange('fullName', e.target.value)} className={formErrors.fullName ? 'border-destructive' : ''} />
-                  {formErrors.fullName && <p className="text-xs text-destructive">{formErrors.fullName}</p>}
+                <div className="col-span-2">
+                  <span className="text-muted-foreground">Mã đơn hàng:</span>
+                  <div className="font-semibold text-foreground">{orderCode}</div>
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="modal-phone">Điện thoại liên hệ <span className="text-destructive">*</span></Label>
-                  <Input id="modal-phone" type="tel" placeholder="0909 123 456" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} className={formErrors.phone ? 'border-destructive' : ''} />
-                  {formErrors.phone && <p className="text-xs text-destructive">{formErrors.phone}</p>}
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="modal-address">Địa chỉ <span className="text-destructive">*</span></Label>
-                  <Input id="modal-address" placeholder="123 Đường ABC, Quận 1, TP.HCM" value={formData.address} onChange={(e) => handleInputChange('address', e.target.value)} className={formErrors.address ? 'border-destructive' : ''} />
-                  {formErrors.address && <p className="text-xs text-destructive">{formErrors.address}</p>}
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="modal-note">Yêu cầu khác</Label>
-                  <Textarea id="modal-note" placeholder="Ghi chú thêm (nếu có)" value={formData.note} onChange={(e) => handleInputChange('note', e.target.value)} rows={2} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Hình thức thanh toán</Label>
-                  <div className="flex items-center space-x-3 rounded-lg border border-border p-3 bg-muted/30">
-                    <div className="w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center">
-                      <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-                    </div>
-                    <Label className="flex-1">Thanh toán khi nhận sim</Label>
-                  </div>
-                </div>
-                <Button type="submit" size="lg" className="w-full gap-2 text-base" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> Đang xử lý...</>
-                  ) : (
-                    <><Phone className="w-4 h-4" /> MUA NGAY</>
-                  )}
-                </Button>
-              </form>
-            </>
+              </div>
+            </div>
           )}
+
+          {/* Order Form */}
+          <form onSubmit={handleSubmitOrder} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="modal-fullName">Họ tên <span className="text-destructive">*</span></Label>
+              <Input id="modal-fullName" placeholder="Nguyễn Văn A" value={formData.fullName} onChange={(e) => handleInputChange('fullName', e.target.value)} onBlur={() => handleBlur('fullName')} className={touched.fullName && formErrors.fullName ? 'border-destructive' : ''} maxLength={20} />
+              {touched.fullName && formErrors.fullName && <p className="text-xs text-destructive">{formErrors.fullName}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="modal-phone">Điện thoại liên hệ <span className="text-destructive">*</span></Label>
+              <Input id="modal-phone" type="tel" placeholder="0909 123 456" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} onBlur={() => handleBlur('phone')} className={touched.phone && formErrors.phone ? 'border-destructive' : ''} maxLength={15} />
+              {touched.phone && formErrors.phone && <p className="text-xs text-destructive">{formErrors.phone}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="modal-address">Địa chỉ <span className="text-destructive">*</span></Label>
+              <Input id="modal-address" placeholder="123 Đường ABC, Quận 1, TP.HCM" value={formData.address} onChange={(e) => handleInputChange('address', e.target.value)} onBlur={() => handleBlur('address')} className={touched.address && formErrors.address ? 'border-destructive' : ''} maxLength={50} />
+              {touched.address && formErrors.address && <p className="text-xs text-destructive">{formErrors.address}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="modal-note">Yêu cầu khác</Label>
+              <Textarea id="modal-note" placeholder="Ghi chú thêm (nếu có)" value={formData.note} onChange={(e) => handleInputChange('note', e.target.value)} rows={2} />
+            </div>
+            <div className="space-y-2">
+              <Label>Hình thức thanh toán</Label>
+              <div className="flex items-center space-x-3 rounded-lg border border-border p-3 bg-muted/30">
+                <div className="w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center">
+                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                </div>
+                <Label className="flex-1">Thanh toán khi nhận sim</Label>
+              </div>
+            </div>
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full gap-2 text-base"
+              disabled={!formValid || isSubmitting}
+              style={{
+                backgroundColor: formValid ? undefined : 'hsl(var(--muted))',
+                color: formValid ? undefined : 'hsl(var(--muted-foreground))',
+              }}
+            >
+              {isSubmitting ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Đang xử lý...</>
+              ) : (
+                <><Phone className="w-4 h-4" /> MUA NGAY</>
+              )}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* POPUP XÁC NHẬN */}
+      {selectedSim && (
+        <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-center text-lg">Xác nhận đơn hàng</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2">
+                <span className="text-muted-foreground">Mã đơn hàng:</span>
+                <span className="font-semibold">{orderCode}</span>
+
+                <span className="text-muted-foreground">Số thuê bao:</span>
+                <span className="font-semibold text-primary">{selectedSim.displayNumber}</span>
+
+                <span className="text-muted-foreground">Giá tiền:</span>
+                <span className="font-semibold text-cta">{formatPriceDisplay(selectedSim.price)}</span>
+
+                <span className="text-muted-foreground">Mạng:</span>
+                <span>
+                  <span className={cn("px-2 py-0.5 rounded text-xs font-medium", networkColors[detectNetworkByPrefix(selectedSim.rawDigits)] || 'bg-gray-500 text-white')}>
+                    {detectNetworkByPrefix(selectedSim.rawDigits)}
+                  </span>
+                </span>
+
+                <span className="text-muted-foreground">Họ tên:</span>
+                <span className="font-medium">{formData.fullName.trim()}</span>
+
+                <span className="text-muted-foreground">Số điện thoại:</span>
+                <span className="font-medium">{formData.phone}</span>
+
+                <span className="text-muted-foreground">Địa chỉ:</span>
+                <span className="font-medium">{formData.address.trim()}</span>
+
+                {formData.note.trim() && (
+                  <>
+                    <span className="text-muted-foreground">Yêu cầu khác:</span>
+                    <span className="font-medium">{formData.note.trim()}</span>
+                  </>
+                )}
+              </div>
+            </div>
+            <DialogFooter className="mt-4">
+              <Button onClick={handleConfirmOrder} disabled={isSubmitting} className="w-full gap-2" size="lg">
+                {isSubmitting ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Đang xử lý...</>
+                ) : (
+                  <><CheckCircle className="w-4 h-4" /> Xác nhận</>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* POPUP THÀNH CÔNG */}
+      <Dialog open={showSuccess} onOpenChange={() => {}}>
+        <DialogContent className="max-w-sm text-center [&>button]:hidden">
+          <div className="flex flex-col items-center gap-4 py-4">
+            <CheckCircle className="w-16 h-16 text-emerald-500" />
+            <p className="text-lg font-semibold text-foreground leading-relaxed">
+              Cảm ơn bạn đã đặt hàng thành công tại CHONSOMOBIFONE.COM
+            </p>
+          </div>
         </DialogContent>
       </Dialog>
     </>
