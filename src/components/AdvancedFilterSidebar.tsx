@@ -191,8 +191,8 @@ const AdvancedFilterSidebar = ({
 
       {/* Network Filter */}
       <FilterSection title="SIM theo mạng">
-        <div className="space-y-1">
-          <p className="text-[9px] text-muted-foreground mb-1">
+        <div className="space-y-1 max-md:space-y-0.5">
+          <p className="text-[9px] max-md:text-[8px] text-muted-foreground mb-1 max-md:mb-0.5">
             {filters.selectedNetworks.length === 0 
               ? '✓ Hiển thị tất cả mạng' 
               : 'Nhấn để bỏ chọn mạng'}
