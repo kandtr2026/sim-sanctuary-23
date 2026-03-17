@@ -4,7 +4,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 const ALLOWED_PATHS = ["/", "/mua-sim-gia-re"];
 
-const StickyCtaBottomBar = () => {
+const StickyCtaBottomBar = ({ hidden = false }: { hidden?: boolean }) => {
   const location = useLocation();
   const isMobile = useIsMobile();
 

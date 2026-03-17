@@ -15,6 +15,7 @@ interface MobileFilterDrawerProps {
   onToggleSuffix: (suffix: string) => void;
   onUpdateFilter: <K extends keyof FilterState>(key: K, value: FilterState[K]) => void;
   onReset: () => void;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const MobileFilterDrawer = ({
