@@ -144,7 +144,7 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
         </>
       )}
 
-      <div className={cn("flex items-center gap-1 mb-1.5 flex-wrap max-w-full", hasDiscount && "mt-8")}>
+      <div className={cn("flex items-center gap-1 mb-1 max-md:mb-0.5 flex-wrap max-w-full", hasDiscount && "mt-8")}>
         {sim.network && sim.network !== 'Khác' && (
   <span
     className={cn("px-1.5 py-px rounded font-medium", networkColors[sim.network] || 'bg-gray-500 text-white')}
@@ -172,7 +172,7 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
       </div>
 
       <div 
-        className="sim-number-auto mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis"
+        className="sim-number-auto mb-1 max-md:mb-0.5 group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis"
         style={{ fontSize: 'clamp(14px, 3.5vw, 22px)' }}
       >
         {searchQuery?.trim()
@@ -186,7 +186,7 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
       </div>
 
 
-      <div className="flex items-center justify-between mt-auto pt-1">
+      <div className="flex items-center justify-between mt-auto pt-0.5 max-md:pt-0">
         <div className="flex flex-col">
           {hasDiscount && (
             <span 
