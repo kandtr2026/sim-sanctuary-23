@@ -81,7 +81,7 @@ const MobileFilterDrawer = ({
 
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-card border-t border-border sm:max-w-[400px]">
           <button
-            onClick={() => setOpen(false)}
+            onClick={() => handleOpenChange(false)}
             className="btn-cta w-full py-3 text-base"
           >
             Áp dụng bộ lọc
