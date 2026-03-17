@@ -176,7 +176,7 @@ const AdvancedFilterSidebar = ({
 
       {/* Tag Filter - Style */}
       <FilterSection title="Loại số">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 max-md:gap-0.5">
           {styleTags.map(tag => (
             <button
               key={tag}
