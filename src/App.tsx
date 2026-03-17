@@ -57,6 +57,7 @@ const App = () => (
         <FloatingContactButtons />
         <MessengerChatPlugin />
         <MessengerQuickTemplates />
+        <StickyCtaBottomBar />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
