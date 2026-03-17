@@ -28,9 +28,15 @@ const MobileFilterDrawer = ({
   onToggleNetwork,
   onToggleSuffix,
   onUpdateFilter,
-  onReset
+  onReset,
+  onOpenChange
 }: MobileFilterDrawerProps) => {
   const [open, setOpen] = useState(false);
+
+  const handleOpenChange = (val: boolean) => {
+    setOpen(val);
+    onOpenChange?.(val);
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>

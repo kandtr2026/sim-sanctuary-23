@@ -8,7 +8,7 @@ const StickyCtaBottomBar = ({ hidden = false }: { hidden?: boolean }) => {
   const location = useLocation();
   const isMobile = useIsMobile();
 
-  if (!isMobile || !ALLOWED_PATHS.includes(location.pathname)) return null;
+  if (!isMobile || !ALLOWED_PATHS.includes(location.pathname) || hidden) return null;
 
   return (
     <>
