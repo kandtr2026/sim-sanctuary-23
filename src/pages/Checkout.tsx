@@ -401,22 +401,23 @@ const Checkout = () => {
           <div className="bg-gradient-to-b from-[hsl(0,0%,12%)] to-[hsl(0,0%,8%)] p-5">
             <h2 className="text-center text-sm font-semibold text-gold tracking-widest mb-4">THÔNG TIN SIM</h2>
 
-            <div className="text-center text-3xl md:text-4xl font-bold text-primary mb-5 tracking-wider">
+            <div className="text-center text-3xl md:text-4xl font-bold text-primary tracking-wider">
               {simWithTags.displayNumber || simWithTags.formattedNumber || simWithTags.rawDigits?.replace(/(\d{4})(\d{3})(\d{3})/, '$1.$2.$3') || simWithTags.simId}
             </div>
 
-            <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+            <div className="text-center mt-2 mb-5">
+              <span className="text-muted-foreground text-xs">Giá bán:</span>
+              <div className="font-bold text-primary text-2xl md:text-3xl mt-0.5">
+                {formatFullPrice(displayPrice)}
+              </div>
+            </div>
+
+            <div className="flex items-start gap-x-4 text-sm">
               <div>
                 <span className="text-muted-foreground text-xs">Mã đơn hàng:</span>
                 <div className="font-bold text-foreground mt-0.5">{orderCode}</div>
               </div>
-              <div className="text-right">
-                <span className="text-muted-foreground text-xs">Giá bán:</span>
-                <div className="font-bold text-primary mt-0.5 text-lg">
-                  {formatFullPrice(displayPrice)}
-                </div>
-              </div>
-              <div>
+              <div className="ml-auto">
                 <span className="text-muted-foreground text-xs">Mạng:</span>
                 <div className="mt-1">
                   <span className={`px-3 py-1 rounded text-xs font-bold ${networkColors[simWithTags.network] || networkColors['Khác']}`}>
