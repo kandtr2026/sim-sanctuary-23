@@ -219,7 +219,7 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
           style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
         >
           <Phone style={{ width: 'clamp(8px, 1.8vw, 12px)', height: 'clamp(8px, 1.8vw, 12px)' }} />
-          MUA NGAY
+          ĐẶT GIAO NGAY
         </button>
       </div>
     </div>
