@@ -111,25 +111,39 @@ const FloatingContactButtons = () => {
           />
         </a>
 
-        {/* ZALO Button - on bottom */}
-        <a
-          href={ZALO_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Chat Zalo"
-          onClick={() => {
-            (window as any).gtag?.("event", "click_zalo", {
-              event_category: "contact",
-              event_label: "floating_zalo",
-            });
-          }}
-          className="floating-contact-btn relative flex items-center justify-center bg-white hover:bg-gray-50 rounded-full shadow-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#0068ff] focus:ring-offset-2"
-          style={{
-            width: "clamp(48px, 4.5vw, 60px)",
-            height: "clamp(48px, 4.5vw, 60px)",
-            animation: "floating-bounce 1.4s ease-in-out infinite 0.2s",
-          }}
-        >
+        {/* ZALO Button - on bottom, with label */}
+        <div className="flex items-center" style={{ gap: "clamp(6px, 0.8vw, 10px)" }}>
+          <span
+            className="rounded-full shadow-md whitespace-nowrap font-semibold"
+            style={{
+              background: "white",
+              color: "#0068ff",
+              fontSize: "clamp(11px, 1.1vw, 14px)",
+              padding: "clamp(4px, 0.5vw, 6px) clamp(10px, 1vw, 14px)",
+              boxShadow: "0 2px 10px rgba(0,0,0,0.15)",
+              lineHeight: 1.3,
+            }}
+          >
+            Đặt sim - Giao ngay
+          </span>
+          <a
+            href={ZALO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Chat Zalo"
+            onClick={() => {
+              (window as any).gtag?.("event", "click_zalo", {
+                event_category: "contact",
+                event_label: "floating_zalo",
+              });
+            }}
+            className="floating-contact-btn relative flex items-center justify-center bg-white hover:bg-gray-50 rounded-full shadow-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#0068ff] focus:ring-offset-2 flex-shrink-0"
+            style={{
+              width: "clamp(48px, 4.5vw, 60px)",
+              height: "clamp(48px, 4.5vw, 60px)",
+              animation: "floating-bounce 1.4s ease-in-out infinite 0.2s",
+            }}
+          >
           {/* Zalo Logo SVG - Blue text with chat bubble */}
           <svg
             viewBox="0 0 48 48"
