@@ -165,12 +165,12 @@ const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: Ch
           {formatPriceDisplay(sim.price)}
         </span>
         <button
-          onClick={() => onBuy(sim)}
+          onClick={(e) => { e.stopPropagation(); onBuy(sim); }}
           className="btn-cta-sm flex items-center gap-1 py-1 px-2"
           style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
         >
           <Phone style={{ width: 'clamp(8px, 1.8vw, 12px)', height: 'clamp(8px, 1.8vw, 12px)' }} />
-          MUA NGAY
+          ĐẶT GIAO NGAY
         </button>
       </div>
 
