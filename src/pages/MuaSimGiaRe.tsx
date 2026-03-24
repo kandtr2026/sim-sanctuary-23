@@ -118,7 +118,8 @@ const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: Ch
 
   return (
     <div
-      className="sim-card-compact group relative overflow-visible md:p-2 p-1 md:min-h-[140px] min-h-[auto]"
+      className="sim-card-compact group relative overflow-visible md:p-2 p-1 md:min-h-[140px] min-h-[auto] cursor-pointer"
+      onClick={() => onBuy(sim)}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
@@ -164,12 +165,12 @@ const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: Ch
           {formatPriceDisplay(sim.price)}
         </span>
         <button
-          onClick={() => onBuy(sim)}
+          onClick={(e) => { e.stopPropagation(); onBuy(sim); }}
           className="btn-cta-sm flex items-center gap-1 py-1 px-2"
           style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
         >
           <Phone style={{ width: 'clamp(8px, 1.8vw, 12px)', height: 'clamp(8px, 1.8vw, 12px)' }} />
-          MUA NGAY
+          ĐẶT GIAO NGAY
         </button>
       </div>
 
@@ -179,12 +180,12 @@ const CheapSimCard = ({ sim, onBuy }: { sim: CheapSimNormalized; onBuy: (sim: Ch
           {formatPriceDisplay(sim.price)}
         </span>
         <button
-          onClick={() => onBuy(sim)}
+          onClick={(e) => { e.stopPropagation(); onBuy(sim); }}
           className="btn-cta-sm flex items-center justify-center gap-1 py-1 px-1.5 w-full"
           style={{ fontSize: 'clamp(9px, 2.5vw, 12px)' }}
         >
           <Phone className="w-3 h-3" />
-          MUA NGAY
+          ĐẶT GIAO NGAY
         </button>
       </div>
     </div>
