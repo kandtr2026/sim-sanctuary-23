@@ -183,6 +183,7 @@ const FloatingContactButtons = () => {
             }}
           />
         </a>
+        </div>
       </div>
     </>
   );
