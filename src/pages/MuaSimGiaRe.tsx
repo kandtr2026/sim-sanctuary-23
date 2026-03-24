@@ -891,11 +891,7 @@ const MuaSimGiaRe = () => {
               type="submit"
               size="lg"
               className="w-full gap-2 text-base"
-              disabled={!formValid || isSubmitting}
-              style={{
-                backgroundColor: formValid ? undefined : 'hsl(var(--muted))',
-                color: formValid ? undefined : 'hsl(var(--muted-foreground))',
-              }}
+              disabled={isSubmitting}
             >
               {isSubmitting ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Đang xử lý...</>
