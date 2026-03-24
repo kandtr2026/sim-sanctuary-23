@@ -110,37 +110,46 @@ const FloatingContactButtons = () => {
           />
         </a>
 
-        {/* ZALO Button + Label row */}
-        <div className="flex items-stretch" style={{ gap: "clamp(6px, 0.8vw, 10px)" }}>
+        {/* ZALO Button + Label as one unified block */}
+        <a
+          href={ZALO_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Chat Zalo"
+          onClick={() => {
+            (window as any).gtag?.("event", "click_zalo", {
+              event_category: "contact",
+              event_label: "floating_zalo",
+            });
+          }}
+          className="floating-contact-btn flex items-center bg-white hover:bg-gray-50 shadow-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#0068ff] focus:ring-offset-2"
+          style={{
+            height: "clamp(48px, 4.5vw, 60px)",
+            borderRadius: "9999px",
+            animation: "floating-bounce 1.4s ease-in-out infinite 0.2s",
+            gap: 0,
+            textDecoration: "none",
+          }}
+        >
+          {/* Label part */}
           <span
-            className="flex items-center justify-center rounded-full shadow-md whitespace-nowrap font-semibold"
+            className="flex items-center justify-center whitespace-nowrap font-bold"
             style={{
-              background: "white",
               color: "#0068ff",
-              fontSize: "clamp(11px, 1.1vw, 14px)",
-              padding: "0 clamp(10px, 1vw, 14px)",
-              boxShadow: "0 2px 10px rgba(0,0,0,0.15)",
-              lineHeight: 1.3,
+              fontSize: "clamp(16px, 2vw, 22px)",
+              padding: "0 clamp(12px, 1.5vw, 18px)",
+              height: "100%",
+              lineHeight: 1,
             }}
           >
             Đặt sim - Giao ngay
           </span>
-          <a
-            href={ZALO_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Chat Zalo"
-            onClick={() => {
-              (window as any).gtag?.("event", "click_zalo", {
-                event_category: "contact",
-                event_label: "floating_zalo",
-              });
-            }}
-            className="floating-contact-btn relative flex items-center justify-center bg-white hover:bg-gray-50 rounded-full shadow-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#0068ff] focus:ring-offset-2 flex-shrink-0"
+          {/* Zalo icon part */}
+          <span
+            className="relative flex items-center justify-center flex-shrink-0"
             style={{
               width: "clamp(48px, 4.5vw, 60px)",
               height: "clamp(48px, 4.5vw, 60px)",
-              animation: "floating-bounce 1.4s ease-in-out infinite 0.2s",
             }}
           >
             <svg
@@ -176,8 +185,8 @@ const FloatingContactButtons = () => {
                 right: "clamp(2px, 0.4vw, 4px)",
               }}
             />
-          </a>
-        </div>
+          </span>
+        </a>
       </div>
     </>
   );
