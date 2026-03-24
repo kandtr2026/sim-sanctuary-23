@@ -900,7 +900,13 @@ const MuaSimGiaRe = () => {
               {isSubmitting ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Đang xử lý...</>
               ) : (
-                <><Phone className="w-4 h-4" /> MUA NGAY</>
+                <span className="flex flex-col items-center leading-tight">
+                  <span className="flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    MUA NGAY
+                  </span>
+                  <span className="text-[10px] font-normal opacity-90">Giao sim nhanh miễn phí toàn quốc</span>
+                </span>
               )}
             </Button>
           </form>
