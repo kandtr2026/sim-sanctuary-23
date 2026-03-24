@@ -397,31 +397,33 @@ const Checkout = () => {
 
       <main className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
         {/* KHỐI THÔNG TIN SIM */}
-        <div className="bg-card rounded-xl border border-border p-4 shadow-sm">
-          <h2 className="text-sm font-medium text-muted-foreground mb-3">THÔNG TIN SIM</h2>
+        <div className="rounded-xl border border-gold/30 overflow-hidden shadow-card">
+          <div className="bg-gradient-to-b from-[hsl(0,0%,12%)] to-[hsl(0,0%,8%)] p-5">
+            <h2 className="text-center text-sm font-semibold text-gold tracking-widest mb-4">THÔNG TIN SIM</h2>
 
-          <div className="text-2xl font-bold text-primary mb-3 tracking-wide">
-            {simWithTags.displayNumber || simWithTags.formattedNumber || simWithTags.rawDigits?.replace(/(\d{4})(\d{3})(\d{3})/, '$1.$2.$3') || simWithTags.simId}
-          </div>
+            <div className="text-center text-3xl md:text-4xl font-bold text-primary mb-5 tracking-wider">
+              {simWithTags.displayNumber || simWithTags.formattedNumber || simWithTags.rawDigits?.replace(/(\d{4})(\d{3})(\d{3})/, '$1.$2.$3') || simWithTags.simId}
+            </div>
 
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <span className="text-muted-foreground">Giá bán:</span>
-              <div className="font-semibold text-cta text-lg">
-                {formatFullPrice(displayPrice)}
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+              <div>
+                <span className="text-muted-foreground text-xs">Mã đơn hàng:</span>
+                <div className="font-bold text-foreground mt-0.5">{orderCode}</div>
               </div>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Mạng:</span>
-              <div className="mt-1">
-                <span className={`px-2 py-0.5 rounded text-xs font-medium ${networkColors[simWithTags.network] || networkColors['Khác']}`}>
-                  {simWithTags.network}
-                </span>
+              <div className="text-right">
+                <span className="text-muted-foreground text-xs">Giá bán:</span>
+                <div className="font-bold text-primary mt-0.5 text-lg">
+                  {formatFullPrice(displayPrice)}
+                </div>
               </div>
-            </div>
-            <div className="col-span-2">
-              <span className="text-muted-foreground">Mã đơn hàng:</span>
-              <div className="font-semibold text-foreground">{orderCode}</div>
+              <div>
+                <span className="text-muted-foreground text-xs">Mạng:</span>
+                <div className="mt-1">
+                  <span className={`px-3 py-1 rounded text-xs font-bold ${networkColors[simWithTags.network] || networkColors['Khác']}`}>
+                    {simWithTags.network}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

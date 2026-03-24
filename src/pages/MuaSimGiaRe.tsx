@@ -831,27 +831,29 @@ const MuaSimGiaRe = () => {
 
           {/* SIM Info */}
           {selectedSim && (
-            <div className="bg-secondary/30 rounded-lg p-4 space-y-2">
-              <p className="text-sm text-muted-foreground">THÔNG TIN SIM</p>
-              <div className="text-xl font-bold text-primary tracking-wide">
-                {selectedSim.displayNumber}
-              </div>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Giá bán:</span>
-                  <div className="font-semibold text-cta text-lg">{formatPriceDisplay(selectedSim.price)}</div>
+            <div className="rounded-xl border border-gold/30 overflow-hidden shadow-card">
+              <div className="bg-gradient-to-b from-[hsl(0,0%,12%)] to-[hsl(0,0%,8%)] p-5">
+                <p className="text-center text-sm font-semibold text-gold tracking-widest mb-4">THÔNG TIN SIM</p>
+                <div className="text-center text-3xl md:text-4xl font-bold text-primary tracking-wider mb-5">
+                  {selectedSim.displayNumber}
                 </div>
-                <div>
-                  <span className="text-muted-foreground">Mạng:</span>
-                  <div className="mt-1">
-                    <span className={cn("px-2 py-0.5 rounded text-xs font-medium", networkColors[detectNetworkByPrefix(selectedSim.rawDigits)] || 'bg-gray-500 text-white')}>
-                      {detectNetworkByPrefix(selectedSim.rawDigits)}
-                    </span>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                  <div>
+                    <span className="text-muted-foreground text-xs">Mã đơn hàng:</span>
+                    <div className="font-bold text-foreground mt-0.5">{orderCode}</div>
                   </div>
-                </div>
-                <div className="col-span-2">
-                  <span className="text-muted-foreground">Mã đơn hàng:</span>
-                  <div className="font-semibold text-foreground">{orderCode}</div>
+                  <div className="text-right">
+                    <span className="text-muted-foreground text-xs">Giá bán:</span>
+                    <div className="font-bold text-primary mt-0.5 text-lg">{formatPriceDisplay(selectedSim.price)}</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground text-xs">Mạng:</span>
+                    <div className="mt-1">
+                      <span className={cn("px-3 py-1 rounded text-xs font-bold", networkColors[detectNetworkByPrefix(selectedSim.rawDigits)] || 'bg-gray-500 text-white')}>
+                        {detectNetworkByPrefix(selectedSim.rawDigits)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
