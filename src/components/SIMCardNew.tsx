@@ -112,10 +112,12 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
   const discountBadgeText = hasDiscount ? formatDiscountAmount(discountAmount) : null;
 
   return (
-    <div className={cn(
-      "sim-card-compact group relative overflow-hidden",
-      hasDiscount && "ring-1 ring-cta/30 shadow-promo-sm"
-    )}>
+    <div
+      onClick={handleBuyClick}
+      className={cn(
+        "sim-card-compact group relative overflow-hidden cursor-pointer",
+        hasDiscount && "ring-1 ring-cta/30 shadow-promo-sm"
+      )}>
 
       {hasDiscount && (
         <>
