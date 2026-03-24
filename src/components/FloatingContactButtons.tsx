@@ -47,9 +47,9 @@ const FloatingContactButtons = () => {
         }
       `}</style>
 
-      {/* Container for all buttons - stacked vertically */}
+      {/* Container for all buttons - stacked vertically, aligned right */}
       <div
-        className="fixed flex flex-col items-center"
+        className="fixed flex flex-col items-end"
         style={{
           bottom: "clamp(16px, 2.5vw, 24px)",
           right: "clamp(16px, 2.5vw, 24px)",
@@ -57,7 +57,7 @@ const FloatingContactButtons = () => {
           gap: "clamp(10px, 1.2vw, 14px)",
         }}
       >
-        {/* MESSENGER Button - on top */}
+        {/* MESSENGER Button */}
         <button
           onClick={handleOpenMessengerChat}
           aria-label="Chat Messenger"
@@ -69,7 +69,6 @@ const FloatingContactButtons = () => {
             background: "linear-gradient(135deg, #0084ff 0%, #00c6ff 100%)",
           }}
         >
-          {/* Messenger Logo SVG */}
           <svg
             viewBox="0 0 24 24"
             fill="white"
@@ -82,7 +81,7 @@ const FloatingContactButtons = () => {
           </svg>
         </button>
 
-        {/* CALL Button - middle */}
+        {/* CALL Button */}
         <a
           href={CALL_URL}
           aria-label="Gọi điện tư vấn"
@@ -111,15 +110,15 @@ const FloatingContactButtons = () => {
           />
         </a>
 
-        {/* ZALO Button - on bottom, with label */}
-        <div className="flex items-center" style={{ gap: "clamp(6px, 0.8vw, 10px)" }}>
+        {/* ZALO Button + Label row */}
+        <div className="flex items-stretch" style={{ gap: "clamp(6px, 0.8vw, 10px)" }}>
           <span
-            className="rounded-full shadow-md whitespace-nowrap font-semibold"
+            className="flex items-center justify-center rounded-full shadow-md whitespace-nowrap font-semibold"
             style={{
               background: "white",
               color: "#0068ff",
               fontSize: "clamp(11px, 1.1vw, 14px)",
-              padding: "clamp(4px, 0.5vw, 6px) clamp(10px, 1vw, 14px)",
+              padding: "0 clamp(10px, 1vw, 14px)",
               boxShadow: "0 2px 10px rgba(0,0,0,0.15)",
               lineHeight: 1.3,
             }}
@@ -144,45 +143,40 @@ const FloatingContactButtons = () => {
               animation: "floating-bounce 1.4s ease-in-out infinite 0.2s",
             }}
           >
-          {/* Zalo Logo SVG - Blue text with chat bubble */}
-          <svg
-            viewBox="0 0 48 48"
-            style={{
-              width: "clamp(30px, 3vw, 38px)",
-              height: "clamp(30px, 3vw, 38px)",
-            }}
-          >
-            {/* Chat bubble background */}
-            <path
-              d="M24 4C12.954 4 4 12.954 4 24c0 5.573 2.274 10.614 5.945 14.24L8.28 43.6a1 1 0 001.36 1.28l6.24-3.12C18.56 43.2 21.2 44 24 44c11.046 0 20-8.954 20-20S35.046 4 24 4z"
-              fill="#0068ff"
-            />
-            {/* Zalo text */}
-            <text
-              x="24"
-              y="28"
-              textAnchor="middle"
-              fill="white"
-              fontSize="13"
-              fontWeight="bold"
-              fontFamily="Arial, sans-serif"
-              style={{ letterSpacing: "-0.5px" }}
+            <svg
+              viewBox="0 0 48 48"
+              style={{
+                width: "clamp(30px, 3vw, 38px)",
+                height: "clamp(30px, 3vw, 38px)",
+              }}
             >
-              Zalo
-            </text>
-          </svg>
-
-          {/* Red notification dot */}
-          <span
-            className="absolute bg-red-500 rounded-full border-2 border-white"
-            style={{
-              width: "clamp(10px, 1.2vw, 14px)",
-              height: "clamp(10px, 1.2vw, 14px)",
-              top: "clamp(2px, 0.4vw, 4px)",
-              right: "clamp(2px, 0.4vw, 4px)",
-            }}
-          />
-        </a>
+              <path
+                d="M24 4C12.954 4 4 12.954 4 24c0 5.573 2.274 10.614 5.945 14.24L8.28 43.6a1 1 0 001.36 1.28l6.24-3.12C18.56 43.2 21.2 44 24 44c11.046 0 20-8.954 20-20S35.046 4 24 4z"
+                fill="#0068ff"
+              />
+              <text
+                x="24"
+                y="28"
+                textAnchor="middle"
+                fill="white"
+                fontSize="13"
+                fontWeight="bold"
+                fontFamily="Arial, sans-serif"
+                style={{ letterSpacing: "-0.5px" }}
+              >
+                Zalo
+              </text>
+            </svg>
+            <span
+              className="absolute bg-red-500 rounded-full border-2 border-white"
+              style={{
+                width: "clamp(10px, 1.2vw, 14px)",
+                height: "clamp(10px, 1.2vw, 14px)",
+                top: "clamp(2px, 0.4vw, 4px)",
+                right: "clamp(2px, 0.4vw, 4px)",
+              }}
+            />
+          </a>
         </div>
       </div>
     </>
