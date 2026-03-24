@@ -216,7 +216,7 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
           </span>
         </div>
         <button 
-          onClick={handleBuyClick}
+          onClick={(e) => { e.stopPropagation(); handleBuyClick(); }}
           className="btn-cta-sm flex items-center gap-1 py-1 px-2"
           style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
         >
