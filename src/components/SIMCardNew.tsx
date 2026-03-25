@@ -29,7 +29,7 @@ interface SIMCardNewProps {
 }
 
 const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SIMCardNewProps) => {
-  const navigate = useNavigate();
+  const [contactOpen, setContactOpen] = useState(false);
   // Build rawNumber from ALL possible sources
   const rawNumber = (() => {
     const sources = [sim.rawDigits, sim.displayNumber, sim.formattedNumber];
@@ -43,8 +43,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
   })();
 const carrier = sim.network !== 'Khác' ? sim.network : detectCarrier(rawNumber);
   const handleBuyClick = () => {
-    const targetId = simId || sim.id;
-    navigate(`/mua-ngay/${encodeURIComponent(targetId)}`);
+    setContactOpen(true);
   };
 console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
   const formatPrice = (price: number | undefined): string => {
