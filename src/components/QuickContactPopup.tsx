@@ -1,4 +1,5 @@
 import { Phone, CheckCircle2 } from 'lucide-react';
+import simCardGold from '@/assets/sim-card-gold.png';
 import {
   Dialog,
   DialogContent,
@@ -51,17 +52,8 @@ const QuickContactPopup = ({ open, onOpenChange, simNumber, simPrice, simNetwork
         <div className="px-6 pb-4">
           <div className="flex items-center gap-4">
             {/* SIM card illustration */}
-            <div className="shrink-0 w-24 h-[72px] rounded-lg bg-gradient-to-br from-[hsl(45,80%,55%)] to-[hsl(45,60%,40%)] flex items-center justify-center shadow-lg relative overflow-hidden">
-              <div className="absolute inset-0 opacity-20">
-                <div className="absolute top-2 left-2 w-8 h-6 border border-white/40 rounded-sm" />
-                <div className="absolute top-3 left-3 w-3 h-2 bg-white/30 rounded-[1px]" />
-                <div className="absolute top-3 left-7 w-3 h-2 bg-white/30 rounded-[1px]" />
-                <div className="absolute top-6 left-3 w-3 h-2 bg-white/30 rounded-[1px]" />
-                <div className="absolute top-6 left-7 w-3 h-2 bg-white/30 rounded-[1px]" />
-              </div>
-              <span className="text-[9px] font-bold text-[#1a1a1a]/70 absolute bottom-1.5 right-1.5 tracking-tight">
-                {simNumber}
-              </span>
+            <div className="shrink-0 w-24 h-[72px] rounded-lg overflow-hidden shadow-lg bg-[#2a2a2a]">
+              <img src={simCardGold} alt="SIM Card" className="w-full h-full object-contain rounded-lg" />
             </div>
 
             {/* SIM details */}
