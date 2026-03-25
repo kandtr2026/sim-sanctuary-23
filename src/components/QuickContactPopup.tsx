@@ -52,8 +52,8 @@ const QuickContactPopup = ({ open, onOpenChange, simNumber, simPrice, simNetwork
         <div className="px-6 pb-4">
           <div className="flex items-center gap-4">
             {/* SIM card illustration */}
-            <div className="shrink-0 w-24 h-[72px] rounded-lg overflow-hidden shadow-lg bg-[#2a2a2a]">
-              <img src={simCardGold} alt="SIM Card" className="w-full h-full object-contain rounded-lg" />
+            <div className="shrink-0 w-36 h-24 flex items-center justify-center">
+              <img src={simCardGold} alt="SIM Card" className="w-full h-full object-contain rounded-lg drop-shadow-lg" />
             </div>
 
             {/* SIM details */}
