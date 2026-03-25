@@ -18,8 +18,7 @@ interface QuickContactPopupProps {
 }
 
 const QuickContactPopup = ({ open, onOpenChange, simNumber, simPrice, simNetwork }: QuickContactPopupProps) => {
-  const networkText = simNetwork && simNetwork !== 'Khác' ? ` Mạng: ${simNetwork}` : '';
-  const zaloMessage = `Chào shop, tôi muốn đặt sim ${simNumber}, giá ${simPrice}. Nhờ shop tư vấn và giữ sim giúp tôi.${networkText}`;
+  const zaloMessage = `Chào shop, tôi muốn đặt sim ${simNumber}, giá ${simPrice}. Nhờ shop tư vấn và giữ sim giúp tôi.`;
   const zaloUrl = `https://zalo.me/${ZALO_BASE}?text=${encodeURIComponent(zaloMessage)}`;
   const callUrl = `tel:${HOTLINE}`;
 
