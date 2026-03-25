@@ -224,6 +224,14 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
           ĐẶT GIAO NGAY
         </button>
       </div>
+
+      <QuickContactPopup
+        open={contactOpen}
+        onOpenChange={setContactOpen}
+        simNumber={sim.displayNumber || sim.formattedNumber}
+        simPrice={formatPrice(sim.price)}
+        simNetwork={sim.network}
+      />
     </div>
   );
 };

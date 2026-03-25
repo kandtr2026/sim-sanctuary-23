@@ -279,114 +279,13 @@ const MuaSimGiaRe = () => {
     return Object.keys(validateAll(fd)).length === 0;
   };
 
-  // Order modal state
-  const navigate = useNavigate();
+  // Quick contact popup state
   const [selectedSim, setSelectedSim] = useState<CheapSimNormalized | null>(null);
-  const [orderOpen, setOrderOpen] = useState(false);
-  const [orderCode, setOrderCode] = useState('');
-  const [formData, setFormData] = useState({ fullName: '', phone: '', address: '', note: '' });
-  const [formErrors, setFormErrors] = useState<FieldErrors>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-
-  const formValid = isFormValid(formData);
+  const [contactOpen, setContactOpen] = useState(false);
 
   const handleBuy = (sim: CheapSimNormalized) => {
     setSelectedSim(sim);
-    setOrderCode(generateOrderCode());
-    setFormData({ fullName: '', phone: '', address: '', note: '' });
-    setFormErrors({});
-    setTouched({});
-    setShowConfirm(false);
-    setShowSuccess(false);
-    setOrderOpen(true);
-  };
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    setTouched(prev => ({ ...prev, [field]: true }));
-    if (touched[field] || value) {
-      const fieldError = validateField(field as keyof FieldErrors, value);
-      setFormErrors(prev => {
-        const next = { ...prev };
-        if (fieldError) (next as any)[field] = fieldError;
-        else delete (next as any)[field];
-        return next;
-      });
-    }
-  };
-
-  const handleBlur = (field: string) => {
-    setTouched(prev => ({ ...prev, [field]: true }));
-    const fieldError = validateField(field as keyof FieldErrors, (formData as any)[field]);
-    setFormErrors(prev => {
-      const next = { ...prev };
-      if (fieldError) (next as any)[field] = fieldError;
-      else delete (next as any)[field];
-      return next;
-    });
-  };
-
-  const handleSubmitOrder = (e: React.FormEvent) => {
-    e.preventDefault();
-    const allErrors = validateAll(formData);
-    setFormErrors(allErrors);
-    setTouched({ fullName: true, phone: true, address: true });
-    if (Object.keys(allErrors).length > 0 || !selectedSim) return;
-    setShowConfirm(true);
-  };
-
-  const handleConfirmOrder = async () => {
-    if (!selectedSim) return;
-    setIsSubmitting(true);
-
-    const simNetwork = detectNetworkByPrefix(selectedSim.rawDigits);
-
-    const payload = {
-      createdAt: new Date().toISOString(),
-      orderCode,
-      simId: selectedSim.id,
-      simRawDigits: selectedSim.rawDigits,
-      simDisplayNumber: selectedSim.displayNumber,
-      originalPriceVnd: selectedSim.price,
-      priceVnd: selectedSim.price,
-      network: simNetwork,
-      fullName: formData.fullName.trim(),
-      phone: formData.phone.replace(/\D/g, ''),
-      address: formData.address.trim(),
-      note: formData.note.trim(),
-      paymentMethod: 'COD',
-      source: 'LovableWeb-CheapSim',
-    };
-
-    try {
-      const res = await fetch(MAKE_WEBHOOK_PROXY, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      fetch(ORDER_WEBAPP_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        mode: 'no-cors',
-      }).catch(() => {});
-
-      setShowConfirm(false);
-      setOrderOpen(false);
-      setShowSuccess(true);
-      setTimeout(() => {
-        navigate('/');
-      }, 1500);
-    } catch {
-      toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    setContactOpen(true);
   };
 
   // Map cheap sims to NormalizedSIM shape
