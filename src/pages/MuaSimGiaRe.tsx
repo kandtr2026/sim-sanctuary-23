@@ -195,7 +195,7 @@ const MuaSimGiaRe = () => {
   const isMobile = useIsMobile();
   const ITEMS_PER_PAGE = isMobile ? 20 : 30;
 
-  // --- Helpers matching homepage Checkout ---
+  // Network detection helper (still needed for popup)
   const normalizePhoneNumber = (input: string): string => {
     const digits = input.replace(/\D/g, '');
     if (digits.length === 9) return '0' + digits;
@@ -210,64 +210,6 @@ const MuaSimGiaRe = () => {
     if (['088', '091', '094', '081', '082', '083', '084', '085'].includes(prefix)) return 'Vinaphone';
     if (['099', '059'].includes(prefix)) return 'Gmobile';
     return 'Khác';
-  };
-
-  const generateOrderCode = (): string => {
-    const now = new Date();
-    const yy = String(now.getFullYear()).slice(-2);
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const rand = String(Math.floor(1000 + Math.random() * 9000));
-    return `DH${yy}${mm}${dd}-${rand}`;
-  };
-
-  const VIETNAMESE_NAME_REGEX = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵýỷỹ\s]+$/;
-
-  interface FieldErrors {
-    fullName?: string;
-    phone?: string;
-    address?: string;
-  }
-
-  const validateField = (field: keyof FieldErrors, value: string): string | undefined => {
-    switch (field) {
-      case 'fullName': {
-        const v = value.trim();
-        if (!v) return 'Vui lòng nhập họ tên';
-        if (v.length < 6) return 'Họ tên phải từ 6 ký tự trở lên';
-        if (v.length > 20) return 'Họ tên không quá 20 ký tự';
-        if (!VIETNAMESE_NAME_REGEX.test(v)) return 'Họ tên chỉ gồm chữ cái tiếng Việt và khoảng trắng';
-        return undefined;
-      }
-      case 'phone': {
-        const digits = value.replace(/\D/g, '');
-        if (!digits) return 'Vui lòng nhập số điện thoại';
-        if (digits.length !== 10) return 'Số điện thoại phải đúng 10 chữ số';
-        return undefined;
-      }
-      case 'address': {
-        const v = value.trim();
-        if (!v) return 'Vui lòng nhập địa chỉ';
-        if (v.length < 20) return 'Địa chỉ phải từ 20 ký tự trở lên';
-        if (v.length > 50) return 'Địa chỉ không quá 50 ký tự';
-        return undefined;
-      }
-    }
-  };
-
-  const validateAll = (fd: { fullName: string; phone: string; address: string }): FieldErrors => {
-    const errors: FieldErrors = {};
-    const fn = validateField('fullName', fd.fullName);
-    if (fn) errors.fullName = fn;
-    const ph = validateField('phone', fd.phone);
-    if (ph) errors.phone = ph;
-    const ad = validateField('address', fd.address);
-    if (ad) errors.address = ad;
-    return errors;
-  };
-
-  const isFormValid = (fd: { fullName: string; phone: string; address: string }): boolean => {
-    return Object.keys(validateAll(fd)).length === 0;
   };
 
   // Quick contact popup state
