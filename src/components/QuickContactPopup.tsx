@@ -31,7 +31,7 @@ const QuickContactPopup = ({ open, onOpenChange, simNumber, simPrice, simNetwork
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-md p-0 border border-[hsl(45,80%,45%)]/40 bg-[#1a1a1a] rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(245,179,1,0.15)] [&>button]:z-[60] [&>button]:w-10 [&>button]:h-10 [&>button]:pointer-events-auto [&>button]:rounded-full [&>button]:border [&>button]:border-[hsl(45,80%,45%)]/40 [&>button]:bg-[#2a2a2a] [&>button]:text-white [&>button]:hover:bg-[#3a3a3a] [&>button]:right-3 [&>button]:top-3"
+        className="max-w-md p-0 border border-[hsl(45,80%,45%)]/40 bg-[#1a1a1a] rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(245,179,1,0.15)] [&>button]:z-[60] [&>button]:pointer-events-auto [&>button]:w-9 [&>button]:h-9 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:border [&>button]:border-[hsl(45,80%,45%)]/40 [&>button]:bg-[#2a2a2a] [&>button]:text-white [&>button]:hover:bg-[#3a3a3a] [&>button]:right-3 [&>button]:top-3 [&>button>svg]:w-4 [&>button>svg]:h-4"
         aria-describedby={undefined}
       >
         {/* Title */}
