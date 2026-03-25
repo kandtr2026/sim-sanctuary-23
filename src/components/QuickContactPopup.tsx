@@ -83,7 +83,7 @@ const QuickContactPopup = ({ open, onOpenChange, simNumber, simPrice, simNetwork
             <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center shrink-0">
               <span className="text-[#0068ff] font-extrabold text-xl">Z</span>
             </span>
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-start">
               <span className="text-base font-bold leading-tight">Chat Zalo đặt hàng</span>
               <span className="text-xs font-normal opacity-80 leading-tight">Nhận tư vấn miễn phí</span>
             </div>
@@ -97,7 +97,7 @@ const QuickContactPopup = ({ open, onOpenChange, simNumber, simPrice, simNetwork
             <span className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
               <Phone className="w-5 h-5 text-white" />
             </span>
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-start">
               <span className="text-base font-bold leading-tight">Gọi giao ngay</span>
               <span className="text-xs font-normal opacity-80 leading-tight">Hỗ trợ 24/7 (Miễn phí cuộc gọi)</span>
             </div>
