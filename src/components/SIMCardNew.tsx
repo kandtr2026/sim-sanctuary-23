@@ -112,117 +112,118 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
   const discountBadgeText = hasDiscount ? formatDiscountAmount(discountAmount) : null;
 
   return (
-    <div
-      onClick={handleBuyClick}
-      className={cn(
-        "sim-card-compact group relative overflow-hidden cursor-pointer",
-        hasDiscount && "ring-1 ring-cta/30 shadow-promo-sm"
-      )}>
+    <>
+      <div
+        onClick={handleBuyClick}
+        className={cn(
+          "sim-card-compact group relative overflow-hidden cursor-pointer",
+          hasDiscount && "ring-1 ring-cta/30 shadow-promo-sm"
+        )}>
 
-      {hasDiscount && (
-        <>
-          <style>{`
-            @keyframes flashBlink {
-              0%   { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 0px rgba(255,255,255,0)); }
-              50%  { opacity: 0.25; transform: scale(1.18); filter: drop-shadow(0 0 10px rgba(255,255,255,0.9)); }
-              100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 0px rgba(255,255,255,0)); }
-            }
-          `}</style>
-          <img
-            src="/flash-sale.png"
-            alt="Flash Sale"
-            className="absolute top-2 left-2 z-20"
-            style={{
-              width: '56px',
-              height: 'auto',
-              background: 'transparent',
-              border: 'none',
-              padding: 0,
-              boxShadow: 'none',
-              animation: 'flashBlink 0.45s infinite ease-in-out',
-              pointerEvents: 'none'
-            }}
-          />
-        </>
-      )}
-
-      <div className={cn("flex items-center gap-1 mb-1.5 flex-wrap max-w-full", hasDiscount && "mt-8")}>
-        {sim.network && sim.network !== 'Khác' && (
-  <span
-    className={cn("px-1.5 py-px rounded font-medium", networkColors[sim.network] || 'bg-gray-500 text-white')}
-    style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
-  >
-    {sim.network}
-  </span>
-)}
-        {sim.network && sim.network !== 'Khác' && sim.beautyScore >= 50 && (
-          <span 
-            className="px-1.5 py-px rounded font-medium bg-gold/20 text-gold-dark"
-            style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
-          >
-            ⭐ Số đẹp
-          </span>
+        {hasDiscount && (
+          <>
+            <style>{`
+              @keyframes flashBlink {
+                0%   { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 0px rgba(255,255,255,0)); }
+                50%  { opacity: 0.25; transform: scale(1.18); filter: drop-shadow(0 0 10px rgba(255,255,255,0.9)); }
+                100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 0px rgba(255,255,255,0)); }
+              }
+            `}</style>
+            <img
+              src="/flash-sale.png"
+              alt="Flash Sale"
+              className="absolute top-2 left-2 z-20"
+              style={{
+                width: '56px',
+                height: 'auto',
+                background: 'transparent',
+                border: 'none',
+                padding: 0,
+                boxShadow: 'none',
+                animation: 'flashBlink 0.45s infinite ease-in-out',
+                pointerEvents: 'none'
+              }}
+            />
+          </>
         )}
-        {quyBadgeText && (
-          <span 
-            className="px-1.5 py-px rounded font-semibold bg-primary/10 text-primary border border-primary/20 animate-fade-in"
-            style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
-          >
-            {quyBadgeText}
-          </span>
-        )}
-      </div>
 
-      <div 
-        className="sim-number-auto mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis"
-        style={{ fontSize: 'clamp(14px, 3.5vw, 22px)' }}
-      >
-        {searchQuery?.trim()
-          ? createHighlightedNumber(
-              sim.displayNumber || sim.formattedNumber,
-              sim.displayNumber.replace(/\D/g, ''),
-              searchQuery
-            )
-          : formatWithHighlight(sim.displayNumber || sim.formattedNumber)
-        }
-      </div>
-
-
-      <div className="flex items-center justify-between mt-auto pt-1">
-        <div className="flex flex-col">
-          {hasDiscount && (
-            <span 
-              className="text-muted-foreground line-through opacity-70"
-              style={{ fontSize: 'clamp(8px, 1.6vw, 11px)' }}
+        <div className={cn("flex items-center gap-1 mb-1.5 flex-wrap max-w-full", hasDiscount && "mt-8")}>
+          {sim.network && sim.network !== 'Khác' && (
+            <span
+              className={cn("px-1.5 py-px rounded font-medium", networkColors[sim.network] || 'bg-gray-500 text-white')}
+              style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
             >
-              {formatPrice(originalPrice)}
+              {sim.network}
             </span>
           )}
-          <span 
-            className="font-bold whitespace-nowrap"
-            style={{ 
-              fontSize: 'clamp(13px, 2.2vw, 17px)', 
-              color: '#FFFFFF',
-              lineHeight: '1.2'
-            }}
-          >
-            {formatPrice(sim.price)}
-          </span>
-          <span 
-            className="text-muted-foreground block"
-            style={{ fontSize: 'clamp(10px, 1.8vw, 13px)', lineHeight: '1.3' }}
-          >
-            GIAO NGAY HÔM NAY
-          </span>
+          {sim.network && sim.network !== 'Khác' && sim.beautyScore >= 50 && (
+            <span 
+              className="px-1.5 py-px rounded font-medium bg-gold/20 text-gold-dark"
+              style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+            >
+              ⭐ Số đẹp
+            </span>
+          )}
+          {quyBadgeText && (
+            <span 
+              className="px-1.5 py-px rounded font-semibold bg-primary/10 text-primary border border-primary/20 animate-fade-in"
+              style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+            >
+              {quyBadgeText}
+            </span>
+          )}
         </div>
-        <button 
-          onClick={(e) => { e.stopPropagation(); handleBuyClick(); }}
-          className="btn-cta-sm flex items-center gap-1 py-1 px-2"
-          style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+
+        <div 
+          className="sim-number-auto mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis"
+          style={{ fontSize: 'clamp(14px, 3.5vw, 22px)' }}
         >
-          <Phone style={{ width: 'clamp(8px, 1.8vw, 12px)', height: 'clamp(8px, 1.8vw, 12px)' }} />
-          ĐẶT GIAO NGAY
-        </button>
+          {searchQuery?.trim()
+            ? createHighlightedNumber(
+                sim.displayNumber || sim.formattedNumber,
+                sim.displayNumber.replace(/\D/g, ''),
+                searchQuery
+              )
+            : formatWithHighlight(sim.displayNumber || sim.formattedNumber)
+          }
+        </div>
+
+        <div className="flex items-center justify-between mt-auto pt-1">
+          <div className="flex flex-col">
+            {hasDiscount && (
+              <span 
+                className="text-muted-foreground line-through opacity-70"
+                style={{ fontSize: 'clamp(8px, 1.6vw, 11px)' }}
+              >
+                {formatPrice(originalPrice)}
+              </span>
+            )}
+            <span 
+              className="font-bold whitespace-nowrap"
+              style={{ 
+                fontSize: 'clamp(13px, 2.2vw, 17px)', 
+                color: '#FFFFFF',
+                lineHeight: '1.2'
+              }}
+            >
+              {formatPrice(sim.price)}
+            </span>
+            <span 
+              className="text-muted-foreground block"
+              style={{ fontSize: 'clamp(10px, 1.8vw, 13px)', lineHeight: '1.3' }}
+            >
+              GIAO NGAY HÔM NAY
+            </span>
+          </div>
+          <button 
+            onClick={(e) => { e.stopPropagation(); handleBuyClick(); }}
+            className="btn-cta-sm flex items-center gap-1 py-1 px-2"
+            style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+          >
+            <Phone style={{ width: 'clamp(8px, 1.8vw, 12px)', height: 'clamp(8px, 1.8vw, 12px)' }} />
+            ĐẶT GIAO NGAY
+          </button>
+        </div>
       </div>
 
       <QuickContactPopup
@@ -232,7 +233,7 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
         simPrice={formatPrice(sim.price)}
         simNetwork={sim.network}
       />
-    </div>
+    </>
   );
 };
 
