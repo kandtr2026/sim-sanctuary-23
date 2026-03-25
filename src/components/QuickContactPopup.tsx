@@ -1,4 +1,5 @@
 import { Phone, CheckCircle2 } from 'lucide-react';
+import simCardGold from '@/assets/sim-card-gold.png';
 import {
   Dialog,
   DialogContent,
