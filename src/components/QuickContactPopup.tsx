@@ -1,9 +1,7 @@
-import { Phone } from 'lucide-react';
+import { Phone, CheckCircle2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
 
 const HOTLINE = '0938868868';
@@ -22,48 +20,112 @@ const QuickContactPopup = ({ open, onOpenChange, simNumber, simPrice, simNetwork
   const zaloUrl = `https://zalo.me/${ZALO_BASE}?text=${encodeURIComponent(zaloMessage)}`;
   const callUrl = `tel:${HOTLINE}`;
 
+  const digits = simNumber.replace(/\D/g, '');
+  const prefix = digits.substring(0, 3);
+  const networkName = simNetwork && simNetwork !== 'Khác' ? simNetwork : '';
+  const description = networkName
+    ? `Sim Số Đẹp ${networkName} Đầu ${prefix}`
+    : `Sim Số Đẹp Đầu ${prefix}`;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm" aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle className="text-center text-lg font-bold">
+      <DialogContent
+        className="max-w-md p-0 border border-[hsl(45,80%,45%)]/40 bg-[#1a1a1a] rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(245,179,1,0.15)] [&>button]:z-[60] [&>button]:w-10 [&>button]:h-10 [&>button]:pointer-events-auto [&>button]:rounded-full [&>button]:border [&>button]:border-[hsl(45,80%,45%)]/40 [&>button]:bg-[#2a2a2a] [&>button]:text-white [&>button]:hover:bg-[#3a3a3a] [&>button]:right-3 [&>button]:top-3"
+        aria-describedby={undefined}
+      >
+        {/* Title */}
+        <div className="pt-6 pb-2 px-6 text-center">
+          <h2 className="text-xl font-bold text-[hsl(45,90%,65%)]">
             Liên hệ đặt hàng ngay hôm nay
-          </DialogTitle>
-        </DialogHeader>
-
-        {/* SIM info summary */}
-        <div className="text-center mb-2">
-          <div className="text-2xl font-bold text-primary tracking-wider mb-1">{simNumber}</div>
-          <div className="text-lg font-semibold text-foreground">{simPrice}</div>
-          {simNetwork && simNetwork !== 'Khác' && (
-            <span className="inline-block mt-1 px-2 py-0.5 rounded text-xs font-bold bg-primary text-primary-foreground">
-              {simNetwork}
-            </span>
-          )}
+          </h2>
         </div>
 
-        <div className="space-y-3 mt-2">
-          {/* Zalo button */}
+        {/* Scarcity badge */}
+        <div className="flex justify-center pb-3">
+          <span className="bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full">
+            GIỚI HẠN: Chỉ còn 1 Số
+          </span>
+        </div>
+
+        {/* SIM info section */}
+        <div className="px-6 pb-4">
+          <div className="flex items-center gap-4">
+            {/* SIM card illustration */}
+            <div className="shrink-0 w-24 h-[72px] rounded-lg bg-gradient-to-br from-[hsl(45,80%,55%)] to-[hsl(45,60%,40%)] flex items-center justify-center shadow-lg relative overflow-hidden">
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute top-2 left-2 w-8 h-6 border border-white/40 rounded-sm" />
+                <div className="absolute top-3 left-3 w-3 h-2 bg-white/30 rounded-[1px]" />
+                <div className="absolute top-3 left-7 w-3 h-2 bg-white/30 rounded-[1px]" />
+                <div className="absolute top-6 left-3 w-3 h-2 bg-white/30 rounded-[1px]" />
+                <div className="absolute top-6 left-7 w-3 h-2 bg-white/30 rounded-[1px]" />
+              </div>
+              <span className="text-[9px] font-bold text-[#1a1a1a]/70 absolute bottom-1.5 right-1.5 tracking-tight">
+                {simNumber}
+              </span>
+            </div>
+
+            {/* SIM details */}
+            <div className="flex-1 min-w-0">
+              <div className="text-2xl sm:text-3xl font-extrabold text-primary tracking-wide leading-tight">
+                {simNumber}
+              </div>
+              <div className="text-xl sm:text-2xl font-bold text-white mt-1">
+                {simPrice}
+              </div>
+              <div className="text-sm text-white/60 mt-0.5">
+                {description}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA buttons */}
+        <div className="px-6 space-y-3">
+          {/* Zalo */}
           <a
             href={zaloUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl bg-[#0068ff] hover:bg-[#0055dd] text-white font-bold text-base transition-colors shadow-md"
+            className="w-full flex items-center gap-3 px-5 py-3.5 rounded-xl bg-[#0068ff] hover:bg-[#0055dd] text-white font-bold text-base transition-colors shadow-lg"
           >
-            <span className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0">
-              <span className="text-[#0068ff] font-extrabold text-lg">Z</span>
+            <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center shrink-0">
+              <span className="text-[#0068ff] font-extrabold text-xl">Z</span>
             </span>
-            Chat Zalo đặt hàng
+            <div className="flex flex-col">
+              <span className="text-base font-bold leading-tight">Chat Zalo đặt hàng</span>
+              <span className="text-xs font-normal opacity-80 leading-tight">Nhận tư vấn miễn phí</span>
+            </div>
           </a>
 
-          {/* Call button */}
+          {/* Call */}
           <a
             href={callUrl}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base transition-colors shadow-md"
+            className="w-full flex items-center gap-3 px-5 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base transition-colors shadow-lg"
           >
-            <Phone className="w-5 h-5" />
-            Gọi giao ngay
+            <span className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+              <Phone className="w-5 h-5 text-white" />
+            </span>
+            <div className="flex flex-col">
+              <span className="text-base font-bold leading-tight">Gọi giao ngay</span>
+              <span className="text-xs font-normal opacity-80 leading-tight">Hỗ trợ 24/7 (Miễn phí cuộc gọi)</span>
+            </div>
           </a>
+        </div>
+
+        {/* Trust bar */}
+        <div className="px-6 py-4 mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-white/50">
+          <span className="flex items-center gap-1">
+            <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(45,80%,55%)]" />
+            Kiểm tra trước khi nhận
+          </span>
+          <span className="flex items-center gap-1">
+            <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(45,80%,55%)]" />
+            Cam kết chính chủ
+          </span>
+          <span className="flex items-center gap-1">
+            <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(45,80%,55%)]" />
+            Miễn phí giao hàng
+          </span>
         </div>
       </DialogContent>
     </Dialog>
