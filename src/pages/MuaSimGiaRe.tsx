@@ -18,8 +18,6 @@ import {
 
 const HOTLINE = '0901.19.1111';
 const ZALO_URL = 'https://zalo.me/0901191111';
-const ORDER_WEBAPP_URL = "https://script.google.com/macros/s/AKfycby_3QYkdJSBo43QiJlJ88rSLCsXN7baZtnW5v9VeF3AZJAVzZOjB35bhfFCHZBrVwA/exec";
-const MAKE_WEBHOOK_PROXY = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/make-webhook-proxy`;
 
 const faqItems = [
   {
