@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { Phone } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import type { NormalizedSIM, PromotionalData, QuyType } from '@/lib/simUtils';
+import QuickContactPopup from '@/components/QuickContactPopup';
 import { matchesQuyType } from '@/lib/simUtils';
 import {
   Tooltip,
@@ -28,7 +29,7 @@ interface SIMCardNewProps {
 }
 
 const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SIMCardNewProps) => {
-  const navigate = useNavigate();
+  const [contactOpen, setContactOpen] = useState(false);
   // Build rawNumber from ALL possible sources
   const rawNumber = (() => {
     const sources = [sim.rawDigits, sim.displayNumber, sim.formattedNumber];
@@ -42,8 +43,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
   })();
 const carrier = sim.network !== 'Khác' ? sim.network : detectCarrier(rawNumber);
   const handleBuyClick = () => {
-    const targetId = simId || sim.id;
-    navigate(`/mua-ngay/${encodeURIComponent(targetId)}`);
+    setContactOpen(true);
   };
 console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
   const formatPrice = (price: number | undefined): string => {
@@ -224,6 +224,14 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
           ĐẶT GIAO NGAY
         </button>
       </div>
+
+      <QuickContactPopup
+        open={contactOpen}
+        onOpenChange={setContactOpen}
+        simNumber={sim.displayNumber || sim.formattedNumber}
+        simPrice={formatPrice(sim.price)}
+        simNetwork={sim.network}
+      />
     </div>
   );
 };
