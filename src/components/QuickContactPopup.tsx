@@ -86,12 +86,12 @@ const QuickContactPopup = ({ open, onOpenChange, simNumber, simPrice, simNetwork
             href={zaloUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center gap-3 px-5 py-3.5 rounded-xl bg-[#0068ff] hover:bg-[#0055dd] text-white font-bold text-base transition-colors shadow-lg"
+            className="w-full flex items-center justify-center gap-3 px-5 py-3.5 rounded-xl bg-[#0068ff] hover:bg-[#0055dd] text-white font-bold text-base transition-colors shadow-lg"
           >
             <span className="w-10 h-10 rounded-full bg-white flex items-center justify-center shrink-0">
               <span className="text-[#0068ff] font-extrabold text-xl">Z</span>
             </span>
-            <div className="flex flex-col">
+            <div className="flex flex-col items-center">
               <span className="text-base font-bold leading-tight">Chat Zalo đặt hàng</span>
               <span className="text-xs font-normal opacity-80 leading-tight">Nhận tư vấn miễn phí</span>
             </div>
@@ -100,12 +100,12 @@ const QuickContactPopup = ({ open, onOpenChange, simNumber, simPrice, simNetwork
           {/* Call */}
           <a
             href={callUrl}
-            className="w-full flex items-center gap-3 px-5 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base transition-colors shadow-lg"
+            className="w-full flex items-center justify-center gap-3 px-5 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base transition-colors shadow-lg"
           >
             <span className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
               <Phone className="w-5 h-5 text-white" />
             </span>
-            <div className="flex flex-col">
+            <div className="flex flex-col items-center">
               <span className="text-base font-bold leading-tight">Gọi giao ngay</span>
               <span className="text-xs font-normal opacity-80 leading-tight">Hỗ trợ 24/7 (Miễn phí cuộc gọi)</span>
             </div>
@@ -113,17 +113,17 @@ const QuickContactPopup = ({ open, onOpenChange, simNumber, simPrice, simNetwork
         </div>
 
         {/* Trust bar */}
-        <div className="px-6 py-4 mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-white/50">
+        <div className="px-6 py-4 mt-2 flex items-center justify-between text-xs text-white/50">
           <span className="flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(45,80%,55%)]" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(45,80%,55%)] shrink-0" />
             Kiểm tra trước khi nhận
           </span>
           <span className="flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(45,80%,55%)]" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(45,80%,55%)] shrink-0" />
             Cam kết chính chủ
           </span>
           <span className="flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(45,80%,55%)]" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(45,80%,55%)] shrink-0" />
             Miễn phí giao hàng
           </span>
         </div>
