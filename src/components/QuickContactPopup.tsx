@@ -24,7 +24,7 @@ const QuickContactPopup = ({ open, onOpenChange, simNumber, simPrice, simNetwork
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm [&>button]:z-[60] [&>button]:p-2 [&>button]:w-10 [&>button]:h-10 [&>button]:pointer-events-auto">
+      <DialogContent className="max-w-sm" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="text-center text-lg font-bold">
             Liên hệ đặt hàng ngay hôm nay
