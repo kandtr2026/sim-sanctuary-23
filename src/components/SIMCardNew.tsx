@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { Phone } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import type { NormalizedSIM, PromotionalData, QuyType } from '@/lib/simUtils';
+import QuickContactPopup from '@/components/QuickContactPopup';
 import { matchesQuyType } from '@/lib/simUtils';
 import {
   Tooltip,
