@@ -2,8 +2,8 @@ import { Phone, MessageCircle } from "lucide-react";
 
 const Header = () => {
   return (
-    <header className="bg-header-bg text-header-foreground py-3 px-4">
-      <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+    <header className="bg-header-bg text-header-foreground py-4 px-4">
+      <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Logo */}
         <div className="flex items-center gap-2">
           <a href="/" className="text-xl md:text-2xl font-bold tracking-tight">

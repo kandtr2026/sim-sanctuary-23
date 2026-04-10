@@ -94,6 +94,47 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* ===== MOBILE UI POLISH ===== */
+@layer components {
+  /* Improved mobile section spacing */
+  @media (max-width: 768px) {
+    .container {
+      padding-left: 16px !important;
+      padding-right: 16px !important;
+    }
+
+    /* Better SIM card grid gap on mobile */
+    .sim-card-compact {
+      min-height: 152px;
+      padding: 12px;
+      border-radius: 12px;
+      border-color: hsl(var(--border) / 0.6);
+      background: linear-gradient(165deg, hsl(var(--card)) 0%, hsl(0 0% 8%) 100%);
+    }
+
+    /* Softer card hover on mobile (no translateY, just glow) */
+    .sim-card-compact:hover {
+      transform: none;
+      border-color: hsl(var(--gold) / 0.25);
+      box-shadow: 0 0 12px -4px hsl(var(--gold) / 0.15);
+    }
+
+    /* Cleaner CTA button on mobile */
+    .btn-cta-sm {
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 11px;
+      letter-spacing: 0.02em;
+    }
+
+    .btn-cta {
+      border-radius: 12px;
+    }
   }
 }
 

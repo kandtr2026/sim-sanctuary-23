@@ -513,10 +513,10 @@ const Index = () => {
       <TrustBar />
       <Navigation />
 
-      <main className="container mx-auto px-4 pt-3 pb-6">
+      <main className="container mx-auto px-4 pt-4 pb-6">
         {/* Hero Banner - Compact, near menu - Hidden when no results with suggestions */}
         {!isNoResultsWithSuggestions && (
-          <section className="mb-4">
+          <section className="mb-5">
             <div className="rounded-xl overflow-hidden relative">
               <img src="/home-banner.png" alt="CHONSOMOBIFONE.COM banner" className="w-full h-full object-cover" />
               {/* CTA Button - KHO SIM ĐỒNG GIÁ 229K */}
@@ -596,7 +596,7 @@ const Index = () => {
         {!isNoResultsWithSuggestions && <ProcessSteps />}
 
         {/* Search Section - Below banner */}
-        <section id="sim-so" className="mb-5">
+        <section id="sim-so" className="mb-6">
           <SearchBarAdvanced
             value={filters.searchQuery}
             onChange={(value) => updateFilterWithSeed("searchQuery", value)}
@@ -638,7 +638,7 @@ const Index = () => {
 
           {/* Center - SIM Listing */}
           <section className="flex-1 min-w-0">
-            <div className="bg-card rounded-xl shadow-card border border-border p-4 md:p-6 mb-6">
+            <div className="bg-card rounded-2xl shadow-card border border-border/50 p-3 md:p-6 mb-6">
               {/* Header with sort and reload */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-4 mb-4">
                 <div className="hidden lg:block">
@@ -681,7 +681,7 @@ const Index = () => {
               {/* SIM Grid */}
               {!isLoading && !error && displayedSIMs.length > 0 && (
                 <>
-                  <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-4">
+                  <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 md:gap-3 mt-4">
                     {displayedSIMs.map((sim) => (
                       <div key={sim.id} className="min-w-0">
                         <SIMCardNew
