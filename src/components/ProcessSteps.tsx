@@ -20,16 +20,16 @@ const ProcessSteps = () => {
   ];
 
   return (
-    <section className="bg-background-secondary py-8 md:py-12">
+    <section className="py-6 md:py-12">
       <div className="container mx-auto px-4">
-        <h2 className="text-xl md:text-2xl font-bold text-center mb-6 md:mb-8" style={{ color: 'hsl(var(--gold))' }}>
+        <h2 className="text-lg md:text-2xl font-bold text-center mb-5 md:mb-8" style={{ color: 'hsl(var(--gold))' }}>
           QUY TRÌNH MUA SIM CHUẨN (3 BƯỚC)
         </h2>
         
-        <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 max-w-5xl mx-auto">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-6 max-w-5xl mx-auto">
           {steps.map((step, index) => (
             <div key={index} className="flex items-center w-full md:w-auto">
-              <div className="bg-card border border-border rounded-lg p-4 md:p-6 flex-1 md:flex-none md:w-64 shadow-card relative">
+              <div className="bg-card border border-border/60 rounded-2xl p-5 md:p-6 flex-1 md:flex-none md:w-64 shadow-card relative">
                 {/* Badge "HỎA TỐC" cho bước 3 */}
                 {index === 2 && (
                   <div 

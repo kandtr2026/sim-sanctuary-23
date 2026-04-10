@@ -33,10 +33,10 @@ const Navigation = () => {
 
         {/* Mobile Menu Toggle */}
         <div className="lg:hidden flex items-center justify-between py-3">
-          <span className="text-primary font-semibold">Menu</span>
+          <span className="text-gold font-bold text-sm tracking-wide">DANH MỤC</span>
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 rounded-lg bg-primary text-primary-foreground"
+            className="p-2.5 rounded-xl bg-primary/90 text-primary-foreground transition-colors hover:bg-primary"
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -44,13 +44,13 @@ const Navigation = () => {
 
         {/* Mobile Menu */}
         {mobileOpen && (
-          <div className="lg:hidden pb-4 space-y-2">
+          <div className="lg:hidden pb-4 space-y-1.5">
             {menuItems.map((item) => (
               <a
                 key={item.label}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className="block px-4 py-3 rounded-lg bg-yellow-500 text-white font-medium hover:bg-yellow-600 transition-colors"
+                className="block px-4 py-3 rounded-xl bg-secondary/80 text-foreground/90 font-medium text-sm hover:bg-gold/10 hover:text-gold transition-all border border-border/40"
               >
                 {item.label}
               </a>

@@ -51,8 +51,8 @@ const FloatingContactButtons = () => {
       <div
         className="fixed flex flex-col items-end"
         style={{
-          bottom: "clamp(16px, 2.5vw, 24px)",
-          right: "clamp(16px, 2.5vw, 24px)",
+          bottom: "clamp(80px, 12vw, 90px)",
+          right: "clamp(12px, 2vw, 24px)",
           zIndex: 9999,
           gap: "clamp(10px, 1.2vw, 14px)",
         }}

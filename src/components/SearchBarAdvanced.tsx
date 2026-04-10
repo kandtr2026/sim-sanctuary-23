@@ -59,7 +59,7 @@ const SearchBarAdvanced = ({ value, onChange, debounceMs = 300 }: SearchBarAdvan
   return (
     <div className="relative">
       <div className="relative">
-        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-8 h-8 text-muted-foreground" />
+        <Search className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 w-6 h-6 md:w-8 md:h-8 text-muted-foreground" />
         <input
           type="tel"
           inputMode="tel"
@@ -68,9 +68,9 @@ const SearchBarAdvanced = ({ value, onChange, debounceMs = 300 }: SearchBarAdvan
           onChange={handleChange}
           onPaste={handlePaste}
           autoComplete="off"
-          placeholder="Nhập số cần tìm... (VD: 0903*, *8888, 090*6789)"
-          className="w-full pl-18 pr-24 py-6 rounded-xl border-2 border-border bg-card text-2xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-          style={{ paddingLeft: '4.5rem' }}
+          placeholder="Nhập số cần tìm... (VD: 0903*, *8888)"
+          className="w-full pr-20 py-4 md:py-6 rounded-2xl border border-border/60 bg-card text-lg md:text-2xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
+          style={{ paddingLeft: '3rem' }}
         />
         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
           {inputValue && (
