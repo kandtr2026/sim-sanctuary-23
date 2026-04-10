@@ -517,8 +517,8 @@ const Index = () => {
         {/* Hero Banner - Compact, near menu - Hidden when no results with suggestions */}
         {!isNoResultsWithSuggestions && (
           <section className="mb-5">
-            <div className="rounded-xl overflow-hidden relative">
-              <img src="/home-banner.png" alt="CHONSOMOBIFONE.COM banner" className="w-full h-auto object-contain" />
+            <div className="rounded-xl overflow-hidden relative aspect-[16/9] md:aspect-auto">
+              <img src="/home-banner.png" alt="CHONSOMOBIFONE.COM banner" className="w-full h-full object-cover" />
               {/* CTA Button - KHO SIM ĐỒNG GIÁ 229K */}
 <div className="absolute bottom-4 md:bottom-6 left-0 right-0 flex flex-col items-center">
   <a
