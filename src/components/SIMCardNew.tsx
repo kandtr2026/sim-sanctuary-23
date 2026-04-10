@@ -209,8 +209,8 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
               {formatPrice(sim.price)}
             </span>
             <span 
-              className="text-muted-foreground block"
-              style={{ fontSize: 'clamp(10px, 1.8vw, 13px)', lineHeight: '1.3' }}
+              className="text-muted-foreground/70 block"
+              style={{ fontSize: 'clamp(9px, 1.6vw, 12px)', lineHeight: '1.3', letterSpacing: '0.02em' }}
             >
               GIAO NGAY HÔM NAY
             </span>
