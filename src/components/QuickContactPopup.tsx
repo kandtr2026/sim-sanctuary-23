@@ -6,7 +6,7 @@ import {
 } from '@/components/ui/dialog';
 
 const HOTLINE = '0938868868';
-const ZALO_BASE = '0938868868';
+const ZALO_BASE = '0933356666';
 
 interface QuickContactPopupProps {
   open: boolean;
