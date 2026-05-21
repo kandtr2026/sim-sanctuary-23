@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/accordion';
 
 const HOTLINE = '0901.19.1111';
-const ZALO_URL = 'https://zalo.me/0901191111';
+const ZALO_URL = 'https://zalo.me/0938868868';
 
 const faqItems = [
   {
