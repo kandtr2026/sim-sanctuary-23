@@ -34,7 +34,7 @@ const StickyCtaBottomBar = () => {
           <span>Tư vấn chọn số</span>
         </a>
         <a
-          href="https://zalo.me/0938868868"
+          href="https://zalo.me/0933356666"
           target="_blank"
           rel="noopener noreferrer"
           className="flex-1 flex items-center justify-center gap-2 rounded-md text-black font-semibold text-sm py-3"
