@@ -17,7 +17,7 @@ import {
 import type { NormalizedSIM } from '@/lib/simUtils';
 
 const HOTLINE = '0901.19.1111';
-const ZALO_URL = 'https://zalo.me/0901191111';
+const ZALO_URL = 'https://zalo.me/0938868868';
 
 const faqItems = [
 { q: 'Sim tứ quý giá bao nhiêu?', a: 'Giá sim tứ quý dao động từ vài trăm nghìn đến hàng trăm triệu đồng, tùy thuộc vào số quý (1111, 8888, 9999...), đầu số và nhà mạng. Sim tứ quý 8 và tứ quý 9 thường có giá cao nhất do ý nghĩa phong thủy đặc biệt.' },
