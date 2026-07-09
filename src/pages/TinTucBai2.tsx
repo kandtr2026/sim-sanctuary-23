@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import Header from '@/components/Header';
 import TrustBar from '@/components/TrustBar';
 import Navigation from '@/components/Navigation';
@@ -6,6 +7,24 @@ import Footer from '@/components/Footer';
 const TinTucBai2 = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Số Tổng Đài Mobifone, Vinaphone, Viettel, Gmobile Mới Nhất</title>
+        <meta name="description" content="Danh sách số tổng đài chăm sóc khách hàng của các nhà mạng Mobifone, Vinaphone, Viettel, Gmobile cập nhật mới nhất." />
+        <link rel="canonical" href="https://www.chonsomobifone.com/tin-tuc/so-tong-dai-cac-nha-mang" />
+        <meta property="og:title" content="Số Tổng Đài Mobifone, Vinaphone, Viettel, Gmobile Mới Nhất" />
+        <meta property="og:description" content="Danh sách số tổng đài chăm sóc khách hàng của các nhà mạng Mobifone, Vinaphone, Viettel, Gmobile cập nhật mới nhất." />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content="https://www.chonsomobifone.com/tin-tuc/so-tong-dai-cac-nha-mang" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": 'Số Tổng Đài Mobifone, Vinaphone, Viettel, Gmobile Mới Nhất',
+          "description": 'Danh sách số tổng đài chăm sóc khách hàng của các nhà mạng Mobifone, Vinaphone, Viettel, Gmobile cập nhật mới nhất.',
+          "author": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM" },
+          "publisher": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM", "logo": { "@type": "ImageObject", "url": "https://www.chonsomobifone.com/favicon.png" } },
+          "mainEntityOfPage": "https://www.chonsomobifone.com/tin-tuc/so-tong-dai-cac-nha-mang"
+        })}</script>
+      </Helmet>
       <Header />
       <TrustBar />
       <Navigation />

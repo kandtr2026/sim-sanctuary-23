@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import Header from '@/components/Header';
 import TrustBar from '@/components/TrustBar';
 import Navigation from '@/components/Navigation';
@@ -6,6 +7,24 @@ import Footer from '@/components/Footer';
 const TinTucBai5 = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Cách Tránh Mất Tiền Oan Khi Mua Sim Số Đẹp</title>
+        <meta name="description" content="Quy tắc vàng khi mua SIM số đẹp: không thanh toán 100% trước, kiểm tra hoạt động, cảnh giác sim giá rẻ bất ngờ, kiểm tra TTTB 1414." />
+        <link rel="canonical" href="https://www.chonsomobifone.com/tin-tuc/cach-tranh-mat-tien-oan-khi-mua-sim-so-dep" />
+        <meta property="og:title" content="Cách Tránh Mất Tiền Oan Khi Mua Sim Số Đẹp" />
+        <meta property="og:description" content="Quy tắc vàng khi mua SIM số đẹp: không thanh toán 100% trước, kiểm tra hoạt động, cảnh giác sim giá rẻ bất ngờ, kiểm tra TTTB 1414." />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content="https://www.chonsomobifone.com/tin-tuc/cach-tranh-mat-tien-oan-khi-mua-sim-so-dep" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": 'Cách Tránh Mất Tiền Oan Khi Mua Sim Số Đẹp',
+          "description": 'Quy tắc vàng khi mua SIM số đẹp: không thanh toán 100% trước, kiểm tra hoạt động, cảnh giác sim giá rẻ bất ngờ, kiểm tra TTTB 1414.',
+          "author": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM" },
+          "publisher": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM", "logo": { "@type": "ImageObject", "url": "https://www.chonsomobifone.com/favicon.png" } },
+          "mainEntityOfPage": "https://www.chonsomobifone.com/tin-tuc/cach-tranh-mat-tien-oan-khi-mua-sim-so-dep"
+        })}</script>
+      </Helmet>
       <Header />
       <TrustBar />
       <Navigation />

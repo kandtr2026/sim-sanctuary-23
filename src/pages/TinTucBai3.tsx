@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import Header from '@/components/Header';
 import TrustBar from '@/components/TrustBar';
 import Navigation from '@/components/Navigation';
@@ -6,6 +7,24 @@ import Footer from '@/components/Footer';
 const TinTucBai3 = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Ý Nghĩa Các Con Số Từ 1 Đến 9 Trong Phong Thủy</title>
+        <meta name="description" content="Ý nghĩa từng con số từ 1 đến 9 theo phong thủy, ngũ hành và ứng dụng khi chọn SIM số đẹp hợp mệnh." />
+        <link rel="canonical" href="https://www.chonsomobifone.com/tin-tuc/y-nghia-cac-con-so-1-9" />
+        <meta property="og:title" content="Ý Nghĩa Các Con Số Từ 1 Đến 9 Trong Phong Thủy" />
+        <meta property="og:description" content="Ý nghĩa từng con số từ 1 đến 9 theo phong thủy, ngũ hành và ứng dụng khi chọn SIM số đẹp hợp mệnh." />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content="https://www.chonsomobifone.com/tin-tuc/y-nghia-cac-con-so-1-9" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": 'Ý Nghĩa Các Con Số Từ 1 Đến 9 Trong Phong Thủy',
+          "description": 'Ý nghĩa từng con số từ 1 đến 9 theo phong thủy, ngũ hành và ứng dụng khi chọn SIM số đẹp hợp mệnh.',
+          "author": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM" },
+          "publisher": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM", "logo": { "@type": "ImageObject", "url": "https://www.chonsomobifone.com/favicon.png" } },
+          "mainEntityOfPage": "https://www.chonsomobifone.com/tin-tuc/y-nghia-cac-con-so-1-9"
+        })}</script>
+      </Helmet>
       <Header />
       <TrustBar />
       <Navigation />

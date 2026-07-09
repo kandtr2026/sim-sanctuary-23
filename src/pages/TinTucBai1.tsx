@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import Header from '@/components/Header';
 import TrustBar from '@/components/TrustBar';
 import Navigation from '@/components/Navigation';
@@ -6,6 +7,24 @@ import Footer from '@/components/Footer';
 const TinTucBai1 = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Ý Nghĩa Số Điện Thoại – Sim Số Như Thế Nào Là Đẹp?</title>
+        <meta name="description" content="Ý nghĩa số điện thoại và cách nhận biết một SIM số đẹp: quy tắc âm dương, ngũ hành, các dạng đầu số và đuôi số quý." />
+        <link rel="canonical" href="https://www.chonsomobifone.com/tin-tuc/y-nghia-sim-so-dep" />
+        <meta property="og:title" content="Ý Nghĩa Số Điện Thoại – Sim Số Như Thế Nào Là Đẹp?" />
+        <meta property="og:description" content="Ý nghĩa số điện thoại và cách nhận biết một SIM số đẹp: quy tắc âm dương, ngũ hành, các dạng đầu số và đuôi số quý." />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content="https://www.chonsomobifone.com/tin-tuc/y-nghia-sim-so-dep" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": 'Ý Nghĩa Số Điện Thoại – Sim Số Như Thế Nào Là Đẹp?',
+          "description": 'Ý nghĩa số điện thoại và cách nhận biết một SIM số đẹp: quy tắc âm dương, ngũ hành, các dạng đầu số và đuôi số quý.',
+          "author": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM" },
+          "publisher": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM", "logo": { "@type": "ImageObject", "url": "https://www.chonsomobifone.com/favicon.png" } },
+          "mainEntityOfPage": "https://www.chonsomobifone.com/tin-tuc/y-nghia-sim-so-dep"
+        })}</script>
+      </Helmet>
       <Header />
       <TrustBar />
       <Navigation />
