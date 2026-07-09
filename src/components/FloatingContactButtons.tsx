@@ -131,19 +131,6 @@ const FloatingContactButtons = () => {
             textDecoration: "none",
           }}
         >
-          {/* Label part */}
-          <span
-            className="flex items-center justify-center whitespace-nowrap font-bold"
-            style={{
-              color: "#0068ff",
-              fontSize: "clamp(16px, 2vw, 22px)",
-              padding: "0 clamp(12px, 1.5vw, 18px)",
-              height: "100%",
-              lineHeight: 1,
-            }}
-          >
-            Đặt sim - Giao ngay
-          </span>
           {/* Zalo icon part */}
           <span
             className="relative flex items-center justify-center flex-shrink-0"

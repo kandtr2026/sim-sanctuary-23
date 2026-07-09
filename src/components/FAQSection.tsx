@@ -22,11 +22,6 @@ const faqData = [
       'Miễn phí giao hàng toàn quốc cho đơn hàng từ 2 triệu đồng. Đơn hàng dưới 2 triệu: nội thành 20.000đ, ngoại thành 30.000đ.',
   },
   {
-    question: 'Có được đổi SIM nếu không ưng ý?',
-    answer:
-      'Có, bạn được đổi SIM trong vòng 3 ngày kể từ khi nhận hàng nếu SIM chưa kích hoạt và còn nguyên seal. Phí đổi 50.000đ.',
-  },
-  {
     question: 'Làm sao để khiếu nại / góp ý?',
     answer:
       'Liên hệ hotline 0938.868.868 hoặc Zalo để được hỗ trợ nhanh nhất. Email: hotro@chonsomobifone.com.',

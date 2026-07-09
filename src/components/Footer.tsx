@@ -40,11 +40,6 @@ const Footer = () => {
               </li>
               <li>
                 <a href="#" className="hover:text-gold transition-colors">
-                  Chính sách đổi trả
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-gold transition-colors">
                   Chính sách giao hàng
                 </a>
               </li>

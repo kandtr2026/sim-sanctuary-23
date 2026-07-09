@@ -537,6 +537,13 @@ const Index = () => {
 
       <main className="container mx-auto px-4 pt-4 pb-6">
         <h1 className="sr-only">Kho SIM Mobifone Số Đẹp Giá Rẻ - CHONSOMOBIFONE.COM</h1>
+        {/* Mobile sticky search - nằm dưới header (Navigation), luôn hiển thị khi cuộn */}
+        <div className="lg:hidden sticky top-[60px] z-40 -mx-4 mb-4 border-b border-border bg-background/95 px-4 py-2.5 shadow-sm backdrop-blur">
+          <SearchBarAdvanced
+            value={filters.searchQuery}
+            onChange={(value) => updateFilterWithSeed("searchQuery", value)}
+          />
+        </div>
         {/* Hero Banner - Compact, near menu - Hidden when no results with suggestions */}
         {!isNoResultsWithSuggestions && (
           <section className="mb-5">
@@ -618,8 +625,8 @@ const Index = () => {
         {/* Process Steps Section - Below banner */}
         {!isNoResultsWithSuggestions && <ProcessSteps />}
 
-        {/* Search Section - Below banner */}
-        <section id="sim-so" className="mb-6">
+        {/* Search Section - Below banner (chỉ desktop; mobile dùng thanh sticky trên cùng) */}
+        <section id="sim-so" className="mb-6 hidden lg:block">
           <SearchBarAdvanced
             value={filters.searchQuery}
             onChange={(value) => updateFilterWithSeed("searchQuery", value)}

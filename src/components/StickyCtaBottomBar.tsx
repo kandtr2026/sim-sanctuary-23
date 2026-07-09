@@ -1,4 +1,4 @@
-import { Phone, ShoppingCart } from "lucide-react";
+import { Phone, MessageCircle } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -40,8 +40,8 @@ const StickyCtaBottomBar = () => {
           className="flex-1 flex items-center justify-center gap-2 rounded-md text-black font-semibold text-sm py-3"
           style={{ backgroundColor: "#FFC107", minHeight: 44 }}
         >
-          <ShoppingCart className="w-4 h-4" />
-          <span>Xem giỏ hàng</span>
+          <MessageCircle className="w-4 h-4" />
+          <span>Chat Zalo - Giao ngay</span>
         </a>
       </div>
     </>

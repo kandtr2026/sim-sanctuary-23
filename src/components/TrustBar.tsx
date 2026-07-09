@@ -24,11 +24,6 @@ const TrustBar = () => {
             <span>🔒</span>
             <span>Chính hãng MobiFone</span>
           </div>
-          <div className="hidden sm:block text-primary-foreground/40">|</div>
-          <div className="flex items-center gap-1.5">
-            <span>↩️</span>
-            <span>Đổi trả 7 ngày</span>
-          </div>
         </div>
       </div>
     </div>
