@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import Header from '@/components/Header';
 import TrustBar from '@/components/TrustBar';
 import Navigation from '@/components/Navigation';
@@ -15,6 +16,14 @@ const articles = [
 const TinTuc = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Tin Tức SIM Số Đẹp – Kiến Thức Phong Thủy & Mua Bán SIM</title>
+        <meta name="description" content="Tin tức và kiến thức về SIM số đẹp: ý nghĩa các con số, xem SIM phong thủy hợp tuổi, cách tránh mất tiền oan khi mua SIM." />
+        <link rel="canonical" href="https://www.chonsomobifone.com/tin-tuc" />
+        <meta property="og:title" content="Tin Tức SIM Số Đẹp – CHONSOMOBIFONE.COM" />
+        <meta property="og:description" content="Kiến thức SIM số đẹp và phong thủy." />
+        <meta property="og:url" content="https://www.chonsomobifone.com/tin-tuc" />
+      </Helmet>
       <Header />
       <TrustBar />
       <Navigation />

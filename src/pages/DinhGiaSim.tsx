@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import Header from '@/components/Header';
 import TrustBar from '@/components/TrustBar';
 import Navigation from '@/components/Navigation';
@@ -223,6 +224,14 @@ const DinhGiaSim = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Định Giá SIM Miễn Phí – Tra Giá SIM Số Đẹp Chính Xác</title>
+        <meta name="description" content="Công cụ định giá SIM số đẹp miễn phí: nhập số điện thoại để tra giá thị trường, gợi ý mức bán hợp lý cho SIM tứ quý, tam hoa, lộc phát." />
+        <link rel="canonical" href="https://www.chonsomobifone.com/dinh-gia-sim" />
+        <meta property="og:title" content="Định Giá SIM Miễn Phí – Tra Giá SIM Số Đẹp Chính Xác" />
+        <meta property="og:description" content="Tra giá SIM số đẹp miễn phí, chính xác theo thị trường." />
+        <meta property="og:url" content="https://www.chonsomobifone.com/dinh-gia-sim" />
+      </Helmet>
       <Header />
       <TrustBar />
       <Navigation />

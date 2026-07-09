@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import TrustBar from '@/components/TrustBar';
@@ -627,6 +628,14 @@ const SimPhongThuy = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950">
+      <Helmet>
+        <title>Sim Phong Thủy – Bói SIM Hậu Thiên, Xem SIM Hợp Mệnh</title>
+        <meta name="description" content="Bói SIM phong thủy theo hậu thiên bát quái: nhập 4–6 số đuôi để xem cát hung, quẻ chủ, hợp mệnh, hợp tuổi. Gợi ý SIM đẹp phong thủy." />
+        <link rel="canonical" href="https://www.chonsomobifone.com/sim-phong-thuy" />
+        <meta property="og:title" content="Sim Phong Thủy – Bói SIM Hậu Thiên, Xem SIM Hợp Mệnh" />
+        <meta property="og:description" content="Bói SIM phong thủy, xem quẻ chủ, hợp mệnh hợp tuổi." />
+        <meta property="og:url" content="https://www.chonsomobifone.com/sim-phong-thuy" />
+      </Helmet>
       <Header />
       <TrustBar />
       <Navigation />
