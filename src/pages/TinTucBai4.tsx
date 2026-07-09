@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import Header from '@/components/Header';
 import TrustBar from '@/components/TrustBar';
 import Navigation from '@/components/Navigation';
@@ -6,6 +7,24 @@ import Footer from '@/components/Footer';
 const TinTucBai4 = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Cách Xem Sim Phong Thủy Hợp Tuổi Chính Xác Nhất</title>
+        <meta name="description" content="3 cách xem SIM phong thủy hợp tuổi: theo ngũ hành bản mệnh, âm dương tương phối, và cách tính sim đại cát chia 80." />
+        <link rel="canonical" href="https://www.chonsomobifone.com/tin-tuc/cach-xem-sim-phong-thuy-hop-tuoi" />
+        <meta property="og:title" content="Cách Xem Sim Phong Thủy Hợp Tuổi Chính Xác Nhất" />
+        <meta property="og:description" content="3 cách xem SIM phong thủy hợp tuổi: theo ngũ hành bản mệnh, âm dương tương phối, và cách tính sim đại cát chia 80." />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content="https://www.chonsomobifone.com/tin-tuc/cach-xem-sim-phong-thuy-hop-tuoi" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": 'Cách Xem Sim Phong Thủy Hợp Tuổi Chính Xác Nhất',
+          "description": '3 cách xem SIM phong thủy hợp tuổi: theo ngũ hành bản mệnh, âm dương tương phối, và cách tính sim đại cát chia 80.',
+          "author": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM" },
+          "publisher": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM", "logo": { "@type": "ImageObject", "url": "https://www.chonsomobifone.com/favicon.png" } },
+          "mainEntityOfPage": "https://www.chonsomobifone.com/tin-tuc/cach-xem-sim-phong-thuy-hop-tuoi"
+        })}</script>
+      </Helmet>
       <Header />
       <TrustBar />
       <Navigation />

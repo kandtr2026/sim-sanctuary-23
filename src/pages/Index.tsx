@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { Helmet } from "react-helmet-async";
 import Header from "@/components/Header";
 import TrustBar from "@/components/TrustBar";
 import Navigation from "@/components/Navigation";
@@ -507,13 +508,35 @@ const Index = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      { "@type": "Question", name: "Cách mua SIM số đẹp tại CHONSOMOBIFONE.COM?", acceptedAnswer: { "@type": "Answer", text: 'Chọn số ưng ý, nhấn "MUA NGAY", điền thông tin nhận hàng và chờ nhân viên xác nhận. Thanh toán COD khi nhận hàng hoặc chuyển khoản trước.' } },
+      { "@type": "Question", name: "Làm sao để đăng ký chính chủ SIM?", acceptedAnswer: { "@type": "Answer", text: "Sau khi nhận SIM, đăng ký chính chủ tại cửa hàng Mobifone hoặc qua ứng dụng My Mobifone. Chúng tôi hỗ trợ tư vấn miễn phí." } },
+      { "@type": "Question", name: "Phí giao hàng là bao nhiêu?", acceptedAnswer: { "@type": "Answer", text: "Miễn phí giao hàng toàn quốc cho đơn từ 2 triệu. Đơn dưới 2 triệu: nội thành 20.000đ, ngoại thành 30.000đ." } },
+      { "@type": "Question", name: "Có được đổi SIM nếu không ưng ý?", acceptedAnswer: { "@type": "Answer", text: "Được đổi SIM trong 3 ngày kể từ khi nhận nếu SIM chưa kích hoạt và còn nguyên seal. Phí đổi 50.000đ." } },
+      { "@type": "Question", name: "Thời gian giao hàng là bao lâu?", acceptedAnswer: { "@type": "Answer", text: "Nội thành Hà Nội / TP.HCM: 30 phút – 1 tiếng. Các tỉnh: 1–2 ngày làm việc. Giao từ 8h–20h." } },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Kho SIM số đẹp Mobifone giá rẻ – CHONSOMOBIFONE.COM</title>
+        <meta name="description" content="Kho SIM số đẹp Mobifone: SIM tứ quý, phong thủy, tài lộc, năm sinh, giá rẻ. Tìm số ưng ý, giao SIM toàn quốc, sang tên chính chủ." />
+        <link rel="canonical" href="https://www.chonsomobifone.com/" />
+        <meta property="og:title" content="Kho SIM số đẹp Mobifone giá rẻ – CHONSOMOBIFONE.COM" />
+        <meta property="og:description" content="Kho SIM số đẹp Mobifone: tứ quý, phong thủy, tài lộc, năm sinh. Giao SIM toàn quốc." />
+        <meta property="og:url" content="https://www.chonsomobifone.com/" />
+        <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
+      </Helmet>
       <Header />
       <TrustBar />
       <Navigation />
 
       <main className="container mx-auto px-4 pt-4 pb-6">
+        <h1 className="sr-only">Kho SIM Mobifone Số Đẹp Giá Rẻ - CHONSOMOBIFONE.COM</h1>
         {/* Hero Banner - Compact, near menu - Hidden when no results with suggestions */}
         {!isNoResultsWithSuggestions && (
           <section className="mb-5">

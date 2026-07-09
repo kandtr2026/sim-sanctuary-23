@@ -53,6 +53,7 @@ const Header = () => {
         });
       }
     }}
+    aria-label="Chat Zalo tư vấn"
     className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-primary-foreground px-4 py-2 rounded"
   >
     <MessageCircle className="w-4 h-4" />
