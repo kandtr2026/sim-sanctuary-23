@@ -299,7 +299,7 @@ const MuaSimGiaRe = () => {
         <title>Mua Sim Giá Rẻ – Kho Sim Số Đẹp Giá Tốt Toàn Quốc</title>
         <meta
           name="description"
-          content="Kho sim giá rẻ từ Viettel, Mobifone, Vinaphone với hàng nghìn số đẹp dễ nhớ chỉ từ vài chục nghìn đến dưới 1 triệu. Cập nhật kho sim mỗi ngày, hỗ trợ giao sim và sang tên toàn quốc."
+          content="Kho sim giá rẻ Mobifone, Viettel, Vinaphone: hàng nghìn số đẹp dễ nhớ từ vài chục nghìn đến dưới 1 triệu. Cập nhật mỗi ngày, giao sim toàn quốc."
         />
         <link rel="canonical" href="https://chonsomobifone.com/mua-sim-gia-re" />
         <meta property="og:title" content="Mua Sim Giá Rẻ – Kho Sim Số Đẹp Giá Tốt Toàn Quốc" />
