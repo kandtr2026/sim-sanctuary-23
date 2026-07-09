@@ -326,13 +326,15 @@ serve(async (req) => {
     });
     
   } catch (err) {
+    // Log full detail server-side only; return generic message to client.
     const errorMessage = err instanceof Error ? err.message : String(err);
     console.error('[fetch-sim-data] Error:', errorMessage);
-    
+    if (err instanceof Error && err.stack) console.error('[fetch-sim-data] Stack:', err.stack);
+
     return new Response(
       JSON.stringify({
         error: 'Failed to fetch SIM data',
-        message: errorMessage,
+        code: 'INTERNAL_ERROR',
         timestamp: new Date().toISOString()
       }),
       {
