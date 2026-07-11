@@ -15,6 +15,7 @@ import TinTucBai2 from "./pages/TinTucBai2";
 import TinTucBai3 from "./pages/TinTucBai3";
 import TinTucBai4 from "./pages/TinTucBai4";
 import TinTucBai5 from "./pages/TinTucBai5";
+import TinTucBai6 from "./pages/TinTucBai6";
 import NotFound from "./pages/NotFound";
 import SimNamSinh from "./pages/SimNamSinh";
 
