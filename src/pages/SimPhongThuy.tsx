@@ -635,6 +635,15 @@ const SimPhongThuy = () => {
         <meta property="og:title" content="Sim Phong Thủy – Bói SIM Hậu Thiên, Xem SIM Hợp Mệnh" />
         <meta property="og:description" content="Bói SIM phong thủy, xem quẻ chủ, hợp mệnh hợp tuổi." />
         <meta property="og:url" content="https://www.chonsomobifone.com/sim-phong-thuy" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": faqData.map((f) => ({
+            "@type": "Question",
+            "name": f.question,
+            "acceptedAnswer": { "@type": "Answer", "text": f.answer }
+          }))
+        })}</script>
       </Helmet>
       <Header />
       <TrustBar />
