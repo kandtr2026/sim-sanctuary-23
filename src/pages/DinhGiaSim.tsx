@@ -231,6 +231,15 @@ const DinhGiaSim = () => {
         <meta property="og:title" content="Định Giá SIM Miễn Phí – Tra Giá SIM Số Đẹp Chính Xác" />
         <meta property="og:description" content="Tra giá SIM số đẹp miễn phí, chính xác theo thị trường." />
         <meta property="og:url" content="https://www.chonsomobifone.com/dinh-gia-sim" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": faqData.map((f) => ({
+            "@type": "Question",
+            "name": f.question,
+            "acceptedAnswer": { "@type": "Answer", "text": f.answer }
+          }))
+        })}</script>
       </Helmet>
       <Header />
       <TrustBar />
