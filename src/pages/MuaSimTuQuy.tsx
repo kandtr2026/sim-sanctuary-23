@@ -193,11 +193,11 @@ const MuaSimTuQuy = () => {
       <Helmet>
         <title>Mua Sim Tứ Quý Giá Tốt | Kho Sim Tứ Quý Đẹp Toàn Quốc</title>
         <meta name="description" content="Kho sim tứ quý đẹp giá tốt từ CHONSOMOBIFONE.COM. Hàng nghìn sim 1111, 6666, 8888, 9999 cập nhật mỗi ngày. Mua sim tứ quý uy tín, giao dịch an toàn." />
-        <link rel="canonical" href="https://chonsomobifone.com/mua-sim-tu-quy" />
+        <link rel="canonical" href="https://www.chonsomobifone.com/mua-sim-tu-quy" />
         <meta property="og:title" content="Mua Sim Tứ Quý Giá Tốt | Kho Sim Tứ Quý Đẹp Toàn Quốc" />
         <meta property="og:description" content="Kho sim tứ quý đẹp giá tốt. Hàng nghìn sim 1111, 6666, 8888, 9999 cập nhật mỗi ngày." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://chonsomobifone.com/mua-sim-tu-quy" />
+        <meta property="og:url" content="https://www.chonsomobifone.com/mua-sim-tu-quy" />
         <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
       </Helmet>
 
