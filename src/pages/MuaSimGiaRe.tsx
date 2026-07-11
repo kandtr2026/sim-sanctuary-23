@@ -301,11 +301,11 @@ const MuaSimGiaRe = () => {
           name="description"
           content="Kho sim giá rẻ Mobifone, Viettel, Vinaphone: hàng nghìn số đẹp dễ nhớ từ vài chục nghìn đến dưới 1 triệu. Cập nhật mỗi ngày, giao sim toàn quốc."
         />
-        <link rel="canonical" href="https://chonsomobifone.com/mua-sim-gia-re" />
+        <link rel="canonical" href="https://www.chonsomobifone.com/mua-sim-gia-re" />
         <meta property="og:title" content="Mua Sim Giá Rẻ – Kho Sim Số Đẹp Giá Tốt Toàn Quốc" />
         <meta property="og:description" content="Kho sim giá rẻ với hàng nghìn số đẹp dễ nhớ. Giá chỉ từ vài chục nghìn, cập nhật mỗi ngày." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://chonsomobifone.com/mua-sim-gia-re" />
+        <meta property="og:url" content="https://www.chonsomobifone.com/mua-sim-gia-re" />
         <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
       </Helmet>
 
