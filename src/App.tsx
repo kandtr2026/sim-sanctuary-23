@@ -48,6 +48,7 @@ const App = () => (
           <Route path="/tin-tuc/y-nghia-cac-con-so-1-9" element={<TinTucBai3 />} />
           <Route path="/tin-tuc/cach-xem-sim-phong-thuy-hop-tuoi" element={<TinTucBai4 />} />
           <Route path="/tin-tuc/cach-tranh-mat-tien-oan-khi-mua-sim-so-dep" element={<TinTucBai5 />} />
+          <Route path="/tin-tuc/cac-dau-so-mang-mobifone-moi-nhat" element={<TinTucBai6 />} />
           <Route path="/mua-sim-tu-quy" element={<MuaSimTuQuy />} />
           <Route path="/mua-sim-gia-re" element={<MuaSimGiaRe />} />
 
