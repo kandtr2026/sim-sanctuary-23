@@ -388,8 +388,9 @@ const Checkout = () => {
       {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-50">
         <div className="container max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="shrink-0">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="shrink-0" aria-label="Quay lại">
             <ArrowLeft className="w-5 h-5" />
+            <span className="sr-only">Quay lại</span>
           </Button>
           <h1 className="text-lg font-bold text-foreground truncate">Đặt mua SIM</h1>
         </div>
