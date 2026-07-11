@@ -1,8 +1,10 @@
 User-agent: Googlebot
 Allow: /
+Disallow: /mua-ngay/
 
 User-agent: Bingbot
 Allow: /
+Disallow: /mua-ngay/
 
 User-agent: Twitterbot
 Allow: /
@@ -12,5 +14,6 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /mua-ngay/
 
 Sitemap: https://www.chonsomobifone.com/sitemap.xml
