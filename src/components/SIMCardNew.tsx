@@ -1,13 +1,9 @@
 import { useState } from 'react';
 import { Phone } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import type { NormalizedSIM, PromotionalData, QuyType } from '@/lib/simUtils';
 import QuickContactPopup from '@/components/QuickContactPopup';
 import { matchesQuyType } from '@/lib/simUtils';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { createHighlightedNumber } from '@/lib/highlightUtils';
 
@@ -26,11 +22,10 @@ interface SIMCardNewProps {
   sim: NormalizedSIM;
   promotional?: PromotionalData;
   quyFilter?: QuyType | null;
-  simId?: string;
   searchQuery?: string;
 }
 
-const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SIMCardNewProps) => {
+const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNewProps) => {
   const [contactOpen, setContactOpen] = useState(false);
   // Build rawNumber from ALL possible sources
   const rawNumber = (() => {
@@ -48,9 +43,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
   // silently disappearing.
   const carrier = sim.network && sim.network !== 'Khác' ? sim.network : detectCarrier(rawNumber);
 
-  const handleBuyClick = () => {
-    setContactOpen(true);
-  };
+  const checkoutHref = `/mua-ngay/${encodeURIComponent(sim.id)}`;
 
   const formatPrice = (price: number | undefined): string => {
     if (price === undefined || price === null || isNaN(price) || price <= 0) return 'Liên hệ';
@@ -119,10 +112,16 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
 
   return (
     <>
+      {/* The card is deliberately NOT one big click target any more. It used to have
+          onClick={() => setContactOpen(true)} on the wrapper, so every click — number,
+          price, anywhere — opened the Zalo/call popup and the real checkout at
+          /mua-ngay/:simId was unreachable from the listing. Now the number is a link to
+          checkout and the action row has two explicit buttons. The contact button must
+          stay a sibling of the link, not a descendant: a <button> inside an <a> is
+          invalid HTML and browsers handle the nested activation inconsistently. */}
       <div
-        onClick={handleBuyClick}
         className={cn(
-          "sim-card-compact group relative overflow-hidden cursor-pointer",
+          "sim-card-compact group relative overflow-hidden",
           hasDiscount && "ring-1 ring-cta/30 shadow-promo-sm"
         )}>
 
@@ -168,8 +167,10 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
           )}
         </div>
 
-        <div 
-          className="sim-number-auto mb-1.5 group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis"
+        <Link
+          to={checkoutHref}
+          aria-label={`Đặt mua SIM ${sim.displayNumber || sim.formattedNumber} — ${formatPrice(sim.price)}`}
+          className="sim-number-auto mb-1.5 block group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis"
           style={{ fontSize: 'clamp(14px, 3.5vw, 22px)' }}
         >
           {searchQuery?.trim()
@@ -180,9 +181,16 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
               )
             : formatWithHighlight(sim.displayNumber || sim.formattedNumber)
           }
-        </div>
+        </Link>
 
-        <div className="flex items-center justify-between mt-auto pt-1">
+        {/* Price above, actions below — NOT side by side. On mobile the card's inner
+            width is only 128px while the nowrap price alone needs 84px, so a horizontal
+            row could never fit: the old single "ĐẶT GIAO NGAY" button (96px) overflowed
+            by 52px and got clipped by the card's overflow-hidden. Prices here go up to
+            "39.000.000 đ", which is wider still. Stacking is free — the card has ~68px of
+            unused height under its 152px min-height — and it gives the CTA a full-width
+            tap target. Measure before making this a row again. */}
+        <div className="mt-auto pt-1">
           <div className="flex flex-col">
             {hasDiscount && (
               <span 
@@ -209,14 +217,31 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
               GIAO NGAY HÔM NAY
             </span>
           </div>
-          <button 
-            onClick={(e) => { e.stopPropagation(); handleBuyClick(); }}
-            className="btn-cta-sm flex items-center gap-1 py-1 px-2"
-            style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
-          >
-            <Phone style={{ width: 'clamp(8px, 1.8vw, 12px)', height: 'clamp(8px, 1.8vw, 12px)' }} />
-            ĐẶT GIAO NGAY
-          </button>
+          {/* Primary: straight to the order form. Secondary: Zalo/call for buyers who
+              want to talk first. Grid rather than flex: the CTA's width comes from the
+              track (1fr), not from its own flex properties, so .btn-cta-sm — which is
+              @apply-generated inside @layer components — cannot collapse it to padding
+              width the way it did with flex-1. Phone button is auto-width, CTA takes
+              the rest, and the label can never be clipped. */}
+          <div className="mt-1.5 grid grid-cols-[auto_1fr] items-stretch gap-1">
+            <button
+              type="button"
+              onClick={() => setContactOpen(true)}
+              aria-label={`Gọi hoặc chat Zalo về SIM ${sim.displayNumber || sim.formattedNumber}`}
+              title="Gọi / Chat Zalo"
+              className="flex items-center justify-center rounded border border-primary/40 bg-primary/10 px-1.5 text-primary transition-colors hover:bg-primary/20"
+            >
+              <Phone style={{ width: 'clamp(10px, 2vw, 14px)', height: 'clamp(10px, 2vw, 14px)' }} />
+            </button>
+            <Link
+              to={checkoutHref}
+              aria-label={`Đặt ngay SIM ${sim.displayNumber || sim.formattedNumber}`}
+              className="btn-cta-sm flex min-w-0 items-center justify-center whitespace-nowrap text-center"
+              style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+            >
+              ĐẶT NGAY
+            </Link>
+          </div>
         </div>
       </div>
 
