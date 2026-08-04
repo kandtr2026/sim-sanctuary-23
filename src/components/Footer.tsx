@@ -1,6 +1,17 @@
 import { MapPin, Phone, Mail, Clock, Navigation } from "lucide-react";
 import { Link } from "react-router-dom";
 
+// SIM category pages. SIM ĐỒNG GIÁ 229K, SIM TRẢ GÓP and ĐỊNH GIÁ SIM were removed
+// from the main nav (trimmed to 4 items in Navigation.tsx); these links are what keep
+// them internally linked and reachable. Do not drop them without adding the pages back
+// somewhere else — public/sitemap.xml still declares all of them.
+const simCategoryLinks = [
+  { label: "SIM đồng giá 229K", to: "/mua-sim-gia-re" },
+  { label: "SIM tứ quý", to: "/mua-sim-tu-quy" },
+  { label: "SIM trả góp", to: "/sim-tra-gop" },
+  { label: "Định giá SIM", to: "/dinh-gia-sim" },
+];
+
 const policyLinks = [
   { label: "Chính sách bảo mật", to: "/chinh-sach-bao-mat" },
   { label: "Điều khoản sử dụng", to: "/dieu-khoan-su-dung" },
@@ -32,9 +43,21 @@ const Footer = () => {
             </a>
           </div>
 
-          {/* Policies */}
+          {/* SIM categories + Policies (stacked: keeps the grid at 4 columns so the
+              map column below does not get squeezed into an unreadable width) */}
           <div className="w-full min-w-0 lg:px-2">
-            <h4 className="text-lg font-bold mb-4 text-gold uppercase">CHÍNH SÁCH</h4>
+            <h4 className="text-lg font-bold mb-4 text-gold uppercase">DANH MỤC SIM</h4>
+            <ul className="space-y-2 text-sm text-header-foreground/70">
+              {simCategoryLinks.map((link) => (
+                <li key={link.to}>
+                  <Link to={link.to} className="hover:text-gold transition-colors">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+
+            <h4 className="text-lg font-bold mb-4 mt-6 text-gold uppercase">CHÍNH SÁCH</h4>
             <ul className="space-y-2 text-sm text-header-foreground/70">
               {policyLinks.map((link) => (
                 <li key={link.to}>

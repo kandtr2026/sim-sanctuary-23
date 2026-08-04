@@ -2,13 +2,14 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 
+// Kept deliberately to 4 items: the 4 destinations a visitor actually needs
+// (browse numbers, phong thủy, pay, read). SIM ĐỒNG GIÁ 229K, SIM TRẢ GÓP and
+// ĐỊNH GIÁ SIM moved to the "DANH MỤC SIM" column in Footer.tsx — they stay
+// crawlable and internally linked there, and remain in public/sitemap.xml.
+// One array drives both the desktop and the mobile menu below.
 const menuItems = [
   { label: "SIM SỐ", href: "/" },
-  { label: "SIM ĐỒNG GIÁ 229K", href: "/mua-sim-gia-re" },
   { label: "SIM PHONG THỦY", href: "/sim-phong-thuy" },
-  { label: "SIM TRẢ GÓP", href: "/sim-tra-gop" },
-
-  { label: "ĐỊNH GIÁ SIM", href: "/dinh-gia-sim" },
   { label: "THANH TOÁN", href: "/thanh-toan" },
   { label: "TIN TỨC", href: "/tin-tuc" },
 ];
