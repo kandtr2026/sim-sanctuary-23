@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Filter, AlertTriangle } from 'lucide-react';
+import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
 import { 
   PRICE_RANGES, 
   QUICK_SUFFIXES,
@@ -8,9 +8,6 @@ import {
 import type { FilterState } from '@/hooks/useSimData';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface AdvancedFilterSidebarProps {
   filters: FilterState;
@@ -266,65 +263,6 @@ const AdvancedFilterSidebar = ({
               value={filters.customSuffix}
               onChange={(e) => onUpdateFilter('customSuffix', e.target.value.replace(/\D/g, ''))}
               className="text-[10px] h-6 px-1.5"
-            />
-          </div>
-        </div>
-      </FilterSection>
-
-      {/* VIP Controls */}
-      <FilterSection title="VIP Controls" defaultOpen={false}>
-        <div className="space-y-2">
-          {/* VIP conflict warning */}
-          {filters.vipFilter === 'only' && (
-            <Alert variant="default" className="py-1 px-2">
-              <AlertDescription className="text-[9px]">
-                Chỉ hiển thị SIM VIP
-              </AlertDescription>
-            </Alert>
-          )}
-          {filters.vipFilter === 'hide' && (
-            <Alert variant="default" className="py-1 px-2">
-              <AlertDescription className="text-[9px]">
-                Đang ẩn SIM VIP
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <div className="flex items-center justify-between">
-            <Label className="text-[10px]">Chỉ hiển thị VIP</Label>
-            <Switch
-              checked={filters.vipFilter === 'only'}
-              onCheckedChange={(checked) => 
-                onUpdateFilter('vipFilter', checked ? 'only' : 'all')
-              }
-              disabled={filters.vipFilter === 'hide'}
-              className="scale-75"
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <Label className="text-[10px]">Ẩn SIM VIP</Label>
-            <Switch
-              checked={filters.vipFilter === 'hide'}
-              onCheckedChange={(checked) => 
-                onUpdateFilter('vipFilter', checked ? 'hide' : 'all')
-              }
-              disabled={filters.vipFilter === 'only'}
-              className="scale-75"
-            />
-          </div>
-
-          <div>
-            <Label className="text-[9px] text-muted-foreground mb-1 block">
-              Ngưỡng VIP: {(filters.vipThreshold / 1000000).toFixed(0)} triệu
-            </Label>
-            <Slider
-              value={[filters.vipThreshold / 1000000]}
-              onValueChange={([value]) => onUpdateFilter('vipThreshold', value * 1000000)}
-              min={10}
-              max={500}
-              step={10}
-              className="w-full"
             />
           </div>
         </div>

@@ -587,8 +587,13 @@ export interface FilterState {
   selectedPrefixes4: string[];
   selectedSuffixes: string[];
   customSuffix: string;
+  // NOTE: no control sets vipFilter to 'only' / 'hide' today — the "VIP Controls"
+  // section that used to was removed (its "Ngưỡng VIP" slider was inert: normalizeSIM
+  // calls isVIPSim/calculateBeautyScore without a threshold arg, so the 50M default
+  // always won). The filter itself works end-to-end (filter chain, active-filter chip,
+  // relax, reset), so it is kept as a supported API for a future chip/preset — same
+  // situation as customPriceMin / customPriceMax.
   vipFilter: 'all' | 'only' | 'hide';
-  vipThreshold: number;
   sortBy: SortOption;
   mobifoneFirst: boolean;
   // Quý position filter
@@ -608,7 +613,6 @@ export const defaultFilterState: FilterState = {
   selectedSuffixes: [],
   customSuffix: '',
   vipFilter: 'all',
-  vipThreshold: 50000000,
   sortBy: 'default',
   mobifoneFirst: true,
   quyType: null,
@@ -622,6 +626,9 @@ const RELAX_ORDER: (keyof FilterState)[] = [
   'selectedPrefixes4',
   'quyType',
   'quyPosition',
+  // vipFilter is a coarse gate ('only' hides ~everything cheap, 'hide' drops the
+  // top of the catalogue), so relax it before the more deliberate tag/price intent.
+  'vipFilter',
   'selectedTags',
   'priceRanges',
   'customPriceMin',
@@ -629,6 +636,32 @@ const RELAX_ORDER: (keyof FilterState)[] = [
   'selectedNetworks',
   'searchQuery'
 ];
+
+// Neutral ("no constraint") value for a filter key, read from defaultFilterState so
+// there is exactly one source of truth. Arrays are copied: defaultFilterState lives at
+// module scope, so handing its array out would put a shared reference into live state.
+const neutralFilterValue = <K extends keyof FilterState>(key: K): FilterState[K] => {
+  const neutral = defaultFilterState[key];
+  return (Array.isArray(neutral) ? [...neutral] : neutral) as FilterState[K];
+};
+
+// Reset one filter key to its neutral value. The write is wrapped in a generic helper
+// because FilterState[keyof FilterState] collapses to `never` in a write position, so
+// assigning through a union-typed key straight from a loop cannot typecheck (TS2322).
+const resetFilterKey = <K extends keyof FilterState>(target: FilterState, key: K): void => {
+  target[key] = neutralFilterValue(key);
+};
+
+// A filter is active only when it differs from its own neutral value. Comparing against
+// the default — rather than testing for '' / null / [] — is what makes non-falsy neutral
+// values work: vipFilter's neutral is the string 'all', which a falsy test misreads as
+// an active constraint.
+const isFilterActive = <K extends keyof FilterState>(filters: FilterState, key: K): boolean => {
+  const value = filters[key];
+  if (Array.isArray(value)) return value.length > 0;
+  return value !== defaultFilterState[key];
+};
+
 // Pre-compute cached initial data at module level (not inside hook)
 const getCachedInitialData = (): NormalizedSIM[] => {
   const cached = loadFromCache();
@@ -1009,21 +1042,9 @@ export const useSimData = () => {
       const newFilters = { ...prev };
       
       for (const key of RELAX_ORDER) {
-        const value = newFilters[key];
-        const isEmpty = 
-          value === '' || 
-          value === null || 
-          (Array.isArray(value) && value.length === 0);
-        
-        if (!isEmpty) {
-          if (Array.isArray(value)) {
-            (newFilters[key] as typeof value) = [];
-          } else if (typeof value === 'string') {
-            (newFilters[key] as string) = '';
-          } else {
-            (newFilters[key] as typeof value) = null as typeof value;
-          }
-          
+        if (isFilterActive(newFilters, key)) {
+          resetFilterKey(newFilters, key);
+
           const keyLabels: Record<string, string> = {
             searchQuery: 'Từ khóa tìm kiếm',
             selectedSuffixes: 'Bộ lọc đuôi số',
@@ -1032,13 +1053,14 @@ export const useSimData = () => {
             selectedPrefixes4: 'Bộ lọc đầu 4 số',
             quyType: 'Bộ lọc quý',
             quyPosition: 'Vị trí quý',
+            vipFilter: 'Bộ lọc VIP',
             selectedTags: 'Bộ lọc loại số',
             priceRanges: 'Khoảng giá',
             customPriceMin: 'Giá tối thiểu',
             customPriceMax: 'Giá tối đa',
             selectedNetworks: 'Bộ lọc mạng'
           };
-          
+
           relaxedMessages.push(keyLabels[key] || key);
           break;
         }
@@ -1053,19 +1075,19 @@ export const useSimData = () => {
   }, []);
 
   const relaxAllFilters = useCallback(() => {
-    setFilters(prev => ({
-      ...prev,
-      searchQuery: '',
-      priceRanges: [],
-      customPriceMin: null,
-      customPriceMax: null,
-      selectedTags: [],
-      selectedNetworks: [],
-      selectedPrefixes3: [],
-      selectedPrefixes4: [],
-      selectedSuffixes: [],
-      customSuffix: ''
-    }));
+    setFilters(prev => {
+      const next = { ...prev };
+      // Reset every constraint in RELAX_ORDER to its own default. Deriving the list
+      // instead of hand-listing fields is what keeps "nới lỏng tất cả" consistent
+      // with "bỏ 1 bộ lọc": the old hand-written list silently omitted quyType,
+      // quyPosition and vipFilter, so relaxing everything could still leave an
+      // active filter behind and show 0 results. sortBy / mobifoneFirst are display
+      // preferences rather than constraints, so they are absent here by design.
+      for (const key of RELAX_ORDER) {
+        resetFilterKey(next, key);
+      }
+      return next;
+    });
     toast.success('Đã nới lỏng tất cả bộ lọc');
   }, []);
 
