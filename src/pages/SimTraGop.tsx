@@ -3,10 +3,25 @@ import TrustBar from '@/components/TrustBar';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import ZaloChatCard from '@/components/ZaloChatCard';
+import { Helmet } from 'react-helmet-async';
+
+const TITLE = 'Có Nên Mua Sim Số Đẹp Trả Góp? Lợi Ích Và Lưu Ý | CHONSOMOBIFONE';
+const DESCRIPTION =
+  'Phân tích ưu nhược điểm của dịch vụ mua sim số đẹp trả góp: điều kiện, thủ tục, lãi suất và những lưu ý quan trọng để tránh rủi ro khi trả góp sim tứ quý, ngũ quý, sim phong thủy.';
+const CANONICAL = 'https://www.chonsomobifone.com/sim-tra-gop';
 
 const SimTraGop = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{TITLE}</title>
+        <meta name="description" content={DESCRIPTION} />
+        <link rel="canonical" href={CANONICAL} />
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={TITLE} />
+        <meta property="og:description" content={DESCRIPTION} />
+        <meta property="og:url" content={CANONICAL} />
+      </Helmet>
       <Header />
       <TrustBar />
       <Navigation />

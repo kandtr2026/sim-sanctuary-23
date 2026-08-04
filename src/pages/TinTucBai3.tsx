@@ -21,7 +21,7 @@ const TinTucBai3 = () => {
           "headline": 'Ý Nghĩa Các Con Số Từ 1 Đến 9 Trong Phong Thủy',
           "description": 'Ý nghĩa từng con số từ 1 đến 9 theo phong thủy, ngũ hành và ứng dụng khi chọn SIM số đẹp hợp mệnh.',
           "author": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM" },
-          "publisher": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM", "logo": { "@type": "ImageObject", "url": "https://www.chonsomobifone.com/favicon.png" } },
+          "publisher": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM", "logo": { "@type": "ImageObject", "url": "https://www.chonsomobifone.com/brand-logo.png" } },
           "mainEntityOfPage": "https://www.chonsomobifone.com/tin-tuc/y-nghia-cac-con-so-1-9"
         })}</script>
       </Helmet>

@@ -25,7 +25,7 @@ const TinTucBai6 = () => {
           "headline": title,
           "description": description,
           "author": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM" },
-          "publisher": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM", "logo": { "@type": "ImageObject", "url": "https://www.chonsomobifone.com/favicon.png" } },
+          "publisher": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM", "logo": { "@type": "ImageObject", "url": "https://www.chonsomobifone.com/brand-logo.png" } },
           "mainEntityOfPage": url
         })}</script>
       </Helmet>

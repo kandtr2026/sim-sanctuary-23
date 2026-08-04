@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import TrustBar from "@/components/TrustBar";
 import Navigation from "@/components/Navigation";
@@ -289,67 +290,37 @@ const Index = () => {
     return relaxAllFilters();
   }, [relaxAllFilters, markInteracted]);
 
-  // Auto-fill search when URL has hash #ns=YYYY (SEO landing page for birth year)
+  // Auto-apply filters from SEO landing hashes: #ns=YYYY, #price=under-1m,
+  // #landing=tamhoa-1-3tr. One effect, one guard — previously three effects
+  // shared a single flag, so whichever ran first blocked the other two.
   useEffect(() => {
     if (hashProcessed) return;
 
     const hash = window.location.hash || "";
-    const m = hash.match(/^#ns=(\d{4})$/);
-    if (!m) return;
+    if (!hash) return;
 
-    const year = m[1];
+    const birthYear = hash.match(/^#ns=(\d{4})$/);
 
-    // 1) Bật filter "Năm sinh"
-    updateFilter("selectedTags", ["Năm sinh"]);
+    if (birthYear) {
+      // Both updates batch into one render — no setTimeout needed.
+      updateFilter("selectedTags", ["Năm sinh"]);
+      updateFilter("searchQuery", `*${birthYear[1]}`);
+    } else if (hash === "#price=under-1m") {
+      // "Dưới 1 triệu" = index 0 in PRICE_RANGES
+      togglePriceRange(0);
+    } else if (hash === "#landing=tamhoa-1-3tr") {
+      toggleTag("Tam hoa");
+      // "1 - 3 triệu" = index 1 in PRICE_RANGES
+      togglePriceRange(1);
+    } else {
+      // Unrecognised hash — leave it alone (e.g. anchor links).
+      return;
+    }
 
-    // 2) Đợi filter apply rồi mới search
-    setTimeout(() => {
-      updateFilter("searchQuery", `*${year}`);
-    }, 0);
-
-    // 3) Xoá hash để URL sạch
+    // Clean the hash out of the URL so a refresh doesn't re-apply the filter.
     history.replaceState(null, "", window.location.pathname + window.location.search);
-
-    // Mark as processed to prevent re-running
     setHashProcessed(true);
-  }, [hashProcessed, updateFilter]);
-
-  // Auto-filter for price landing page (#price=under-1m)
-  useEffect(() => {
-    if (hashProcessed) return;
-
-    const hash = window.location.hash || "";
-    if (hash !== "#price=under-1m") return;
-
-    // Bật filter giá "Dưới 1 triệu" (index 0 trong priceRanges)
-    togglePriceRange(0);
-
-    // Xoá hash để URL sạch
-    history.replaceState(null, "", window.location.pathname + window.location.search);
-
-    // Mark as processed to prevent re-running
-    setHashProcessed(true);
-  }, [hashProcessed, togglePriceRange]);
-
-  // Auto-filter for tam hoa landing page (#landing=tamhoa-1-3tr)
-  useEffect(() => {
-    if (hashProcessed) return;
-
-    const hash = window.location.hash || "";
-    if (hash !== "#landing=tamhoa-1-3tr") return;
-
-    // 1) Bật filter Loại số = "Tam hoa"
-    toggleTag("Tam hoa");
-
-    // 2) Bật filter giá "1 - 3 triệu" (index 1 trong PRICE_RANGES)
-    togglePriceRange(1);
-
-    // 3) Xoá hash để URL sạch
-    history.replaceState(null, "", window.location.pathname + window.location.search);
-
-    // Mark as processed to prevent re-running
-    setHashProcessed(true);
-  }, [hashProcessed, toggleTag, togglePriceRange]);
+  }, [hashProcessed, updateFilter, togglePriceRange, toggleTag]);
 
   // Get last update info for display
   const lastUpdateInfo = getLastUpdateInfo();
@@ -538,7 +509,10 @@ const Index = () => {
       <main className="container mx-auto px-4 pt-4 pb-6">
         <h1 className="sr-only">Kho SIM Mobifone Số Đẹp Giá Rẻ - CHONSOMOBIFONE.COM</h1>
         {/* Mobile sticky search - nằm dưới header (Navigation), luôn hiển thị khi cuộn */}
-        <div className="lg:hidden sticky top-[60px] z-40 -mx-4 mb-4 border-b border-border bg-background/95 px-4 py-2.5 shadow-sm backdrop-blur">
+        <div
+          className="lg:hidden sticky z-40 -mx-4 mb-4 border-b border-border bg-background/95 px-4 py-2.5 shadow-sm backdrop-blur"
+          style={{ top: "var(--nav-height)" }}
+        >
           <SearchBarAdvanced
             value={filters.searchQuery}
             onChange={(value) => updateFilterWithSeed("searchQuery", value)}
@@ -548,11 +522,22 @@ const Index = () => {
         {!isNoResultsWithSuggestions && (
           <section className="mb-5">
             <div className="rounded-xl overflow-hidden relative aspect-[16/9] md:aspect-auto">
-              <img src="/home-banner.png" alt="CHONSOMOBIFONE.COM banner" className="w-full h-full object-cover" />
+              {/* Homepage LCP image — load eagerly at high priority and declare
+                  intrinsic size so it doesn't shift the layout while decoding. */}
+              <img
+                src="/home-banner.webp"
+                alt="CHONSOMOBIFONE.COM banner"
+                width={1600}
+                height={900}
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+                className="w-full h-full object-cover"
+              />
               {/* CTA Button - KHO SIM ĐỒNG GIÁ 229K */}
 <div className="absolute bottom-4 md:bottom-6 left-0 right-0 flex flex-col items-center">
-  <a
-    href="/mua-sim-gia-re"
+  <Link
+    to="/mua-sim-gia-re"
     className="
       group relative inline-flex items-center gap-3
       rounded-full
@@ -613,7 +598,7 @@ const Index = () => {
         />
       </svg>
     </div>
-  </a>
+  </Link>
   <p className="mt-2 text-[11px] md:text-sm text-white/90 font-medium">
     Bấm để xem thêm sim
   </p>
@@ -800,11 +785,13 @@ const Index = () => {
 
       <Footer />
 
-      {/* Back to Top Button */}
+      {/* Back to Top Button — bottom-LEFT so it can't collide with the
+          floating contact stack / messenger panel on the right. */}
       {showBackToTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 z-50 w-12 h-12 bg-primary text-primary-foreground rounded-full shadow-lg flex items-center justify-center hover:bg-primary/90 transition-all duration-300 animate-fade-in"
+          className="fixed left-4 z-[60] w-11 h-11 md:w-12 md:h-12 bg-primary text-primary-foreground rounded-full shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors duration-200 animate-fade-in"
+          style={{ bottom: "calc(var(--sticky-cta-height) + 12px)" }}
           aria-label="Về đầu trang"
         >
           <ArrowUp className="w-5 h-5" />

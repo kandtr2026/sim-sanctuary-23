@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@...&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -53,6 +53,21 @@
 
     --radius: 0.75rem;
 
+    /* ===== Layout offsets & stacking order =====
+       Every fixed/sticky overlay on the site reads from these so the
+       bottom-right corner (contact buttons, sticky CTA bar, back-to-top,
+       messenger panel) can't collide again.
+
+         40  mobile sticky search
+         50  sticky top navigation
+         60  back-to-top button
+         70  mobile sticky CTA bar
+         80  floating contact buttons
+         90  messenger quick-templates panel
+        100  toasts (see components/ui/toast.tsx)                       */
+    --nav-height: 60px;      /* sticky <Navigation /> bar */
+    --sticky-cta-height: 72px; /* mobile <StickyCtaBottomBar /> */
+
     /* Header */
     --header-bg: 0 0% 6%;
     --header-foreground: 0 0% 100%;
@@ -106,22 +121,6 @@
     .container {
       padding-left: 16px !important;
       padding-right: 16px !important;
-    }
-
-    /* Better SIM card grid gap on mobile */
-    .sim-card-compact {
-      min-height: 152px;
-      padding: 12px;
-      border-radius: 12px;
-      border-color: hsl(var(--border) / 0.6);
-      background: linear-gradient(165deg, hsl(var(--card)) 0%, hsl(0 0% 8%) 100%);
-    }
-
-    /* Softer card hover on mobile (no translateY, just glow) */
-    .sim-card-compact:hover {
-      transform: none;
-      border-color: hsl(var(--gold) / 0.25);
-      box-shadow: 0 0 12px -4px hsl(var(--gold) / 0.15);
     }
 
     /* Cleaner CTA button on mobile */
@@ -227,13 +226,17 @@
     color: hsl(0 0% 6%);
   }
 
-  /* Filter Button - Compact/Scaled for sidebar with fluid typography */
+  /* Filter Button - Compact/Scaled for sidebar with fluid typography.
+     Lives in a 160px-wide column, so the upper bound must stay small or
+     labels like "Tam hoa kép" / "Lọc theo đầu số" overflow on wide screens. */
   .filter-btn-sm {
     @apply px-1.5 py-1 rounded-md border font-medium transition-all duration-200;
-    font-size: clamp(15px, 1.4vw, 20px);
+    font-size: clamp(11px, 0.95vw, 14px);
+    line-height: 1.25;
     border-color: hsl(var(--gold));
     color: hsl(var(--gold));
     background: transparent;
+    overflow-wrap: anywhere;
   }
 
   /* Mobile-only compact filter buttons */
@@ -333,6 +336,24 @@
     transform: translateY(-2px);
     box-shadow: var(--shadow-card);
     border-color: hsl(var(--gold) / 0.3);
+  }
+
+  /* Mobile refinements — must come AFTER the base rule to win the cascade */
+  @media (max-width: 768px) {
+    .sim-card-compact {
+      min-height: 152px;
+      padding: 12px;
+      border-radius: 12px;
+      border-color: hsl(var(--border) / 0.6);
+      background: linear-gradient(165deg, hsl(var(--card)) 0%, hsl(0 0% 8%) 100%);
+    }
+
+    /* Softer card hover on mobile (no translateY, just glow) */
+    .sim-card-compact:hover {
+      transform: none;
+      border-color: hsl(var(--gold) / 0.25);
+      box-shadow: 0 0 12px -4px hsl(var(--gold) / 0.15);
+    }
   }
 
   /* Badge Styles - Original */
@@ -476,26 +497,26 @@
   .order-item {
     animation: fadeInSlide 0.5s ease-out;
   }
+}
 
-  /* Scrollbar Styling */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
+/* Scrollbar Styling — base element selectors, kept out of @layer components */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
 
-  ::-webkit-scrollbar-track {
-    background: hsl(var(--muted));
-    border-radius: 4px;
-  }
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
 
-  ::-webkit-scrollbar-thumb {
-    background: hsl(var(--gold) / 0.5);
-    border-radius: 4px;
-  }
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--gold) / 0.5);
+  border-radius: 4px;
+}
 
-  ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--gold) / 0.7);
-  }
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--gold) / 0.7);
 }
 
 /* HỎA TỐC Badge Animation */
@@ -529,4 +550,41 @@
 
 .animate-fire-badge {
   animation: fireBadgePulse 0.8s ease-in-out infinite, fireBadgeGlow 0.8s ease-in-out infinite;
+}
+
+/* Flash-sale badge on discounted SIM cards. Defined here rather than in a
+   per-card <style> tag — a grid of 60 discounted cards was injecting 60
+   identical copies of these keyframes into <head>. */
+@keyframes flashBlink {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+  }
+  50% {
+    opacity: 0.25;
+    transform: scale(1.18);
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9));
+  }
+}
+
+.animate-flash-blink {
+  animation: flashBlink 0.45s ease-in-out infinite;
+}
+
+/* Respect the OS "reduce motion" setting — the site runs several
+   infinite animations (fire badge, floating buttons, price pulse). */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

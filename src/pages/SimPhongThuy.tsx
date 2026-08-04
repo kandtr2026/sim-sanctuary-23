@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { EDGE_FUNCTIONS_URL } from '@/integrations/supabase/config';
 import { Helmet } from 'react-helmet-async';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -30,10 +31,7 @@ import { toast } from 'sonner';
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y/export?format=csv&gid=139400129';
 
 // Edge function URL for fetching SIM data (bypass CORS)
-const getEdgeFunctionUrl = () => {
-  const projectId = 'pfeyyyvhzsuoccwoweco';
-  return `https://${projectId}.supabase.co/functions/v1/fetch-sim-data`;
-};
+const getEdgeFunctionUrl = () => `${EDGE_FUNCTIONS_URL}/fetch-sim-data`;
 
 // ===================== INVENTORY ITEM TYPE =====================
 interface InventoryItem {

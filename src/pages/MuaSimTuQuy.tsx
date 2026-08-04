@@ -16,7 +16,6 @@ import {
 '@/components/ui/accordion';
 import type { NormalizedSIM } from '@/lib/simUtils';
 
-const HOTLINE = '0901.19.1111';
 const ZALO_URL = 'https://zalo.me/0933356666';
 
 const faqItems = [
@@ -208,8 +207,10 @@ const MuaSimTuQuy = () => {
       <main className="min-h-screen bg-background">
         {/* ===== 1. HERO SECTION ===== */}
         <section style={{ height: 'clamp(340px, 45vw, 420px)' }} className="relative bg-gradient-to-b from-primary via-primary-dark to-primary text-primary-foreground overflow-hidden flex items-center">
-          {/* Subtle background pattern */}
-          <div className="absolute inset-0 opacity-[0.07] border-0 px-0 mx-[190px]" style={{
+          {/* Subtle background pattern — must stay inset-0 with no horizontal
+              margin, otherwise the gradient is pushed off-canvas on narrow
+              viewports and clipped on wide ones. */}
+          <div className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{
             backgroundImage: `radial-gradient(circle at 25% 50%, hsl(var(--gold)) 0%, transparent 50%), radial-gradient(circle at 75% 50%, hsl(var(--gold)) 0%, transparent 50%)`
           }} />
 

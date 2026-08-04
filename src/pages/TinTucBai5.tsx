@@ -21,7 +21,7 @@ const TinTucBai5 = () => {
           "headline": 'Cách Tránh Mất Tiền Oan Khi Mua Sim Số Đẹp',
           "description": 'Quy tắc vàng khi mua SIM số đẹp: không thanh toán 100% trước, kiểm tra hoạt động, cảnh giác sim giá rẻ bất ngờ, kiểm tra TTTB 1414.',
           "author": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM" },
-          "publisher": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM", "logo": { "@type": "ImageObject", "url": "https://www.chonsomobifone.com/favicon.png" } },
+          "publisher": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM", "logo": { "@type": "ImageObject", "url": "https://www.chonsomobifone.com/brand-logo.png" } },
           "mainEntityOfPage": "https://www.chonsomobifone.com/tin-tuc/cach-tranh-mat-tien-oan-khi-mua-sim-so-dep"
         })}</script>
       </Helmet>

@@ -21,7 +21,7 @@ const TinTucBai1 = () => {
           "headline": 'Ý Nghĩa Số Điện Thoại – Sim Số Như Thế Nào Là Đẹp?',
           "description": 'Ý nghĩa số điện thoại và cách nhận biết một SIM số đẹp: quy tắc âm dương, ngũ hành, các dạng đầu số và đuôi số quý.',
           "author": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM" },
-          "publisher": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM", "logo": { "@type": "ImageObject", "url": "https://www.chonsomobifone.com/favicon.png" } },
+          "publisher": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM", "logo": { "@type": "ImageObject", "url": "https://www.chonsomobifone.com/brand-logo.png" } },
           "mainEntityOfPage": "https://www.chonsomobifone.com/tin-tuc/y-nghia-sim-so-dep"
         })}</script>
       </Helmet>

@@ -1,4 +1,12 @@
 import { MapPin, Phone, Mail, Clock, Navigation } from "lucide-react";
+import { Link } from "react-router-dom";
+
+const policyLinks = [
+  { label: "Chính sách bảo mật", to: "/chinh-sach-bao-mat" },
+  { label: "Điều khoản sử dụng", to: "/dieu-khoan-su-dung" },
+  { label: "Chính sách giao hàng", to: "/chinh-sach-giao-hang" },
+  { label: "Hướng dẫn thanh toán", to: "/thanh-toan" },
+];
 
 const Footer = () => {
   return (
@@ -8,46 +16,33 @@ const Footer = () => {
           {/* Brand */}
           <div className="w-full min-w-0 lg:pr-4">
             <h3 className="text-xl font-bold mb-4">
-              <a href="/">
+              <Link to="/" aria-label="CHONSOMOBIFONE.COM — Trang chủ">
                 <span className="text-gold">CHONSO</span>
                 <span className="text-primary">MOBIFONE</span>
                 <span>.COM</span>
-              </a>
+              </Link>
             </h3>
             <p className="text-header-foreground/70 text-sm leading-relaxed mb-4 break-words">
               Kho SIM số đẹp uy tín hàng đầu Việt Nam. Chuyên SIM Mobifone, SIM phong thủy, SIM tài lộc với giá tốt nhất
               thị trường.
             </p>
-            <div className="flex items-center gap-2 text-gold">
+            <a href="tel:0938868868" className="inline-flex items-center gap-2 text-gold hover:text-gold-light transition-colors">
               <Phone className="w-4 h-4 flex-shrink-0" />
               <span className="font-bold">0938.868.868</span>
-            </div>
+            </a>
           </div>
 
           {/* Policies */}
           <div className="w-full min-w-0 lg:px-2">
             <h4 className="text-lg font-bold mb-4 text-gold uppercase">CHÍNH SÁCH</h4>
             <ul className="space-y-2 text-sm text-header-foreground/70">
-              <li>
-                <a href="#" className="hover:text-gold transition-colors">
-                  Chính sách bảo mật
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-gold transition-colors">
-                  Điều khoản sử dụng
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-gold transition-colors">
-                  Chính sách giao hàng
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-gold transition-colors">
-                  Hướng dẫn thanh toán
-                </a>
-              </li>
+              {policyLinks.map((link) => (
+                <li key={link.to}>
+                  <Link to={link.to} className="hover:text-gold transition-colors">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -94,11 +89,18 @@ const Footer = () => {
             <ul className="space-y-3 text-sm text-header-foreground/70">
               <li className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-gold flex-shrink-0" />
-                <span>Hotline: 0938.868.868</span>
+                <span>
+                  Hotline:{" "}
+                  <a href="tel:0938868868" className="hover:text-gold transition-colors">
+                    0938.868.868
+                  </a>
+                </span>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-gold flex-shrink-0" />
-                <span className="break-words">hotro@chonsomobifone.com</span>
+                <a href="mailto:hotro@chonsomobifone.com" className="break-words hover:text-gold transition-colors">
+                  hotro@chonsomobifone.com
+                </a>
               </li>
               <li className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-gold flex-shrink-0" />

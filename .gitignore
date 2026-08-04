@@ -12,6 +12,13 @@ dist
 dist-ssr
 *.local
 
+# Local environment. Kept out of git even though every VITE_ var is public once
+# built — see .env.example for what to set and src/integrations/supabase/config.ts
+# for the fallbacks that let a fresh clone run without it.
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

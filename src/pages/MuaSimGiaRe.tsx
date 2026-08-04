@@ -16,7 +16,6 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 
-const HOTLINE = '0901.19.1111';
 const ZALO_URL = 'https://zalo.me/0933356666';
 
 const faqItems = [
@@ -188,7 +187,6 @@ const MuaSimGiaRe = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSearch, setActiveSearch] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [showFullInventory, setShowFullInventory] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const fullInventoryRef = useRef<HTMLDivElement>(null);
   const { sims: cheapSimsRaw, isLoading } = useCheapSimData();
@@ -249,8 +247,6 @@ const MuaSimGiaRe = () => {
       };
     });
   }, [cheapSimsRaw]);
-
-  const cheapSims = useMemo(() => allCheapSims.slice(0, 12), [allCheapSims]);
 
   const searchResults = useMemo(() => {
     if (!activeSearch.trim()) return null;
@@ -319,8 +315,11 @@ const MuaSimGiaRe = () => {
           style={{ height: 'clamp(340px, 45vw, 420px)' }}
           className="relative bg-gradient-to-b from-primary via-primary-dark to-primary text-primary-foreground overflow-hidden flex items-center"
         >
+          {/* Subtle background pattern — must stay inset-0 with no horizontal
+              margin, otherwise the gradient is pushed off-canvas on narrow
+              viewports and clipped on wide ones. */}
           <div
-            className="absolute inset-0 opacity-[0.07] border-0 px-0 mx-[190px]"
+            className="pointer-events-none absolute inset-0 opacity-[0.07]"
             style={{
               backgroundImage: `radial-gradient(circle at 25% 50%, hsl(var(--gold)) 0%, transparent 50%), radial-gradient(circle at 75% 50%, hsl(var(--gold)) 0%, transparent 50%)`,
             }}
@@ -371,8 +370,7 @@ const MuaSimGiaRe = () => {
           {/* Section "Kho Sim Giá Rẻ Cập Nhật" đã được xóa theo yêu cầu */}
 
           {/* ===== FULL INVENTORY WITH PAGINATION ===== */}
-          {showFullInventory && (
-            <section ref={fullInventoryRef} className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
+          <section ref={fullInventoryRef} className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <h2 className="text-2xl font-bold text-primary flex items-center gap-3">
                   <span className="w-1 h-8 bg-primary rounded-full" />
@@ -504,8 +502,7 @@ const MuaSimGiaRe = () => {
                   </>
                 );
               })()}
-            </section>
-          )}
+          </section>
 
 
 

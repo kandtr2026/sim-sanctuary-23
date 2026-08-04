@@ -65,16 +65,11 @@ const AdvancedFilterSidebar = ({
   onToggleSuffix,
   onUpdateFilter
 }: AdvancedFilterSidebarProps) => {
-  const [showCustomPrice, setShowCustomPrice] = useState(false);
-  const [customMinInput, setCustomMinInput] = useState('');
-  const [customMaxInput, setCustomMaxInput] = useState('');
-
-  const handleApplyCustomPrice = () => {
-    const min = customMinInput ? parseInt(customMinInput) * 1000000 : null;
-    const max = customMaxInput ? parseInt(customMaxInput) * 1000000 : null;
-    onUpdateFilter('customPriceMin', min);
-    onUpdateFilter('customPriceMax', max);
-  };
+  // NOTE: filters.customPriceMin / customPriceMax are fully supported by
+  // useSimData (filtering, active-filter chip, reset) but no control renders
+  // them yet. The unused local state + handler that used to live here were
+  // dead code; wire new inputs to onUpdateFilter('customPriceMin' | 'customPriceMax')
+  // when that UI is designed.
 
   // Group tags by category - separate quý types from other tags
   const quyTypes: QuyType[] = ['Lục quý', 'Ngũ quý', 'Tứ quý'];

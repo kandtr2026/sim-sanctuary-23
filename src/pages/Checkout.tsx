@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
+import { EDGE_FUNCTIONS_URL } from '@/integrations/supabase/config';
 import { ArrowLeft, Phone, CheckCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +22,7 @@ import {
 } from '@/components/ui/dialog';
 
 const ORDER_WEBAPP_URL = "https://script.google.com/macros/s/AKfycby_3QYkdJSBo43QiJlJ88rSLCsXN7baZtnW5v9VeF3AZJAVzZOjB35bhfFCHZBrVwA/exec";
-const MAKE_WEBHOOK_PROXY = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/make-webhook-proxy`;
+const MAKE_WEBHOOK_PROXY = `${EDGE_FUNCTIONS_URL}/make-webhook-proxy`;
 
 // --- Helpers ---
 
@@ -204,6 +206,16 @@ const parseCSVAndFindSim = (csvText: string, targetSimId: string): CheckoutSimDa
 
 // --- Component ---
 
+/** Order pages are per-SIM and transactional — keep them out of the index.
+    robots.txt already disallows /mua-ngay/, but that only stops crawling, not
+    indexing of URLs discovered via inbound links. */
+const CheckoutMeta = ({ title }: { title: string }) => (
+  <Helmet>
+    <title>{title}</title>
+    <meta name="robots" content="noindex, nofollow" />
+  </Helmet>
+);
+
 const Checkout = () => {
   const { simId } = useParams<{ simId: string }>();
   const navigate = useNavigate();
@@ -350,6 +362,7 @@ const Checkout = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
+        <CheckoutMeta title="Đang tải thông tin SIM… | CHONSOMOBIFONE" />
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Đang tải thông tin SIM...</p>
@@ -362,6 +375,7 @@ const Checkout = () => {
   if (error || !simWithTags) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <CheckoutMeta title="Không tìm thấy SIM | CHONSOMOBIFONE" />
         <div className="text-center max-w-md">
           <h1 className="text-xl font-bold text-foreground mb-2">Không tìm thấy SIM</h1>
           <p className="text-muted-foreground mb-4">
@@ -385,6 +399,9 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <CheckoutMeta
+        title={`Đặt mua SIM ${simWithTags.displayNumber || simWithTags.rawDigits} | CHONSOMOBIFONE`}
+      />
       {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-50">
         <div className="container max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">

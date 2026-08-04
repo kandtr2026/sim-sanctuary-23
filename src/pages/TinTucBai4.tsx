@@ -21,7 +21,7 @@ const TinTucBai4 = () => {
           "headline": 'Cách Xem Sim Phong Thủy Hợp Tuổi Chính Xác Nhất',
           "description": '3 cách xem SIM phong thủy hợp tuổi: theo ngũ hành bản mệnh, âm dương tương phối, và cách tính sim đại cát chia 80.',
           "author": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM" },
-          "publisher": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM", "logo": { "@type": "ImageObject", "url": "https://www.chonsomobifone.com/favicon.png" } },
+          "publisher": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM", "logo": { "@type": "ImageObject", "url": "https://www.chonsomobifone.com/brand-logo.png" } },
           "mainEntityOfPage": "https://www.chonsomobifone.com/tin-tuc/cach-xem-sim-phong-thuy-hop-tuoi"
         })}</script>
       </Helmet>

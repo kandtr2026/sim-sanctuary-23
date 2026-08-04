@@ -4,8 +4,14 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { Copy, Check } from 'lucide-react';
 import { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { toast } from '@/hooks/use-toast';
 import qrTechcombank from '@/assets/qr-techcombank.png';
+
+const TITLE = 'Hướng Dẫn Thanh Toán & Đặt Mua SIM | CHONSOMOBIFONE';
+const DESCRIPTION =
+  'Hướng dẫn đặt mua SIM số đẹp Mobifone: quy trình 3 bước, giao SIM miễn phí toàn quốc, địa chỉ cửa hàng và thông tin tài khoản thanh toán chính thức.';
+const CANONICAL = 'https://www.chonsomobifone.com/thanh-toan';
 
 const ThanhToan = () => {
   const [copied, setCopied] = useState(false);
@@ -31,6 +37,15 @@ const ThanhToan = () => {
   };
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{TITLE}</title>
+        <meta name="description" content={DESCRIPTION} />
+        <link rel="canonical" href={CANONICAL} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={TITLE} />
+        <meta property="og:description" content={DESCRIPTION} />
+        <meta property="og:url" content={CANONICAL} />
+      </Helmet>
       <Header />
       <TrustBar />
       <Navigation />
@@ -46,7 +61,14 @@ const ThanhToan = () => {
             <div className="space-y-4 text-foreground/90">
               <div>
                 <p className="font-semibold text-gold">Bước 1: ĐẶT SIM</p>
-                <p className="mt-1">Quý khách chọn số sim và đặt hàng trên web hoặc gọi điện đến số hotline <span className="font-semibold text-primary">0938.868.868</span> để được hỗ trợ.</p>
+                <p className="mt-1">Quý khách chọn số sim và đặt hàng trên web hoặc gọi điện đến số hotline{' '}
+                  <a
+                    href="tel:0938868868"
+                    className="font-semibold text-primary underline decoration-primary/40 underline-offset-2 hover:text-primary/80"
+                  >
+                    0938.868.868
+                  </a>{' '}
+                  để được hỗ trợ.</p>
               </div>
               
               <div>

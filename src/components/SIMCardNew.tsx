@@ -11,6 +11,8 @@ import {
 import { cn } from '@/lib/utils';
 import { createHighlightedNumber } from '@/lib/highlightUtils';
 
+// Fallback only — mirrors NETWORK_PREFIXES in @/lib/simUtils, which deliberately
+// covers just Mobifone / Vinaphone / Gmobile. Keep the two lists in sync.
 const detectCarrier = (number: string): string => {
   const digits = (number || '').replace(/\D/g, '');
   const prefix = digits.substring(0, 3);
@@ -41,11 +43,15 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
     }
     return '';
   })();
-const carrier = sim.network !== 'Khác' ? sim.network : detectCarrier(rawNumber);
+  // `sim.network` is 'Khác' when the sheet column is blank or unrecognised —
+  // fall back to prefix detection so the badge still renders instead of
+  // silently disappearing.
+  const carrier = sim.network && sim.network !== 'Khác' ? sim.network : detectCarrier(rawNumber);
+
   const handleBuyClick = () => {
     setContactOpen(true);
   };
-console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
+
   const formatPrice = (price: number | undefined): string => {
     if (price === undefined || price === null || isNaN(price) || price <= 0) return 'Liên hệ';
     return `${price.toLocaleString('vi-VN').replace(/,/g, '.')} đ`;
@@ -121,42 +127,26 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
         )}>
 
         {hasDiscount && (
-          <>
-            <style>{`
-              @keyframes flashBlink {
-                0%   { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 0px rgba(255,255,255,0)); }
-                50%  { opacity: 0.25; transform: scale(1.18); filter: drop-shadow(0 0 10px rgba(255,255,255,0.9)); }
-                100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 0px rgba(255,255,255,0)); }
-              }
-            `}</style>
-            <img
-              src="/flash-sale.png"
-              alt="Flash Sale"
-              className="absolute top-2 left-2 z-20"
-              style={{
-                width: '56px',
-                height: 'auto',
-                background: 'transparent',
-                border: 'none',
-                padding: 0,
-                boxShadow: 'none',
-                animation: 'flashBlink 0.45s infinite ease-in-out',
-                pointerEvents: 'none'
-              }}
-            />
-          </>
+          <img
+            src="/flash-sale.png"
+            alt="Flash Sale"
+            loading="lazy"
+            decoding="async"
+            width={56}
+            className="animate-flash-blink pointer-events-none absolute top-2 left-2 z-20 h-auto w-14 border-0 bg-transparent p-0 shadow-none"
+          />
         )}
 
         <div className={cn("flex items-center gap-1 mb-1.5 flex-wrap max-w-full", hasDiscount && "mt-8")}>
-          {sim.network && sim.network !== 'Khác' && (
+          {carrier && (
             <span
-              className={cn("px-1.5 py-px rounded font-medium", networkColors[sim.network] || 'bg-gray-500 text-white')}
+              className={cn("px-1.5 py-px rounded font-medium", networkColors[carrier] || 'bg-gray-500 text-white')}
               style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
             >
-              {sim.network}
+              {carrier}
             </span>
           )}
-          {sim.network && sim.network !== 'Khác' && sim.beautyScore >= 50 && (
+          {carrier && sim.beautyScore >= 50 && (
             <span 
               className="px-1.5 py-px rounded font-medium bg-gold/20 text-gold-dark"
               style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
@@ -231,7 +221,7 @@ console.log('[NET]', sim.rawDigits, '|', sim.network, '|', carrier);
         onOpenChange={setContactOpen}
         simNumber={sim.displayNumber || sim.formattedNumber}
         simPrice={formatPrice(sim.price)}
-        simNetwork={sim.network}
+        simNetwork={carrier}
       />
     </>
   );

@@ -73,7 +73,12 @@ const MessengerQuickTemplates = () => {
 
   return (
     <div
-      className="fixed bottom-24 right-4 z-[9999] w-full max-w-[260px] bg-card border border-border rounded-xl shadow-lg p-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2"
+      className="fixed right-4 z-[90] w-[calc(100vw-2rem)] max-w-[260px] bg-card border border-border rounded-xl shadow-lg p-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2"
+      style={{
+        // Clear the floating contact stack (3 buttons ≈ 200px) and the mobile
+        // sticky CTA bar beneath it.
+        bottom: "calc(var(--sticky-cta-height) + 220px)",
+      }}
       role="dialog"
       aria-label="Chọn tin nhắn mẫu"
     >

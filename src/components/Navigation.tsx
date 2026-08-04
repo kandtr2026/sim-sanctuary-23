@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import { NavLink } from "@/components/NavLink";
 
 const menuItems = [
   { label: "SIM SỐ", href: "/" },
@@ -21,13 +22,15 @@ const Navigation = () => {
         {/* Desktop Menu */}
         <div className="hidden lg:flex items-center justify-center gap-2 py-3">
           {menuItems.map((item) => (
-            <a
+            <NavLink
               key={item.label}
-              href={item.href}
+              to={item.href}
+              end={item.href === "/"}
               className="menu-pill shimmer-hover relative text-primary-foreground text-sm"
+              activeClassName="ring-2 ring-gold/70 ring-offset-1 ring-offset-card"
             >
               {item.label}
-            </a>
+            </NavLink>
           ))}
         </div>
 
@@ -36,6 +39,9 @@ const Navigation = () => {
           <span className="text-gold font-bold text-sm tracking-wide">DANH MỤC</span>
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-menu"
+            aria-label={mobileOpen ? "Đóng danh mục" : "Mở danh mục"}
             className="p-2.5 rounded-xl bg-primary/90 text-primary-foreground transition-colors hover:bg-primary"
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -44,16 +50,18 @@ const Navigation = () => {
 
         {/* Mobile Menu */}
         {mobileOpen && (
-          <div className="lg:hidden pb-4 space-y-1.5">
+          <div id="mobile-menu" className="lg:hidden pb-4 space-y-1.5">
             {menuItems.map((item) => (
-              <a
+              <NavLink
                 key={item.label}
-                href={item.href}
+                to={item.href}
+                end={item.href === "/"}
                 onClick={() => setMobileOpen(false)}
                 className="block px-4 py-3 rounded-xl bg-secondary/80 text-foreground/90 font-medium text-sm hover:bg-gold/10 hover:text-gold transition-all border border-border/40"
+                activeClassName="!text-gold !bg-gold/10 border-gold/40"
               >
                 {item.label}
-              </a>
+              </NavLink>
             ))}
           </div>
         )}

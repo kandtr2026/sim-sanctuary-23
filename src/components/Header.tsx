@@ -1,4 +1,5 @@
 import { Phone, MessageCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   return (
@@ -6,11 +7,11 @@ const Header = () => {
       <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <a href="/" className="text-xl md:text-2xl font-bold tracking-tight">
+          <Link to="/" className="text-xl md:text-2xl font-bold tracking-tight" aria-label="CHONSOMOBIFONE.COM — Trang chủ">
             <span className="text-gold">CHONSO</span>
             <span className="text-primary">MOBIFONE</span>
             <span className="text-header-foreground">.COM</span>
-          </a>
+          </Link>
         </div>
 
         {/* Tagline */}

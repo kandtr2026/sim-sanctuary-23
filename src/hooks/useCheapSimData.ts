@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { EDGE_FUNCTIONS_URL, SUPABASE_PUBLISHABLE_KEY } from '@/integrations/supabase/config';
 
 const SHEET_ID = '1gwlG7hsd_na7XB3d4maI99nhMVRUEmAlpx9ueYOELL4';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Tongkho`;
@@ -136,10 +137,8 @@ export const useCheapSimData = () => {
     // Always fetch in background
     const fetchData = async () => {
       try {
-        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'pfeyyyvhzsuoccwoweco';
-        const apiKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmZXl5eXZoenN1b2Njd293ZWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NTIzODEsImV4cCI6MjA4NDAyODM4MX0.RGOXDxNXOZn93fnZliCy48Hn2dH4tjogfAcdhp8KQiQ';
-        const baseUrl = `https://${projectId}.supabase.co/functions/v1/sheet-proxy`;
-        const headers = { 'apikey': apiKey };
+        const baseUrl = `${EDGE_FUNCTIONS_URL}/sheet-proxy`;
+        const headers = { 'apikey': SUPABASE_PUBLISHABLE_KEY };
 
         // Fetch both sheets in parallel
         const [mainRes, soldRes] = await Promise.all([

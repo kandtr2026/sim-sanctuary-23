@@ -317,21 +317,42 @@ const RightSidebar = () => {
         </h3>
         
         <div className="space-y-2">
-          {orders.map((order, index) => (
-            <div
-              key={`${order.phone}-${index}`}
-              className="order-item flex items-center justify-between p-3 rounded-lg bg-background-secondary"
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-primary animate-pulse-soft"></span>
-                <span className="font-medium text-foreground">{order.phone}</span>
+          {ordersLoading ? (
+            // Skeleton rows — previously this block rendered nothing while the
+            // sheet request was in flight, so the panel showed a bare heading.
+            Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={`skeleton-${i}`}
+                className="flex items-center justify-between p-3 rounded-lg bg-background-secondary"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-muted" />
+                  <span className="h-4 w-24 rounded bg-muted animate-pulse" />
+                </div>
+                <span className="h-3 w-16 rounded bg-muted animate-pulse" />
               </div>
-              <span className="text-sm text-muted-foreground">
-                Đã đặt ({order.time})
-              </span>
-            </div>
-          ))}
+            ))
+          ) : orders.length === 0 ? (
+            <p className="py-3 text-sm text-muted-foreground text-center">
+              Chưa có đơn hàng nào được cập nhật.
+            </p>
+          ) : (
+            orders.map((order, index) => (
+              <div
+                key={`${order.phone}-${index}`}
+                className="order-item flex items-center justify-between p-3 rounded-lg bg-background-secondary"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse-soft"></span>
+                  <span className="font-medium text-foreground">{order.phone}</span>
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  Đã đặt ({order.time})
+                </span>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </aside>

@@ -5,14 +5,12 @@
 
 import { detectCarrier, normalizePhone, type Carrier } from './simValuation';
 import { supabase } from '@/integrations/supabase/client';
+import { EDGE_FUNCTIONS_URL } from '@/integrations/supabase/config';
 
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y/export?format=csv&gid=139400129';
 
 // Supabase Edge Function proxy URL
-const getProxyUrl = () => {
-  const projectId = 'pfeyyyvhzsuoccwoweco';
-  return `https://${projectId}.supabase.co/functions/v1/sheet-proxy`;
-};
+const getProxyUrl = () => `${EDGE_FUNCTIONS_URL}/sheet-proxy`;
 
 export interface SimItem {
   phone: string;

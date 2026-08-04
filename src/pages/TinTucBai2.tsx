@@ -21,7 +21,7 @@ const TinTucBai2 = () => {
           "headline": 'Số Tổng Đài Mobifone, Vinaphone, Viettel, Gmobile Mới Nhất',
           "description": 'Danh sách số tổng đài chăm sóc khách hàng của các nhà mạng Mobifone, Vinaphone, Viettel, Gmobile cập nhật mới nhất.',
           "author": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM" },
-          "publisher": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM", "logo": { "@type": "ImageObject", "url": "https://www.chonsomobifone.com/favicon.png" } },
+          "publisher": { "@type": "Organization", "name": "CHONSOMOBIFONE.COM", "logo": { "@type": "ImageObject", "url": "https://www.chonsomobifone.com/brand-logo.png" } },
           "mainEntityOfPage": "https://www.chonsomobifone.com/tin-tuc/so-tong-dai-cac-nha-mang"
         })}</script>
       </Helmet>
