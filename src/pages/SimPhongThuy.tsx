@@ -944,7 +944,7 @@ const SimPhongThuy = () => {
 
           {/* Zalo Contact */}
           <div className="my-8 max-w-sm mx-auto">
-            <ZaloChatCard phone="0899.117.888" />
+            <ZaloChatCard />
           </div>
 
           {/* FAQ Section */}

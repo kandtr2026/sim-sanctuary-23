@@ -6,7 +6,7 @@ import { Copy, Check } from 'lucide-react';
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { toast } from '@/hooks/use-toast';
-import qrTechcombank from '@/assets/qr-techcombank.png';
+import qrTechcombank from '@/assets/qr-techcombank.webp';
 
 const TITLE = 'Hướng Dẫn Thanh Toán & Đặt Mua SIM | CHONSOMOBIFONE';
 const DESCRIPTION =

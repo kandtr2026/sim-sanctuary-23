@@ -145,7 +145,7 @@ function parseSoldSimIds(csvText: string): Set<string> {
   );
   
   // Find SoThueBao column index
-  let columnIndex = headers.findIndex(h => 
+  const columnIndex = headers.findIndex(h => 
     h === 'SOTHUEBAO' || h === 'SO THUE BAO' || h === 'SỐTHUÊBAO'
   );
   
@@ -269,7 +269,7 @@ serve(async (req) => {
       throw new Error(`Failed to fetch main sheet: ${mainCsvResult.reason}`);
     }
     
-    let mainCsvText = mainCsvResult.value;
+    const mainCsvText = mainCsvResult.value;
     
     // Validate main CSV
     const mainValidation = validateCSV(mainCsvText, VALID_HEADERS);

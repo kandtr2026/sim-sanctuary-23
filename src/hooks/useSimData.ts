@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { invokeEdgeFunctionText } from '@/integrations/supabase/edgeFunctions';
 import {
   normalizeSIM,
   
@@ -133,8 +133,6 @@ const buildSeedSims = (): NormalizedSIM[] => {
 const SEED_SIMS = buildSeedSims();
 
 // Storage keys
-const CSV_CACHE_KEY = 'sim_csv_cache';
-const CSV_CACHE_TIME_KEY = 'sim_csv_cache_time';
 const STORAGE_KEY = 'chonsomobifone_sim_cache';
 
 const AUTO_REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes
@@ -283,54 +281,106 @@ const parseCSV = (csvText: string): Record<string, string>[] => {
   return rows;
 };
 
-// Save raw CSV to cache
-const saveCsvToCache = (csvText: string) => {
+/**
+ * Cache budget, in JS characters. localStorage strings are UTF-16, so the byte
+ * cost is 2x the character count, and the per-origin quota is typically ~5 MB.
+ * 700k chars ≈ 1.4 MB — comfortably inside the quota with room for other keys.
+ *
+ * This matters because the live sheet is ~49,000 rows. Caching the raw CSV
+ * (10.5 MB UTF-16) or the full normalized array (34 MB UTF-16) throws
+ * QuotaExceededError on every single write, which silently disabled the entire
+ * offline fallback. We now cache a bounded, compact projection instead.
+ */
+const CACHE_CHAR_BUDGET = 700_000;
+
+/**
+ * Compact per-SIM cache row. Everything else on NormalizedSIM (tags, network,
+ * beautyScore, digit slices…) is recomputed by normalizeSIM on read, so storing
+ * it would just burn quota. `d` is omitted when the display number is identical
+ * to the raw digits, which is the common case.
+ */
+type CachedSimRow = [id: string, rawDigits: string, price: number, display?: string];
+
+interface SimCacheEnvelope {
+  v: 2;
+  timestamp: number;
+  /** Total SIMs the server returned, which may exceed the rows we could store. */
+  total: number;
+  rows: CachedSimRow[];
+}
+
+/** Storage keys from earlier versions that could never fit. Purge to free quota. */
+const LEGACY_CACHE_KEYS = ['sim_csv_cache', 'sim_csv_cache_time'];
+
+const purgeLegacyCaches = () => {
   try {
-    localStorage.setItem(CSV_CACHE_KEY, csvText);
-    localStorage.setItem(CSV_CACHE_TIME_KEY, Date.now().toString());
-  } catch (e) {
-    console.warn('Failed to save CSV to cache:', e);
+    for (const key of LEGACY_CACHE_KEYS) localStorage.removeItem(key);
+  } catch {
+    // Storage unavailable (private mode, disabled cookies) — nothing to purge.
   }
 };
 
-// Load raw CSV from cache
-const loadCsvFromCache = (): { csv: string; timestamp: number } | null => {
-  try {
-    const csv = localStorage.getItem(CSV_CACHE_KEY);
-    const timeStr = localStorage.getItem(CSV_CACHE_TIME_KEY);
-    if (csv && timeStr) {
-      return { csv, timestamp: parseInt(timeStr, 10) };
-    }
-  } catch (e) {
-    console.warn('Failed to load CSV from cache:', e);
-  }
-  return null;
-};
+const toCachedRow = (sim: NormalizedSIM): CachedSimRow =>
+  sim.displayNumber && sim.displayNumber !== sim.rawDigits
+    ? [sim.id, sim.rawDigits, sim.price, sim.displayNumber]
+    : [sim.id, sim.rawDigits, sim.price];
 
-// Save normalized SIMs to cache
+/** Save as many SIMs as fit the character budget, newest-first ordering preserved. */
 const saveToCache = (data: NormalizedSIM[]) => {
+  purgeLegacyCaches();
+
+  const rows: CachedSimRow[] = [];
+  let chars = 0;
+  for (const sim of data) {
+    const row = toCachedRow(sim);
+    // +1 for the delimiter JSON.stringify adds between array elements.
+    const cost = JSON.stringify(row).length + 1;
+    if (chars + cost > CACHE_CHAR_BUDGET) break;
+    rows.push(row);
+    chars += cost;
+  }
+
+  const envelope: SimCacheEnvelope = { v: 2, timestamp: Date.now(), total: data.length, rows };
+
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      timestamp: Date.now(),
-      data
-    }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(envelope));
   } catch (e) {
-    console.warn('Failed to save to cache:', e);
+    // Another origin key may be hogging the quota. Drop ours and retry once at
+    // a quarter of the size rather than leaving the fallback with nothing.
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      envelope.rows = rows.slice(0, Math.floor(rows.length / 4));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(envelope));
+    } catch {
+      console.warn('Failed to save SIM cache:', e);
+    }
   }
 };
 
-// Load normalized SIMs from cache
-const loadFromCache = (): { data: NormalizedSIM[]; timestamp: number } | null => {
+/** Load cached SIMs, rebuilding the derived fields via normalizeSIM. */
+const loadFromCache = (): { data: NormalizedSIM[]; timestamp: number; total: number } | null => {
   try {
     const cached = localStorage.getItem(STORAGE_KEY);
-    if (cached) {
-      const { data, timestamp } = JSON.parse(cached);
-      if (Date.now() - timestamp < MAX_CACHE_AGE && data?.length > 0) {
-        return { data, timestamp };
-      }
+    if (!cached) return null;
+
+    const parsed = JSON.parse(cached) as SimCacheEnvelope | { timestamp: number; data?: unknown };
+
+    // A v1 envelope (full NormalizedSIM[]) can only exist from a build before the
+    // compact format. Discard it — it is stale by definition and wastes quota.
+    if (!('v' in parsed) || parsed.v !== 2) {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
     }
+
+    if (Date.now() - parsed.timestamp >= MAX_CACHE_AGE) return null;
+    if (!Array.isArray(parsed.rows) || parsed.rows.length === 0) return null;
+
+    const data = parsed.rows.map(([id, rawDigits, price, display]) =>
+      normalizeSIM(rawDigits, display || rawDigits, price, id),
+    );
+    return { data, timestamp: parsed.timestamp, total: parsed.total ?? data.length };
   } catch (e) {
-    console.warn('Failed to load from cache:', e);
+    console.warn('Failed to load SIM cache:', e);
   }
   return null;
 };
@@ -348,23 +398,15 @@ export const getLastUpdateInfo = (): { timestamp: number | null; isCache: boolea
 // Fetch CSV via edge function (bypasses CORS)
 const fetchCsvViaProxy = async (): Promise<string> => {
   console.log('[SIM] Fetching via backend proxy...');
-  
-  const { data, error } = await supabase.functions.invoke('fetch-sim-data');
-  
-  if (error) {
-    console.error('[SIM] Edge function error:', error);
-    throw new Error(error.message || 'Failed to fetch from proxy');
-  }
-  
-  // The edge function returns CSV text directly
-  const csvText = typeof data === 'string' ? data : String(data);
-  
+
+  const csvText = await invokeEdgeFunctionText('fetch-sim-data');
+
   // Validate CSV content
   const validation = validateCSV(csvText);
   if (!validation.valid) {
     throw new Error(validation.reason || 'Invalid CSV response from proxy');
   }
-  
+
   console.log(`[SIM] Received ${csvText.length} bytes via proxy`);
   return csvText;
 };
@@ -376,9 +418,7 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
   try {
     // Try fetching via edge function proxy
     const csvText = await fetchCsvViaProxy();
-    
-    // Save raw CSV to cache on success
-    saveCsvToCache(csvText);
+
     lastFetchTimestamp = Date.now();
     
     const rows = parseCSV(csvText);
@@ -460,70 +500,24 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
     
   } catch (error) {
     console.error('[SIM] Fetch failed, trying cache:', error);
-    
-    // Try loading from CSV cache first
-    const csvCache = loadCsvFromCache();
-    if (csvCache && csvCache.csv) {
-      console.log('[SIM] Using cached CSV');
-      const rows = parseCSV(csvCache.csv);
-      const sims: NormalizedSIM[] = [];
-      
-      rows.forEach((row, index) => {
-        // Filter by TRẠNG THÁI: hide SIMs marked as ẨN, sold, or reserved
-        const trangThai = (row['TRANG_THAI'] || row['TRẠNG THÁI'] || row['TRANG THAI'] || '').trim().toLowerCase();
-        if (trangThai === 'sold' || trangThai === 'reserved' || trangThai === 'ẩn') return;
 
-        const sheetSimId = row['SIMID'] || '';
-        const rawNumber = row['RAW'] || row['DISPLAY'] || '';
-        const displayNumber = row['DISPLAY'] || row['RAW'] || rawNumber;
-        const originalPriceStr = row['ORIGINAL_PRICE'] || row['PRICE'] || '0';
-        const finalPriceStr = row['FINAL_PRICE'] || '';
-        const rawDigits = rawNumber.replace(/\D/g, '');
-        
-        if (rawDigits.length < 9) return;
-        
-        let originalPrice = safeParseVnd(originalPriceStr);
-        const finalPriceRaw = safeParseVnd(finalPriceStr);
-        const finalPrice = finalPriceRaw > 0 ? finalPriceRaw : undefined;
-        
-        if (!originalPrice || originalPrice <= 0) {
-          const tempSim = normalizeSIM(rawNumber, displayNumber, 0, `temp-${index}`);
-          originalPrice = estimatePriceByTags(tempSim.tags);
-        }
-        
-        const effectivePrice = finalPrice ?? originalPrice;
-        const simId = sheetSimId.trim() || `sim-${index}`;
-        const sim = normalizeSIM(rawNumber, displayNumber, effectivePrice, simId);
-        sims.push(sim);
-      });
-      
-      if (sims.length > 0) {
-        usingCachedData = true;
-        lastFetchTimestamp = csvCache.timestamp;
-        toast.warning('Không thể tải dữ liệu mới. Đang dùng dữ liệu tạm (cache).', {
-          duration: 5000
-        });
-        return sims;
-      }
-    }
-    
-    // Try loading normalized SIMs from cache
+    // Cached SIMs are already fully normalized by loadFromCache().
     const cachedData = loadFromCache();
     if (cachedData && cachedData.data.length > 0) {
       usingCachedData = true;
       lastFetchTimestamp = cachedData.timestamp;
-      toast.warning('Không thể tải dữ liệu mới. Đang dùng dữ liệu tạm (cache).', {
-        duration: 5000
-      });
-      // Re-normalize cached SIMs to ensure network field is populated
-      return cachedData.data.map(sim => {
-        if (!sim.network || sim.network === 'Khác') {
-          return normalizeSIM(sim.rawDigits, sim.displayNumber, sim.price, sim.id);
-        }
-        return sim;
-      });
+      // The cache holds only as many SIMs as fit the quota, so say so rather
+      // than implying the visitor is seeing the whole inventory.
+      const isPartial = cachedData.total > cachedData.data.length;
+      toast.warning(
+        isPartial
+          ? `Không thể tải dữ liệu mới. Đang hiển thị ${cachedData.data.length.toLocaleString('vi-VN')} SIM đã lưu tạm.`
+          : 'Không thể tải dữ liệu mới. Đang dùng dữ liệu tạm (cache).',
+        { duration: 5000 }
+      );
+      return cachedData.data;
     }
-    
+
     throw error;
   }
 };
@@ -589,14 +583,9 @@ const RELAX_ORDER: (keyof FilterState)[] = [
 // Pre-compute cached initial data at module level (not inside hook)
 const getCachedInitialData = (): NormalizedSIM[] => {
   const cached = loadFromCache();
-  if (cached && cached.data.length > 0) {
-    return cached.data.map(sim => {
-      if (!sim.network || sim.network === 'Khác') {
-        return normalizeSIM(sim.rawDigits, sim.displayNumber, sim.price, sim.id);
-      }
-      return sim;
-    });
-  }
+  // loadFromCache() rebuilds every derived field through normalizeSIM, so these
+  // are ready to render as-is.
+  if (cached && cached.data.length > 0) return cached.data;
   return SEED_SIMS;
 };
 

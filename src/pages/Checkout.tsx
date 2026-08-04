@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
-import { supabase } from '@/integrations/supabase/client';
+import { invokeEdgeFunctionText } from '@/integrations/supabase/edgeFunctions';
 import { EDGE_FUNCTIONS_URL } from '@/integrations/supabase/config';
 import { ArrowLeft, Phone, CheckCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -237,9 +237,7 @@ const Checkout = () => {
     queryKey: ['checkoutSim', simId],
     queryFn: async (): Promise<CheckoutSimData | null> => {
       if (!simId) return null;
-      const { data, error } = await supabase.functions.invoke('fetch-sim-data');
-      if (error) throw error;
-      const csvText = typeof data === 'string' ? data : String(data);
+      const csvText = await invokeEdgeFunctionText('fetch-sim-data');
       return parseCSVAndFindSim(csvText, simId);
     },
     enabled: !!simId,

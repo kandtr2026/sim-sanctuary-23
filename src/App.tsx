@@ -33,6 +33,7 @@ import FloatingContactButtons from "./components/FloatingContactButtons";
 import MessengerChatPlugin from "./components/MessengerChatPlugin";
 import MessengerQuickTemplates from "./components/MessengerQuickTemplates";
 import StickyCtaBottomBar from "./components/StickyCtaBottomBar";
+import BuildBadge from "./components/BuildBadge";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +83,7 @@ const App = () => (
         <MessengerChatPlugin />
         <MessengerQuickTemplates />
         <StickyCtaBottomBar />
+        <BuildBadge />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

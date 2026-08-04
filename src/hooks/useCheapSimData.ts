@@ -112,14 +112,14 @@ const loadCache = (): { sims: CheapSim[]; ts: number } | null => {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (parsed?.sims?.length > 0 && parsed?.ts) return parsed;
-  } catch {}
+  } catch { /* cache hỏng hoặc localStorage bị chặn - bỏ qua */ }
   return null;
 };
 
 const saveCache = (sims: CheapSim[]) => {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({ sims, ts: Date.now() }));
-  } catch {}
+  } catch { /* hết quota hoặc localStorage bị chặn - bỏ qua */ }
 };
 
 export const useCheapSimData = () => {

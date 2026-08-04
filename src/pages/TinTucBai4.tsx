@@ -35,7 +35,7 @@ const TinTucBai4 = () => {
             Cách Xem Sim Phong Thủy Hợp Tuổi Chính Xác Nhất
           </h1>
 
-          <div className="prose prose-lg max-w-none space-y-4 text-foreground">
+          <div className="space-y-4 text-foreground">
             <p>
               Sở hữu một số điện thoại hợp phong thủy không chỉ giúp bạn tự tin hơn trong giao tiếp mà còn được tin là giúp thu hút tài lộc, cải thiện vận mệnh. Dưới đây là 3 cách xem sim phong thủy hợp tuổi phổ biến và chính xác nhất hiện nay.
             </p>

@@ -35,7 +35,7 @@ const TinTucBai3 = () => {
             Ý nghĩa các con số phong thủy từ 1 đến 9
           </h1>
 
-          <div className="prose prose-lg max-w-none space-y-4 text-foreground">
+          <div className="space-y-4 text-foreground">
             <p>
               Vạn vật sinh ra đều gắn liền với các con số. Mỗi chúng ta sống trong vạn vật cũng đều có các con số gắn với mình. Tỉ như, khi chưa sinh ra bào thai cũng được tính tới 9 tháng 10 ngày, năm nay anh bao nhiêu tuổi, năm tới chị bao nhiêu xuân.
             </p>
@@ -91,7 +91,7 @@ const TinTucBai3 = () => {
                   Số 5 có ý nghĩa huyền bí xuất phát từ học thuyết Ngũ Hành. Mọi sự việc đều bắt đầu từ 5 yếu tố. Trời đất có ngũ hành (Kim, Mộc, Thủy, Hỏa, Thổ) – Người quân từ có ngũ đức (Nhân, Nghĩa, Lễ, Trí, Tín) – Cuộc sống có ngũ phúc (Phú, Quý, Thọ, Khang, Ninh). Số 5 còn là số Vua, thuộc hành Thổ, màu Vàng. Ngày xưa những ngày 5, 14 (4+1=5), 23 (2+3=5) là những ngày Vua thường ra ngoài nên việc buôn bán bị ảnh hưởng. Bây giờ không còn Vua nữa nên mọi người đi đâu vào ngày này thường ít đông và dễ chịu. Ngũ đế (Phục Hy, Thần Nông, Huỳnh Đế, Nghiêu, Thuấn). Ngũ luân (Vua tôi, Cha con, Vợ chồng, Anh em, Bạn bè).
                 </p>
                 <p className="text-muted-foreground italic mt-2">
-                  &gt;&gt;Click vào kho sim số đẹp của Tongkhosim.com để trọn được chiếc sim có thể mang lại may mắn cho bạn trong công việc và cuộc sống hàng ngày.
+                  &gt;&gt;Click vào kho sim số đẹp của CHONSOMOBIFONE.COM để chọn được chiếc sim có thể mang lại may mắn cho bạn trong công việc và cuộc sống hàng ngày.
                 </p>
               </div>
 
@@ -216,7 +216,7 @@ const TinTucBai3 = () => {
             </ul>
 
             <p className="mt-6">
-              Trên đây là ý nghĩa các con số mà Tongkhosim cùng bạn tìm hiểu, hy vọng rằng với một số thông tin trên khi phải trọn số bạn có thể chọn được con số may mắn cho mình.
+              Trên đây là ý nghĩa các con số mà CHONSOMOBIFONE cùng bạn tìm hiểu, hy vọng rằng với một số thông tin trên khi phải chọn số bạn có thể chọn được con số may mắn cho mình.
             </p>
           </div>
         </article>

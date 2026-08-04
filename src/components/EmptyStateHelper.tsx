@@ -50,7 +50,6 @@ const EmptyStateHelper = ({
 
   // Dev-only debug (enable via: localStorage.setItem('debug_highlight','1'))
   if (import.meta.env.DEV && typeof window !== "undefined" && window.localStorage?.getItem("debug_highlight") === "1") {
-    // eslint-disable-next-line no-console
     console.log("[highlight] EmptyStateHelper", { normalizedSearchDigits, rawSearchQuery: searchQuery });
   }
 

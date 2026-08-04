@@ -128,7 +128,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
 
         {hasDiscount && (
           <img
-            src="/flash-sale.png"
+            src="/flash-sale.webp"
             alt="Flash Sale"
             loading="lazy"
             decoding="async"

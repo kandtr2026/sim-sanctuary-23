@@ -1,10 +1,34 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { execSync } from "child_process";
 import { componentTagger } from "lovable-tagger";
+
+// Short git SHA of the code being built, so a deployed bundle can be traced back
+// to a commit. Vercel builds from a checkout that may lack full git history, so
+// fall back to its own env var, then to 'unknown' — a missing SHA must never
+// fail the build.
+const resolveCommit = (): string => {
+  const vercelSha = process.env.VERCEL_GIT_COMMIT_SHA;
+  if (vercelSha) return vercelSha.slice(0, 7);
+  try {
+    return execSync("git rev-parse --short HEAD", { stdio: ["ignore", "pipe", "ignore"] })
+      .toString()
+      .trim();
+  } catch {
+    return "unknown";
+  }
+};
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  // Baked into the bundle at build time and surfaced by src/lib/buildInfo.ts.
+  // JSON.stringify is required: `define` performs raw text substitution, so the
+  // replacement has to include its own quotes.
+  define: {
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    __BUILD_COMMIT__: JSON.stringify(resolveCommit()),
+  },
   server: {
     host: "::",
     port: 8080,

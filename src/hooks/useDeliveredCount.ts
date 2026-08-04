@@ -36,7 +36,9 @@ const parseCSVLine = (line: string): string[] => {
 
 // Đếm số dòng SIM đã bán từ CSV của tab SIM_SOLD
 const countSoldRows = (csv: string): number => {
-  const text = csv.replace(/^﻿/, '').trim();
+  // U+FEFF is the UTF-8 BOM Google Sheets prepends. Written as an escape rather
+  // than a literal so it stays visible in source and survives editor re-saves.
+  const text = csv.replace(/^\uFEFF/, '').trim();
   // Chặn HTML/trang login trả về thay vì CSV
   if (!text || text.toLowerCase().startsWith('<')) {
     throw new Error('SIM_SOLD trả về nội dung không hợp lệ');

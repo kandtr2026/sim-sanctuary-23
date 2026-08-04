@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# TypeScript incremental build cache, written by `tsc -b`.
+*.tsbuildinfo
+
 # Local environment. Kept out of git even though every VITE_ var is public once
 # built — see .env.example for what to set and src/integrations/supabase/config.ts
 # for the fallbacks that let a fresh clone run without it.

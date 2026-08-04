@@ -12,6 +12,7 @@ import SIMCardNew from "@/components/SIMCardNew";
 import RightSidebar from "@/components/RightSidebar";
 import IntroSection from "@/components/IntroSection";
 import FAQSection from "@/components/FAQSection";
+import { faqData } from "@/data/faqData";
 import Footer from "@/components/Footer";
 import ActiveFilterChips from "@/components/ActiveFilterChips";
 import SortDropdown from "@/components/SortDropdown";
@@ -479,16 +480,17 @@ const Index = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Derived from the same array FAQSection renders. Google's FAQPage policy
+  // requires every Q&A in the markup to be visible on the page, so this must
+  // never be hand-maintained as a second copy.
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: [
-      { "@type": "Question", name: "Cách mua SIM số đẹp tại CHONSOMOBIFONE.COM?", acceptedAnswer: { "@type": "Answer", text: 'Chọn số ưng ý, nhấn "MUA NGAY", điền thông tin nhận hàng và chờ nhân viên xác nhận. Thanh toán COD khi nhận hàng hoặc chuyển khoản trước.' } },
-      { "@type": "Question", name: "Làm sao để đăng ký chính chủ SIM?", acceptedAnswer: { "@type": "Answer", text: "Sau khi nhận SIM, đăng ký chính chủ tại cửa hàng Mobifone hoặc qua ứng dụng My Mobifone. Chúng tôi hỗ trợ tư vấn miễn phí." } },
-      { "@type": "Question", name: "Phí giao hàng là bao nhiêu?", acceptedAnswer: { "@type": "Answer", text: "Miễn phí giao hàng toàn quốc cho đơn từ 2 triệu. Đơn dưới 2 triệu: nội thành 20.000đ, ngoại thành 30.000đ." } },
-      { "@type": "Question", name: "Có được đổi SIM nếu không ưng ý?", acceptedAnswer: { "@type": "Answer", text: "Được đổi SIM trong 3 ngày kể từ khi nhận nếu SIM chưa kích hoạt và còn nguyên seal. Phí đổi 50.000đ." } },
-      { "@type": "Question", name: "Thời gian giao hàng là bao lâu?", acceptedAnswer: { "@type": "Answer", text: "Nội thành Hà Nội / TP.HCM: 30 phút – 1 tiếng. Các tỉnh: 1–2 ngày làm việc. Giao từ 8h–20h." } },
-    ],
+    mainEntity: faqData.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: { "@type": "Answer", text: faq.answer },
+    })),
   };
 
   return (

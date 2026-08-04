@@ -300,7 +300,7 @@ export const parsePrice = (priceStr: string | number): number => {
   if (!priceStr) return 0;
   
   // Remove all non-numeric characters except for decimal points that might be thousands separators
-  let cleaned = String(priceStr)
+  const cleaned = String(priceStr)
     .replace(/[^\d]/g, ''); // Remove everything except digits
   
   const value = parseInt(cleaned, 10);

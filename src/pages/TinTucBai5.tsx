@@ -35,7 +35,7 @@ const TinTucBai5 = () => {
             Cách Tránh Mất Tiền Oan Khi Mua Sim Số Đẹp
           </h1>
 
-          <div className="prose prose-lg max-w-none space-y-4 text-foreground">
+          <div className="space-y-4 text-foreground">
             <p>
               Thị trường sim số đẹp luôn sôi động với những giao dịch từ vài triệu đến hàng tỷ đồng. Tuy nhiên, đây cũng là mảnh đất màu mỡ cho các đối tượng lừa đảo. Để sở hữu được một số thuê bao ưng ý mà không bị "tiền mất tật mang", bạn cần lưu ý những quy tắc vàng dưới đây.
             </p>
@@ -74,7 +74,7 @@ const TinTucBai5 = () => {
             </p>
 
             <p>
-              <strong>Sự thật:</strong> Đa phần đây là sim tranh chấp, sim đang trả góp hoặc sim ảo. Hãy khảo sát giá ở ít nhất 3 website uy tín như Tongkhosim.com để nắm được mức giá chung.
+              <strong>Sự thật:</strong> Đa phần đây là sim tranh chấp, sim đang trả góp hoặc sim ảo. Hãy khảo sát giá ở ít nhất 3 website uy tín để nắm được mức giá chung trước khi quyết định.
             </p>
 
             <h2 className="text-xl md:text-2xl font-bold text-primary mt-8 mb-4">
