@@ -45,17 +45,11 @@ const TARGETS = [
     quality: 90,
     note: 'popup illustration at 144x96 CSS; opaque, so WebP',
   },
-  {
-    file: 'public/home-banner.png',
-    // Homepage LCP image. Photographic content, so PNG was the wrong container
-    // entirely — re-encoding as PNG saved under 1%.
-    width: 1920,
-    displayWidth: 512,
-    format: 'webp',
-    keepAlpha: true, // measured: alpha min = 112, genuinely used
-    quality: 88,
-    note: 'LCP banner; photographic, so WebP',
-  },
+  // public/home-banner.png was here. The homepage hero banner was removed
+  // entirely (the search box and SIM grid took its place above the fold), and
+  // public/home-banner.webp was deleted with it — so there is nothing left for
+  // this target to optimize. Do not re-add it without re-adding a banner that
+  // some page actually renders.
   {
     file: 'public/share-banner.png',
     // og:image. 1200x630 is the canonical Open Graph size and scrapers

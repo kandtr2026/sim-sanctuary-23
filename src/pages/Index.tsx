@@ -1,11 +1,11 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import TrustBar from "@/components/TrustBar";
 import Navigation from "@/components/Navigation";
 import ProcessSteps from "@/components/ProcessSteps";
 import SearchBarAdvanced from "@/components/SearchBarAdvanced";
+import QuickPickChips from "@/components/QuickPickChips";
 
 import AdvancedFilterSidebar from "@/components/AdvancedFilterSidebar";
 import SIMCardNew from "@/components/SIMCardNew";
@@ -544,10 +544,20 @@ const Index = () => {
       <Navigation />
 
       <main className="container mx-auto px-4 pt-4 pb-6">
-        <h1 className="sr-only">Kho SIM Mobifone Số Đẹp Giá Rẻ - CHONSOMOBIFONE.COM</h1>
-        {/* Mobile sticky search - nằm dưới header (Navigation), luôn hiển thị khi cuộn */}
+        {/* Visible h1: it carries the same SEO weight it did as sr-only, but now also
+            tells a first-time visitor what the page is. It replaces the deleted hero
+            banner as the first painted element, so it is the new LCP candidate. */}
+        <h1 className="mb-3 text-lg font-bold leading-tight text-foreground md:text-2xl">
+          Kho SIM Mobifone số đẹp — <span className="text-gold">giá tốt, giao nhanh</span>
+        </h1>
+
+        {/* ONE search bar for both breakpoints. There used to be a second, desktop-only
+            copy (<section id="sim-so" className="hidden lg:block">) sitting below the
+            banner and the process steps, which meant two SearchBarAdvanced instances on
+            one page and a desktop search box pushed 863px down. This is sticky on mobile
+            and static on desktop. */}
         <div
-          className="lg:hidden sticky z-40 -mx-4 mb-4 border-b border-border bg-background/95 px-4 py-2.5 shadow-sm backdrop-blur"
+          className="sticky z-40 -mx-4 mb-4 border-b border-border bg-background/95 px-4 py-2.5 shadow-sm backdrop-blur lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:px-0 lg:shadow-none lg:backdrop-blur-none"
           style={{ top: "var(--nav-height)" }}
         >
           <SearchBarAdvanced
@@ -555,117 +565,16 @@ const Index = () => {
             onChange={(value) => updateFilterWithSeed("searchQuery", value)}
           />
         </div>
-        {/* Hero Banner - Compact, near menu - Hidden when no results with suggestions */}
-        {!isNoResultsWithSuggestions && (
-          <section className="mb-5">
-            <div className="rounded-xl overflow-hidden relative aspect-[16/9] md:aspect-auto">
-              {/* Homepage LCP image — load eagerly at high priority and declare
-                  intrinsic size so it doesn't shift the layout while decoding.
-                  width/height are the file's real pixel dimensions (1920x431);
-                  they previously claimed 1600x900, an aspect ratio of 1.78 against
-                  the file's actual 4.46, so the browser reserved the wrong box
-                  before the image loaded.
 
-                  The attribute is spread in lowercase on purpose. @types/react
-                  declares the camelCase `fetchPriority` prop, but React's v18
-                  runtime does not implement it: passing camelCase logs an
-                  "unknown prop" warning and drops the attribute, so the hint
-                  never reaches the browser. Lowercase passes straight through as
-                  a plain DOM attribute, and the spread is what lets it past the
-                  types, which describe v19 behaviour we don't have yet. */}
-              <img
-                src="/home-banner.webp"
-                alt="CHONSOMOBIFONE.COM banner"
-                width={1920}
-                height={431}
-                loading="eager"
-                {...{ fetchpriority: 'high' }}
-                decoding="async"
-                className="w-full h-full object-cover"
-              />
-              {/* CTA Button - KHO SIM ĐỒNG GIÁ 229K */}
-<div className="absolute bottom-4 md:bottom-6 left-0 right-0 flex flex-col items-center">
-  <Link
-    to="/mua-sim-gia-re"
-    className="
-      group relative inline-flex items-center gap-3
-      rounded-full
-      px-5 md:px-7
-      py-2.5 md:py-3
-      border border-yellow-300/80
-      bg-gradient-to-r from-[#7a0f0f] via-[#a61b12] to-[#7a0f0f]
-      text-[#ffd36b]
-      font-extrabold
-      text-sm md:text-xl
-      shadow-[0_0_0_2px_rgba(255,190,60,0.35),0_0_18px_rgba(255,170,0,0.22)]
-      hover:brightness-110 hover:shadow-[0_0_0_2px_rgba(255,190,60,0.45),0_0_24px_rgba(255,170,0,0.32)]
-      transition-all duration-200
-    "
-  >
-    {/* vòng tròn icon trái */}
-    <div
-      className="
-        flex h-8 w-8 md:h-10 md:w-10
-        items-center justify-center
-        rounded-full
-        bg-gradient-to-b from-yellow-300 to-yellow-500
-        text-[#7a0f0f]
-        shadow-inner
-        shrink-0
-      "
-    >
-      <span className="text-sm md:text-lg font-black">$</span>
-    </div>
-
-    {/* text */}
-    <span className="tracking-wide whitespace-nowrap">
-      KHO SIM ĐỒNG GIÁ 229K
-    </span>
-
-    {/* mũi tên phải */}
-    <div
-      className="
-        flex h-8 w-8 md:h-10 md:w-10
-        items-center justify-center
-        rounded-full
-        bg-white/10
-        border border-yellow-300/40
-        shrink-0
-      "
-    >
-      <svg
-        className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2.5}
-          d="M9 5l7 7-7 7"
+        {/* Quick-pick chips replace the banner: one tap gets a visitor who doesn't know
+            what to search for into a real result set. Also carries the banner's only
+            real CTA (KHO SIM ĐỒNG GIÁ 229K) forward as the "SIM 229K" chip. */}
+        <QuickPickChips
+          filters={filters}
+          onTogglePriceRange={togglePriceRangeWithSeed}
+          onToggleTag={toggleTagWithSeed}
+          onUpdateFilter={updateFilterWithSeed}
         />
-      </svg>
-    </div>
-  </Link>
-  <p className="mt-2 text-[11px] md:text-sm text-white/90 font-medium">
-    Bấm để xem thêm sim
-  </p>
-</div>
-            </div>
-          </section>
-        )}
-
-        {/* Process Steps Section - Below banner */}
-        {!isNoResultsWithSuggestions && <ProcessSteps />}
-
-        {/* Search Section - Below banner (chỉ desktop; mobile dùng thanh sticky trên cùng) */}
-        <section id="sim-so" className="mb-6 hidden lg:block">
-          <SearchBarAdvanced
-            value={filters.searchQuery}
-            onChange={(value) => updateFilterWithSeed("searchQuery", value)}
-          />
-        </section>
 
         {/* Mobile Filter Button */}
         <div className="lg:hidden mb-4 flex justify-between items-center">
@@ -820,13 +729,19 @@ const Index = () => {
           </aside>
         </div>
 
+        {/* Process Steps — moved BELOW the grid. It used to sit between the banner and
+            the search box, pushing the first SIM card 610px down on mobile. "How to buy"
+            only matters after a visitor has found a number they want. */}
+        {!isNoResultsWithSuggestions && <ProcessSteps />}
+
         {/* Introduction Section */}
         <section className="my-8">
           <IntroSection />
         </section>
 
-        {/* FAQ Section */}
-        <section id="phong-thuy" className="mb-8">
+        {/* FAQ Section. id is "faq", not "phong-thuy": this block is the FAQ, and the
+            phong thuy content lives on its own page at /sim-phong-thuy. */}
+        <section id="faq" className="mb-8">
           <FAQSection />
         </section>
       </main>

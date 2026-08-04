@@ -64,8 +64,16 @@
          70  mobile sticky CTA bar
          80  floating contact buttons
          90  messenger quick-templates panel
-        100  toasts (see components/ui/toast.tsx)                       */
-    --nav-height: 60px;      /* sticky <Navigation /> bar */
+        100  toasts (see components/ui/toast.tsx)
+
+       --nav-height is measured, not guessed, and it changes with the breakpoint:
+       <Navigation /> renders a two-row mobile layout up to lg and swaps to a
+       single 60px row from lg (1024px) up. Measured heights including the
+       0.8px border (which snaps to 1 device pixel): 64.8px below lg, 60.8px at
+       and above it. The flat 60px this used to be left the mobile sticky search
+       bar 5px underneath the nav at any scroll position. See the lg override
+       below, and keep both in sync with Navigation.tsx.                        */
+    --nav-height: 65px;      /* sticky <Navigation /> bar, mobile two-row */
     --sticky-cta-height: 72px; /* mobile <StickyCtaBottomBar /> */
 
     /* Header */
@@ -94,6 +102,15 @@
     /* Same as root - dark theme by default */
     --background: 0 0% 6%;
     --foreground: 0 0% 100%;
+  }
+
+  /* From lg up, <Navigation /> collapses its two mobile rows into one 60px row
+     (+0.8px border). Same breakpoint as Tailwind's `lg` so it flips in lockstep
+     with the lg:hidden / lg:flex rows inside the nav. */
+  @media (min-width: 1024px) {
+    :root {
+      --nav-height: 61px;
+    }
   }
 }
 

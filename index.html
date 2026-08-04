@@ -38,13 +38,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
     <!--
-      Preload the homepage LCP banner. Without this the image is only discovered
-      after the module bundle has downloaded, parsed and rendered Index.tsx, which
-      puts the site's largest paint behind all of that work. The preload starts the
-      fetch during HTML parse instead. Harmless on other routes: it is one 67 KB
-      WebP, and every route that matters shares this shell.
+      No LCP image preload any more: the homepage hero banner (/home-banner.webp) was
+      removed along with the file, so the homepage has no above-the-fold image at all.
+      The LCP element is now the <h1> / search box, which is text and needs no preload.
+      If a hero image is ever reintroduced, preload it here — but do not leave a
+      preload pointing at a deleted file: it costs every visitor a high-priority 404.
     -->
-    <link rel="preload" as="image" href="/home-banner.webp" fetchpriority="high" />
 
     <meta property="og:url" content="https://www.chonsomobifone.com/" />
     <meta property="og:type" content="website" />

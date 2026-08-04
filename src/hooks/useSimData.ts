@@ -1225,6 +1225,22 @@ export const useSimData = () => {
       });
     }
 
+    // quyType had no chip here, only in activeConstraints (which the empty state
+    // uses). So selecting "Tứ quý" narrowed 49.211 SIM down to 57 with nothing in
+    // the strip to undo it — every other filter shows a removable chip. Clears
+    // quyPosition alongside it, exactly as the activeConstraints entry does:
+    // leaving a position behind with no type is a filter the UI can't display.
+    if (filters.quyType) {
+      chips.push({
+        key: 'quyType',
+        label: filters.quyType,
+        onRemove: () => {
+          updateFilter('quyType', null);
+          updateFilter('quyPosition', null);
+        }
+      });
+    }
+
     return chips;
   }, [filters, updateFilter, togglePriceRange, toggleTag, toggleNetwork, toggleSuffix]);
 
