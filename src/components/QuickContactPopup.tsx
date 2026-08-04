@@ -3,6 +3,7 @@ import simCardGold from '@/assets/sim-card-gold.webp';
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
 } from '@/components/ui/dialog';
 
 const HOTLINE = '0938868868';
@@ -34,11 +35,16 @@ const QuickContactPopup = ({ open, onOpenChange, simNumber, simPrice, simNetwork
         className="max-w-md p-0 border border-[hsl(45,80%,45%)]/40 bg-[#1a1a1a] rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(245,179,1,0.15)] [&>button]:z-[60] [&>button]:pointer-events-auto [&>button]:w-9 [&>button]:h-9 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:border [&>button]:border-[hsl(45,80%,45%)]/40 [&>button]:bg-[#2a2a2a] [&>button]:text-white [&>button]:hover:bg-[#3a3a3a] [&>button]:right-3 [&>button]:top-3 [&>button>svg]:w-4 [&>button>svg]:h-4"
         aria-describedby={undefined}
       >
-        {/* Title */}
+        {/* Title. DialogTitle rather than a bare <h2>: Radix always sets
+            aria-labelledby on the content, so without it the popup pointed at a
+            non-existent id and screen readers announced an unnamed dialog. It
+            renders as an h2 by default, so the markup and styling are unchanged
+            — leading/tracking are restated because DialogTitle's own
+            leading-none tracking-tight would otherwise win the twMerge. */}
         <div className="pt-6 pb-2 px-6 text-center">
-          <h2 className="text-xl font-bold text-[hsl(45,90%,65%)]">
+          <DialogTitle className="text-xl font-bold text-[hsl(45,90%,65%)] leading-7 tracking-normal">
             Liên hệ đặt hàng ngay hôm nay
-          </h2>
+          </DialogTitle>
         </div>
 
         {/* Scarcity badge */}

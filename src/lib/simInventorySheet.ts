@@ -23,7 +23,7 @@ export interface SimItem {
 /**
  * Parse price từ nhiều định dạng khác nhau
  */
-export function parsePriceToNumber(value: any): number {
+export function parsePriceToNumber(value: unknown): number {
   if (typeof value === 'number') return value;
   if (!value) return 0;
   

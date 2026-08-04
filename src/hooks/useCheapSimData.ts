@@ -154,7 +154,9 @@ export const useCheapSimData = () => {
         if (soldRes && soldRes.ok) {
           const soldCsv = await soldRes.text();
           soldIds = parseSoldIds(soldCsv);
-          console.log(`[useCheapSimData] Parsed ${soldIds.size} sold SIMs`);
+          if (import.meta.env.DEV) {
+            console.log(`[useCheapSimData] Parsed ${soldIds.size} sold SIMs`);
+          }
         }
 
         const parsed = parseCSV(mainCsv, soldIds);

@@ -397,7 +397,9 @@ export const getLastUpdateInfo = (): { timestamp: number | null; isCache: boolea
 
 // Fetch CSV via edge function (bypasses CORS)
 const fetchCsvViaProxy = async (): Promise<string> => {
-  console.log('[SIM] Fetching via backend proxy...');
+  if (import.meta.env.DEV) {
+    console.log('[SIM] Fetching via backend proxy...');
+  }
 
   const csvText = await invokeEdgeFunctionText('fetch-sim-data');
 
@@ -407,7 +409,9 @@ const fetchCsvViaProxy = async (): Promise<string> => {
     throw new Error(validation.reason || 'Invalid CSV response from proxy');
   }
 
-  console.log(`[SIM] Received ${csvText.length} bytes via proxy`);
+  if (import.meta.env.DEV) {
+    console.log(`[SIM] Received ${csvText.length} bytes via proxy`);
+  }
   return csvText;
 };
 
@@ -422,7 +426,9 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
     lastFetchTimestamp = Date.now();
     
     const rows = parseCSV(csvText);
-    console.log(`[SIM] Parsed ${rows.length} rows from CSV`);
+    if (import.meta.env.DEV) {
+      console.log(`[SIM] Parsed ${rows.length} rows from CSV`);
+    }
     
     const sims: NormalizedSIM[] = [];
     const promotionalDataMap = new Map<string, PromotionalData>();
@@ -490,7 +496,9 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
     // Update module-level promotional data store
     promotionalDataStore = promotionalDataMap;
     
-    console.log(`[SIM] Normalized ${sims.length} SIMs, ${discountCount} with discounts`);
+    if (import.meta.env.DEV) {
+      console.log(`[SIM] Normalized ${sims.length} SIMs, ${discountCount} with discounts`);
+    }
     
     if (sims.length > 0) {
       saveToCache(sims);
@@ -614,13 +622,19 @@ export const useSimData = () => {
   const prefixes = useMemo(() => getUniquePrefixes(allSims), [allSims]);
 
   // Helper to extract digits from a SIM object (robust, handles various field names)
-  const normalizeDigits = (v?: any) => String(v ?? "").replace(/\D/g, "");
-  
-  const getSimDigitsRobust = (sim: any) => {
+  const normalizeDigits = (v?: unknown) => String(v ?? "").replace(/\D/g, "");
+
+  // Every caller passes a NormalizedSIM, so that is the signature. The body then
+  // widens to a record because the field list below is a deliberate net for sheet
+  // columns that have been renamed over time (sim_normalized, msisdn, so_sim, ...).
+  // None of them exist on NormalizedSIM today; the fallbacks stay so an upstream
+  // rename degrades to a slower lookup instead of returning nothing.
+  const getSimDigitsRobust = (sim: NormalizedSIM | null | undefined) => {
+    const row = sim as unknown as Record<string, unknown> | null | undefined;
     const preferred = [
-      sim?.rawDigits, sim?.sim_normalized, sim?.number, sim?.formattedNumber, sim?.sim,
-      sim?.phone, sim?.msisdn, sim?.value, sim?.simNumber, sim?.displayNumber,
-      sim?.SimNumber, sim?.sim_number, sim?.phone_number, sim?.so_sim
+      row?.rawDigits, row?.sim_normalized, row?.number, row?.formattedNumber, row?.sim,
+      row?.phone, row?.msisdn, row?.value, row?.simNumber, row?.displayNumber,
+      row?.SimNumber, row?.sim_number, row?.phone_number, row?.so_sim
     ];
     
     // Try preferred fields first
@@ -630,9 +644,9 @@ export const useSimData = () => {
     }
     
     // Fallback: scan all object keys
-    if (sim && typeof sim === 'object') {
-      for (const k of Object.keys(sim)) {
-        const v = sim[k];
+    if (row && typeof row === 'object') {
+      for (const k of Object.keys(row)) {
+        const v = row[k];
         if (typeof v === 'string' || typeof v === 'number') {
           const d = normalizeDigits(v);
           if (d.length >= 10) return d;

@@ -374,11 +374,6 @@ const fetchInventory = async (): Promise<InventoryItem[]> => {
   }
   
   // ===== MAPPING CỨNG THEO HEADER SHEET =====
-  if (import.meta.env.DEV) {
-    const sampleRow = rows[0];
-    console.log('[SimPhongThuy] Sample row keys:', Object.keys(sampleRow));
-  }
-  
   const inventory: InventoryItem[] = [];
   const seenDigits = new Set<string>();
   
@@ -424,10 +419,10 @@ const fetchInventory = async (): Promise<InventoryItem[]> => {
     });
   }
   
-  // Debug log (chỉ DEV)
+  // Debug log (chỉ DEV). Counts only — never row contents or sheet column names,
+  // both of which include internal pricing fields.
   if (import.meta.env.DEV) {
     console.log('[SimPhongThuy] inventory size:', inventory.length);
-    console.log('[SimPhongThuy] sample inventory:', inventory.slice(0, 5));
   }
   
   return inventory;

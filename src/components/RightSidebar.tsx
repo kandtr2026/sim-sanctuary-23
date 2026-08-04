@@ -7,7 +7,7 @@ const SHEET1_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?t
 const SIM_SOLD_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=SIM_SOLD`;
 
 // Normalize string: lowercase, remove accents, remove spaces
-const norm = (s: any): string =>
+const norm = (s: unknown): string =>
   String(s ?? "")
     .toLowerCase()
     .normalize("NFD")
@@ -15,25 +15,37 @@ const norm = (s: any): string =>
     .replace(/\s+/g, "")
     .trim();
 
+/**
+ * Shape of the Google Visualization API response. Only the fields this parser
+ * reads are declared; gviz sends more (formatted values, types, row labels)
+ * and everything is optional because a blank sheet omits most of it.
+ */
+interface GvizResponse {
+  table?: {
+    cols?: { label?: string; id?: string }[];
+    rows?: { c?: ({ v?: unknown } | null)[] }[];
+  };
+}
+
 // Parse gviz response to array of objects
 const gvizToObjects = (text: string): Record<string, string>[] => {
   try {
     // Remove wrapper: google.visualization.Query.setResponse({...})
     const jsonStr = text.replace(/^[^(]+\(/, '').replace(/\);?\s*$/, '');
-    const data = JSON.parse(jsonStr);
-    
-    const cols = data.table.cols || [];
-    const rows = data.table.rows || [];
-    
+    const data = JSON.parse(jsonStr) as GvizResponse;
+
+    const cols = data.table?.cols || [];
+    const rows = data.table?.rows || [];
+
     // Get headers - use label, fallback to id, fallback to col index
-    const headers = cols.map((c: any, i: number) => {
+    const headers = cols.map((c, i) => {
       const label = c.label || c.id || '';
       return label.trim() || `col${i}`;
     });
-    
-    return rows.map((row: any) => {
+
+    return rows.map((row) => {
       const obj: Record<string, string> = {};
-      (row.c || []).forEach((cell: any, i: number) => {
+      (row.c || []).forEach((cell, i) => {
         const header = headers[i];
         if (header) {
           obj[header] = cell?.v != null ? String(cell.v).trim() : '';
@@ -60,7 +72,7 @@ const masked = (digits: string): string => {
 };
 
 // Format NgayBan to dd/MM/yyyy (Vietnamese format)
-function formatSoldDate(v: any): string {
+function formatSoldDate(v: unknown): string {
   if (v == null) return "";
 
   // 1) gviz often returns string like: "Date(2026,0,22)" or "Date(2026, 0, 22, 0, 0, 0)"
@@ -155,22 +167,17 @@ const RightSidebar = () => {
         // Get keys from first row of each sheet
         const sheet1Keys = Object.keys(sheet1Rows[0] ?? {});
         const soldKeys = Object.keys(soldRows[0] ?? {});
-        
-        console.log("[RightSidebar] sheet1 keys:", sheet1Keys);
-        console.log("[RightSidebar] sold keys:", soldKeys);
-        
+
         // Find matching keys using normalized comparison
         // Sheet1: simIdKey = contains "simid", msisdnKey = contains "sothuebao"
         const simIdKey = findKey(sheet1Keys, "simid");
         const msisdnKey = findKey(sheet1Keys, "sothuebao");
-        
+
         // SIM_SOLD: soldSimIdKey = contains "sothuebao" (this column contains SimID values like SIM036...)
         const soldSimIdKey = findKey(soldKeys, "sothuebao");
         // Detect NgayBan column for sale date
         const soldDateKey = findKey(soldKeys, "ngayban");
-        
-        console.log("[RightSidebar] detected keys:", { simIdKey, msisdnKey, soldSimIdKey, soldDateKey });
-        
+
         if (!simIdKey || !msisdnKey || !soldSimIdKey) {
           console.error("[RightSidebar] Missing required keys!", { simIdKey, msisdnKey, soldSimIdKey });
           setRealOrders([]);
@@ -188,9 +195,7 @@ const RightSidebar = () => {
             simIdToDigits.set(simid, digits);
           }
         }
-        
-        console.log("[RightSidebar] simIdToDigits map size:", simIdToDigits.size);
-        
+
         // Build orders by joining: SIM_SOLD.SoThueBao -> Sheet1.SimID -> Sheet1.SỐ THUÊ BAO
         const built: { phone: string; time: string }[] = [];
         
@@ -231,13 +236,6 @@ const RightSidebar = () => {
         
         // Limit to 8 items (already sorted by date)
         const limited = built.slice(0, 8);
-        
-        console.log("[RightSidebar] orders built:", limited.length, "from", soldRows.length, "sold rows");
-        
-        // Log first few for verification
-        if (limited.length > 0) {
-          console.log("[RightSidebar] sample orders:", limited.slice(0, 3));
-        }
         
         // Set real orders (even if empty - no mock fallback)
         setRealOrders(limited);

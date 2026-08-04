@@ -49,7 +49,16 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      {/*
+        Opt into the v7 behaviours now so the eventual React Router 7 upgrade is a
+        version bump rather than a behaviour change:
+          - startTransition: route state updates are wrapped in React.startTransition,
+            which lets the lazy-loaded routes above suspend without tearing.
+          - relativeSplatPath: relative links inside the `*` route resolve the way v7
+            does. Only NotFound renders under a splat here, so the blast radius is
+            small — the right time to flip it.
+      */}
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={<Index />} />

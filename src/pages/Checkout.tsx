@@ -69,6 +69,17 @@ interface FieldErrors {
   address?: string;
 }
 
+/**
+ * The checkout form's fields. `note` is deliberately absent from FieldErrors:
+ * it is optional and has no validation rule, so it can never carry an error.
+ */
+interface CheckoutFormData {
+  fullName: string;
+  phone: string;
+  address: string;
+  note: string;
+}
+
 const validateField = (field: keyof FieldErrors, value: string): string | undefined => {
   switch (field) {
     case 'fullName': {
@@ -133,7 +144,7 @@ const parseCSVAndFindSim = (csvText: string, targetSimId: string): CheckoutSimDa
   if (lines.length < 2) return null;
 
   const headerLine = lines[0].replace(/^\uFEFF/, '');
-  const rawHeaders = headerLine.split(',').map(h => h.trim().replace(/^\"|\"$/g, ''));
+  const rawHeaders = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
 
   const getHeaderIndexExact = (names: string[]): number => {
     for (const name of names) {
@@ -168,7 +179,7 @@ const parseCSVAndFindSim = (csvText: string, targetSimId: string): CheckoutSimDa
     let inQuotes = false;
 
     for (const char of lines[i]) {
-      if (char === '\"') { inQuotes = !inQuotes; }
+      if (char === '"') { inQuotes = !inQuotes; }
       else if (char === ',' && !inQuotes) { values.push(current.trim()); current = ''; }
       else { current += char; }
     }
@@ -221,14 +232,14 @@ const Checkout = () => {
   const navigate = useNavigate();
 
   const [orderCode] = useState(() => generateOrderCode());
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CheckoutFormData>({
     fullName: '',
     phone: '',
     address: '',
     note: '',
   });
   const [errors, setErrors] = useState<FieldErrors>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [touched, setTouched] = useState<Partial<Record<keyof CheckoutFormData, boolean>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -265,28 +276,30 @@ const Checkout = () => {
 
   const formValid = isFormValid(formData);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: keyof CheckoutFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setTouched(prev => ({ ...prev, [field]: true }));
-    // Live validation
-    if (touched[field] || value) {
-      const fieldError = validateField(field as keyof FieldErrors, value);
+    // Live validation. `note` is excluded here rather than passed to
+    // validateField, whose switch has no case for it and would return undefined
+    // for every value — same outcome, but now the compiler enforces it.
+    if (field !== 'note' && (touched[field] || value)) {
+      const fieldError = validateField(field, value);
       setErrors(prev => {
         const next = { ...prev };
-        if (fieldError) (next as any)[field] = fieldError;
-        else delete (next as any)[field];
+        if (fieldError) next[field] = fieldError;
+        else delete next[field];
         return next;
       });
     }
   };
 
-  const handleBlur = (field: string) => {
+  const handleBlur = (field: keyof FieldErrors) => {
     setTouched(prev => ({ ...prev, [field]: true }));
-    const fieldError = validateField(field as keyof FieldErrors, (formData as any)[field]);
+    const fieldError = validateField(field, formData[field]);
     setErrors(prev => {
       const next = { ...prev };
-      if (fieldError) (next as any)[field] = fieldError;
-      else delete (next as any)[field];
+      if (fieldError) next[field] = fieldError;
+      else delete next[field];
       return next;
     });
   };
@@ -551,7 +564,11 @@ const Checkout = () => {
 
       {/* POPUP XÁC NHẬN */}
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
-        <DialogContent className="max-w-md">
+        {/* The order summary below is a definition grid, not prose, so there is
+            nothing to point aria-describedby at. Passing undefined tells Radix
+            to omit the attribute instead of referencing an id that never
+            renders. */}
+        <DialogContent className="max-w-md" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="text-center text-lg">Xác nhận đơn hàng</DialogTitle>
           </DialogHeader>
@@ -619,12 +636,19 @@ const Checkout = () => {
 
       {/* POPUP THÀNH CÔNG */}
       <Dialog open={showSuccess} onOpenChange={() => {}}>
-        <DialogContent className="max-w-sm text-center [&>button]:hidden">
+        <DialogContent className="max-w-sm text-center [&>button]:hidden" aria-describedby={undefined}>
           <div className="flex flex-col items-center gap-4 py-4">
             <CheckCircle className="w-16 h-16 text-emerald-500" />
-            <p className="text-lg font-semibold text-foreground leading-relaxed">
+            {/* The confirmation message doubles as this dialog's accessible
+                name: it had no DialogTitle, so Radix logged an error and screen
+                readers announced an unnamed dialog at the one moment the user
+                needs to hear that the order went through. DialogTitle renders an
+                h2 — visually identical here once leading/tracking are restated,
+                since DialogTitle's leading-none tracking-tight would otherwise
+                win the twMerge. */}
+            <DialogTitle className="text-lg font-semibold text-foreground leading-relaxed tracking-normal">
               Cảm ơn bạn đã đặt hàng thành công tại CHONSOMOBIFONE.COM
-            </p>
+            </DialogTitle>
           </div>
         </DialogContent>
       </Dialog>

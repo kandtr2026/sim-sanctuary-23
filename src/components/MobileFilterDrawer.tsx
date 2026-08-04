@@ -52,7 +52,15 @@ const MobileFilterDrawer = ({
           )}
         </button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[85vw] sm:w-[400px] p-0 overflow-y-auto">
+      {/* aria-describedby={undefined} because this drawer has a title but no
+          descriptive prose. Radix wires aria-describedby unconditionally, so
+          leaving it set pointed at an id that never renders — an invalid ARIA
+          reference, and a console warning on every open. */}
+      <SheetContent
+        side="left"
+        className="w-[85vw] sm:w-[400px] p-0 overflow-y-auto"
+        aria-describedby={undefined}
+      >
         <SheetHeader className="p-4 border-b border-border sticky top-0 bg-card z-10">
           <div className="flex items-center justify-between">
             <SheetTitle className="text-primary">Bộ lọc tìm kiếm</SheetTitle>

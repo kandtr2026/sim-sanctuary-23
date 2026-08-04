@@ -26,13 +26,11 @@ const Header = () => {
   <a
   href="tel:+84938868868"
   onClick={() => {
-    if (typeof window !== "undefined" && (window as any).gtag) {
-      (window as any).gtag("event", "call_click", {
-        event_category: "contact",
-        event_label: "header_call",
-        phone_number: "+84938868868",
-      });
-    }
+    window.gtag?.("event", "call_click", {
+      event_category: "contact",
+      event_label: "header_call",
+      phone_number: "+84938868868",
+    });
   }}
   className="flex items-center gap-2 font-bold text-lg hover:opacity-80 transition"
 >
@@ -47,12 +45,10 @@ const Header = () => {
     target="_blank"
     rel="noopener noreferrer"
     onClick={() => {
-      if (typeof window !== "undefined" && (window as any).gtag) {
-        (window as any).gtag("event", "click_zalo", {
-          event_category: "contact",
-          event_label: "header_zalo",
-        });
-      }
+      window.gtag?.("event", "click_zalo", {
+        event_category: "contact",
+        event_label: "header_zalo",
+      });
     }}
     aria-label="Chat Zalo tư vấn"
     className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-primary-foreground px-4 py-2 rounded"

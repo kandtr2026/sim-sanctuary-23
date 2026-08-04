@@ -26,30 +26,42 @@ import type { NormalizedSIM } from "@/lib/simUtils";
 const ITEMS_PER_PAGE = 100;
 
 // Helper: normalize any value to digit-only string
-const normalizeSim = (v?: any) => String(v ?? "").replace(/\D/g, "");
+const normalizeSim = (v?: unknown) => String(v ?? "").replace(/\D/g, "");
+
+/**
+ * Widen a SIM to a plain record. The lookups below deliberately probe field
+ * names that are NOT on NormalizedSIM (sim_normalized, msisdn, SimID, ...) —
+ * they are legacy sheet column names kept as fallbacks so an upstream rename
+ * degrades to a slower path instead of returning nothing. The cast is confined
+ * to this one helper so the rest of the file stays typed.
+ */
+const asRow = (sim: NormalizedSIM | null | undefined) =>
+  sim as unknown as Record<string, unknown> | null | undefined;
 
 // Helper: robust digit extraction from SIM object
-const getDigits = (sim: any) => {
+const getDigits = (sim: NormalizedSIM | null | undefined) => {
+  const row = asRow(sim);
+
   // Try common fields first
   const direct =
-    sim?.rawDigits ??
-    sim?.sim_normalized ??
-    sim?.number ??
-    sim?.formattedNumber ??
-    sim?.sim ??
-    sim?.phone ??
-    sim?.msisdn ??
-    sim?.value ??
-    sim?.simNumber ??
-    sim?.displayNumber;
+    row?.rawDigits ??
+    row?.sim_normalized ??
+    row?.number ??
+    row?.formattedNumber ??
+    row?.sim ??
+    row?.phone ??
+    row?.msisdn ??
+    row?.value ??
+    row?.simNumber ??
+    row?.displayNumber;
 
   const d1 = normalizeSim(direct);
   if (d1.length >= 8) return d1;
 
   // Fallback: scan object values for a string containing many digits
-  if (sim && typeof sim === "object") {
-    for (const k of Object.keys(sim)) {
-      const v = (sim as any)[k];
+  if (row && typeof row === "object") {
+    for (const k of Object.keys(row)) {
+      const v = row[k];
       if (typeof v === "string" || typeof v === "number") {
         const d = normalizeSim(v);
         if (d.length >= 8) return d;
@@ -61,38 +73,38 @@ const getDigits = (sim: any) => {
 };
 
 // Helper: extract digits from SIM - uses robust getDigits
-const simDigits = (sim: any) => getDigits(sim);
+const simDigits = (sim: NormalizedSIM | null | undefined) => getDigits(sim);
 
 // Helper: normalize string for comparison
-const norm = (s: any) => (s ?? "").toString().trim().toLowerCase().replace(/\s+/g, " ");
+const norm = (s: unknown) => (s ?? "").toString().trim().toLowerCase().replace(/\s+/g, " ");
 
 // Helper: check if array includes a label (case-insensitive)
-const includesLabel = (arr: any, label: string) => {
+const includesLabel = (arr: unknown, label: string) => {
   if (!Array.isArray(arr)) return false;
   const target = norm(label);
-  return arr.some((x) => {
+  return (arr as unknown[]).some((x) => {
     // Handle both string and object with label property
-    const val = typeof x === "object" && x !== null ? x.label : x;
+    const val = typeof x === "object" && x !== null ? (x as { label?: unknown }).label : x;
     return norm(val) === target;
   });
 };
 
 // Tail-based quý detection (inline for accuracy)
 // Tứ quý: 4 số cuối giống nhau (tail-based)
-const isQuadTail = (sim: any) => {
+const isQuadTail = (sim: NormalizedSIM) => {
   const d = simDigits(sim);
   return d.length >= 4 && /^(\d)\1{3}$/.test(d.slice(-4));
 };
 
 // Ngũ quý: 5 số giống nhau LIỀN NHAU ở bất kỳ vị trí nào
-const isQuintAnywhere = (sim: any) => {
+const isQuintAnywhere = (sim: NormalizedSIM) => {
   const d = simDigits(sim);
   if (d.length < 5) return false;
   return /(\d)\1{4}/.test(d);
 };
 
 // Lục quý: 6 số giống nhau LIỀN NHAU ở bất kỳ vị trí nào
-const isHexAnywhere = (sim: any) => {
+const isHexAnywhere = (sim: NormalizedSIM) => {
   const d = simDigits(sim);
   if (d.length < 6) return false;
   return /(\d)\1{5}/.test(d);
@@ -121,13 +133,14 @@ function seededShuffle<T>(arr: T[], seed: number): T[] {
   return result;
 }
 
-function getSimKey(sim: any): string {
-  return String(sim?.SimID || sim?.SimRef || sim?.id || "");
+function getSimKey(sim: NormalizedSIM | null | undefined): string {
+  const row = asRow(sim);
+  return String(row?.SimID || row?.SimRef || row?.id || "");
 }
 
 // Get numeric VND price for landing filtering
 // MUST use sim.price (numeric VND from normalizeSIM), NOT formatted string
-function getFinalPriceForLanding(sim: any): number {
+function getFinalPriceForLanding(sim: NormalizedSIM | null | undefined): number {
   // Priority: sim.price (the effective price set during normalization)
   // This is the numeric VND value used for display and sorting
   const v = sim?.price;
@@ -135,7 +148,8 @@ function getFinalPriceForLanding(sim: any): number {
     return v;
   }
   // Fallback to finalPricePick if price is not available
-  const fallback = sim?.finalPricePick ?? sim?.finalPrice;
+  const row = asRow(sim);
+  const fallback = row?.finalPricePick ?? row?.finalPrice;
   if (typeof fallback === "number" && Number.isFinite(fallback) && fallback > 0) {
     return fallback;
   }
@@ -144,13 +158,13 @@ function getFinalPriceForLanding(sim: any): number {
 
 // Reorder for landing: prioritize 3-5M, supplement from <3M, then rest
 // Uses seeded shuffle for deterministic randomization
-function reorderForLanding(list: any[], seed: number = 0): any[] {
+function reorderForLanding(list: NormalizedSIM[], seed: number = 0): NormalizedSIM[] {
   const min = 3_000_000;
   const max = 5_000_000;
 
-  const in3to5: any[] = [];
-  const lowerThan3: any[] = [];
-  const others: any[] = [];
+  const in3to5: NormalizedSIM[] = [];
+  const lowerThan3: NormalizedSIM[] = [];
+  const others: NormalizedSIM[] = [];
 
   for (const sim of list) {
     const p = getFinalPriceForLanding(sim);
@@ -342,7 +356,7 @@ const Index = () => {
   const anyQuyOn = isQuadOn || isQuintOn || isHexOn;
 
   // Helper: apply quý filter to a list (defined after quý state variables)
-  const applyQuyFilter = (list: any[]) => {
+  const applyQuyFilter = (list: NormalizedSIM[]) => {
     if (!anyQuyOn) return list;
     if (isHexOn) return list.filter(isHexAnywhere);
     if (isQuintOn) return list.filter(isQuintAnywhere);
@@ -384,16 +398,6 @@ const Index = () => {
     // Freeze the list based on seed (random once, stable during scroll)
     // reorderForLanding: prioritizes 3-5M SIMs (by finalPricePick), supplements from <3M if needed
     const next = reorderForLanding(allSims, landingSeed);
-
-    // Debug: log first 5 prices to verify correct field is used
-    if (next.length > 0) {
-      const sample = next.slice(0, 5).map((s) => ({
-        id: s.id,
-        finalPricePick: s.finalPricePick,
-        priceUsed: getFinalPriceForLanding(s),
-      }));
-      console.log("[Landing] First 5 SIMs price check:", sample);
-    }
 
     setLandingFrozenList(next);
   }, [isDefaultLanding, landingSeed, allSims]);
@@ -525,14 +529,26 @@ const Index = () => {
           <section className="mb-5">
             <div className="rounded-xl overflow-hidden relative aspect-[16/9] md:aspect-auto">
               {/* Homepage LCP image — load eagerly at high priority and declare
-                  intrinsic size so it doesn't shift the layout while decoding. */}
+                  intrinsic size so it doesn't shift the layout while decoding.
+                  width/height are the file's real pixel dimensions (1920x431);
+                  they previously claimed 1600x900, an aspect ratio of 1.78 against
+                  the file's actual 4.46, so the browser reserved the wrong box
+                  before the image loaded.
+
+                  The attribute is spread in lowercase on purpose. @types/react
+                  declares the camelCase `fetchPriority` prop, but React's v18
+                  runtime does not implement it: passing camelCase logs an
+                  "unknown prop" warning and drops the attribute, so the hint
+                  never reaches the browser. Lowercase passes straight through as
+                  a plain DOM attribute, and the spread is what lets it past the
+                  types, which describe v19 behaviour we don't have yet. */}
               <img
                 src="/home-banner.webp"
                 alt="CHONSOMOBIFONE.COM banner"
-                width={1600}
-                height={900}
+                width={1920}
+                height={431}
                 loading="eager"
-                fetchPriority="high"
+                {...{ fetchpriority: 'high' }}
                 decoding="async"
                 className="w-full h-full object-cover"
               />

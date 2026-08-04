@@ -132,7 +132,11 @@ const SIMCardNew = ({ sim, promotional, quyFilter, simId, searchQuery = '' }: SI
             alt="Flash Sale"
             loading="lazy"
             decoding="async"
+            // The file is 168x150; 56x50 is that exact ratio at the w-14 the class
+            // list renders. Declaring only width left the height unconstrained, so
+            // the browser reserved no vertical space for it.
             width={56}
+            height={50}
             className="animate-flash-blink pointer-events-none absolute top-2 left-2 z-20 h-auto w-14 border-0 bg-transparent p-0 shadow-none"
           />
         )}

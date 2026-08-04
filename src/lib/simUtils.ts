@@ -368,7 +368,7 @@ export const searchSIM = (sim: NormalizedSIM, query: string): boolean => {
   if (!query.trim()) return true;
 
   // Clean query - remove dots, spaces, and non-digits except * and =
-  const cleanQuery = query.replace(/[\.\s]/g, '').trim();
+  const cleanQuery = query.replace(/[.\s]/g, '').trim();
   
   // Less than 2 digits = don't filter
   const digitCount = cleanQuery.replace(/[^\d]/g, '').length;

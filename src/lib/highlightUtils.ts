@@ -62,7 +62,7 @@ export const parseSearchQuery = (query: string): { prefix: string; suffix: strin
   if (!query) return { prefix: '', suffix: '', containsSearch: '' };
   
   // Clean query - remove dots, spaces
-  const cleanQuery = query.replace(/[\.\s]/g, '').trim();
+  const cleanQuery = query.replace(/[.\s]/g, '').trim();
   
   // Exact match (=prefix) - treat as contains
   if (cleanQuery.startsWith('=')) {
@@ -152,7 +152,7 @@ export const createHighlightedNumber = (
     return [displayNumber];
   }
 
-  const cleanQuery = query.replace(/[\.\s]/g, '');
+  const cleanQuery = query.replace(/[.\s]/g, '');
   const starCount = (cleanQuery.match(/\*/g) || []).length;
   let processedWildcard = false;
 
@@ -307,21 +307,21 @@ const buildSpansFromHlSet = (displayNumber: string, hlSet: Set<number>): React.R
  * Compute OR-fallback results when AND search returns 0
  * Priority: both match > prefix match > suffix match
  */
-export const computeOrFallback = (
-  allSims: { rawDigits: string; [key: string]: any }[],
+export const computeOrFallback = <T extends { rawDigits: string }>(
+  allSims: T[],
   query: string,
   limit: number = 200
-): { sims: typeof allSims; hasPrefix: boolean; hasSuffix: boolean } => {
-  const { prefix, suffix, containsSearch } = parseSearchQuery(query);
-  
+): { sims: T[]; hasPrefix: boolean; hasSuffix: boolean } => {
+  const { prefix, suffix } = parseSearchQuery(query);
+
   // Only apply OR fallback for prefix*suffix pattern
   if (!prefix && !suffix) {
     return { sims: [], hasPrefix: false, hasSuffix: false };
   }
-  
-  const matchBoth: typeof allSims = [];
-  const matchPrefix: typeof allSims = [];
-  const matchSuffix: typeof allSims = [];
+
+  const matchBoth: T[] = [];
+  const matchPrefix: T[] = [];
+  const matchSuffix: T[] = [];
   
   for (const sim of allSims) {
     if (!sim.rawDigits) continue;
