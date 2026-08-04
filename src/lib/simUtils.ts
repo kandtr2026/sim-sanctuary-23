@@ -327,6 +327,27 @@ export const estimatePriceByTags = (tags: string[]): number => {
   return Math.floor(Math.random() * (1200000 - 390000) + 390000);
 };
 
+/**
+ * Restore the leading zero on a Vietnamese mobile number.
+ *
+ * The sheet's `SỐ THUÊ BAO CHUẨN` column is numeric, so Google strips the
+ * leading zero: every one of the ~14k rows arrives as 9 digits ("799977799")
+ * while the `SỐ THUÊ BAO` display column keeps all 10 ("0799977799").
+ *
+ * That silently broke every 10-digit assumption downstream — `matchesQuyType`
+ * gates Tứ quý on `length === 10`, `detectSimTags` gates Tứ quý and Tam hoa the
+ * same way, `detectNetwork` reads prefix3 (so "799" never matched "079" and the
+ * whole catalogue resolved to network "Khác"), and `formatSIMNumber` returned
+ * the digits unformatted.
+ *
+ * `useCheapSimData.ts` already normalises this exact way, so this brings the
+ * main data path in line rather than inventing a convention. Padding is
+ * conditional on length 9: a number that already has its zero, or an 11-digit
+ * legacy number, is passed through untouched.
+ */
+const padLeadingZero = (digits: string): string =>
+  digits.length === 9 ? `0${digits}` : digits;
+
 // Normalize raw SIM data
 export const normalizeSIM = (
   rawNumber: string,
@@ -334,7 +355,7 @@ export const normalizeSIM = (
   price: number,
   id: string
 ): NormalizedSIM => {
-  const rawDigits = rawNumber.replace(/\D/g, '');
+  const rawDigits = padLeadingZero(rawNumber.replace(/\D/g, ''));
   const tags = detectSimTags(rawDigits);
   const { digitCounts, sumDigits } = analyzeDigits(rawDigits);
   const network = detectNetwork(rawDigits);

@@ -22,7 +22,7 @@ import { useSimData, getLastUpdateInfo, getPromotionalData } from "@/hooks/useSi
 import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff, Cloud, CloudOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-import type { NormalizedSIM } from "@/lib/simUtils";
+import type { NormalizedSIM, QuyType } from "@/lib/simUtils";
 const ITEMS_PER_PAGE = 100;
 
 // Helper: normalize any value to digit-only string
@@ -342,7 +342,6 @@ const Index = () => {
 
   // Search suggestions from hook (per 5 search rules)
   const combinedSuggestions = searchSuggestions;
-  const isOrFallback = false;
 
   // Check multiple sources for quý filter state
   // Include: filters.selectedTags (toggle chips), filters.quyType (dropdown), activeFilters (chips)
@@ -355,13 +354,43 @@ const Index = () => {
   const isHexOn = quyTypeOn === "Lục quý" || typeSources.some((src) => includesLabel(src, "Lục quý"));
   const anyQuyOn = isQuadOn || isQuintOn || isHexOn;
 
-  // Helper: apply quý filter to a list (defined after quý state variables)
-  const applyQuyFilter = (list: NormalizedSIM[]) => {
-    if (!anyQuyOn) return list;
-    if (isHexOn) return list.filter(isHexAnywhere);
-    if (isQuintOn) return list.filter(isQuintAnywhere);
-    return list.filter(isQuadTail);
-  };
+  /**
+   * Which quý badge the cards should show.
+   *
+   * The cards used to receive `filters.quyType` directly, but that field is only
+   * written by the sidebar's quý buttons. The filter itself also honours
+   * `filters.selectedTags` and `activeFilters` (see isQuadOn/isQuintOn/isHexOn
+   * above), so a quý filter arriving through either of those returned correctly
+   * filtered SIMs with no badge on any of them.
+   *
+   * Deriving the badge from the same flags the filter uses means it cannot drift
+   * from the filter again, whichever control set it. The order matches
+   * applyQuyFilter's precedence (Lục > Ngũ > Tứ), so the badge always names the
+   * rule that actually produced the list — a number like 0777777840 shown under
+   * the Ngũ quý filter is badged "Ngũ quý" even though it also has six 7s.
+   */
+  const activeQuyType: QuyType | null = isHexOn
+    ? "Lục quý"
+    : isQuintOn
+      ? "Ngũ quý"
+      : isQuadOn
+        ? "Tứ quý"
+        : null;
+
+  // Helper: apply quý filter to a list (defined after quý state variables).
+  // useCallback so the memos below can list it as a dependency instead of
+  // silently depending on the flags it closes over — a plain function would get
+  // a fresh identity every render and the dep arrays would be lying about what
+  // the memo actually reads.
+  const applyQuyFilter = useCallback(
+    (list: NormalizedSIM[]) => {
+      if (!anyQuyOn) return list;
+      if (isHexOn) return list.filter(isHexAnywhere);
+      if (isQuintOn) return list.filter(isQuintAnywhere);
+      return list.filter(isQuadTail);
+    },
+    [anyQuyOn, isHexOn, isQuintOn],
+  );
 
   // Check if any type selection is active (for landing detection)
   const hasTypeSelection =
@@ -369,7 +398,6 @@ const Index = () => {
 
   // Landing page: check if in default state (no search query AND no active filters AND no quý filter)
   const isDefaultLanding =
-    !isOrFallback &&
     !anyQuyOn &&
     !hasTypeSelection &&
     (!filters?.searchQuery || filters.searchQuery.replace(/[.\s]/g, "").trim() === "") &&
@@ -382,7 +410,7 @@ const Index = () => {
   // Apply quý filter to suggestions
   const finalSuggestionsWithQuy = useMemo(
     () => applyQuyFilter(finalCombinedSuggestions),
-    [finalCombinedSuggestions, anyQuyOn, isHexOn, isQuintOn, isQuadOn],
+    [finalCombinedSuggestions, applyQuyFilter],
   );
 
   const isNoResultsWithSuggestions =
@@ -439,7 +467,10 @@ const Index = () => {
     landingFrozenList,
     isSearchEmpty,
     anyQuyOn,
-    isQuadOn,
+    // isQuadOn is deliberately absent: the Tứ quý branch is the unconditional
+    // fallback, so this memo never reads it. anyQuyOn already covers the
+    // on/off transition, and isQuintOn/isHexOn cover the precedence switches —
+    // toggling Tứ quý always flips anyQuyOn, so no recompute is missed.
     isQuintOn,
     isHexOn,
   ]);
@@ -720,7 +751,7 @@ const Index = () => {
                         <SIMCardNew
                           sim={sim}
                           promotional={getPromotionalData(sim.id)}
-                          quyFilter={filters.quyType}
+                          quyFilter={activeQuyType}
                           searchQuery={filters.searchQuery}
                         />
                       </div>
@@ -765,9 +796,8 @@ const Index = () => {
                   allSims={allSims}
                   searchQuery={filters.searchQuery}
                   filters={filters}
-                  quyFilter={filters.quyType}
+                  quyFilter={activeQuyType}
                   precomputedSuggestions={finalSuggestionsWithQuy}
-                  isOrFallback={isOrFallback}
                 />
               )}
 

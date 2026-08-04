@@ -132,6 +132,47 @@ const buildSeedSims = (): NormalizedSIM[] => {
 // Pre-built seed data (computed once at module load)
 const SEED_SIMS = buildSeedSims();
 
+// Helper to extract digits from a SIM object (robust, handles various field names)
+const normalizeDigits = (v?: unknown) => String(v ?? "").replace(/\D/g, "");
+
+// Every caller passes a NormalizedSIM, so that is the signature. The body then
+// widens to a record because the field list below is a deliberate net for sheet
+// columns that have been renamed over time (sim_normalized, msisdn, so_sim, ...).
+// None of them exist on NormalizedSIM today; the fallbacks stay so an upstream
+// rename degrades to a slower lookup instead of returning nothing.
+//
+// Module scope, not component scope: it closes over nothing, so redefining it on
+// every render only served to make it a new identity each time — which is what
+// the exhaustive-deps warning on the two useMemos below was reporting. Hoisting
+// gives it a stable identity instead of suppressing the warning.
+const getSimDigitsRobust = (sim: NormalizedSIM | null | undefined) => {
+  const row = sim as unknown as Record<string, unknown> | null | undefined;
+  const preferred = [
+    row?.rawDigits, row?.sim_normalized, row?.number, row?.formattedNumber, row?.sim,
+    row?.phone, row?.msisdn, row?.value, row?.simNumber, row?.displayNumber,
+    row?.SimNumber, row?.sim_number, row?.phone_number, row?.so_sim
+  ];
+
+  // Try preferred fields first
+  for (const v of preferred) {
+    const d = normalizeDigits(v);
+    if (d.length >= 10) return d;
+  }
+
+  // Fallback: scan all object keys
+  if (row && typeof row === 'object') {
+    for (const k of Object.keys(row)) {
+      const v = row[k];
+      if (typeof v === 'string' || typeof v === 'number') {
+        const d = normalizeDigits(v);
+        if (d.length >= 10) return d;
+      }
+    }
+  }
+
+  return '';
+};
+
 // Storage keys
 const STORAGE_KEY = 'chonsomobifone_sim_cache';
 
@@ -621,42 +662,6 @@ export const useSimData = () => {
 
   const prefixes = useMemo(() => getUniquePrefixes(allSims), [allSims]);
 
-  // Helper to extract digits from a SIM object (robust, handles various field names)
-  const normalizeDigits = (v?: unknown) => String(v ?? "").replace(/\D/g, "");
-
-  // Every caller passes a NormalizedSIM, so that is the signature. The body then
-  // widens to a record because the field list below is a deliberate net for sheet
-  // columns that have been renamed over time (sim_normalized, msisdn, so_sim, ...).
-  // None of them exist on NormalizedSIM today; the fallbacks stay so an upstream
-  // rename degrades to a slower lookup instead of returning nothing.
-  const getSimDigitsRobust = (sim: NormalizedSIM | null | undefined) => {
-    const row = sim as unknown as Record<string, unknown> | null | undefined;
-    const preferred = [
-      row?.rawDigits, row?.sim_normalized, row?.number, row?.formattedNumber, row?.sim,
-      row?.phone, row?.msisdn, row?.value, row?.simNumber, row?.displayNumber,
-      row?.SimNumber, row?.sim_number, row?.phone_number, row?.so_sim
-    ];
-    
-    // Try preferred fields first
-    for (const v of preferred) {
-      const d = normalizeDigits(v);
-      if (d.length >= 10) return d;
-    }
-    
-    // Fallback: scan all object keys
-    if (row && typeof row === 'object') {
-      for (const k of Object.keys(row)) {
-        const v = row[k];
-        if (typeof v === 'string' || typeof v === 'number') {
-          const d = normalizeDigits(v);
-          if (d.length >= 10) return d;
-        }
-      }
-    }
-    
-    return '';
-  };
-
   const filteredSims = useMemo(() => {
     // --- NEW SEARCH RULES (5 cases) ---
     const qRaw = String(filters.searchQuery || "").trim();
@@ -989,6 +994,12 @@ export const useSimData = () => {
     }
 
     return constraints;
+    // `updateFilter` is intentionally omitted. It is declared *below* this memo,
+    // so listing it here is a TDZ error (TS2448), not just a lint nit — the
+    // dep array is evaluated on the first render, before the const exists.
+    // Omitting it is safe regardless: updateFilter is useCallback(..., []) and
+    // never changes identity, so the closure can never capture a stale one.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   const relaxFilters = useCallback(() => {

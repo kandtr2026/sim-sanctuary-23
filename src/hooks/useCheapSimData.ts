@@ -171,6 +171,13 @@ export const useCheapSimData = () => {
       }
     };
     fetchData();
+    // Mount-only by design. `cached` comes from useMemo(() => loadCache(), []),
+    // so cached.sims/cached.ts are frozen for the component's lifetime and can
+    // never go stale — the warning is a false positive from the rule not being
+    // able to see through the memo. Listing them would also be harmful here:
+    // the effect calls setSims, and re-running it would re-issue the two sheet
+    // fetches on every render that touched the cache.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return { sims, isLoading };

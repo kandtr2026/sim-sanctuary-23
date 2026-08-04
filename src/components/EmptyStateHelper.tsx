@@ -24,7 +24,6 @@ interface EmptyStateHelperProps {
   filters?: FilterState;
   quyFilter?: FilterState["quyType"];
   precomputedSuggestions?: NormalizedSIM[];
-  isOrFallback?: boolean; // True when showing OR-fallback results instead of similarity suggestions
 }
 
 const ITEMS_PER_PAGE = 100;
@@ -41,7 +40,6 @@ const EmptyStateHelper = ({
   filters,
   quyFilter,
   precomputedSuggestions = [],
-  isOrFallback = false,
 }: EmptyStateHelperProps) => {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 

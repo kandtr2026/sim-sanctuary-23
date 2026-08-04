@@ -495,7 +495,7 @@ const SimPhongThuy = () => {
   useEffect(() => {
     const sim = searchParams.get('sim');
     const len = searchParams.get('len');
-    
+
     if (sim && (len === '4' || len === '6')) {
       setInputValue(sim);
       setSuffixLength(len);
@@ -503,6 +503,14 @@ const SimPhongThuy = () => {
       performLookup(sim, len);
       setSuggestionSeed(Date.now());
     }
+    // Mount-only by design: this reads the *initial* deep link (?sim=&len=) once.
+    // Adding the suggested deps would be actively wrong, not merely noisy —
+    // performLookup calls setSearchParams itself (see below), so a searchParams
+    // dep turns this into a feedback loop that re-runs the auto-lookup and
+    // re-seeds the random suggestions on every manual submit, clobbering what
+    // the user just typed. performLookup is also declared below this effect, so
+    // listing it is a TDZ error.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const performLookup = (input: string, len: '4' | '6') => {
