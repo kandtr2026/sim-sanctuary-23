@@ -1,87 +1,81 @@
 import { ChevronRight, Zap } from 'lucide-react';
 
-const ProcessSteps = () => {
-  const steps = [
-    {
-      number: '①',
-      title: 'CHỌN SỐ',
-      description: 'Chọn sim yêu thích trong kho số.',
-    },
-    {
-      number: '②',
-      title: 'ĐẶT HÀNG ONLINE',
-      description: 'Điền thông tin đặt hàng online.',
-    },
-    {
-      number: '③',
-      title: 'NHẬN SIM TẠI NHÀ',
-      description: 'Giao sim tận nhà trong 2-4h (HCM).',
-    },
-  ];
+const steps = [
+  { number: '1', title: 'CHỌN SỐ', description: 'Chọn sim trong kho số.' },
+  { number: '2', title: 'ĐẶT HÀNG', description: 'Điền thông tin online.' },
+  { number: '3', title: 'NHẬN SIM', description: 'Giao tận nhà 2-4h (HCM).', urgent: true },
+];
 
+/**
+ * Three-step "how to buy" strip.
+ *
+ * Deliberately small. This used to be 610px tall on mobile (stacked cards with
+ * p-5 and py-6 section padding) and sat *above* the SIM grid, which pushed the
+ * first SIM card to 1.6 screens down. It now renders below the grid, because
+ * "how to buy" only matters once a visitor has found a number worth buying.
+ *
+ * No `container mx-auto px-4` wrapper here: Index already renders this inside
+ * its own container, and the old nested one double-padded the content.
+ */
+const ProcessSteps = () => {
   return (
-    <section className="py-6 md:py-12">
-      <div className="container mx-auto px-4">
-        <h2 className="text-lg md:text-2xl font-bold text-center mb-5 md:mb-8" style={{ color: 'hsl(var(--gold))' }}>
-          QUY TRÌNH MUA SIM CHUẨN (3 BƯỚC)
-        </h2>
-        
-        <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-6 max-w-5xl mx-auto">
-          {steps.map((step, index) => (
-            <div key={index} className="flex items-center w-full md:w-auto">
-              <div className="bg-card border border-border/60 rounded-2xl p-5 md:p-6 flex-1 md:flex-none md:w-64 shadow-card relative">
-                {/* Badge "HỎA TỐC" cho bước 3 */}
-                {index === 2 && (
-                  <div 
-                    className="absolute -top-2 -right-2 md:-top-3 md:-right-3 px-2 py-0.5 rounded-md text-[10px] md:text-xs font-bold whitespace-nowrap animate-fire-badge"
-                    style={{ 
-                      background: 'linear-gradient(135deg, #DC2626 0%, #EA580C 50%, #F59E0B 100%)',
-                      color: '#FFFFFF',
-                      boxShadow: '0 0 15px 3px rgba(220, 38, 38, 0.8), 0 0 30px 6px rgba(234, 88, 12, 0.5), inset 0 1px 0 rgba(255,255,255,0.3)',
-                      textShadow: '0 0 4px rgba(255,255,255,0.8)',
-                      border: '1px solid rgba(255,255,255,0.4)',
-                      zIndex: 10
-                    }}
-                  >
-                    <span className="inline-flex items-center gap-0.5">
-                      <Zap size={10} className="fill-white" />
-                      HỎA TỐC
-                    </span>
-                  </div>
-                )}
-                <div className="flex flex-col items-center text-center">
-                  <div 
-                    className="w-12 h-12 rounded-full flex items-center justify-center mb-3 font-bold text-2xl"
-                    style={{ 
-                      backgroundColor: 'hsl(var(--gold))', 
-                      color: 'hsl(var(--background))' 
-                    }}
-                  >
-                    {step.number}
-                  </div>
-                  <h3 
-                    className="text-base md:text-lg font-bold mb-2"
-                    style={{ color: 'hsl(var(--gold))' }}
-                  >
-                    {step.title}
-                  </h3>
-                  <p className="text-sm text-foreground/80">
-                    {step.description}
-                  </p>
-                </div>
-              </div>
-              
-              {index < steps.length - 1 && (
-                <ChevronRight 
-                  className="hidden md:block mx-2 flex-shrink-0" 
-                  size={32}
-                  style={{ color: 'hsl(var(--gold))' }}
-                />
+    <section className="my-6">
+      <h2 className="mb-3 text-center text-sm font-bold text-gold md:text-base">
+        QUY TRÌNH MUA SIM (3 BƯỚC)
+      </h2>
+
+      {/* One row at every breakpoint. On mobile the three steps share the width
+          evenly (items-stretch keeps the cards the same height even when one
+          description wraps to two lines); the chevrons only appear from sm up,
+          where there is room for them. */}
+      <ol className="mx-auto flex max-w-3xl list-none items-stretch justify-center gap-1.5 sm:gap-2">
+        {steps.map((step, index) => (
+          <li key={step.number} className="flex flex-1 items-center">
+            <div className="relative flex-1 rounded-lg border border-border/60 bg-card px-2 py-2.5 text-center">
+              {step.urgent && (
+                <span
+                  // right-0, not -right-1: on the last card a negative offset
+                  // pushed the badge 3px past the <ol> and got it clipped at
+                  // 375px. Kept -top-2 since there is vertical room above.
+                  className="animate-fire-badge absolute right-0 -top-2 z-10 whitespace-nowrap rounded px-1.5 py-0.5 text-[9px] font-bold md:text-[10px]"
+                  style={{
+                    background: 'linear-gradient(135deg, #DC2626 0%, #EA580C 50%, #F59E0B 100%)',
+                    color: '#FFFFFF',
+                    boxShadow: '0 0 10px 2px rgba(220, 38, 38, 0.7)',
+                    border: '1px solid rgba(255,255,255,0.4)',
+                  }}
+                >
+                  <span className="inline-flex items-center gap-0.5">
+                    <Zap size={9} className="fill-white" />
+                    HỎA TỐC
+                  </span>
+                </span>
               )}
+
+              <div className="flex items-center justify-center gap-1.5">
+                <span
+                  className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                  style={{ backgroundColor: 'hsl(var(--gold))', color: 'hsl(var(--background))' }}
+                >
+                  {step.number}
+                </span>
+                <h3 className="text-[11px] font-bold text-gold md:text-sm">{step.title}</h3>
+              </div>
+              <p className="mt-1 text-[10px] leading-snug text-foreground/70 md:text-xs">
+                {step.description}
+              </p>
             </div>
-          ))}
-        </div>
-      </div>
+
+            {index < steps.length - 1 && (
+              <ChevronRight
+                className="mx-0.5 hidden flex-shrink-0 text-gold sm:block"
+                size={16}
+                aria-hidden="true"
+              />
+            )}
+          </li>
+        ))}
+      </ol>
     </section>
   );
 };

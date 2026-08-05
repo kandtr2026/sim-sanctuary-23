@@ -1,6 +1,5 @@
-import { Phone, AlertCircle, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import ZaloChatCard from '@/components/ZaloChatCard';
 
 const SHEET_ID = '1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y';
 const SHEET1_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Sheet1`;
@@ -256,56 +255,12 @@ const RightSidebar = () => {
 
   return (
     <aside className="space-y-6">
-      {/* Online Sales */}
-      <div className="bg-card rounded-xl shadow-card border border-border p-5">
-        <h3 className="section-title">TƯ VẤN ONLINE</h3>
-        
-        <div className="space-y-3">
-          {/* Hotline */}
-          <a
-            href="tel:+84938868868"
-            className="flex items-center gap-3 p-4 rounded-lg bg-black border-2 border-yellow-400 hover:bg-gray-900 transition-colors"
-          >
-            <div className="w-12 h-12 rounded-full bg-yellow-400 flex items-center justify-center">
-              <Phone className="w-6 h-6 text-black" />
-            </div>
-            <div>
-              <p className="text-sm text-white">Hotline</p>
-              <p className="text-lg font-bold text-white">
-                0938.868.868
-              </p>
-            </div>
-          </a>
-
-          {/* Zalo */}
-          <ZaloChatCard />
-
-          {/* Chat tư vấn - Messenger */}
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              const opened = window.__openMessengerChat?.() === true;
-              if (!opened) {
-                window.open('https://m.me/111745910591052?ref=Ch%C3%A0o%20shop%2C%20t%C3%B4i%20c%E1%BA%A7n%20t%C6%B0%20v%E1%BA%A5n%20sim%20s%E1%BB%91%20%C4%91%E1%BA%B9p', '_blank', 'noopener,noreferrer');
-              }
-              window.__showMessengerTemplates?.();
-            }}
-            className="w-full flex items-center gap-3 p-4 rounded-lg bg-black border-2 border-yellow-400 hover:bg-gray-900 transition-colors cursor-pointer"
-          >
-            <div className="w-12 h-12 rounded-full bg-yellow-400 flex items-center justify-center">
-              {/* Messenger icon SVG */}
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-black">
-                <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.19 5.44 3.14 7.17.16.13.26.35.27.57l.05 1.78c.04.57.61.94 1.13.71l1.98-.87c.17-.08.36-.1.53-.06.91.25 1.87.38 2.9.38 5.64 0 10-4.13 10-9.7C22 6.13 17.64 2 12 2zm5.89 7.73l-2.88 4.57c-.46.73-1.44.91-2.13.4l-2.29-1.72a.54.54 0 00-.65 0l-3.09 2.35c-.41.31-.95-.18-.68-.62l2.88-4.57c.46-.73 1.44-.91 2.13-.4l2.29 1.72a.54.54 0 00.65 0l3.09-2.35c.41-.31.95.18.68.62z"/>
-              </svg>
-            </div>
-            <div className="text-left">
-              <p className="text-sm text-white">Tư vấn viên</p>
-              <p className="text-base font-semibold text-white">Chat tư vấn</p>
-            </div>
-          </button>
-
-        </div>
-      </div>
+      {/* The "TƯ VẤN ONLINE" card that used to sit here was removed: hotline +
+          Zalo + Messenger, all three of which FloatingContactButtons already
+          keeps permanently on screen, plus the header and footer copies. Six
+          contact affordances rendered at once on desktop. "ĐƠN HÀNG GẦN ĐÂY"
+          stays — it is real social proof from the SIM_SOLD sheet and nothing
+          else on the page duplicates it. */}
 
       {/* Recent Orders */}
       <div className="bg-card rounded-xl shadow-card border border-border p-5">
@@ -321,13 +276,13 @@ const RightSidebar = () => {
             Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={`skeleton-${i}`}
-                className="flex items-center justify-between p-3 rounded-lg bg-background-secondary"
+                className="flex items-center gap-2 p-3 rounded-lg bg-background-secondary"
               >
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-muted" />
+                <span className="h-2 w-2 flex-shrink-0 rounded-full bg-muted" />
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <span className="h-4 w-24 rounded bg-muted animate-pulse" />
+                  <span className="h-3 w-16 rounded bg-muted animate-pulse" />
                 </div>
-                <span className="h-3 w-16 rounded bg-muted animate-pulse" />
               </div>
             ))
           ) : orders.length === 0 ? (
@@ -338,16 +293,20 @@ const RightSidebar = () => {
             orders.map((order, index) => (
               <div
                 key={`${order.phone}-${index}`}
-                className="order-item flex items-center justify-between p-3 rounded-lg bg-background-secondary"
+                className="order-item flex items-center justify-between gap-2 p-3 rounded-lg bg-background-secondary"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse-soft"></span>
-                  <span className="font-medium text-foreground">{order.phone}</span>
+                {/* Stacked, not side-by-side. The sidebar is a fixed 220px, which
+                    leaves this row 178px — too narrow for a masked number plus
+                    "Đã đặt (dd/MM/yyyy)". Side-by-side either overflowed the
+                    sidebar (giving the whole document a horizontal scroll) or
+                    truncated the date to an ellipsis. The card heading already
+                    says ĐƠN HÀNG GẦN ĐÂY, so the date needs no "Đã đặt" prefix. */}
+                <span className="h-2 w-2 flex-shrink-0 rounded-full bg-primary animate-pulse-soft" />
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="font-medium leading-tight text-foreground">{order.phone}</span>
+                  <span className="text-xs leading-tight text-muted-foreground">{order.time}</span>
                 </div>
-                <span className="text-sm text-muted-foreground">
-                  Đã đặt ({order.time})
-                </span>
               </div>
             ))
           )}

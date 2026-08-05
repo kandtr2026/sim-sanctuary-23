@@ -734,9 +734,11 @@ const Index = () => {
             only matters after a visitor has found a number they want. */}
         {!isNoResultsWithSuggestions && <ProcessSteps />}
 
-        {/* Introduction Section */}
+        {/* Introduction Section. simCount comes from the dataset this page has
+            already fetched, so the "SIM số đẹp" stat reflects the real kho
+            instead of a hard-coded number that goes stale. */}
         <section className="my-8">
-          <IntroSection />
+          <IntroSection simCount={allSims.length} />
         </section>
 
         {/* FAQ Section. id is "faq", not "phong-thuy": this block is the FAQ, and the
