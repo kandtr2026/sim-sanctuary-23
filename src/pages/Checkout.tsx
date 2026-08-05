@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { getPromotionalData } from '@/hooks/useSimData';
 import type { NormalizedSIM, PromotionalData } from '@/lib/simUtils';
 import { normalizeSIM, parsePrice, detectNetwork } from '@/lib/simUtils';
+import { CHEAP_KHO, fetchCheapSimById, isCheapSimId, type CheapSim } from '@/lib/cheapSimSheet';
 import {
   Dialog,
   DialogContent,
@@ -215,6 +216,20 @@ const parseCSVAndFindSim = (csvText: string, targetSimId: string): CheckoutSimDa
   return null;
 };
 
+/** Map a promo-warehouse row onto the shape the rest of this page expects.
+ *  `kho` is set so the summary renders the same badge as the main catalogue's
+ *  promo rows; there is no discount to carry because the list price *is* the
+ *  promo price. */
+const cheapSimToCheckout = (sim: CheapSim): CheckoutSimData => ({
+  simId: sim.id,
+  rawDigits: sim.rawDigits,
+  displayNumber: sim.displayNumber,
+  originalPriceVnd: sim.price,
+  kho: CHEAP_KHO,
+  network: sim.network,
+  tags: [],
+});
+
 // --- Component ---
 
 /** Order pages are per-SIM and transactional — keep them out of the index.
@@ -246,8 +261,19 @@ const Checkout = () => {
 
   const { data: simData, isLoading, error } = useQuery({
     queryKey: ['checkoutSim', simId],
-    queryFn: async (): Promise<CheckoutSimData | null> => {
+    queryFn: async ({ signal }): Promise<CheckoutSimData | null> => {
       if (!simId) return null;
+
+      // Promo SIMs (SIMKM…) live in a different spreadsheet and are absent from
+      // fetch-sim-data entirely — 0 of its 49.608 rows carry that prefix — so
+      // without this branch every "ĐẶT NGAY" from /mua-sim-gia-re landed on
+      // "SIM không tồn tại". Two targeted gviz queries also cost a few hundred
+      // bytes against the 5,5 MB the main catalogue transfers.
+      if (isCheapSimId(simId)) {
+        const cheap = await fetchCheapSimById(simId, signal);
+        return cheap ? cheapSimToCheckout(cheap) : null;
+      }
+
       const csvText = await invokeEdgeFunctionText('fetch-sim-data');
       return parseCSVAndFindSim(csvText, simId);
     },
