@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.1",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "chonsomobifone",
+      "version": "0.1.0",
+      "title": "CHONSOMOBIFONE"
+    },
+    "tools": [
+      {
+        "name": "search_sims",
+        "title": "Tìm SIM số đẹp",
+        "description": "Search the public SIM inventory. Supports a digit pattern (use * as a wildcard, e.g. \"*6868\" or \"09*8888\"), network filter, price range and tag filter.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "pattern": {
+              "type": "string",
+              "description": "Digits and * only. A plain digit string matches the SIM suffix."
+            },
+            "network": {
+              "type": "string",
+              "enum": [
+                "MobiFone",
+                "Viettel",
+                "Vinaphone",
+                "Vietnamobile",
+                "Gmobile"
+              ],
+              "description": "Restrict results to one mobile network."
+            },
+            "min_price": {
+              "type": "number",
+              "description": "Minimum price in VND."
+            },
+            "max_price": {
+              "type": "number",
+              "description": "Maximum price in VND."
+            },
+            "tag": {
+              "type": "string",
+              "description": "Tag such as \"Tứ quý\", \"Tam hoa\", \"Lộc phát\", \"Thần tài\", \"Taxi\", \"Tiến\"."
+            },
+            "limit": {
+              "type": "number",
+              "description": "Max results to return (1-50, default 20)."
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_sim_details",
+        "title": "Chi tiết SIM",
+        "description": "Look up one SIM number in the public inventory and return its price, network, tags, feng-shui digit sum and order link.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "number": {
+              "type": "string",
+              "description": "The SIM number, digits only or formatted (e.g. 0938.868.868)."
+            }
+          },
+          "required": [
+            "number"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_shop_info",
+        "title": "Thông tin cửa hàng",
+        "description": "Return CHONSOMOBIFONE contact channels, store address, payment/delivery info and a snapshot of the current public inventory (count, price range, networks).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
