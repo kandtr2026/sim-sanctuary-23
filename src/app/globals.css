@@ -16,6 +16,10 @@
     /* Cards & Surfaces - Dark Gray */
     --card: 0 0% 10%; /* #1A1A1A dark gray */
     --card-foreground: 0 0% 100%;
+    /* Third surface tier: one step brighter than --card so SIM cards read as
+       "objects" sitting on the #1A1A1A listing container instead of sinking
+       into it (the old transparent look). */
+    --card-elevated: 0 0% 13%; /* #212121 */
     --popover: 0 0% 10%;
     --popover-foreground: 0 0% 100%;
 
@@ -75,6 +79,7 @@
        below, and keep both in sync with Navigation.tsx.                        */
     --nav-height: 65px;      /* sticky <Navigation /> bar, mobile two-row */
     --sticky-cta-height: 72px; /* mobile <StickyCtaBottomBar /> */
+    --cta-stack-height: 220px; /* desktop <FloatingContactButtons /> stack: 3 × clamp(48→60px) buttons + 2 × clamp(10→14px) gaps ≈ 181–208px; 220px is the safe ceiling so the messenger panel clears it */
 
     /* Header */
     --header-bg: 0 0% 6%;
@@ -169,12 +174,16 @@
     text-shadow: 0 1px 2px hsl(0 0% 0% / 0.3);
   }
 
-  /* SIM Number Display - Auto-resize based on container (optimized for 4 columns) */
+  /* SIM Number Display - Auto-resize based on container.
+     The number IS the product, so it leads the card: largest line, heavy
+     weight, tabular figures so the digits sit on an even rhythm. Sized for a
+     3-column desktop grid / 2-column mobile grid. */
   .sim-number-auto {
-    @apply font-bold;
-    font-size: clamp(18px, 1.6vw, 32px);
+    @apply font-extrabold;
+    font-size: clamp(18px, 2vw, 26px);
     line-height: 1.1;
     letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
     color: hsl(var(--gold));
     text-shadow: 0 1px 2px hsl(0 0% 0% / 0.3);
     white-space: nowrap;
@@ -341,18 +350,28 @@
     border-color: hsl(var(--gold) / 0.3);
   }
 
-  /* SIM Card - Compact/Scaled (~50% content) with flex-col for bottom alignment */
+  /* SIM Card - Compact/Scaled (~50% content) with flex-col for bottom alignment.
+     Uses the third surface tier (--card-elevated) so the card reads as an object
+     on the #1A1A1A listing container, with a hairline white border and a soft
+     "studio" shadow for depth instead of a hard dark outline. */
   .sim-card-compact {
-    @apply bg-card rounded-lg p-2 transition-all duration-300 flex flex-col;
-    box-shadow: var(--shadow-soft);
-    border: 1px solid hsl(var(--border));
+    @apply rounded-lg p-2 flex flex-col;
+    /* Only transform, border-color and box-shadow change on hover — animate
+       exactly those (not transition-all) for a tighter 200ms response. */
+    transition-property: transform, border-color, box-shadow;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    background: hsl(var(--card-elevated));
+    border: 1px solid hsl(0 0% 100% / 0.06);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
     min-height: 140px; /* Consistent card height */
   }
 
   .sim-card-compact:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-card);
-    border-color: hsl(var(--gold) / 0.3);
+    border-color: hsl(var(--gold) / 0.35);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px -12px rgba(0, 0, 0, 0.65),
+      0 0 14px -6px hsl(var(--gold) / 0.18);
   }
 
   /* Mobile refinements — must come AFTER the base rule to win the cascade */
@@ -361,15 +380,13 @@
       min-height: 152px;
       padding: 12px;
       border-radius: 12px;
-      border-color: hsl(var(--border) / 0.6);
-      background: linear-gradient(165deg, hsl(var(--card)) 0%, hsl(0 0% 8%) 100%);
     }
 
     /* Softer card hover on mobile (no translateY, just glow) */
     .sim-card-compact:hover {
       transform: none;
-      border-color: hsl(var(--gold) / 0.25);
-      box-shadow: 0 0 12px -4px hsl(var(--gold) / 0.15);
+      border-color: hsl(var(--gold) / 0.35);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 12px -4px hsl(var(--gold) / 0.18);
     }
   }
 

@@ -172,8 +172,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
         <Link
           href={checkoutHref}
           aria-label={`Đặt mua SIM ${sim.displayNumber || sim.formattedNumber} — ${formatPrice(sim.price)}`}
-          className="sim-number-auto mb-1.5 block group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis"
-          style={{ fontSize: 'clamp(14px, 3.5vw, 22px)' }}
+          className="sim-number-auto mb-1.5 block transition-all whitespace-nowrap overflow-hidden text-ellipsis group-hover:[text-shadow:0_0_12px_hsl(var(--gold)_/_0.4)]"
         >
           {searchQuery?.trim()
             ? createHighlightedNumber(

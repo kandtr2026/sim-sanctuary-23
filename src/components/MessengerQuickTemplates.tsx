@@ -70,9 +70,12 @@ const MessengerQuickTemplates = () => {
     <div
       className="fixed right-4 z-[90] w-[calc(100vw-2rem)] max-w-[260px] bg-card border border-border rounded-xl shadow-lg p-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2"
       style={{
-        // Clear the floating contact stack (3 buttons ≈ 200px) and the mobile
-        // sticky CTA bar beneath it.
-        bottom: "calc(var(--sticky-cta-height) + 220px)",
+        // The floating contact stack is desktop-only now, resting at bottom-6
+        // (~24px). --cta-stack-height is the stack's ceiling height (3 × ~60px
+        // buttons + 2 × ~14px gaps ≈ 181–208px across breakpoints, padded to
+        // 220px); sitting just above it keeps the panel clear of the stack on
+        // the only breakpoint where its trigger exists.
+        bottom: "calc(24px + var(--cta-stack-height))",
       }}
       role="dialog"
       aria-label="Chọn tin nhắn mẫu"

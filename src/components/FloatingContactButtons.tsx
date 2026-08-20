@@ -1,14 +1,10 @@
 "use client";
 
 import { Phone } from "lucide-react";
-import { usePathname } from "next/navigation";
 
 const ZALO_URL =
   "https://zalo.me/0933356666?text=%F0%9F%91%8B%20Xin%20ch%C3%A0o%2C%20t%C3%B4i%20%C4%91ang%20quan%20t%C3%A2m%20%C4%91%E1%BA%BFn%20sim%20s%E1%BB%91%20%C4%91%E1%BA%B9p%20tr%C3%AAn%20website%20v%C3%A0%20mu%E1%BB%91n%20%C4%91%C6%B0%E1%BB%A3c%20t%C6%B0%20v%E1%BA%A5n.";
 const CALL_URL = "tel:+84938868868";
-
-/** Paths where <StickyCtaBottomBar /> renders on mobile — keep in sync. */
-const STICKY_CTA_PATHS = ["/", "/mua-sim-gia-re"];
 
 const MESSENGER_FALLBACK_URL =
   "https://m.me/111745910591052?ref=Ch%C3%A0o%20shop%2C%20t%C3%B4i%20c%E1%BA%A7n%20t%C6%B0%20v%E1%BA%A5n%20sim%20s%E1%BB%91%20%C4%91%E1%BA%B9p";
@@ -24,58 +20,45 @@ const handleOpenMessengerChat = (e: React.MouseEvent) => {
 };
 
 const FloatingContactButtons = () => {
-  const pathname = usePathname() ?? "";
-  // On pages with the mobile sticky CTA bar the stack must clear it; elsewhere
-  // it can sit lower. Desktop never shows the bar, hence the media query below.
-  const hasStickyCta = STICKY_CTA_PATHS.includes(pathname);
-
   return (
     <>
-      {/* Scoped keyframes for bounce-pulse animation */}
+      {/* One gentle motion cue, on hover/press only. The constant bounce was one
+          of a dozen infinite animations running at once and read as noise; a
+          subtle scale keeps the buttons alive without shouting. */}
       <style>{`
-        @keyframes floating-bounce {
-          0%, 100% {
-            transform: translateY(0) scale(1);
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+        .floating-contact-btn {
+          transition: transform 160ms ease-out, box-shadow 160ms ease-out,
+            background-color 160ms ease-out;
+        }
+        @media (hover: hover) and (pointer: fine) {
+          .floating-contact-btn:hover {
+            transform: scale(1.06);
           }
-          25% {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-          }
-          50% {
-            transform: translateY(-1px) scale(1.08);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
-          }
-          75% {
-            transform: translateY(-2px) scale(1.03);
-            box-shadow: 0 7px 16px rgba(0, 0, 0, 0.18);
-          }
+        }
+        .floating-contact-btn:active {
+          transform: scale(0.96);
         }
         @media (prefers-reduced-motion: reduce) {
           .floating-contact-btn {
-            animation: none !important;
+            transition: none !important;
+          }
+          .floating-contact-btn:hover,
+          .floating-contact-btn:active {
+            transform: none !important;
           }
         }
-        /* Sit above the mobile sticky CTA bar, but drop back down on desktop
-           where that bar never renders. */
+        /* Desktop-only corner rest position. */
         .floating-contact-stack {
-          bottom: calc(var(--sticky-cta-height) + 12px);
-        }
-        .floating-contact-stack[data-sticky-cta="false"] {
-          bottom: 16px;
-        }
-        @media (min-width: 768px) {
-          .floating-contact-stack,
-          .floating-contact-stack[data-sticky-cta="false"] {
-            bottom: 24px;
-          }
+          bottom: 24px;
         }
       `}</style>
 
-      {/* Container for all buttons - stacked vertically, aligned right */}
+      {/* Container for all buttons - stacked vertically, aligned right.
+          Hidden below md: on mobile the sticky bottom bar (StickyCtaBottomBar)
+          is the single floating contact layer, so this stack would only add a
+          second/third overlapping layer and cover the right SIM column. */}
       <div
-        className="floating-contact-stack fixed z-[80] flex flex-col items-end"
-        data-sticky-cta={hasStickyCta}
+        className="floating-contact-stack fixed z-[80] hidden flex-col items-end md:flex"
         style={{
           right: "clamp(12px, 2vw, 24px)",
           gap: "clamp(10px, 1.2vw, 14px)",
@@ -85,11 +68,10 @@ const FloatingContactButtons = () => {
         <button
           onClick={handleOpenMessengerChat}
           aria-label="Chat Messenger"
-          className="floating-contact-btn flex items-center justify-center rounded-full shadow-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#0084ff] focus:ring-offset-2"
+          className="floating-contact-btn flex items-center justify-center rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-[#0084ff] focus:ring-offset-2"
           style={{
             width: "clamp(48px, 4.5vw, 60px)",
             height: "clamp(48px, 4.5vw, 60px)",
-            animation: "floating-bounce 1.4s ease-in-out infinite",
             background: "linear-gradient(135deg, #0084ff 0%, #00c6ff 100%)",
           }}
         >
@@ -120,7 +102,6 @@ const FloatingContactButtons = () => {
           style={{
             width: "clamp(48px, 4.5vw, 60px)",
             height: "clamp(48px, 4.5vw, 60px)",
-            animation: "floating-bounce 1.4s ease-in-out infinite 0.1s",
           }}
         >
           <Phone
@@ -144,11 +125,10 @@ const FloatingContactButtons = () => {
               event_label: "floating_zalo",
             });
           }}
-          className="floating-contact-btn flex items-center bg-white hover:bg-gray-50 shadow-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#0068ff] focus:ring-offset-2"
+          className="floating-contact-btn flex items-center bg-white hover:bg-gray-50 shadow-lg focus:outline-none focus:ring-2 focus:ring-[#0068ff] focus:ring-offset-2"
           style={{
             height: "clamp(48px, 4.5vw, 60px)",
             borderRadius: "9999px",
-            animation: "floating-bounce 1.4s ease-in-out infinite 0.2s",
             gap: 0,
             textDecoration: "none",
           }}

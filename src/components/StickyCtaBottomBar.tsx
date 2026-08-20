@@ -4,13 +4,21 @@ import { Phone, MessageCircle } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const ALLOWED_PATHS = ["/", "/mua-sim-gia-re"];
+const CHECKOUT_PATH = "/mua-ngay";
 
 const StickyCtaBottomBar = () => {
   const pathname = usePathname() ?? "";
   const isMobile = useIsMobile();
 
-  if (!isMobile || !ALLOWED_PATHS.includes(pathname)) return null;
+  // Show on every route except checkout (/mua-ngay/...), which already has its
+  // own order form. The floating desktop stack is hidden below md, so this bar
+  // is the only floating contact layer on mobile — the old allow-list left
+  // /sim-phong-thuy, /mua-sim-tu-quy, /dinh-gia-sim, /tin-tuc/*, /thanh-toan,
+  // /sim-tra-gop and every policy page with no CTA at all.
+  const isCheckout =
+    pathname === CHECKOUT_PATH || pathname.startsWith(`${CHECKOUT_PATH}/`);
+
+  if (!isMobile || isCheckout) return null;
 
   return (
     <>
