@@ -20,20 +20,50 @@ const DEFAULT_TITLE = "CHONSOMOBIFONE.COM — Kho SIM số đẹp Mobifone uy t�
 const DEFAULT_DESCRIPTION =
   "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh. Giao SIM toàn quốc, sang tên chính chủ. Hotline 0938.868.868.";
 
-// Ported verbatim from the old index.html <head> — keep both verification tokens.
-const ORGANIZATION_JSON_LD = {
+// LocalBusiness schema (P1-3). The old index.html only had a bare Organization;
+// the business has a physical TPHCM storefront, so `Store` (a LocalBusiness
+// subtype) is the accurate type and unlocks local-pack signals. Address, hotline,
+// hours and geo are read from the real sources already in the repo (Footer.tsx
+// address + the Google Maps embed lat/lng), not invented.
+const STORE_JSON_LD = {
   "@context": "https://schema.org",
-  "@type": "Organization",
+  "@type": "Store",
   name: SITE_NAME,
+  legalName: "CÔNG TY TNHH TM DV VIỄN THÔNG NAM KHANG",
   url: `${BASE_URL}/`,
   logo: `${BASE_URL}/brand-logo.png`,
   telephone: "+84938868868",
+  email: "hotro@chonsomobifone.com",
+  priceRange: "VND",
   address: {
     "@type": "PostalAddress",
     streetAddress: "43A Đường số 9, Phường Tân Hưng",
     addressLocality: "TP. Hồ Chí Minh",
     addressCountry: "VN",
   },
+  geo: {
+    "@type": "GeoCoordinates",
+    latitude: 10.74673378940029,
+    longitude: 106.70810869335848,
+  },
+  openingHoursSpecification: {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ],
+    opens: "08:00",
+    closes: "21:00",
+  },
+  sameAs: [
+    "https://zalo.me/0933356666",
+    "https://www.facebook.com/111745910591052",
+  ],
   contactPoint: {
     "@type": "ContactPoint",
     telephone: "+84938868868",
@@ -137,7 +167,7 @@ export default function RootLayout({
         {/* Structured data (server-rendered → present in the raw HTML) */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSON_LD) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(STORE_JSON_LD) }}
         />
         <script
           type="application/ld+json"

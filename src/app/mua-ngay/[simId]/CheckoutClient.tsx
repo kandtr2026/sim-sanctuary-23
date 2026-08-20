@@ -300,8 +300,6 @@ const CheckoutClient = () => {
     }
   }, [simWithTags]);
 
-  const formValid = isFormValid(formData);
-
   const handleInputChange = (field: keyof CheckoutFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setTouched(prev => ({ ...prev, [field]: true }));
