@@ -1,11 +1,11 @@
 /**
  * Supabase connection config.
  *
- * These are read from `import.meta.env` when present and otherwise fall back to
+ * These are read from `process.env` when present and otherwise fall back to
  * literals. The fallbacks are deliberate, not an oversight:
  *
- *  - Every `VITE_`-prefixed variable is inlined into the client bundle at build
- *    time, so none of this is secret. The publishable key is the `anon` key,
+ *  - Every `NEXT_PUBLIC_`-prefixed variable is inlined into the client bundle at
+ *    build time, so none of this is secret. The publishable key is the `anon` key,
  *    which is designed to ship to browsers and is governed by row-level
  *    security on the Supabase side.
  *  - The same project id and anon key were already hardcoded in
@@ -23,13 +23,13 @@
 const FALLBACK_PROJECT_ID = 'pfeyyyvhzsuoccwoweco';
 
 export const SUPABASE_PROJECT_ID: string =
-  import.meta.env.VITE_SUPABASE_PROJECT_ID || FALLBACK_PROJECT_ID;
+  process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID || FALLBACK_PROJECT_ID;
 
 export const SUPABASE_URL: string =
-  import.meta.env.VITE_SUPABASE_URL || `https://${SUPABASE_PROJECT_ID}.supabase.co`;
+  process.env.NEXT_PUBLIC_SUPABASE_URL || `https://${SUPABASE_PROJECT_ID}.supabase.co`;
 
 export const SUPABASE_PUBLISHABLE_KEY: string =
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmZXl5eXZoenN1b2Njd293ZWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NTIzODEsImV4cCI6MjA4NDAyODM4MX0.RGOXDxNXOZn93fnZliCy48Hn2dH4tjogfAcdhp8KQiQ';
 
 /** Base URL for Edge Functions, e.g. `${EDGE_FUNCTIONS_URL}/sheet-proxy`. */

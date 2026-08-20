@@ -47,7 +47,7 @@ const EmptyStateHelper = ({
   const normalizedSearchDigits = String(searchQuery || "").replace(/[^0-9]/g, "");
 
   // Dev-only debug (enable via: localStorage.setItem('debug_highlight','1'))
-  if (import.meta.env.DEV && typeof window !== "undefined" && window.localStorage?.getItem("debug_highlight") === "1") {
+  if (process.env.NODE_ENV !== 'production' && typeof window !== "undefined" && window.localStorage?.getItem("debug_highlight") === "1") {
     console.log("[highlight] EmptyStateHelper", { normalizedSearchDigits, rawSearchQuery: searchQuery });
   }
 

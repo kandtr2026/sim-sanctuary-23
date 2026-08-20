@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
@@ -25,7 +27,7 @@ const Navigation = () => {
           {menuItems.map((item) => (
             <NavLink
               key={item.label}
-              to={item.href}
+              href={item.href}
               end={item.href === "/"}
               className="menu-pill shimmer-hover relative text-primary-foreground text-sm"
               activeClassName="ring-2 ring-gold/70 ring-offset-1 ring-offset-card"
@@ -55,7 +57,7 @@ const Navigation = () => {
             {menuItems.map((item) => (
               <NavLink
                 key={item.label}
-                to={item.href}
+                href={item.href}
                 end={item.href === "/"}
                 onClick={() => setMobileOpen(false)}
                 className="block px-4 py-3 rounded-xl bg-secondary/80 text-foreground/90 font-medium text-sm hover:bg-gold/10 hover:text-gold transition-all border border-border/40"

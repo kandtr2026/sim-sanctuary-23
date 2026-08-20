@@ -1,24 +1,40 @@
-import { NavLink as RouterNavLink, NavLinkProps } from "react-router-dom";
-import { forwardRef } from "react";
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { forwardRef, type MouseEventHandler, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-interface NavLinkCompatProps extends Omit<NavLinkProps, "className"> {
+interface NavLinkProps {
+  href: string;
+  end?: boolean;
   className?: string;
   activeClassName?: string;
-  pendingClassName?: string;
+  onClick?: MouseEventHandler<HTMLAnchorElement>;
+  children: ReactNode;
 }
 
-const NavLink = forwardRef<HTMLAnchorElement, NavLinkCompatProps>(
-  ({ className, activeClassName, pendingClassName, to, ...props }, ref) => {
+/**
+ * Drop-in replacement for the old react-router `<NavLink>`: an `next/link` that
+ * derives its active state from `usePathname()`. `end` mirrors react-router's
+ * `end` prop (exact match only, used for the homepage `/`).
+ */
+const NavLink = forwardRef<HTMLAnchorElement, NavLinkProps>(
+  ({ href, end, className, activeClassName, onClick, children }, ref) => {
+    const pathname = usePathname() ?? "";
+    const isActive = end
+      ? pathname === href
+      : pathname === href || pathname.startsWith(`${href}/`);
+
     return (
-      <RouterNavLink
+      <Link
         ref={ref}
-        to={to}
-        className={({ isActive, isPending }) =>
-          cn(className, isActive && activeClassName, isPending && pendingClassName)
-        }
-        {...props}
-      />
+        href={href}
+        onClick={onClick}
+        className={cn(className, isActive && activeClassName)}
+      >
+        {children}
+      </Link>
     );
   },
 );

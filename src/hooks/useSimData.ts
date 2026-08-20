@@ -400,6 +400,9 @@ const saveToCache = (data: NormalizedSIM[]) => {
 
 /** Load cached SIMs, rebuilding the derived fields via normalizeSIM. */
 const loadFromCache = (): { data: NormalizedSIM[]; timestamp: number; total: number } | null => {
+  // Server-side (Next SSG) has no localStorage — a quiet no-op avoids a noisy
+  // ReferenceError during module evaluation at build time.
+  if (typeof window === 'undefined') return null;
   try {
     const cached = localStorage.getItem(STORAGE_KEY);
     if (!cached) return null;
@@ -438,7 +441,7 @@ export const getLastUpdateInfo = (): { timestamp: number | null; isCache: boolea
 
 // Fetch CSV via edge function (bypasses CORS)
 const fetchCsvViaProxy = async (): Promise<string> => {
-  if (import.meta.env.DEV) {
+  if (process.env.NODE_ENV !== 'production') {
     console.log('[SIM] Fetching via backend proxy...');
   }
 
@@ -450,7 +453,7 @@ const fetchCsvViaProxy = async (): Promise<string> => {
     throw new Error(validation.reason || 'Invalid CSV response from proxy');
   }
 
-  if (import.meta.env.DEV) {
+  if (process.env.NODE_ENV !== 'production') {
     console.log(`[SIM] Received ${csvText.length} bytes via proxy`);
   }
   return csvText;
@@ -467,7 +470,7 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
     lastFetchTimestamp = Date.now();
     
     const rows = parseCSV(csvText);
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.log(`[SIM] Parsed ${rows.length} rows from CSV`);
     }
     
@@ -537,7 +540,7 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
     // Update module-level promotional data store
     promotionalDataStore = promotionalDataMap;
     
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.log(`[SIM] Normalized ${sims.length} SIMs, ${discountCount} with discounts`);
     }
     

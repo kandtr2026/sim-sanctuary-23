@@ -1,22 +1,22 @@
 import { MapPin, Phone, Mail, Clock, Navigation } from "lucide-react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 
 // SIM category pages. SIM ĐỒNG GIÁ 229K, SIM TRẢ GÓP and ĐỊNH GIÁ SIM were removed
 // from the main nav (trimmed to 4 items in Navigation.tsx); these links are what keep
 // them internally linked and reachable. Do not drop them without adding the pages back
 // somewhere else — public/sitemap.xml still declares all of them.
 const simCategoryLinks = [
-  { label: "SIM đồng giá 229K", to: "/mua-sim-gia-re" },
-  { label: "SIM tứ quý", to: "/mua-sim-tu-quy" },
-  { label: "SIM trả góp", to: "/sim-tra-gop" },
-  { label: "Định giá SIM", to: "/dinh-gia-sim" },
+  { label: "SIM đồng giá 229K", href: "/mua-sim-gia-re" },
+  { label: "SIM tứ quý", href: "/mua-sim-tu-quy" },
+  { label: "SIM trả góp", href: "/sim-tra-gop" },
+  { label: "Định giá SIM", href: "/dinh-gia-sim" },
 ];
 
 const policyLinks = [
-  { label: "Chính sách bảo mật", to: "/chinh-sach-bao-mat" },
-  { label: "Điều khoản sử dụng", to: "/dieu-khoan-su-dung" },
-  { label: "Chính sách giao hàng", to: "/chinh-sach-giao-hang" },
-  { label: "Hướng dẫn thanh toán", to: "/thanh-toan" },
+  { label: "Chính sách bảo mật", href: "/chinh-sach-bao-mat" },
+  { label: "Điều khoản sử dụng", href: "/dieu-khoan-su-dung" },
+  { label: "Chính sách giao hàng", href: "/chinh-sach-giao-hang" },
+  { label: "Hướng dẫn thanh toán", href: "/thanh-toan" },
 ];
 
 const Footer = () => {
@@ -27,7 +27,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="w-full min-w-0 lg:pr-4">
             <h3 className="text-xl font-bold mb-4">
-              <Link to="/" aria-label="CHONSOMOBIFONE.COM — Trang chủ">
+              <Link href="/" aria-label="CHONSOMOBIFONE.COM — Trang chủ">
                 <span className="text-gold">CHONSO</span>
                 <span className="text-primary">MOBIFONE</span>
                 <span>.COM</span>
@@ -49,8 +49,8 @@ const Footer = () => {
             <h4 className="text-lg font-bold mb-4 text-gold uppercase">DANH MỤC SIM</h4>
             <ul className="space-y-2 text-sm text-header-foreground/70">
               {simCategoryLinks.map((link) => (
-                <li key={link.to}>
-                  <Link to={link.to} className="hover:text-gold transition-colors">
+                <li key={link.href}>
+                  <Link href={link.href} className="hover:text-gold transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -60,8 +60,8 @@ const Footer = () => {
             <h4 className="text-lg font-bold mb-4 mt-6 text-gold uppercase">CHÍNH SÁCH</h4>
             <ul className="space-y-2 text-sm text-header-foreground/70">
               {policyLinks.map((link) => (
-                <li key={link.to}>
-                  <Link to={link.to} className="hover:text-gold transition-colors">
+                <li key={link.href}>
+                  <Link href={link.href} className="hover:text-gold transition-colors">
                     {link.label}
                   </Link>
                 </li>

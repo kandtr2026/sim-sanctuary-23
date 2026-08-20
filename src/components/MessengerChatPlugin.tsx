@@ -1,23 +1,6 @@
-import { useEffect } from 'react';
+"use client";
 
-// Extend Window interface for TypeScript
-declare global {
-  interface Window {
-    FB?: {
-      init: (config: { xfbml: boolean; version: string }) => void;
-      CustomerChat?: {
-        show: (shouldOpen?: boolean) => void;
-        hide: () => void;
-      };
-      XFBML?: {
-        parse: () => void;
-      };
-    };
-    fbAsyncInit?: () => void;
-    __openMessengerChat?: () => boolean;
-    __messengerReady?: boolean;
-  }
-}
+import { useEffect } from 'react';
 
 const PAGE_ID = '111745910591052';
 const GREETING_MESSAGE = 'Chào shop, tôi cần tư vấn sim số đẹp';

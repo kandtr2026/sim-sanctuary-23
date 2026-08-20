@@ -1,13 +1,8 @@
+"use client";
+
 import { useState, useEffect, useCallback } from 'react';
 import { X, Copy, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-// Extend window for global show function
-declare global {
-  interface Window {
-    __showMessengerTemplates?: () => void;
-  }
-}
 
 const TEMPLATES = {
   PHONG_THUY: {

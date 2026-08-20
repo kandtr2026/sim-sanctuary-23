@@ -1,3 +1,5 @@
+"use client";
+
 import { useDeliveredCount } from "@/hooks/useDeliveredCount";
 
 const TrustBar = () => {

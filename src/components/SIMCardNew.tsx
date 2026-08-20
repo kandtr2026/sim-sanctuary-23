@@ -1,6 +1,8 @@
+"use client";
+
 import { useState } from 'react';
 import { Phone } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import type { NormalizedSIM, PromotionalData, QuyType } from '@/lib/simUtils';
 import QuickContactPopup from '@/components/QuickContactPopup';
 import { matchesQuyType } from '@/lib/simUtils';
@@ -168,7 +170,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
         </div>
 
         <Link
-          to={checkoutHref}
+          href={checkoutHref}
           aria-label={`Đặt mua SIM ${sim.displayNumber || sim.formattedNumber} — ${formatPrice(sim.price)}`}
           className="sim-number-auto mb-1.5 block group-hover:gold-glow transition-all whitespace-nowrap overflow-hidden text-ellipsis"
           style={{ fontSize: 'clamp(14px, 3.5vw, 22px)' }}
@@ -234,7 +236,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
               <Phone style={{ width: 'clamp(10px, 2vw, 14px)', height: 'clamp(10px, 2vw, 14px)' }} />
             </button>
             <Link
-              to={checkoutHref}
+              href={checkoutHref}
               aria-label={`Đặt ngay SIM ${sim.displayNumber || sim.formattedNumber}`}
               className="btn-cta-sm flex min-w-0 items-center justify-center whitespace-nowrap text-center"
               style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}

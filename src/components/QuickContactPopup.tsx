@@ -62,7 +62,7 @@ const QuickContactPopup = ({ open, onOpenChange, simNumber, simPrice, simNetwork
                 never block the popup on it. */}
             <div className="shrink-0 w-36 h-24 flex items-center justify-center">
               <img
-                src={simCardGold}
+                src={simCardGold.src}
                 alt=""
                 aria-hidden="true"
                 width={144}

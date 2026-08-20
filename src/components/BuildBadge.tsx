@@ -1,5 +1,7 @@
+"use client";
+
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { usePathname } from 'next/navigation';
 import { BUILD_COMMIT, formatBuildAge, formatBuildTime } from '@/lib/buildInfo';
 
 /**
@@ -54,7 +56,7 @@ const BuildBadge = () => {
   // duplicating its route list and breakpoint here (two places to keep in sync), we
   // measure whatever is actually rendered and lift the badge clear of it.
   const [liftPx, setLiftPx] = useState(0);
-  const location = useLocation();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!visible) return;
@@ -85,7 +87,7 @@ const BuildBadge = () => {
       observer.disconnect();
       window.removeEventListener('resize', measure);
     };
-  }, [visible, location.pathname]);
+  }, [visible, pathname]);
 
   if (!visible) return null;
 

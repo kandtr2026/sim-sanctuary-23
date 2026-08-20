@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { PRICE_RANGES, type QuyType } from '@/lib/simUtils';
 import type { FilterState } from '@/hooks/useSimData';
 
@@ -96,7 +96,7 @@ const QuickPickChips = ({
             banner ("KHO SIM ĐỒNG GIÁ 229K"), which was the banner's only real function.
             Styled distinctly (gold) so it doesn't read as another filter toggle. */}
         <Link
-          to="/mua-sim-gia-re"
+          href="/mua-sim-gia-re"
           className={`${chipBase} border-gold/60 bg-gold/10 text-gold hover:bg-gold/20`}
         >
           SIM 229K →

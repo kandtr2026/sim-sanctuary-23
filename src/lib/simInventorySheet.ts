@@ -235,7 +235,7 @@ async function fetchViaProxy(): Promise<string> {
 export async function loadSimInventory(): Promise<SimItem[]> {
   // Check cache
   if (cachedInventory && Date.now() - cacheTimestamp < CACHE_DURATION) {
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.log('[simInventorySheet] Using cached inventory:', cachedInventory.length);
     }
     return cachedInventory;
@@ -245,7 +245,7 @@ export async function loadSimInventory(): Promise<SimItem[]> {
   
   // Layer 1: Try direct fetch first
   try {
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.log('[simInventorySheet] Trying direct fetch...');
     }
     const response = await fetch(SHEET_CSV_URL, {
@@ -257,12 +257,12 @@ export async function loadSimInventory(): Promise<SimItem[]> {
     
     if (response.ok) {
       csvText = await response.text();
-      if (import.meta.env.DEV) {
+      if (process.env.NODE_ENV !== 'production') {
         console.log('[simInventorySheet] Direct fetch success:', csvText.length, 'bytes');
       }
     }
   } catch (directError) {
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.warn('[simInventorySheet] Direct fetch failed (CORS?):', directError);
     }
   }
@@ -270,11 +270,11 @@ export async function loadSimInventory(): Promise<SimItem[]> {
   // Layer 2: Fallback to Supabase proxy
   if (!csvText) {
     try {
-      if (import.meta.env.DEV) {
+      if (process.env.NODE_ENV !== 'production') {
         console.log('[simInventorySheet] Trying proxy fetch...');
       }
       csvText = await fetchViaProxy();
-      if (import.meta.env.DEV) {
+      if (process.env.NODE_ENV !== 'production') {
         console.log('[simInventorySheet] Proxy fetch success:', csvText.length, 'bytes');
       }
     } catch (proxyError) {
@@ -388,7 +388,7 @@ export async function loadSimInventory(): Promise<SimItem[]> {
   cachedInventory = inventory;
   cacheTimestamp = Date.now();
   
-  if (import.meta.env.DEV) {
+  if (process.env.NODE_ENV !== 'production') {
     console.log('[simInventorySheet] Inventory loaded:', inventory.length, 'items');
   }
   

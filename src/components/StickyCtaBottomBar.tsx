@@ -1,14 +1,16 @@
+"use client";
+
 import { Phone, MessageCircle } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { usePathname } from "next/navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const ALLOWED_PATHS = ["/", "/mua-sim-gia-re"];
 
 const StickyCtaBottomBar = () => {
-  const location = useLocation();
+  const pathname = usePathname() ?? "";
   const isMobile = useIsMobile();
 
-  if (!isMobile || !ALLOWED_PATHS.includes(location.pathname)) return null;
+  if (!isMobile || !ALLOWED_PATHS.includes(pathname)) return null;
 
   return (
     <>

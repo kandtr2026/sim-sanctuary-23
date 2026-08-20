@@ -1,5 +1,5 @@
 /**
- * Build stamp injected at compile time by vite.config.ts (`define`).
+ * Build stamp injected at compile time by next.config.ts (`env`).
  *
  * These are replaced with literals during the build, so there is no runtime cost
  * and no request — the values are baked into the bundle that got deployed. That
@@ -7,15 +7,15 @@
  * now?": a stale bundle carries a stale stamp.
  */
 
-// Injected by vite.config.ts. Declared here so TypeScript knows the globals.
-declare const __BUILD_TIME__: string;
-declare const __BUILD_COMMIT__: string;
-
+// Injected at build time via next.config.ts (`env`), replacing the old
+// vite.config.ts `define` globals. `NEXT_PUBLIC_` so the values are inlined
+// into the client bundle exactly once. Fallbacks keep a bare import from ever
+// throwing (tests, or a fresh clone built without a stamp).
 /** ISO-8601 UTC timestamp of the moment the bundle was built. */
-export const BUILD_TIME = __BUILD_TIME__;
+export const BUILD_TIME = process.env.NEXT_PUBLIC_BUILD_TIME ?? "";
 
 /** Short git SHA the bundle was built from, or 'unknown' outside a git checkout. */
-export const BUILD_COMMIT = __BUILD_COMMIT__;
+export const BUILD_COMMIT = process.env.NEXT_PUBLIC_BUILD_COMMIT ?? "unknown";
 
 /**
  * Formats the build time in Vietnam time (UTC+7) as `HH:mm DD/MM/YYYY`.
