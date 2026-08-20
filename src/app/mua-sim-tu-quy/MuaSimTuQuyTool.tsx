@@ -1,0 +1,217 @@
+"use client";
+
+import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { Phone, Search, ChevronRight } from 'lucide-react';
+import { useSimData } from '@/hooks/useSimData';
+import SIMCardNew from '@/components/SIMCardNew';
+
+const ZALO_URL = 'https://zalo.me/0933356666';
+
+const MuaSimTuQuyTool = () => {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSearch, setActiveSearch] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const { allSims, isLoading } = useSimData();
+
+  // Filter all tứ quý sims ONCE, then derive both lists
+  const allTuQuySims = useMemo(() => {
+    const pattern = /(0{4}|1{4}|2{4}|3{4}|4{4}|5{4}|6{4}|7{4}|8{4}|9{4})$/;
+    return allSims.filter((s) => {
+      const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
+      return pattern.test(digits) && s.price > 0;
+    });
+  }, [allSims]);
+
+  // Cheap sims sorted by price asc (for "Kho Sim Tứ Quý Cập Nhật")
+  const tuQuySims = useMemo(() => {
+    return [...allTuQuySims].sort((a, b) => a.price - b.price).slice(0, 12);
+  }, [allTuQuySims]);
+
+  // Expensive sims sorted by price desc (for "Sim Tứ Quý Nổi Bật")
+  const featuredTuQuySims = useMemo(() => {
+    return [...allTuQuySims].sort((a, b) => b.price - a.price).slice(0, 10);
+  }, [allTuQuySims]);
+
+  const searchResults = useMemo(() => {
+    if (!activeSearch.trim()) return null;
+    const raw = activeSearch.replace(/\s/g, '');
+
+    // Suffix search: *7777 → ends with 7777
+    if (raw.startsWith('*')) {
+      const suffix = raw.slice(1).replace(/\D/g, '');
+      if (!suffix) return null;
+      return allSims.
+      filter((s) => {
+        const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
+        return digits.endsWith(suffix);
+      }).
+      sort((a, b) => a.price - b.price).
+      slice(0, 60);
+    }
+
+    // Default: contains search
+    const q = raw.replace(/\D/g, '');
+    if (!q) return null;
+    return allSims.
+    filter((s) => {
+      const digits = s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
+      return digits.includes(q);
+    }).
+    sort((a, b) => a.price - b.price).
+    slice(0, 60);
+  }, [allSims, activeSearch]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSearching(true);
+    setActiveSearch(searchQuery);
+    // Simulate brief loading for UX
+    setTimeout(() => setIsSearching(false), 300);
+    // Scroll to results
+    setTimeout(() => {
+      document.getElementById('kho-sim-tu-quy')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setActiveSearch('');
+  };
+
+  const displaySims = searchResults ?? tuQuySims;
+  const hasActiveSearch = !!activeSearch.trim();
+
+  return (
+    <>
+      {/* Search bar — moved out of the hero into the flow, right above the SIM
+          grids. Keeps the same *suffix / contains syntax as the homepage search. */}
+      <section className="bg-card rounded-xl shadow-card border border-border p-4 md:p-6">
+        <form onSubmit={handleSearch} className="max-w-lg mx-auto">
+          <div className="flex bg-card rounded-xl overflow-hidden shadow-elevated ring-1 ring-gold/20">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <input
+                type="text"
+                inputMode="tel"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value.replace(/[^0-9*]/g, ''))}
+                placeholder="Nhập số cần tìm hoặc *7777 để tìm đuôi..."
+                className="w-full pl-12 pr-3 py-3 md:py-3.5 bg-card text-foreground text-base focus:outline-none" />
+
+            </div>
+            <button type="submit" className="btn-cta px-5 md:px-7 flex items-center gap-2 rounded-none text-sm md:text-base font-bold whitespace-nowrap">
+              <Search className="w-4 h-4" />
+              <span className="hidden sm:inline">Tìm SIM</span>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      {/* ===== SIM TỨ QUÝ NỔI BẬT ===== */}
+      <section className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
+        <h2 className="text-2xl font-bold text-primary mb-6 flex items-center gap-3">
+          <span className="w-1 h-8 bg-primary rounded-full" />
+          Sim Tứ Quý Nổi Bật
+        </h2>
+        {isLoading ?
+        <div className="space-y-3 py-4">
+            {Array.from({ length: 5 }).map((_, i) =>
+          <div key={i} className="flex items-center gap-4 animate-pulse">
+                <div className="h-5 w-32 bg-muted rounded" />
+                <div className="h-5 w-20 bg-muted rounded hidden sm:block" />
+                <div className="h-5 w-24 bg-muted rounded ml-auto" />
+                <div className="h-7 w-20 bg-muted rounded" />
+              </div>
+          )}
+          </div> :
+        featuredTuQuySims.length > 0 ?
+        <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-secondary/50">
+                  <th className="text-left py-3 px-4 font-semibold text-foreground">Số SIM</th>
+                  <th className="text-left py-3 px-4 font-semibold text-foreground hidden sm:table-cell">Nhà mạng</th>
+                  <th className="text-right py-3 px-4 font-semibold text-foreground">Giá</th>
+                  <th className="text-center py-3 px-4 font-semibold text-foreground">Hành động</th>
+                </tr>
+              </thead>
+              <tbody>
+                {featuredTuQuySims.map((s) =>
+              <tr key={s.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
+                    <td className="py-3 px-4 font-bold text-foreground tracking-wide">{s.displayNumber}</td>
+                    <td className="py-3 px-4 text-muted-foreground hidden sm:table-cell">{(() => {const digits = (s.displayNumber || '').replace(/\D/g, '');const p = digits.slice(0, 3);if (['090', '093', '089', '070', '076', '077', '078', '079'].includes(p)) return 'Mobifone';if (['091', '094', '088', '081', '082', '083', '084', '085'].includes(p)) return 'Vinaphone';if (['099', '059'].includes(p)) return 'Gmobile';return 'Khác';})()}</td>
+                    <td className="py-3 px-4 text-right font-semibold text-primary whitespace-nowrap">
+                      {s.price >= 1_000_000 ?
+                  `${(s.price / 1_000_000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} triệu` :
+                  s.price.toLocaleString('vi-VN') + 'đ'}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <a
+                    href={`${ZALO_URL}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 bg-primary text-primary-foreground px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-primary/90 transition">
+
+                        <Phone className="w-3 h-3" /> Liên hệ
+                      </a>
+                    </td>
+                  </tr>
+              )}
+              </tbody>
+            </table>
+          </div> :
+
+        <div className="text-center py-8 text-muted-foreground">Chưa có sim tứ quý nổi bật. Vui lòng quay lại sau.</div>
+        }
+      </section>
+
+      {/* ===== KHO SIM TỨ QUÝ THỰC TẾ ===== */}
+      <section id="kho-sim-tu-quy" className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
+        <h2 className="text-2xl font-bold text-primary mb-4 flex items-center gap-3">
+          <span className="w-1 h-8 bg-primary rounded-full" />
+          {hasActiveSearch ? `Kết quả tìm kiếm "${activeSearch}"` : 'Kho Sim Tứ Quý Cập Nhật'}
+        </h2>
+        {hasActiveSearch &&
+        <button onClick={clearSearch} className="mb-4 text-sm text-primary hover:underline">
+            ← Quay lại kho sim tứ quý
+          </button>
+        }
+        {isLoading || isSearching ?
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {Array.from({ length: 8 }).map((_, i) =>
+          <div key={i} className="animate-pulse rounded-xl border border-border bg-card p-4 space-y-3">
+                <div className="h-4 w-16 bg-muted rounded" />
+                <div className="h-6 w-full bg-muted rounded" />
+                <div className="h-4 w-20 bg-muted rounded" />
+                <div className="h-8 w-full bg-muted rounded" />
+              </div>
+          )}
+          </div> :
+        displaySims.length > 0 ?
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {displaySims.map((sim) =>
+          <SIMCardNew key={sim.id} sim={sim} />
+          )}
+          </div> :
+
+        <div className="text-center py-8 text-muted-foreground">
+            {hasActiveSearch ?
+          activeSearch.startsWith('*') ?
+          'Không tìm thấy sim có đuôi số bạn đang tìm. Vui lòng thử số khác.' :
+          'Không tìm thấy sim chứa chuỗi số bạn đang tìm. Vui lòng thử số khác.' :
+          'Hiện chưa có sim tứ quý đuôi phù hợp trong kho.'}
+          </div>
+        }
+        <div className="mt-6 text-center">
+          <button onClick={() => router.push('/')} className="btn-cta inline-flex items-center gap-2 px-6 py-3">
+            Xem toàn bộ kho sim <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </section>
+    </>
+  );
+};
+
+export default MuaSimTuQuyTool;
