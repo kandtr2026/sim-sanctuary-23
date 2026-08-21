@@ -25,6 +25,13 @@ export const metadata: Metadata = {
     title: TITLE,
     description: "Kho sim tứ quý đẹp giá tốt. Hàng nghìn sim 1111, 6666, 8888, 9999 cập nhật mỗi ngày.",
     url: CANONICAL,
+    images: [
+      {
+        url: "https://www.chonsomobifone.com/og-sim-tu-quy.png?v=1",
+        width: 1200,
+        height: 630,
+      },
+    ],
   },
 };
 

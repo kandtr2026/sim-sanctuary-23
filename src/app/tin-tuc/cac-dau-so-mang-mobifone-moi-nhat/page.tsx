@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { buildArticle, buildBreadcrumb } from "@/lib/seo";
 
 const TITLE = "Các Đầu Số Mobifone Mới Nhất – Danh Sách Đầy Đủ & Ý Nghĩa";
@@ -94,7 +95,11 @@ export default function TinTucBai6Page() {
             </h2>
 
             <p>
-              Mobifone hiện đang khai thác <strong>8 đầu số 10 số</strong> gồm 089, 090, 093, 070, 076, 077, 078, 079. Mỗi đầu số có đặc điểm và mức giá riêng khi lựa chọn SIM số đẹp. Bạn có thể tham khảo kho SIM Mobifone số đẹp tại CHONSOMOBIFONE.COM để chọn được số ưng ý, giao hàng toàn quốc và sang tên chính chủ.
+              Mobifone hiện đang khai thác <strong>8 đầu số 10 số</strong> gồm 089, 090, 093, 070, 076, 077, 078, 079. Mỗi đầu số có đặc điểm và mức giá riêng khi lựa chọn SIM số đẹp. Bạn có thể xem ngay{" "}
+              <Link href="/" className="text-gold hover:underline font-semibold">
+                kho sim Mobifone đang có
+              </Link>{" "}
+              tại CHONSOMOBIFONE.COM để chọn được số ưng ý, giao hàng toàn quốc và sang tên chính chủ.
             </p>
           </div>
         </article>

@@ -17,7 +17,7 @@ import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import type { NormalizedSIM, QuyType } from "@/lib/simUtils";
 
-const ITEMS_PER_PAGE = 100;
+const ITEMS_PER_PAGE = 40;
 
 // Helper: normalize any value to digit-only string
 const normalizeSim = (v?: unknown) => String(v ?? "").replace(/\D/g, "");

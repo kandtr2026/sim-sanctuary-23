@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { buildArticle, buildBreadcrumb } from "@/lib/seo";
 
 const TITLE = "Ý Nghĩa Các Con Số Từ 1 Đến 9 Trong Phong Thủy";
@@ -210,7 +211,11 @@ export default function TinTucBai3Page() {
             </ul>
 
             <p className="mt-6">
-              Trên đây là ý nghĩa các con số mà CHONSOMOBIFONE cùng bạn tìm hiểu, hy vọng rằng với một số thông tin trên khi phải chọn số bạn có thể chọn được con số may mắn cho mình.
+              Trên đây là ý nghĩa các con số mà CHONSOMOBIFONE cùng bạn tìm hiểu, hy vọng rằng với một số thông tin trên, khi phải chọn số bạn có thể{" "}
+              <Link href="/sim-phong-thuy" className="text-gold hover:underline font-semibold">
+                chọn sim hợp phong thủy
+              </Link>{" "}
+              để mang lại may mắn cho mình.
             </p>
           </div>
         </article>

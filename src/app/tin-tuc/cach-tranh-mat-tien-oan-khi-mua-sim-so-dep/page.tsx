@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { buildArticle, buildBreadcrumb } from "@/lib/seo";
 
 const TITLE = "Cách Tránh Mất Tiền Oan Khi Mua Sim Số Đẹp";
@@ -97,6 +98,14 @@ export default function TinTucBai5Page() {
 
             <p>
               Luôn giữ lại ảnh chụp tin nhắn, hóa đơn chuyển khoản hoặc hợp đồng mua bán tay. Đây là bằng chứng duy nhất giúp bạn đòi lại quyền lợi nếu xảy ra tranh chấp hoặc khiếu nại về sau.
+            </p>
+
+            <p>
+              Để tránh rủi ro, hãy ưu tiên mua tại kho sim uy tín có{" "}
+              <Link href="/mua-sim-gia-re" className="text-gold hover:underline font-semibold">
+                sim số đẹp giá tốt, minh bạch giá
+              </Link>
+              , niêm yết công khai và hỗ trợ sang tên chính chủ.
             </p>
           </div>
         </article>

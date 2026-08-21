@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import ZaloChatCard from "@/components/ZaloChatCard";
 import { buildBreadcrumb } from "@/lib/seo";
 
-const TITLE = "Có Nên Mua Sim Số Đẹp Trả Góp? Lợi Ích Và Lưu Ý | CHONSOMOBIFONE";
+const TITLE = "Có Nên Mua Sim Trả Góp? Lợi Ích Và Lưu Ý | CHONSOMOBIFONE";
 const DESCRIPTION =
   "Phân tích ưu nhược điểm của dịch vụ mua sim số đẹp trả góp: điều kiện, thủ tục, lãi suất và những lưu ý quan trọng để tránh rủi ro khi trả góp sim tứ quý, ngũ quý, sim phong thủy.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-tra-gop";

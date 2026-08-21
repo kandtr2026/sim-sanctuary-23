@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { buildArticle, buildBreadcrumb } from "@/lib/seo";
 
 const TITLE = "Cách Xem Sim Phong Thủy Hợp Tuổi Chính Xác Nhất";
@@ -92,6 +93,14 @@ export default function TinTucBai4Page() {
 
             <p>
               Việc chọn sim hợp tuổi không chỉ dựa vào một yếu tố duy nhất mà là sự kết hợp hài hòa giữa bản mệnh, âm dương và những con số may mắn riêng biệt của mỗi người. Một chiếc sim hợp phong thủy sẽ là người bạn đồng hành tuyệt vời trên con đường sự nghiệp của bạn.
+            </p>
+
+            <p>
+              Để kiểm tra nhanh số đuôi của mình, bạn có thể dùng ngay{" "}
+              <Link href="/sim-phong-thuy" className="text-gold hover:underline font-semibold">
+                công cụ xem sim phong thủy hợp tuổi
+              </Link>{" "}
+              của CHONSOMOBIFONE.
             </p>
           </div>
         </article>

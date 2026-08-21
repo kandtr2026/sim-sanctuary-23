@@ -25,6 +25,13 @@ export const metadata: Metadata = {
     title: TITLE,
     description: "Bói SIM phong thủy, xem quẻ chủ, hợp mệnh hợp tuổi.",
     url: CANONICAL,
+    images: [
+      {
+        url: "https://www.chonsomobifone.com/og-sim-phong-thuy.png?v=1",
+        width: 1200,
+        height: 630,
+      },
+    ],
   },
 };
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { buildArticle, buildBreadcrumb } from "@/lib/seo";
 
 const TITLE = "Ý Nghĩa Số Điện Thoại – Sim Số Như Thế Nào Là Đẹp?";
@@ -78,6 +79,13 @@ export default function TinTucBai1Page() {
               <li><strong>Sim Ông Địa:</strong> Đuôi số 38 hoặc 78.</li>
               <li><strong>Sim Lộc Phát:</strong> Đuôi số 68 hoặc 86.</li>
             </ul>
+            <p className="text-body mb-4 leading-relaxed">
+              Trong đó, dòng Sim Tứ Quý được săn đón nhiều nhất nhờ tính thẩm mỹ cao và ý nghĩa phong thủy sâu sắc. Bạn có thể tham khảo ngay{" "}
+              <Link href="/mua-sim-tu-quy" className="text-gold hover:underline font-semibold">
+                kho sim tứ quý số đẹp
+              </Link>{" "}
+              để chọn được số ưng ý, giao dịch minh bạch.
+            </p>
           </section>
 
           <section className="mb-8">
