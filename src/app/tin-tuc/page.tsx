@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { buildBreadcrumb } from "@/lib/seo";
+import { getPublishedPosts } from "@/lib/blogPosts";
 
 const articles = [
   { title: "Ý NGHĨA SỐ ĐIỆN THOẠI - Sim số như thế nào là sim đẹp?", href: "/tin-tuc/y-nghia-sim-so-dep" },
@@ -28,7 +29,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function TinTucPage() {
+export default async function TinTucPage() {
+  // Posts created through /admin/posts (see tin-tuc/[slug]/page.tsx). Fetched
+  // at request time rather than baked into `articles` above so a newly
+  // published post shows up here without a code deploy — the entire point of
+  // the admin panel.
+  const dynamicPosts = await getPublishedPosts();
+  const allArticles = [
+    ...dynamicPosts.map((p) => ({ title: p.title, href: `/tin-tuc/${p.slug}` })),
+    ...articles,
+  ];
+
   return (
     <>
       <main className="container mx-auto px-4 py-8">
@@ -37,7 +48,7 @@ export default function TinTucPage() {
         </h1>
 
         <div className="space-y-4">
-          {articles.map((article, index) => (
+          {allArticles.map((article, index) => (
             article.href ? (
               <Link
                 key={index}

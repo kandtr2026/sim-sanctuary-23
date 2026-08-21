@@ -14,7 +14,80 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          id: string
+          email: string | null
+          is_admin: boolean
+          created_at: string
+        }
+        Insert: {
+          id: string
+          email?: string | null
+          is_admin?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string | null
+          is_admin?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      blog_posts: {
+        Row: {
+          id: string
+          slug: string
+          title: string
+          meta_title: string | null
+          meta_description: string | null
+          content_html: string
+          cover_image_url: string | null
+          category: string | null
+          published: boolean
+          author_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          slug: string
+          title: string
+          meta_title?: string | null
+          meta_description?: string | null
+          content_html?: string
+          cover_image_url?: string | null
+          category?: string | null
+          published?: boolean
+          author_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          slug?: string
+          title?: string
+          meta_title?: string | null
+          meta_description?: string | null
+          content_html?: string
+          cover_image_url?: string | null
+          category?: string | null
+          published?: boolean
+          author_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
