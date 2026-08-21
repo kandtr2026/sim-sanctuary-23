@@ -121,6 +121,7 @@ export const metadata: Metadata = {
   // Next's `verification.google` only emits one token, so render both through
   // `other` (array value = multiple <meta> tags with the same name).
   other: {
+    "fb:app_id": "111745910591052",
     "google-site-verification": [
       "jk46-wQwH_2WsmoLMdSTcyCXRmJS3hDu5_aN9Xyue0E",
       "Rq6FDIrJQyz4UwtV7J1rB6nixGj-bUmfu1rNHTOkxE8",
