@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { invokeEdgeFunctionText } from '@/integrations/supabase/edgeFunctions';
 import { EDGE_FUNCTIONS_URL } from '@/integrations/supabase/config';
 import { ArrowLeft, Phone, CheckCircle, Loader2 } from 'lucide-react';
@@ -11,7 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { normalizeSIM, parsePrice, formatPrice } from '@/lib/simUtils';
+import { normalizeSIM, parsePrice, formatPrice, type NormalizedSIM } from '@/lib/simUtils';
+import { getPromotionalData } from '@/hooks/useSimData';
 import { CHEAP_KHO, fetchCheapSimById, isCheapSimId, type CheapSim } from '@/lib/cheapSimSheet';
 import {
   Dialog,
@@ -223,12 +224,52 @@ const cheapSimToCheckout = (sim: CheapSim): CheckoutSimData => ({
   tags: [],
 });
 
+/** Map a homepage NormalizedSIM (from the `['simData']` react-query cache) onto
+ *  the shape this page expects. The homepage already fetched + normalised the
+ *  whole catalogue, so when the visitor arrives via a SIM card the checkout can
+ *  render instantly instead of re-downloading the ~5.5 MB CSV to find one row.
+ *  `sim.price` is already `finalPrice ?? originalPrice` (useSimData), so it is
+ *  the exact price shown on the card the user clicked. Promo fields come from
+ *  the module-level promotional store; `kho`/`tinhTrang`/`trangThai` are not
+ *  carried on NormalizedSIM, so they stay undefined on this fast path — the
+ *  full-CSV queryFn below backfills them whenever it runs. */
+const homeSimToCheckout = (sim: NormalizedSIM): CheckoutSimData => {
+  const promo = getPromotionalData(sim.id);
+  return {
+    simId: sim.id,
+    rawDigits: sim.rawDigits,
+    displayNumber: sim.displayNumber,
+    formattedNumber: sim.formattedNumber,
+    originalPriceVnd: promo?.originalPrice ?? sim.price,
+    finalPriceVnd: promo?.finalPrice,
+    discountType: promo?.discountType,
+    discountValue: promo?.discountValue,
+    network: sim.network,
+    tags: sim.tags,
+  };
+};
+
 // --- Component ---
 
 const CheckoutClient = () => {
   const params = useParams<{ simId: string }>();
   const simId = params?.simId;
   const router = useRouter();
+  const queryClient = useQueryClient();
+
+  // Fast path: when the visitor arrived from the homepage, the whole catalogue
+  // is already cached under `['simData']` (same QueryClient at root layout).
+  // Use it as initialData so the page renders immediately with the exact SIM the
+  // user clicked — no 5.5 MB CSV round-trip. Guard against the placeholder seed:
+  // placeholderData is never written to the cache, so `dataUpdatedAt === 0` means
+  // only fake seed rows exist and we must fall through to the real fetch.
+  const initialCheckoutSim = useMemo(() => {
+    if (!simId || isCheapSimId(simId)) return undefined;
+    const state = queryClient.getQueryState<NormalizedSIM[]>(['simData']);
+    if (!state || state.dataUpdatedAt === 0 || !state.data) return undefined;
+    const found = state.data.find((s) => s.id === simId);
+    return found ? homeSimToCheckout(found) : undefined;
+  }, [simId, queryClient]);
 
   const [orderCode] = useState(() => generateOrderCode());
   const [formData, setFormData] = useState<CheckoutFormData>({
@@ -262,6 +303,7 @@ const CheckoutClient = () => {
       return parseCSVAndFindSim(csvText, simId);
     },
     enabled: !!simId,
+    initialData: initialCheckoutSim,
     staleTime: 5 * 60 * 1000
   });
 
