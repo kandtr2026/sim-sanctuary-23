@@ -302,7 +302,7 @@ const RightSidebar = () => {
                     sidebar (giving the whole document a horizontal scroll) or
                     truncated the date to an ellipsis. The card heading already
                     says ĐƠN HÀNG GẦN ĐÂY, so the date needs no "Đã đặt" prefix. */}
-                <span className="h-2 w-2 flex-shrink-0 rounded-full bg-primary animate-pulse-soft" />
+                <span className="h-2 w-2 flex-shrink-0 rounded-full bg-primary" />
                 <div className="flex min-w-0 flex-1 flex-col">
                   <span className="font-medium leading-tight text-foreground">{order.phone}</span>
                   <span className="text-xs leading-tight text-muted-foreground">{order.time}</span>

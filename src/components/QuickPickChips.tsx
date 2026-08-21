@@ -29,7 +29,7 @@ const tagChips = ['Lộc phát', 'Thần tài', 'Năm sinh'];
 const QUY_CHIP: QuyType = 'Tứ quý';
 
 const chipBase =
-  'flex-shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors';
+  'flex-shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 const chipIdle = 'border-border bg-card text-foreground/80 hover:border-primary hover:text-primary';
 const chipActive = 'border-primary bg-primary text-primary-foreground';
 

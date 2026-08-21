@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Phone, Search, ChevronRight } from 'lucide-react';
 import { useSimData } from '@/hooks/useSimData';
 import SIMCardNew from '@/components/SIMCardNew';
+import { formatPrice } from '@/lib/simUtils';
 
 const ZALO_URL = 'https://zalo.me/0933356666';
 
@@ -145,7 +146,7 @@ const MuaSimTuQuyTool = () => {
                     <td className="py-3 px-4 text-right font-semibold text-primary whitespace-nowrap">
                       {s.price >= 1_000_000 ?
                   `${(s.price / 1_000_000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} triệu` :
-                  s.price.toLocaleString('vi-VN') + 'đ'}
+                  formatPrice(s.price)}
                     </td>
                     <td className="py-3 px-4 text-center">
                       <a

@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { normalizeSIM, parsePrice } from '@/lib/simUtils';
+import { normalizeSIM, parsePrice, formatPrice } from '@/lib/simUtils';
 import { CHEAP_KHO, fetchCheapSimById, isCheapSimId, type CheapSim } from '@/lib/cheapSimSheet';
 import {
   Dialog,
@@ -52,12 +52,6 @@ const generateOrderCode = (): string => {
   const dd = String(now.getDate()).padStart(2, '0');
   const rand = String(Math.floor(1000 + Math.random() * 9000));
   return `DH${yy}${mm}${dd}-${rand}`;
-};
-
-/** Format price as full VND: 3300000 → "3.300.000 đ" */
-const formatFullPrice = (price: number | undefined): string => {
-  if (price === undefined || price === null || isNaN(price) || price <= 0) return 'Liên hệ';
-  return `${price.toLocaleString('vi-VN').replace(/,/g, '.')} đ`;
 };
 
 /** Validate Vietnamese name: only Vietnamese letters + spaces, 6-20 chars, no digits/special */
@@ -456,7 +450,7 @@ const CheckoutClient = () => {
             <div className="text-center mt-2 mb-5">
               <span className="text-muted-foreground text-xs">Giá bán:</span>
               <div className="font-bold text-primary text-2xl md:text-3xl mt-0.5">
-                {formatFullPrice(displayPrice)}
+                {formatPrice(displayPrice)}
               </div>
             </div>
 
@@ -490,7 +484,7 @@ const CheckoutClient = () => {
               value={formData.fullName}
               onChange={(e) => handleInputChange('fullName', e.target.value)}
               onBlur={() => handleBlur('fullName')}
-              className={touched.fullName && errors.fullName ? 'border-destructive' : ''}
+              className={`h-11${touched.fullName && errors.fullName ? ' border-destructive' : ''}`}
               maxLength={20}
             />
             {touched.fullName && errors.fullName && (
@@ -508,7 +502,7 @@ const CheckoutClient = () => {
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
               onBlur={() => handleBlur('phone')}
-              className={touched.phone && errors.phone ? 'border-destructive' : ''}
+              className={`h-11${touched.phone && errors.phone ? ' border-destructive' : ''}`}
               maxLength={15}
             />
             {touched.phone && errors.phone && (
@@ -525,7 +519,7 @@ const CheckoutClient = () => {
               value={formData.address}
               onChange={(e) => handleInputChange('address', e.target.value)}
               onBlur={() => handleBlur('address')}
-              className={touched.address && errors.address ? 'border-destructive' : ''}
+              className={`h-11${touched.address && errors.address ? ' border-destructive' : ''}`}
               maxLength={50}
             />
             {touched.address && errors.address && (
@@ -603,7 +597,7 @@ const CheckoutClient = () => {
               </span>
 
               <span className="text-muted-foreground">Giá tiền:</span>
-              <span className="font-semibold text-cta">{formatFullPrice(displayPrice)}</span>
+              <span className="font-semibold text-cta">{formatPrice(displayPrice)}</span>
 
               <span className="text-muted-foreground">Mạng:</span>
               <span>

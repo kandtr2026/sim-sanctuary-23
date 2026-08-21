@@ -307,6 +307,20 @@ export const parsePrice = (priceStr: string | number): number => {
   return isNaN(value) ? 0 : value;
 };
 
+/**
+ * Format a VND price for display: 4400000 → "4.400.000đ" (vi-VN grouping, no
+ * space before "đ"). Single source of truth for every price on the site — the
+ * homepage grid, the landing tools and checkout all call this so the number
+ * formatting can't drift apart again. Invalid/zero prices render "Liên hệ"
+ * instead of a misleading "0đ".
+ */
+export const formatPrice = (price: number | undefined | null): string => {
+  if (price === undefined || price === null || isNaN(price) || price <= 0) {
+    return 'Liên hệ';
+  }
+  return `${Math.round(price).toLocaleString('vi-VN')}đ`;
+};
+
 // Estimate price based on tags (for missing prices)
 export const estimatePriceByTags = (tags: string[]): number => {
   // Price ranges based on prompt specification

@@ -69,7 +69,7 @@ const SearchBarAdvanced = ({ value, onChange, debounceMs = 300 }: SearchBarAdvan
           onPaste={handlePaste}
           autoComplete="off"
           placeholder="Nhập số cần tìm... (VD: 0903*, *8888)"
-          className="w-full pr-20 py-4 md:py-6 rounded-2xl border border-border/60 bg-card text-lg md:text-2xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
+          className="w-full pr-20 py-2.5 md:py-6 rounded-2xl border border-border/60 bg-card text-lg md:text-2xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
           style={{ paddingLeft: '3rem' }}
         />
         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
@@ -103,10 +103,6 @@ const SearchBarAdvanced = ({ value, onChange, debounceMs = 300 }: SearchBarAdvan
           </TooltipProvider>
         </div>
       </div>
-      <p className="mt-2 text-xs text-muted-foreground text-center">
-        💡 Sử dụng <code className="bg-muted px-1 rounded">*</code> để tìm theo đầu/đuôi số. 
-        Bỏ qua dấu chấm khi tìm kiếm.
-      </p>
     </div>
   );
 };

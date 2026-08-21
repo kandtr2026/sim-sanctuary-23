@@ -9,6 +9,7 @@ import {
 import { useCheapSimData } from '@/hooks/useCheapSimData';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { formatPrice } from '@/lib/simUtils';
 import QuickContactPopup from '@/components/QuickContactPopup';
 import { CHEAP_PRICE, type CheapSim } from '@/lib/cheapSimSheet';
 import {
@@ -17,10 +18,7 @@ import {
 } from '@/lib/cheapSimFacets';
 
 const ZALO_URL = 'https://zalo.me/0933356666';
-const PRICE_LABEL = `${CHEAP_PRICE.toLocaleString('vi-VN')}đ`;
-
-const formatPrice = (price: number): string =>
-  price > 0 ? `${price.toLocaleString('vi-VN')}đ` : 'Liên hệ';
+const PRICE_LABEL = formatPrice(CHEAP_PRICE);
 
 /**
  * Search input handling. The field accepts digits and a leading `*`, matching
@@ -74,8 +72,7 @@ const CheapSimCard = ({ sim, onContact }: { sim: CheapSim; onContact: (sim: Chea
       <Link
         href={checkoutHref}
         aria-label={`Đặt mua SIM ${sim.displayNumber} — ${formatPrice(sim.price)}`}
-        className="sim-number-auto mb-1.5 block overflow-hidden text-ellipsis whitespace-nowrap transition-all group-hover:gold-glow"
-        style={{ fontSize: 'clamp(14px, 3.5vw, 22px)' }}
+        className="sim-number-auto mb-1.5 block overflow-hidden text-ellipsis whitespace-nowrap transition-all group-hover:[text-shadow:0_0_12px_hsl(var(--gold)_/_0.4)]"
       >
         {number}
       </Link>
@@ -92,7 +89,7 @@ const CheapSimCard = ({ sim, onContact }: { sim: CheapSim; onContact: (sim: Chea
             {formatPrice(sim.price)}
           </span>
           <span
-            className="block text-muted-foreground/70"
+            className="block text-muted-foreground"
             style={{ fontSize: 'clamp(9px, 1.6vw, 12px)', lineHeight: '1.3', letterSpacing: '0.02em' }}
           >
             ĐÃ GỒM GÓI TK179
@@ -124,7 +121,7 @@ const CheapSimCard = ({ sim, onContact }: { sim: CheapSim; onContact: (sim: Chea
 
 // ===== FILTER CHIP =====
 
-const chipBase = 'flex-shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors';
+const chipBase = 'flex-shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 const chipIdle = 'border-border bg-card text-foreground/80 hover:border-primary hover:text-primary';
 const chipActive = 'border-primary bg-primary text-primary-foreground';
 

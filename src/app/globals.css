@@ -33,6 +33,10 @@
     --gold: 44 99% 48%; /* #F5B301 accent gold */
     --gold-light: 44 99% 60%;
     --gold-dark: 44 99% 40%;
+    /* Softer gold for large borders/fills — the full 99%-saturation --gold is
+       reserved for the SIM number and text accents; borders and section rules
+       read calmer at ~72% so the page stops feeling "gắt". */
+    --gold-soft: 44 72% 52%;
 
     /* CTA - Using Primary Red */
     --cta: 358 82% 43%; /* #C4161C primary red */
@@ -236,7 +240,7 @@
   /* Filter Button */
   .filter-btn {
     @apply px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-200;
-    border-color: hsl(var(--gold));
+    border-color: hsl(var(--gold-soft));
     color: hsl(var(--gold));
     background: transparent;
   }
@@ -259,7 +263,7 @@
     @apply px-1.5 py-1 rounded-md border font-medium transition-all duration-200;
     font-size: clamp(11px, 0.95vw, 14px);
     line-height: 1.25;
-    border-color: hsl(var(--gold));
+    border-color: hsl(var(--gold-soft));
     color: hsl(var(--gold));
     background: transparent;
     overflow-wrap: anywhere;
@@ -335,6 +339,18 @@
     box-shadow: 
       0 0.5px 0 hsl(358 82% 30%),
       0 1px 4px -1px hsl(358 82% 43% / 0.4);
+  }
+
+  /* Focus-visible: one gold ring for keyboard navigation across the custom
+     (non-shadcn) interactive elements — filter chips, CTAs, the card's number
+     link. shadcn components already carry focus-visible:ring-ring themselves. */
+  .filter-btn:focus-visible,
+  .filter-btn-sm:focus-visible,
+  .btn-cta:focus-visible,
+  .btn-cta-sm:focus-visible,
+  .sim-number-auto:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
   }
 
   /* SIM Card - Original */
@@ -468,30 +484,23 @@
     animation: badgeIn 0.4s ease-out forwards;
   }
 
-  /* Price Pulse Animation */
-  @keyframes pricePulse {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.85;
-    }
-  }
-
-  .animate-price-pulse {
-    animation: pricePulse 2s ease-in-out infinite;
-  }
-
   /* Section Styles */
   .section-title {
     @apply text-lg font-bold mb-4 pb-2 border-b-2;
     color: hsl(var(--gold));
-    border-color: hsl(var(--gold));
+    border-color: hsl(var(--gold-soft));
   }
 
   /* Gold Glow Effect */
   .gold-glow {
     text-shadow: 0 0 10px hsl(var(--gold) / 0.5);
+  }
+
+  /* Long-form reading text. Article body copy renders in off-white (#E0E0E0)
+     instead of pure #FFFFFF to cut halation on the near-black background over a
+     long read; headings keep their stronger white/primary for hierarchy. */
+  .text-body {
+    color: hsl(0 0% 88%);
   }
 
   /* Shimmer Effect on Hover */
@@ -553,57 +562,30 @@
   background: hsl(var(--gold) / 0.7);
 }
 
-/* HỎA TỐC Badge Animation */
-@keyframes fireBadgePulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-    box-shadow: 
-      0 0 15px 3px rgba(220, 38, 38, 0.8), 
-      0 0 30px 6px rgba(234, 88, 12, 0.5),
-      inset 0 1px 0 rgba(255,255,255,0.3);
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 0.9;
-    box-shadow: 
-      0 0 25px 6px rgba(220, 38, 38, 1), 
-      0 0 50px 10px rgba(234, 88, 12, 0.7),
-      inset 0 1px 0 rgba(255,255,255,0.4);
-  }
-}
-
-@keyframes fireBadgeGlow {
-  0%, 100% {
-    text-shadow: 0 0 4px rgba(255,255,255,0.8), 0 0 8px rgba(245, 158, 11, 0.6);
-  }
-  50% {
-    text-shadow: 0 0 8px rgba(255,255,255,1), 0 0 16px rgba(245, 158, 11, 0.9), 0 0 24px rgba(220, 38, 38, 0.7);
-  }
-}
-
-.animate-fire-badge {
-  animation: fireBadgePulse 0.8s ease-in-out infinite, fireBadgeGlow 0.8s ease-in-out infinite;
-}
+/* HỎA TỐC badge. The old fireBadgePulse/fireBadgeGlow 0.8s∞ animation was one of
+   the dozen infinite motions on the page; the badge now relies on its own static
+   inline gradient + box-shadow (see ProcessSteps.tsx) for a quiet "on fire" look. */
 
 /* Flash-sale badge on discounted SIM cards. Defined here rather than in a
    per-card <style> tag — a grid of 60 discounted cards was injecting 60
-   identical copies of these keyframes into <head>. */
-@keyframes flashBlink {
+   identical copies of these keyframes into <head>. The old 0.45s blink read as
+   spam; this is a slow (2.4s), low-amplitude glow — the single remaining
+   decorative motion cue on the site. */
+@keyframes flashSaleGlow {
   0%, 100% {
     opacity: 1;
     transform: scale(1);
-    filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.25));
   }
   50% {
-    opacity: 0.25;
-    transform: scale(1.18);
-    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9));
+    opacity: 0.85;
+    transform: scale(1.03);
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
   }
 }
 
-.animate-flash-blink {
-  animation: flashBlink 0.45s ease-in-out infinite;
+.animate-flash-glow {
+  animation: flashSaleGlow 2.4s ease-in-out infinite;
 }
 
 /* Respect the OS "reduce motion" setting — the site runs several

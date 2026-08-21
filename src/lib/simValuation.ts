@@ -549,13 +549,6 @@ export function valuateSim(phone: string): ValuationOutput {
 }
 
 /**
- * Format tiền VNĐ
- */
-export function formatCurrencyVND(value: number): string {
-  return value.toLocaleString('vi-VN');
-}
-
-/**
  * Format số SIM hiển thị (thêm dấu chấm)
  */
 export function formatPhoneDisplay(phone: string): string {

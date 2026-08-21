@@ -29,7 +29,7 @@ export default function TinTucBai5Page() {
             Cách Tránh Mất Tiền Oan Khi Mua Sim Số Đẹp
           </h1>
 
-          <div className="space-y-4 text-foreground">
+          <div className="space-y-4 text-body">
             <p>
               Thị trường sim số đẹp luôn sôi động với những giao dịch từ vài triệu đến hàng tỷ đồng. Tuy nhiên, đây cũng là mảnh đất màu mỡ cho các đối tượng lừa đảo. Để sở hữu được một số thuê bao ưng ý mà không bị "tiền mất tật mang", bạn cần lưu ý những quy tắc vàng dưới đây.
             </p>

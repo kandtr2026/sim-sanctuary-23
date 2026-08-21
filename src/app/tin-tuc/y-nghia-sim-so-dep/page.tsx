@@ -29,7 +29,7 @@ export default function TinTucBai1Page() {
             Ý Nghĩa Số Điện Thoại - Sim Số Như Thế Nào Là Sim Đẹp?
           </h1>
 
-          <p className="text-foreground mb-8 leading-relaxed">
+          <p className="text-body mb-8 leading-relaxed">
             Trong thời đại công nghệ số, số điện thoại không chỉ đơn thuần là công cụ liên lạc mà còn được xem là "tấm danh thiếp" khẳng định đẳng cấp và mang lại may mắn cho chủ sở hữu. Vậy thế nào là một số điện thoại đẹp và ý nghĩa đằng sau những con số đó là gì?
           </p>
 
@@ -37,10 +37,10 @@ export default function TinTucBai1Page() {
             <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-4">
               1. Thế nào là một Sim số đẹp?
             </h2>
-            <p className="text-foreground mb-4 leading-relaxed">
+            <p className="text-body mb-4 leading-relaxed">
               Một chiếc sim được gọi là "đẹp" thường hội tụ các yếu tố sau:
             </p>
-            <ul className="list-disc list-inside space-y-2 text-foreground ml-4">
+            <ul className="list-disc list-inside space-y-2 text-body ml-4">
               <li><strong>Dễ nhớ, dễ thuộc:</strong> Có cấu trúc lặp (Taxi, Tam hoa, Tứ quý) hoặc tiến lên (1234, 5678) giúp tạo ấn tượng ngay lần đầu giao dịch.</li>
               <li><strong>Hài hòa về phong thủy:</strong> Các con số có sự cân bằng giữa âm và dương (số chẵn và số lẻ cân bằng).</li>
               <li><strong>Đầu số đẳng cấp:</strong> Những đầu số cổ như 090, 091, 098 luôn có giá trị cao hơn các đầu số mới.</li>
@@ -51,10 +51,10 @@ export default function TinTucBai1Page() {
             <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-4">
               2. Ý nghĩa của các con số từ 1 đến 9
             </h2>
-            <p className="text-foreground mb-4 leading-relaxed">
+            <p className="text-body mb-4 leading-relaxed">
               Theo quan niệm dân gian và phong thủy, mỗi con số đều mang một năng lượng riêng:
             </p>
-            <ul className="list-disc list-inside space-y-2 text-foreground ml-4">
+            <ul className="list-disc list-inside space-y-2 text-body ml-4">
               <li><strong>Số 1 (Nhất):</strong> Tượng trưng cho sự độc tôn, khởi đầu mới và vị trí dẫn đầu.</li>
               <li><strong>Số 2 (Mãi):</strong> Biểu tượng của sự bền vững, có đôi có cặp, hạnh phúc viên mãn.</li>
               <li><strong>Số 3 (Tài):</strong> Mang ý nghĩa tài lộc, vững chắc như kiềng ba chân.</li>
@@ -69,10 +69,10 @@ export default function TinTucBai1Page() {
             <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-4">
               3. Các dòng Sim số đẹp phổ biến hiện nay
             </h2>
-            <p className="text-foreground mb-4 leading-relaxed">
+            <p className="text-body mb-4 leading-relaxed">
               Dựa trên cấu trúc số, người chơi sim thường săn đón các dòng sau:
             </p>
-            <ul className="list-disc list-inside space-y-2 text-foreground ml-4">
+            <ul className="list-disc list-inside space-y-2 text-body ml-4">
               <li><strong>Sim Tứ Quý/Ngũ Quý:</strong> 4 hoặc 5 số giống nhau ở đuôi (ví dụ: 8888, 99999).</li>
               <li><strong>Sim Thần Tài:</strong> Đuôi số 39 (Thần tài nhỏ) hoặc 79 (Thần tài lớn).</li>
               <li><strong>Sim Ông Địa:</strong> Đuôi số 38 hoặc 78.</li>
@@ -84,10 +84,10 @@ export default function TinTucBai1Page() {
             <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-4">
               4. Tại sao bạn nên sở hữu một chiếc Sim số đẹp?
             </h2>
-            <p className="text-foreground mb-4 leading-relaxed">
+            <p className="text-body mb-4 leading-relaxed">
               Việc đầu tư vào một số điện thoại đẹp mang lại lợi ích thiết thực:
             </p>
-            <ul className="list-disc list-inside space-y-2 text-foreground ml-4">
+            <ul className="list-disc list-inside space-y-2 text-body ml-4">
               <li><strong>Xây dựng thương hiệu cá nhân:</strong> Tạo sự tin tưởng tuyệt đối với đối tác và khách hàng.</li>
               <li><strong>Gia tăng giá trị theo thời gian:</strong> Sim số đẹp là tài sản có tính thanh khoản cao, không bị mất giá.</li>
               <li><strong>Niềm tin tâm linh:</strong> Mang lại cảm giác an tâm, thu hút năng lượng tích cực cho chủ nhân.</li>
@@ -98,7 +98,7 @@ export default function TinTucBai1Page() {
             <h3 className="text-lg md:text-xl font-semibold text-foreground mb-4">
               Một số lưu ý thêm:
             </h3>
-            <div className="space-y-3 text-foreground leading-relaxed">
+            <div className="space-y-3 text-body leading-relaxed">
               <p><strong>9:</strong> đẹp, số này thì miễn bàn. 9 là con số tận cùng của dãy số 0-9 vĩnh cửu trường tồn.</p>
               <p><strong>8:</strong> "phát" --&gt; đẹp. Nhưng những người làm cơ quan nhà nước hơi sợ một chút vì nó giống cái còng số 8.</p>
               <p><strong>6:</strong> "lộc" --&gt; đẹp.</p>
@@ -134,9 +134,9 @@ export default function TinTucBai1Page() {
               Ý nghĩa cơ bản các con số:
             </h3>
             <div className="bg-muted p-4 rounded-lg">
-              <p className="text-foreground"><strong>0:</strong> Không có gì, bình thường</p>
-              <p className="text-foreground"><strong>1:</strong> Nhất &nbsp;-&nbsp; <strong>2:</strong> Nhị &nbsp;-&nbsp; <strong>3:</strong> Tam &nbsp;-&nbsp; <strong>4:</strong> Tứ</p>
-              <p className="text-foreground"><strong>5:</strong> Sinh &nbsp;-&nbsp; <strong>6:</strong> Lộc &nbsp;-&nbsp; <strong>7:</strong> Thất &nbsp;-&nbsp; <strong>8:</strong> Phát - Bát &nbsp;-&nbsp; <strong>9:</strong> Cửu</p>
+              <p className="text-body"><strong>0:</strong> Không có gì, bình thường</p>
+              <p className="text-body"><strong>1:</strong> Nhất &nbsp;-&nbsp; <strong>2:</strong> Nhị &nbsp;-&nbsp; <strong>3:</strong> Tam &nbsp;-&nbsp; <strong>4:</strong> Tứ</p>
+              <p className="text-body"><strong>5:</strong> Sinh &nbsp;-&nbsp; <strong>6:</strong> Lộc &nbsp;-&nbsp; <strong>7:</strong> Thất &nbsp;-&nbsp; <strong>8:</strong> Phát - Bát &nbsp;-&nbsp; <strong>9:</strong> Cửu</p>
             </div>
           </section>
 
@@ -144,7 +144,7 @@ export default function TinTucBai1Page() {
             <h3 className="text-lg md:text-xl font-semibold text-foreground mb-4">
               Luận số sim theo dân gian:
             </h3>
-            <div className="space-y-2 text-foreground leading-relaxed">
+            <div className="space-y-2 text-body leading-relaxed">
               <p><strong>VD:</strong> chiếc SIM: 09.456.01234</p>
               <p><strong>456:</strong> 4 mùa sinh lộc</p>
               <p><strong>01234:</strong> tay trắng đi lên, 1 vợ, 2 con, 3 tầng, 4 bánh</p>
@@ -211,7 +211,7 @@ export default function TinTucBai1Page() {
             <h3 className="text-lg md:text-xl font-semibold text-foreground mb-4">
               Luận số theo phép tính:
             </h3>
-            <div className="space-y-2 text-foreground leading-relaxed">
+            <div className="space-y-2 text-body leading-relaxed">
               <p><strong>3609:</strong> 3 + 6 + 0 = 9</p>
               <p><strong>8163:</strong> 8 + 1 = 6 + 3</p>
               <p><strong>9981:</strong> 9 x 9 = 81</p>
@@ -233,7 +233,7 @@ export default function TinTucBai1Page() {
             <h3 className="text-lg md:text-xl font-semibold text-foreground mb-4">
               Bảng tra cứu số theo con vật:
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-foreground text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-body text-sm">
               <p><strong>00:</strong> trứng vịt</p>
               <p><strong>01 - 41 - 81:</strong> con cá trắng</p>
               <p><strong>02 - 42 - 82:</strong> ốc</p>
@@ -279,7 +279,7 @@ export default function TinTucBai1Page() {
           </section>
 
           <section className="mt-10 p-4 bg-muted rounded-lg">
-            <p className="text-foreground leading-relaxed italic">
+            <p className="text-body leading-relaxed italic">
               Chúc các bạn có được những số điện thoại vừa đẹp lại vừa ý, và nên nhớ rằng SIM SỐ ĐẸP không phải bao giờ cũng là SIM thích hợp nhất với bạn, có người bỏ ra nhiều tiền mua 1 cái sim đẹp nhưng chưa chắc đã hiểu hết nó đẹp thế nào và có dám chắc là hợp với mình hay không nữa nhé.
             </p>
           </section>

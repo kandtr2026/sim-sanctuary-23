@@ -29,7 +29,7 @@ export default function TinTucBai3Page() {
             Ý nghĩa các con số phong thủy từ 1 đến 9
           </h1>
 
-          <div className="space-y-4 text-foreground">
+          <div className="space-y-4 text-body">
             <p>
               Vạn vật sinh ra đều gắn liền với các con số. Mỗi chúng ta sống trong vạn vật cũng đều có các con số gắn với mình. Tỉ như, khi chưa sinh ra bào thai cũng được tính tới 9 tháng 10 ngày, năm nay anh bao nhiêu tuổi, năm tới chị bao nhiêu xuân.
             </p>

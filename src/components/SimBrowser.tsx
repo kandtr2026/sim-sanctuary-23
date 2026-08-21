@@ -514,7 +514,7 @@ const SimBrowser = () => {
           one page and a desktop search box pushed 863px down. This is sticky on mobile
           and static on desktop. */}
       <div
-        className="sticky z-40 -mx-4 mb-4 border-b border-border bg-background/95 px-4 py-2.5 shadow-sm backdrop-blur lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:px-0 lg:shadow-none lg:backdrop-blur-none"
+        className="sticky z-40 -mx-4 mb-4 border-b border-border bg-background/95 px-4 py-1.5 shadow-sm backdrop-blur lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none lg:backdrop-blur-none"
         style={{ top: "var(--nav-height)" }}
       >
         <SearchBarAdvanced

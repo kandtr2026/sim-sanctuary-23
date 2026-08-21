@@ -37,7 +37,7 @@ const Header = () => {
   className="flex items-center gap-2 font-bold text-lg hover:opacity-80 transition"
 >
   <Phone className="w-5 h-5 text-gold" />
-  <span className="text-red-500">0938.868.868</span>
+  <span className="text-primary">0938.868.868</span>
 </a>
 
 

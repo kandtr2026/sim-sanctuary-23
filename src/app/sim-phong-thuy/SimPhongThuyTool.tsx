@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { Search, Copy, AlertCircle, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatPrice } from '@/lib/simUtils';
 
 // ===================== CSV URL (BẮT BUỘC DÙNG ĐÚNG) =====================
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y/export?format=csv&gid=139400129';
@@ -140,11 +141,6 @@ const getLevelBadgeClass = (level: HexagramLevel): string => {
     default:
       return 'bg-muted text-muted-foreground';
   }
-};
-
-// Format price to VND
-const formatPriceVND = (price: number): string => {
-  return price.toLocaleString('vi-VN') + 'đ';
 };
 
 // ===================== PARSE CSV CHUẨN =====================
@@ -519,7 +515,7 @@ const SimPhongThuyTool = () => {
     });
   };
 
-  // Navigate to checkout when clicking "Mua ngay" button
+  // Navigate to checkout when clicking "ĐẶT NGAY" button
   const handleBuyNow = (item: InventoryItem) => {
     router.push(`/mua-ngay/${encodeURIComponent(item.simId)}`);
   };
@@ -784,7 +780,7 @@ const SimPhongThuyTool = () => {
                           
                           {/* Price */}
                           <p className="text-lg md:text-xl font-medium text-white">
-                            {formatPriceVND(entry.item.price)}
+                            {formatPrice(entry.item.price)}
                           </p>
                           
                           {/* Level Badge */}
@@ -802,7 +798,7 @@ const SimPhongThuyTool = () => {
                             }}
                             onClick={() => handleBuyNow(entry.item)}
                           >
-                            Mua ngay
+                            ĐẶT NGAY
                           </Button>
                         </div>
                       ))}
@@ -835,7 +831,7 @@ const SimPhongThuyTool = () => {
                           
                           {/* Price */}
                           <p className="text-lg md:text-xl font-medium text-white">
-                            {formatPriceVND(entry.item.price)}
+                            {formatPrice(entry.item.price)}
                           </p>
                           
                           {/* Level Badge */}
@@ -853,7 +849,7 @@ const SimPhongThuyTool = () => {
                             }}
                             onClick={() => handleBuyNow(entry.item)}
                           >
-                            Mua ngay
+                            ĐẶT NGAY
                           </Button>
                         </div>
                       ))}
@@ -862,7 +858,7 @@ const SimPhongThuyTool = () => {
                 )}
 
                 <p className="text-xs mt-4 text-center" style={{ color: 'rgba(237, 237, 237, 0.5)' }}>
-                  Click "Mua ngay" để đặt mua SIM. Giá hiển thị là giá thực từ kho.
+                  Click "ĐẶT NGAY" để đặt mua SIM. Giá hiển thị là giá thực từ kho.
                 </p>
               </div>
             )}

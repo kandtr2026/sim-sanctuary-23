@@ -14,14 +14,13 @@ import {
 import {
   normalizePhone,
   validatePhone,
-  formatCurrencyVND,
   formatPhoneDisplay,
   detectCarrier,
   type Carrier,
 } from '@/lib/simValuation';
 import { getSimilarSims, extractTagsFromPhone, type SimItem } from '@/lib/simInventorySheet';
 import { useSimData } from '@/hooks/useSimData';
-import { type NormalizedSIM } from '@/lib/simUtils';
+import { formatPrice, type NormalizedSIM } from '@/lib/simUtils';
 
 type ValuationState = 'idle' | 'loading' | 'success' | 'error';
 type SimilarState = 'idle' | 'loading' | 'success' | 'empty' | 'error';
@@ -265,7 +264,7 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
               {result.found ? (
                 <>
                   <p className="text-3xl md:text-4xl font-extrabold text-gold gold-glow mb-3">
-                    {formatCurrencyVND(result.price)} VNĐ
+                    {formatPrice(result.price)}
                   </p>
 
                   {/* Market basis indicator */}
@@ -349,7 +348,7 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
                 </h3>
                 <div className="text-center py-4">
                   <div className="text-2xl md:text-3xl font-extrabold text-primary mb-2">
-                    {formatCurrencyVND(result.price)}
+                    {formatPrice(result.price)}
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Giá niêm yết trong kho SIM
@@ -432,7 +431,7 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
 
                     {/* Price */}
                     <p className="text-xl font-extrabold text-gold mb-2">
-                      {formatCurrencyVND(sim.price)} đ
+                      {formatPrice(sim.price)}
                     </p>
 
                     {/* Tags */}
@@ -458,7 +457,7 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center w-full gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary-dark text-primary-foreground text-sm font-semibold transition-colors"
                       >
-                        Mua ngay
+                        ĐẶT NGAY
                         <ExternalLink className="w-3.5 h-3.5" />
                       </a>
                     ) : (

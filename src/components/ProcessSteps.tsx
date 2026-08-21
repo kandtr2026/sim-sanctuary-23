@@ -37,7 +37,7 @@ const ProcessSteps = () => {
                   // right-0, not -right-1: on the last card a negative offset
                   // pushed the badge 3px past the <ol> and got it clipped at
                   // 375px. Kept -top-2 since there is vertical room above.
-                  className="animate-fire-badge absolute right-0 -top-2 z-10 whitespace-nowrap rounded px-1.5 py-0.5 text-[9px] font-bold md:text-[10px]"
+                  className="absolute right-0 -top-2 z-10 whitespace-nowrap rounded px-1.5 py-0.5 text-[9px] font-bold md:text-[10px]"
                   style={{
                     background: 'linear-gradient(135deg, #DC2626 0%, #EA580C 50%, #F59E0B 100%)',
                     color: '#FFFFFF',

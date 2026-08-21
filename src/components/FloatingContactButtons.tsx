@@ -11,10 +11,9 @@ const MESSENGER_FALLBACK_URL =
 
 const handleOpenMessengerChat = (e: React.MouseEvent) => {
   e.preventDefault();
-  const opened = window.__openMessengerChat?.() === true;
-  if (!opened) {
-    window.open(MESSENGER_FALLBACK_URL, "_blank", "noopener,noreferrer");
-  }
+  // The FB customer-chat plugin (MessengerChatPlugin) was removed, so there is
+  // no in-page chat to open — always fall back to the m.me deep link.
+  window.open(MESSENGER_FALLBACK_URL, "_blank", "noopener,noreferrer");
   // Show quick templates panel
   window.__showMessengerTemplates?.();
 };

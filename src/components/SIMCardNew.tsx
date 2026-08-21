@@ -5,7 +5,7 @@ import { Phone } from 'lucide-react';
 import Link from 'next/link';
 import type { NormalizedSIM, PromotionalData, QuyType } from '@/lib/simUtils';
 import QuickContactPopup from '@/components/QuickContactPopup';
-import { matchesQuyType } from '@/lib/simUtils';
+import { matchesQuyType, formatPrice } from '@/lib/simUtils';
 import { cn } from '@/lib/utils';
 import { createHighlightedNumber } from '@/lib/highlightUtils';
 
@@ -46,11 +46,6 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
   const carrier = sim.network && sim.network !== 'Khác' ? sim.network : detectCarrier(rawNumber);
 
   const checkoutHref = `/mua-ngay/${encodeURIComponent(sim.id)}`;
-
-  const formatPrice = (price: number | undefined): string => {
-    if (price === undefined || price === null || isNaN(price) || price <= 0) return 'Liên hệ';
-    return `${price.toLocaleString('vi-VN').replace(/,/g, '.')} đ`;
-  };
 
   const formatDiscountAmount = (amount: number): string => {
     if (amount >= 1000000) {
@@ -112,6 +107,12 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
   const discountAmount = hasDiscount ? originalPrice - sim.price : 0;
   const discountBadgeText = hasDiscount ? formatDiscountAmount(discountAmount) : null;
 
+  // One badge system for the whole row: identical padding, radius, weight and
+  // font-size so carrier / "Số đẹp" / quý badges sit on one even line no matter
+  // which combination a card shows.
+  const badgeBase = 'inline-flex items-center rounded px-1.5 py-px font-medium leading-none';
+  const badgeFontSize = { fontSize: 'clamp(8px, 1.8vw, 11px)', lineHeight: 1.4 } as const;
+
   return (
     <>
       {/* The card is deliberately NOT one big click target any more. It used to have
@@ -138,31 +139,31 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
             // the browser reserved no vertical space for it.
             width={56}
             height={50}
-            className="animate-flash-blink pointer-events-none absolute top-2 left-2 z-20 h-auto w-14 border-0 bg-transparent p-0 shadow-none"
+            className="animate-flash-glow pointer-events-none absolute top-2 left-2 z-20 h-auto w-14 border-0 bg-transparent p-0 shadow-none"
           />
         )}
 
         <div className={cn("flex items-center gap-1 mb-1.5 flex-wrap max-w-full", hasDiscount && "mt-8")}>
           {carrier && (
             <span
-              className={cn("px-1.5 py-px rounded font-medium", networkColors[carrier] || 'bg-gray-500 text-white')}
-              style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+              className={cn(badgeBase, networkColors[carrier] || 'bg-gray-500 text-white')}
+              style={badgeFontSize}
             >
               {carrier}
             </span>
           )}
           {carrier && sim.beautyScore >= 50 && (
-            <span 
-              className="px-1.5 py-px rounded font-medium bg-gold/20 text-gold-dark"
-              style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+            <span
+              className={cn(badgeBase, 'bg-gold/20 text-gold-dark')}
+              style={badgeFontSize}
             >
               ⭐ Số đẹp
             </span>
           )}
           {quyBadgeText && (
-            <span 
-              className="px-1.5 py-px rounded font-semibold bg-primary/10 text-primary border border-primary/20 animate-fade-in"
-              style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
+            <span
+              className={cn(badgeBase, 'bg-primary/10 text-primary border border-primary/20')}
+              style={badgeFontSize}
             >
               {quyBadgeText}
             </span>
@@ -211,12 +212,6 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
             >
               {formatPrice(sim.price)}
             </span>
-            <span 
-              className="text-muted-foreground/70 block"
-              style={{ fontSize: 'clamp(9px, 1.6vw, 12px)', lineHeight: '1.3', letterSpacing: '0.02em' }}
-            >
-              GIAO NGAY HÔM NAY
-            </span>
           </div>
           {/* Primary: straight to the order form. Secondary: Zalo/call for buyers who
               want to talk first. Grid rather than flex: the CTA's width comes from the
@@ -230,7 +225,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
               onClick={() => setContactOpen(true)}
               aria-label={`Gọi hoặc chat Zalo về SIM ${sim.displayNumber || sim.formattedNumber}`}
               title="Gọi / Chat Zalo"
-              className="flex items-center justify-center rounded border border-primary/40 bg-primary/10 px-1.5 text-primary transition-colors hover:bg-primary/20"
+              className="flex items-center justify-center rounded border border-primary/40 bg-primary/10 px-1.5 text-primary transition-colors hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Phone style={{ width: 'clamp(10px, 2vw, 14px)', height: 'clamp(10px, 2vw, 14px)' }} />
             </button>

@@ -29,7 +29,7 @@ export default function TinTucBai6Page() {
             Các Đầu Số Mobifone Mới Nhất – Danh Sách Đầy Đủ & Ý Nghĩa
           </h1>
 
-          <div className="space-y-4 text-foreground">
+          <div className="space-y-4 text-body">
             <p>
               Mobifone là một trong ba nhà mạng lớn nhất Việt Nam, sở hữu nhiều đầu số 10 số quen thuộc và một số đầu số mới sau đợt chuyển đổi năm 2018. Bài viết dưới đây tổng hợp <strong>đầy đủ đầu số Mobifone mới nhất</strong>, kèm lịch sử chuyển đổi và ý nghĩa của từng đầu số.
             </p>

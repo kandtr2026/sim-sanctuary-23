@@ -2,9 +2,11 @@
  * Global browser globals shared across the app.
  *
  * Migrated from `src/vite-env.d.ts` (gtag) plus the inline `declare global`
- * blocks that previously lived in `MessengerChatPlugin.tsx` (FB / messenger) and
- * `MessengerQuickTemplates.tsx` (__showMessengerTemplates). Consolidating them
- * here keeps every window augmentation in one place and drops the old
+ * block that previously lived in `MessengerQuickTemplates.tsx`
+ * (__showMessengerTemplates). The old Facebook Customer Chat SDK surface
+ * (FB / fbAsyncInit / __openMessengerChat / __messengerReady) was dropped along
+ * with the orphan MessengerChatPlugin component. Keeping every window
+ * augmentation here in one place, and dropping the old
  * `/// <reference types="vite/client" />` Vite bootstrap.
  */
 
@@ -22,21 +24,6 @@ declare global {
       targetOrEventName: string,
       params?: Record<string, unknown>,
     ) => void;
-
-    /** Facebook Messenger Customer Chat SDK surface. */
-    FB?: {
-      init: (config: { xfbml: boolean; version: string }) => void;
-      CustomerChat?: {
-        show: (shouldOpen?: boolean) => void;
-        hide: () => void;
-      };
-      XFBML?: {
-        parse: () => void;
-      };
-    };
-    fbAsyncInit?: () => void;
-    __openMessengerChat?: () => boolean;
-    __messengerReady?: boolean;
 
     /** Global opener for the quick-message template panel. */
     __showMessengerTemplates?: () => void;
