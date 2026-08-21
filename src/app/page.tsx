@@ -18,6 +18,7 @@ export const metadata: Metadata = {
     description:
       "Kho SIM số đẹp Mobifone: tứ quý, phong thủy, tài lộc, năm sinh. Giao SIM toàn quốc.",
     url: CANONICAL,
+    images: [{ url: "https://www.chonsomobifone.com/share-banner.png?v=999", width: 1200, height: 630 }],
   },
 };
 
