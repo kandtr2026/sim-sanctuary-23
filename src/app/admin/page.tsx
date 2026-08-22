@@ -8,6 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 
+// Lets the one admin account sign in by typing "admin" instead of memorizing
+// the real address. Supabase Auth itself only accepts email/password, so
+// this just resolves the shorthand to the real email before calling signIn.
+const USERNAME_ALIASES: Record<string, string> = {
+  admin: "phuongtruck22c1+admin@gmail.com",
+};
+
 export default function AdminLoginPage() {
   const { user, isAdmin, loading, signIn } = useAdminAuth();
   const router = useRouter();
@@ -30,7 +37,8 @@ export default function AdminLoginPage() {
     setSubmitting(true);
     setError(null);
 
-    const { error: signInError } = await signIn(email, password);
+    const resolvedEmail = USERNAME_ALIASES[email.trim().toLowerCase()] ?? email.trim();
+    const { error: signInError } = await signIn(resolvedEmail, password);
     setSubmitting(false);
 
     if (signInError) {
@@ -54,10 +62,10 @@ export default function AdminLoginPage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="admin-email">Email</Label>
+          <Label htmlFor="admin-email">Tài khoản</Label>
           <Input
             id="admin-email"
-            type="email"
+            type="text"
             autoComplete="username"
             required
             value={email}
