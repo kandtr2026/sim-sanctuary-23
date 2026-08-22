@@ -12,6 +12,12 @@ const articles = [
   { title: "CÁC ĐẦU SỐ MẠNG MOBIFONE MỚI NHẤT - Danh sách đầy đủ & ý nghĩa", href: "/tin-tuc/cac-dau-so-mang-mobifone-moi-nhat" },
 ];
 
+// Without this, Next.js prerenders this page once at build time and serves
+// that static HTML forever — a post published through /admin/posts would
+// never show up here without a full redeploy. Revalidating every 60s lets a
+// newly published post appear on its next visit shortly after publishing.
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: {
     absolute: "Tin Tức SIM Số Đẹp – Kiến Thức Phong Thủy & Mua Bán SIM",
