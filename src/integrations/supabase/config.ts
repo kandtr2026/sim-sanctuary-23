@@ -34,3 +34,21 @@ export const SUPABASE_PUBLISHABLE_KEY: string =
 
 /** Base URL for Edge Functions, e.g. `${EDGE_FUNCTIONS_URL}/sheet-proxy`. */
 export const EDGE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
+
+/**
+ * Separate Supabase project for the admin panel (Auth + `profiles` +
+ * `blog_posts` — see `supabase/migrations/`). It is deliberately NOT the same
+ * project as SUPABASE_URL above: that one hosts the live `fetch-sim-data` /
+ * `sheet-proxy` Edge Functions the storefront depends on, and it was created
+ * outside any Supabase organization this account has access to, so the
+ * admin/blog schema can't be added there. This project is the one Lovable
+ * Cloud provisioned when the admin panel was built and is fully owned by
+ * this account.
+ */
+const ADMIN_FALLBACK_PROJECT_ID = 'xhlpawjvtqvtdkhjanwl';
+
+export const ADMIN_SUPABASE_URL: string =
+  process.env.NEXT_PUBLIC_ADMIN_SUPABASE_URL || `https://${ADMIN_FALLBACK_PROJECT_ID}.supabase.co`;
+
+export const ADMIN_SUPABASE_PUBLISHABLE_KEY: string =
+  process.env.NEXT_PUBLIC_ADMIN_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_hh-3MDhY74qT3buUTtPasA_gfY9qzR1';
