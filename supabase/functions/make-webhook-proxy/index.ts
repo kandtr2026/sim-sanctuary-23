@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { safeLogProjection, validatePayload } from "./_validators.ts";
 
 const MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/efsf9n3n5vco1t2zbjcg4xlileflcmnn";
 
@@ -13,8 +14,20 @@ serve(async (req) => {
   }
 
   try {
-    const payload = await req.json();
-    console.log("Forwarding order to Make.com:", JSON.stringify(payload));
+    const payload = (await req.json()) as Record<string, unknown>;
+
+    const validationError = validatePayload(payload);
+    if (validationError) {
+      // 400 with a reason — no PII echoed back.
+      return new Response(
+        JSON.stringify({ error: `Invalid payload: ${validationError}` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // PII is stripped before logging; only order identity + business fields land
+    // in Supabase logs.
+    console.log("Forwarding order to Make.com:", safeLogProjection(payload));
 
     const makeResponse = await fetch(MAKE_WEBHOOK_URL, {
       method: "POST",
@@ -23,11 +36,11 @@ serve(async (req) => {
     });
 
     const responseText = await makeResponse.text();
-    console.log("Make.com response:", makeResponse.status, responseText);
+    console.log("Make.com response:", makeResponse.status);
 
     if (!makeResponse.ok) {
       return new Response(
-        JSON.stringify({ error: `Make.com failed: ${makeResponse.status}`, detail: responseText }),
+        JSON.stringify({ error: `Make.com failed: ${makeResponse.status}` }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -39,7 +52,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Proxy error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
+      JSON.stringify({ error: "Proxy error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
