@@ -20,7 +20,7 @@
  * Anything that must stay private belongs in a Supabase Edge Function (see
  * `supabase/functions/`), never in this file.
  */
-const FALLBACK_PROJECT_ID = 'xhlpawjvtqvtdkhjanwl';
+const FALLBACK_PROJECT_ID = 'pfeyyyvhzsuoccwoweco';
 
 export const SUPABASE_PROJECT_ID: string =
   process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID || FALLBACK_PROJECT_ID;
@@ -29,7 +29,8 @@ export const SUPABASE_URL: string =
   process.env.NEXT_PUBLIC_SUPABASE_URL || `https://${SUPABASE_PROJECT_ID}.supabase.co`;
 
 export const SUPABASE_PUBLISHABLE_KEY: string =
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_hh-3MDhY74qT3buUTtPasA_gfY9qzR1';
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmZXl5eXZoenN1b2Njd293ZWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NTIzODEsImV4cCI6MjA4NDAyODM4MX0.RGOXDxNXOZn93fnZliCy48Hn2dH4tjogfAcdhp8KQiQ';
 
 /** Base URL for Edge Functions, e.g. `${EDGE_FUNCTIONS_URL}/sheet-proxy`. */
 export const EDGE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
