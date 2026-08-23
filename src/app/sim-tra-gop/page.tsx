@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Phone, Star, Shield, CheckCircle, Truck, DollarSign, Users, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
+import SimSnapshot from "@/components/SimSnapshot";
 import {
   Accordion,
   AccordionContent,
@@ -8,6 +9,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { buildBreadcrumb } from "@/lib/seo";
+import { getCategorySnapshot } from "@/lib/serverSimData";
 
 const ZALO_URL = "https://zalo.me/0933356666";
 
@@ -67,7 +69,8 @@ const conditions = [
   { icon: Star, text: "Sang tên chính chủ khi tất toán" },
 ];
 
-export default function SimTraGopPage() {
+export default async function SimTraGopPage() {
+  const snapshotSims = await getCategorySnapshot({}, 8);
   return (
     <>
       <main className="min-h-screen bg-background">
@@ -130,6 +133,8 @@ export default function SimTraGopPage() {
               ))}
             </div>
           </section>
+
+          <SimSnapshot title="Sim Trả Góp Nổi Bật Trong Kho" sims={snapshotSims} />
 
           {/* Client island: SIM grid */}
           <CategorySimGrid

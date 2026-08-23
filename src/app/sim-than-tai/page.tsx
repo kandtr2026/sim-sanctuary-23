@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Phone, Star, Shield, CheckCircle, Truck, DollarSign, Users, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
+import SimSnapshot from "@/components/SimSnapshot";
 import {
   Accordion,
   AccordionContent,
@@ -8,6 +9,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { buildBreadcrumb } from "@/lib/seo";
+import { getCategorySnapshot } from "@/lib/serverSimData";
 
 const ZALO_URL = "https://zalo.me/0933356666";
 
@@ -67,7 +69,8 @@ const benefits = [
   { icon: Users, text: "Tư vấn chọn số 24/7" },
 ];
 
-export default function SimThanTaiPage() {
+export default async function SimThanTaiPage() {
+  const snapshotSims = await getCategorySnapshot({ suffixes: ["39", "79"] }, 8);
   return (
     <>
       <main className="min-h-screen bg-background">
@@ -131,6 +134,9 @@ export default function SimThanTaiPage() {
               </p>
             </div>
           </section>
+
+          {/* Server-rendered snapshot: real SIM numbers + ItemList/Product schema */}
+          <SimSnapshot title="Sim Thần Tài Nổi Bật Trong Kho" sims={snapshotSims} />
 
           {/* Client island: SIM grid */}
           <CategorySimGrid

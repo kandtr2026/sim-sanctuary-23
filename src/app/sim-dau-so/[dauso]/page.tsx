@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Phone, Star, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
+import SimSnapshot from "@/components/SimSnapshot";
 import { buildBreadcrumb } from "@/lib/seo";
+import { getCategorySnapshot } from "@/lib/serverSimData";
 
 const ZALO_URL = "https://zalo.me/0933356666";
 const BASE_URL = "https://www.chonsomobifone.com";
@@ -48,6 +50,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function SimDauSoPage({ params }: Props) {
   const { dauso } = await params;
   if (!isValidPrefix(dauso)) notFound();
+
+  const snapshotSims = await getCategorySnapshot({ prefixes: [dauso] }, 8);
 
   return (
     <>
@@ -106,6 +110,8 @@ export default async function SimDauSoPage({ params }: Props) {
               chọn.
             </p>
           </section>
+
+          <SimSnapshot title={`Sim ${dauso} Nổi Bật Trong Kho`} sims={snapshotSims} />
 
           <CategorySimGrid
             title={`Kho Sim ${dauso} Cập Nhật`}

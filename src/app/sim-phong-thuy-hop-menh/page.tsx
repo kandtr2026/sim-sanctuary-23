@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Phone, Star, Sparkles } from "lucide-react";
 import PhongThuyMenhTool from "./PhongThuyMenhTool";
+import SimSnapshot from "@/components/SimSnapshot";
 import {
   Accordion,
   AccordionContent,
@@ -8,6 +9,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { buildBreadcrumb } from "@/lib/seo";
+import { getCategorySnapshot } from "@/lib/serverSimData";
 
 const ZALO_URL = "https://zalo.me/0933356666";
 
@@ -58,7 +60,11 @@ const faqJsonLd = {
   })),
 };
 
-export default function SimPhongThuyHopMenhPage() {
+export default async function SimPhongThuyHopMenhPage() {
+  // General featured snapshot (no mệnh filter — mệnh is chosen client-side in
+  // PhongThuyMenhTool). These are real numbers in the kho, rendered server-side
+  // so crawlers see actual SIMs + Product/Offer schema.
+  const snapshotSims = await getCategorySnapshot({}, 8);
   return (
     <>
       <main className="min-h-screen bg-background">
@@ -136,6 +142,8 @@ export default function SimPhongThuyHopMenhPage() {
               </a>.)
             </p>
           </section>
+
+          <SimSnapshot title="SIM Phong Thủy Nổi Bật Trong Kho" sims={snapshotSims} />
 
           {/* Client island: mệnh picker + grid */}
           <PhongThuyMenhTool />
