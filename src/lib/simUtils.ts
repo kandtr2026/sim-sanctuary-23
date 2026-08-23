@@ -132,17 +132,19 @@ export const detectSimTags = (rawDigits: string): string[] => {
   const last2 = digitsOnly.slice(-2);
   const last3 = digitsOnly.slice(-3);
   const last4 = digitsOnly.slice(-4);
-  const last5 = digitsOnly.slice(-5);
   const last6 = digitsOnly.slice(-6);
 
   // Quý patterns (mutually exclusive - most specific wins)
-  const allSameLast6 = last6.length === 6 && /^(\d)\1{5}$/.test(last6);
-  const allSameLast5 = last5.length === 5 && /^(\d)\1{4}$/.test(last5);
+  // Lục quý / Ngũ quý: 6/5 chữ số giống nhau LIỀN NHAU ở BẤT KỲ VỊ TRÍ NÀO
+  // (khớp với isHexAnywhere / isQuintAnywhere trong SimBrowser). Tứ quý vẫn
+  // tính ở đuôi (4 số cuối giống nhau) vì đó là quy ước của trang tứ quý.
+  const anySame6 = /(\d)\1{5}/.test(digitsOnly);
+  const anySame5 = /(\d)\1{4}/.test(digitsOnly);
   const allSameLast4 = digitsOnly.length === 10 && last4.length === 4 && /^(\d)\1{3}$/.test(last4);
 
-  if (allSameLast6) {
+  if (anySame6) {
     tags.push('Lục quý');
-  } else if (allSameLast5) {
+  } else if (anySame5) {
     tags.push('Ngũ quý');
   } else if (allSameLast4) {
     tags.push('Tứ quý');
