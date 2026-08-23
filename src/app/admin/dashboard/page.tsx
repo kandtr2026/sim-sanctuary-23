@@ -6,6 +6,7 @@ import { BarList } from "@/components/admin/BarList";
 import { DashboardHeader } from "@/components/admin/DashboardHeader";
 import { PostsTable, type PostRow } from "@/components/admin/PostsTable";
 import RequireAdmin from "@/components/admin/RequireAdmin";
+import { SalesChart } from "@/components/admin/SalesChart";
 import { StatCard } from "@/components/admin/StatCard";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { getLastUpdateInfo, getPromotionalData, useSimData } from "@/hooks/useSimData";
@@ -246,6 +247,8 @@ function AdminDashboardContent() {
             </>
           )}
         </section>
+
+        <SalesChart />
 
         <PostsTable posts={posts} loading={postsLoading} onDelete={(post) => void handleDeletePost(post)} />
       </main>
