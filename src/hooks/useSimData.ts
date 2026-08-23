@@ -445,7 +445,7 @@ const fetchCsvViaProxy = async (): Promise<string> => {
     console.log('[SIM] Fetching via backend proxy...');
   }
 
-  const csvText = await invokeEdgeFunctionText('fetch-sim-data');
+  const csvText = await invokeEdgeFunctionText('fetch-sim-data', { method: 'GET' });
 
   // Validate CSV content
   const validation = validateCSV(csvText);

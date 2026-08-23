@@ -1,5 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+// ---------------------------------------------------------------------------
+// In-memory cache for the expensive main-sheet CSV fetch.
+//
+// The main Google Sheet (~49k rows, ~5.5 MB) is the dominant cost of this
+// function: exporting it fresh on every request adds ~5–7 s of latency AND
+// hammers Google. We cache the *raw main CSV* (not the filtered output) with a
+// short TTL, and always re-fetch the small SIM_SOLD tab fresh so a SIM that
+// was just sold disappears immediately. The trade-off: a SIM sold within the
+// TTL window may still appear on the homepage — acceptable, since checkout is
+// what gates the actual order and SIM_SOLD is always fresh here.
+//
+// Deno isolates are ephemeral, so this is a best-effort per-isolate cache; it
+// still turns 5–7 s into a few hundred ms for the common warm-isolate case.
+const MAIN_CSV_CACHE_TTL_MS = 120_000; // 2 minutes
+let mainCsvCache: { text: string; fetchedAt: number } | null = null;
+
+// ---------------------------------------------------------------------------
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -256,43 +274,45 @@ serve(async (req) => {
   }
 
   try {
-    console.log('[fetch-sim-data] Starting CSV fetch from Google Sheets');
-    
-    // Fetch both sheets in parallel
-    const [mainCsvResult, soldCsvResult] = await Promise.allSettled([
-      fetchWithRetry(GOOGLE_SHEET_CSV_URL),
-      fetchWithRetry(SIM_SOLD_CSV_URL)
-    ]);
-    
-    // Handle main sheet
-    if (mainCsvResult.status === 'rejected') {
-      throw new Error(`Failed to fetch main sheet: ${mainCsvResult.reason}`);
+    // --- Main sheet: serve from cache when fresh, else fetch + validate. ---
+    const now = Date.now();
+    let mainCsvText: string;
+    let cacheHit = false;
+
+    if (mainCsvCache && now - mainCsvCache.fetchedAt < MAIN_CSV_CACHE_TTL_MS) {
+      mainCsvText = mainCsvCache.text;
+      cacheHit = true;
+      console.log(`[fetch-sim-data] Main CSV served from cache (age ${now - mainCsvCache.fetchedAt}ms)`);
+    } else {
+      console.log('[fetch-sim-data] Starting CSV fetch from Google Sheets');
+
+      const mainResult = await fetchWithRetry(GOOGLE_SHEET_CSV_URL);
+      mainCsvText = mainResult;
+
+      // Validate main CSV
+      const mainValidation = validateCSV(mainCsvText, VALID_HEADERS);
+      if (!mainValidation.valid) {
+        throw new Error(mainValidation.reason || 'Invalid main CSV response');
+      }
+
+      console.log('[fetch-sim-data] Main CSV validated successfully');
+      mainCsvCache = { text: mainCsvText, fetchedAt: now };
     }
-    
-    const mainCsvText = mainCsvResult.value;
-    
-    // Validate main CSV
-    const mainValidation = validateCSV(mainCsvText, VALID_HEADERS);
-    if (!mainValidation.valid) {
-      throw new Error(mainValidation.reason || 'Invalid main CSV response');
-    }
-    
-    console.log(`[fetch-sim-data] Main CSV validated successfully`);
-    
-    // Handle SIM_SOLD sheet (fail-safe: if it fails, continue without filtering)
+
+    // --- SIM_SOLD tab: ALWAYS fresh so recently-sold SIMs disappear now. ---
     let soldSet = new Set<string>();
-    
-    if (soldCsvResult.status === 'fulfilled') {
-      const soldCsvText = soldCsvResult.value;
-      
+
+    try {
+      const soldCsvText = await fetchWithRetry(SIM_SOLD_CSV_URL);
+
       // Check if we got valid content (not HTML error page)
       const hasContent = soldCsvText.trim().split('\n').length >= 2;
       const isNotHtml = !soldCsvText.trim().toLowerCase().startsWith('<');
-      
+
       if (hasContent && isNotHtml) {
         soldSet = parseSoldSimIds(soldCsvText);
         console.log(`[fetch-sim-data] Parsed ${soldSet.size} sold SIMs from SIM_SOLD tab`);
-        
+
         // Log first few sold IDs for debugging
         if (soldSet.size > 0) {
           const sample = Array.from(soldSet).slice(0, 5).join(', ');
@@ -301,8 +321,8 @@ serve(async (req) => {
       } else {
         console.warn('[fetch-sim-data] SIM_SOLD tab appears empty or returned HTML');
       }
-    } else {
-      console.warn(`[fetch-sim-data] Failed to fetch SIM_SOLD tab (fail-safe: continuing without filter): ${soldCsvResult.reason}`);
+    } catch (err) {
+      console.warn(`[fetch-sim-data] Failed to fetch SIM_SOLD tab (fail-safe: continuing without filter): ${err instanceof Error ? err.message : String(err)}`);
     }
     
     // Filter out sold SIMs from main sheet
@@ -318,10 +338,12 @@ serve(async (req) => {
       headers: {
         ...corsHeaders,
         'Content-Type': 'text/csv; charset=utf-8',
+        'Cache-Control': 'public, max-age=30, s-maxage=60',
         'X-Row-Count': String(filteredLineCount),
         'X-Original-Count': String(originalLineCount),
         'X-Sold-Count': String(soldSet.size),
-        'X-Fetched-At': new Date().toISOString()
+        'X-Fetched-At': new Date().toISOString(),
+        'X-Cache': cacheHit ? 'HIT' : 'MISS'
       }
     });
     

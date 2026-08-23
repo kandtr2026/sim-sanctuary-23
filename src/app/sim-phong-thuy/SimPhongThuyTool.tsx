@@ -262,7 +262,7 @@ const fetchInventory = async (): Promise<InventoryItem[]> => {
     }
     const edgeFunctionUrl = getEdgeFunctionUrl();
     const response = await fetch(edgeFunctionUrl, {
-      method: 'POST',
+      method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     });
     

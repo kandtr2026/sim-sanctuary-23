@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { invokeEdgeFunctionText } from '@/integrations/supabase/edgeFunctions';
+import { invokeEdgeFunctionText, invokeEdgeFunction } from '@/integrations/supabase/edgeFunctions';
 import { EDGE_FUNCTIONS_URL } from '@/integrations/supabase/config';
 import { ArrowLeft, Phone, CheckCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -249,6 +249,39 @@ const homeSimToCheckout = (sim: NormalizedSIM): CheckoutSimData => {
   };
 };
 
+/** Map the JSON response from the `fetch-sim-by-id` edge function onto the
+ *  shape this page expects. The edge function returns a single row from the
+ *  Google Sheet via a gviz query — a few hundred bytes instead of 5.5 MB. */
+interface FetchSimByIdResponse {
+  simId: string;
+  rawDigits: string;
+  displayNumber: string;
+  originalPriceVnd: number;
+  finalPriceVnd?: number;
+  priceVnd: number;
+  discountType?: string;
+  discountValue?: number;
+  kho?: string;
+  tinhTrang?: string;
+  trangThai?: string;
+  network: string;
+}
+
+const byIdSimToCheckout = (res: FetchSimByIdResponse): CheckoutSimData => ({
+  simId: res.simId,
+  rawDigits: res.rawDigits,
+  displayNumber: res.displayNumber,
+  originalPriceVnd: res.originalPriceVnd,
+  finalPriceVnd: res.finalPriceVnd,
+  discountType: res.discountType,
+  discountValue: res.discountValue,
+  kho: res.kho,
+  tinhTrang: res.tinhTrang,
+  trangThai: res.trangThai,
+  network: res.network,
+  tags: [],
+});
+
 // --- Component ---
 
 const CheckoutClient = () => {
@@ -299,8 +332,25 @@ const CheckoutClient = () => {
         return cheap ? cheapSimToCheckout(cheap) : null;
       }
 
-      const csvText = await invokeEdgeFunctionText('fetch-sim-data');
-      return parseCSVAndFindSim(csvText, simId);
+      // Fast path: the edge function resolves ONE row via a gviz query (a few
+      // hundred bytes) instead of downloading the whole ~5.5 MB catalogue and
+      // parsing 49k rows client-side to find this SIM.
+      try {
+        const response = await invokeEdgeFunction(
+          `fetch-sim-by-id?simId=${encodeURIComponent(simId)}`,
+          { method: 'GET', signal },
+        );
+        if (!response.ok) throw new Error(`fetch-sim-by-id failed: HTTP ${response.status}`);
+        const data = (await response.json()) as FetchSimByIdResponse;
+        if (!data || !data.simId) return null;
+        return byIdSimToCheckout(data);
+      } catch (err) {
+        // Fall back to the legacy full-CSV path so a by-id hiccup (e.g. gviz
+        // rate-limit) never turns into a hard "not found" for a real SIM.
+        console.error('[Checkout] fetch-sim-by-id failed, falling back to CSV:', err);
+        const csvText = await invokeEdgeFunctionText('fetch-sim-data', { method: 'GET' });
+        return parseCSVAndFindSim(csvText, simId);
+      }
     },
     enabled: !!simId,
     initialData: initialCheckoutSim,
