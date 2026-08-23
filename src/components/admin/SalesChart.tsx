@@ -10,12 +10,26 @@ const SOLD_CSV_URL =
   "https://docs.google.com/spreadsheets/d/1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y/gviz/tq?tqx=out:csv&sheet=SIM_SOLD";
 
 type Period = "day" | "week" | "month";
+type Metric = "count" | "value";
 
 const PERIOD_OPTIONS: { value: Period; label: string }[] = [
   { value: "week", label: "Theo tuần" },
   { value: "day", label: "Theo ngày" },
   { value: "month", label: "Theo tháng" },
 ];
+
+const METRIC_OPTIONS: { value: Metric; label: string }[] = [
+  { value: "count", label: "Số lượng" },
+  { value: "value", label: "Giá trị" },
+];
+
+const formatCompactVnd = (n: number) => {
+  const compact = (v: number) => (v % 1 === 0 ? v.toFixed(0) : v.toFixed(1).replace(".", ","));
+  if (n >= 1_000_000_000) return `${compact(n / 1_000_000_000)} tỷ`;
+  if (n >= 1_000_000) return `${compact(n / 1_000_000)} tr`;
+  if (n >= 1_000) return `${Math.round(n / 1_000)}k`;
+  return n.toLocaleString("vi-VN");
+};
 
 const parseCsvRows = (text: string): string[][] => {
   const rows: string[][] = [];
@@ -79,7 +93,11 @@ const parseNgayBan = (value: string | undefined): Date | null => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
-const pad = (n: number) => String(n).padStart(2, "0");
+const parseGiaThu = (value: string | undefined): number => {
+  if (!value) return 0;
+  const n = Number(String(value).replace(/[^\d]/g, ""));
+  return Number.isFinite(n) ? n : 0;
+};
 
 const startOfWeek = (date: Date): Date => {
   const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -93,25 +111,71 @@ const getAnchor = (date: Date, period: Period): Date => {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 };
 
+interface SaleRecord {
+  date: Date;
+  value: number;
+}
+
 interface ChartBar {
   key: number;
   count: number;
-  pct: number;
+  value: number;
+  height: number;
+  display: string;
   label: string;
   fullLabel: string;
 }
 
+const PERIOD_NOUN: Record<Period, string> = { day: "ngày", week: "tuần", month: "tháng" };
+
+interface ToggleOption<T extends string> {
+  value: T;
+  label: string;
+}
+
+function ToggleGroup<T extends string>({
+  options,
+  current,
+  onChange,
+}: {
+  options: ToggleOption<T>[];
+  current: T;
+  onChange: (value: T) => void;
+}) {
+  return (
+    <div className="flex rounded-lg border border-border bg-muted p-0.5">
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          onClick={() => onChange(option.value)}
+          aria-pressed={current === option.value}
+          className={cn(
+            "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+            current === option.value
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function SalesChart() {
   const [period, setPeriod] = useState<Period>("week");
+  const [metric, setMetric] = useState<Metric>("count");
   const [reloadKey, setReloadKey] = useState(0);
-  const [saleDates, setSaleDates] = useState<Date[] | null>(null);
+  const [sales, setSales] = useState<SaleRecord[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
     let cancelled = false;
     setError(null);
-    setSaleDates(null);
+    setSales(null);
     (async () => {
       try {
         const res = await fetch(SOLD_CSV_URL, { signal: controller.signal });
@@ -123,10 +187,12 @@ export function SalesChart() {
         const headers = rows[0].map((h) => h.toUpperCase().replace(/\s+/g, ""));
         const ngayBanIdx = headers.findIndex((h) => h === "NGAYBAN" || h === "NGÀYBÁN");
         const soldIdIdx = headers.findIndex((h) => h === "SOLDID");
+        const giaThuIdx = headers.findIndex((h) => h === "GIATHU" || h === "GIÁTHU");
         const dateIdx = ngayBanIdx !== -1 ? ngayBanIdx : 3;
         const idIdx = soldIdIdx !== -1 ? soldIdIdx : 0;
+        const valueIdx = giaThuIdx !== -1 ? giaThuIdx : 2;
 
-        const dates: Date[] = [];
+        const records: SaleRecord[] = [];
         const seen = new Set<string>();
         for (let i = 1; i < rows.length; i++) {
           const row = rows[i];
@@ -137,10 +203,11 @@ export function SalesChart() {
             seen.add(soldId);
           }
           const date = parseNgayBan(row[dateIdx]);
-          if (date) dates.push(date);
+          if (!date) continue;
+          records.push({ date, value: parseGiaThu(row[valueIdx]) });
         }
         if (cancelled) return;
-        setSaleDates(dates);
+        setSales(records);
       } catch (e) {
         if (cancelled) return;
         if (e instanceof Error && e.name === "AbortError") return;
@@ -156,9 +223,9 @@ export function SalesChart() {
   const reload = () => setReloadKey((key) => key + 1);
 
   const bars = useMemo((): ChartBar[] => {
-    if (!saleDates || saleDates.length === 0) return [];
-    let maxDate = saleDates[0];
-    for (const d of saleDates) if (d.getTime() > maxDate.getTime()) maxDate = d;
+    if (!sales || sales.length === 0) return [];
+    let maxDate = sales[0].date;
+    for (const rec of sales) if (rec.date.getTime() > maxDate.getTime()) maxDate = rec.date;
 
     const anchors: Date[] = [];
     if (period === "day") {
@@ -182,19 +249,30 @@ export function SalesChart() {
     }
 
     const counts = new Map<number, number>();
-    for (const d of saleDates) {
-      const key = getAnchor(d, period).getTime();
+    const values = new Map<number, number>();
+    for (const rec of sales) {
+      const key = getAnchor(rec.date, period).getTime();
       counts.set(key, (counts.get(key) ?? 0) + 1);
+      values.set(key, (values.get(key) ?? 0) + rec.value);
     }
 
-    const maxCount = anchors.reduce((m, a) => Math.max(m, counts.get(a.getTime()) ?? 0), 0);
+    const maxValue = metric === "value"
+      ? anchors.reduce((m, a) => Math.max(m, values.get(a.getTime()) ?? 0), 0)
+      : anchors.reduce((m, a) => Math.max(m, counts.get(a.getTime()) ?? 0), 0);
+
     return anchors.map((a) => {
       const count = counts.get(a.getTime()) ?? 0;
+      const value = values.get(a.getTime()) ?? 0;
       const isMonth = period === "month";
+      const rawPct = maxValue > 0 ? ((metric === "value" ? value : count) / maxValue) * 100 : 0;
+      // Cap at 85% so the value label on top of the tallest bar stays inside.
+      const height = count === 0 ? 2 : Math.max(Math.min(rawPct, 85), 4);
       return {
         key: a.getTime(),
         count,
-        pct: maxCount > 0 ? (count / maxCount) * 100 : 0,
+        value,
+        height,
+        display: metric === "value" ? formatCompactVnd(value) : count.toLocaleString("vi-VN"),
         label: isMonth ? `${a.getMonth() + 1}/${String(a.getFullYear()).slice(2)}` : `${a.getDate()}/${a.getMonth() + 1}`,
         fullLabel: isMonth
           ? `Tháng ${a.getMonth() + 1}/${a.getFullYear()}`
@@ -203,11 +281,17 @@ export function SalesChart() {
             : `Ngày ${a.getDate()}/${a.getMonth() + 1}`,
       };
     });
-  }, [saleDates, period]);
+  }, [sales, period, metric]);
 
-  const totalSold = bars.reduce((sum, b) => sum + b.count, 0);
+  const totalCount = bars.reduce((sum, b) => sum + b.count, 0);
+  const totalValue = bars.reduce((sum, b) => sum + b.value, 0);
   const maxCount = bars.reduce((m, b) => Math.max(m, b.count), 0);
-  const periodNoun = period === "day" ? "ngày" : period === "week" ? "tuần" : "tháng";
+  const maxValue = bars.reduce((m, b) => Math.max(m, b.value), 0);
+  const periodNoun = PERIOD_NOUN[period];
+  const summaryLine =
+    metric === "value"
+      ? `Tổng ${formatCompactVnd(totalValue)} · cao nhất ${formatCompactVnd(maxValue)}/${periodNoun}`
+      : `Tổng ${totalCount.toLocaleString("vi-VN")} SIM · cao nhất ${maxCount.toLocaleString("vi-VN")}/${periodNoun}`;
 
   return (
     <section className="rounded-xl border border-border bg-card p-4 shadow-card">
@@ -218,31 +302,13 @@ export function SalesChart() {
           </span>
           <div>
             <h3 className="text-sm font-semibold text-foreground">SIM đã bán</h3>
-            <p className="text-xs text-muted-foreground">
-              {saleDates ? `Tổng ${totalSold.toLocaleString("vi-VN")} SIM · cao nhất ${maxCount.toLocaleString("vi-VN")}/${periodNoun}` : "Đang tải…"}
-            </p>
+            <p className="text-xs text-muted-foreground">{sales ? summaryLine : "Đang tải…"}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex rounded-lg border border-border bg-muted p-0.5">
-            {PERIOD_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setPeriod(option.value)}
-                aria-pressed={period === option.value}
-                className={cn(
-                  "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
-                  period === option.value
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <ToggleGroup options={METRIC_OPTIONS} current={metric} onChange={setMetric} />
+          <ToggleGroup options={PERIOD_OPTIONS} current={period} onChange={setPeriod} />
           <button
             type="button"
             onClick={reload}
@@ -261,7 +327,7 @@ export function SalesChart() {
             Thử lại
           </button>
         </div>
-      ) : !saleDates ? (
+      ) : !sales ? (
         <div className="flex h-44 items-end gap-1">
           {Array.from({ length: 12 }).map((_, i) => (
             <div key={i} className="flex-1 animate-pulse rounded-t-md bg-muted" style={{ height: `${20 + ((i * 7) % 55)}%` }} />
@@ -272,26 +338,33 @@ export function SalesChart() {
       ) : (
         <>
           <div
-            className="flex h-44 items-end gap-1"
+            className="relative flex h-44 items-end gap-1"
             role="img"
-            aria-label={`Biểu đồ số SIM đã bán theo ${periodNoun}, tổng ${totalSold} SIM`}
+            aria-label={`Biểu đồ số SIM đã bán theo ${periodNoun} (${metric === "value" ? "giá trị" : "số lượng"}), tổng ${
+              metric === "value" ? formatCompactVnd(totalValue) : `${totalCount} SIM`
+            }`}
           >
             {bars.map((bar, index) => {
               const isLatest = index === bars.length - 1;
               return (
-                <div
-                  key={bar.key}
-                  title={`${bar.fullLabel}: ${bar.count.toLocaleString("vi-VN")} SIM`}
-                  className={cn(
-                    "flex-1 rounded-t-md transition-colors",
-                    bar.count === 0
-                      ? "bg-muted"
-                      : isLatest
-                        ? "bg-primary"
-                        : "bg-[hsl(var(--gold-soft))] hover:bg-[hsl(var(--gold))]",
-                  )}
-                  style={{ height: bar.count === 0 ? "2px" : `${Math.max(bar.pct, 4)}%` }}
-                />
+                <div key={bar.key} className="relative flex-1 self-end" style={{ height: `${bar.height}%` }}>
+                  {bar.count > 0 ? (
+                    <span className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold text-foreground">
+                      {bar.display}
+                    </span>
+                  ) : null}
+                  <div
+                    title={`${bar.fullLabel}: ${bar.count.toLocaleString("vi-VN")} SIM · ${formatCompactVnd(bar.value)}`}
+                    className={cn(
+                      "h-full w-full rounded-t-md transition-colors",
+                      bar.count === 0
+                        ? "bg-muted"
+                        : isLatest
+                          ? "bg-primary"
+                          : "bg-[hsl(var(--gold-soft))] hover:bg-[hsl(var(--gold))]",
+                    )}
+                  />
+                </div>
               );
             })}
           </div>
