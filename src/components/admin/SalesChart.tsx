@@ -9,11 +9,10 @@ import { cn } from "@/lib/utils";
 const SOLD_CSV_URL =
   "https://docs.google.com/spreadsheets/d/1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y/gviz/tq?tqx=out:csv&sheet=SIM_SOLD";
 
-type Period = "day" | "week" | "month";
+type Period = "day" | "month";
 type Metric = "count" | "value";
 
 const PERIOD_OPTIONS: { value: Period; label: string }[] = [
-  { value: "week", label: "Theo tuần" },
   { value: "day", label: "Theo ngày" },
   { value: "month", label: "Theo tháng" },
 ];
@@ -99,15 +98,8 @@ const parseGiaThu = (value: string | undefined): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
-const startOfWeek = (date: Date): Date => {
-  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-  return d;
-};
-
 const getAnchor = (date: Date, period: Period): Date => {
   if (period === "day") return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  if (period === "week") return startOfWeek(date);
   return new Date(date.getFullYear(), date.getMonth(), 1);
 };
 
@@ -126,7 +118,7 @@ interface ChartBar {
   fullLabel: string;
 }
 
-const PERIOD_NOUN: Record<Period, string> = { day: "ngày", week: "tuần", month: "tháng" };
+const PERIOD_NOUN: Record<Period, string> = { day: "ngày", month: "tháng" };
 
 interface ToggleOption<T extends string> {
   value: T;
@@ -165,7 +157,7 @@ function ToggleGroup<T extends string>({
 }
 
 export function SalesChart() {
-  const [period, setPeriod] = useState<Period>("week");
+  const [period, setPeriod] = useState<Period>("day");
   const [metric, setMetric] = useState<Metric>("count");
   const [reloadKey, setReloadKey] = useState(0);
   const [sales, setSales] = useState<SaleRecord[] | null>(null);
@@ -234,13 +226,6 @@ export function SalesChart() {
         t.setDate(t.getDate() - i);
         anchors.push(t);
       }
-    } else if (period === "week") {
-      const last = startOfWeek(maxDate);
-      for (let i = 11; i >= 0; i--) {
-        const t = new Date(last);
-        t.setDate(t.getDate() - i * 7);
-        anchors.push(t);
-      }
     } else {
       const last = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
       for (let i = 11; i >= 0; i--) {
@@ -276,9 +261,7 @@ export function SalesChart() {
         label: isMonth ? `${a.getMonth() + 1}/${String(a.getFullYear()).slice(2)}` : `${a.getDate()}/${a.getMonth() + 1}`,
         fullLabel: isMonth
           ? `Tháng ${a.getMonth() + 1}/${a.getFullYear()}`
-          : period === "week"
-            ? `Tuần từ ${a.getDate()}/${a.getMonth() + 1}`
-            : `Ngày ${a.getDate()}/${a.getMonth() + 1}`,
+          : `Ngày ${a.getDate()}/${a.getMonth() + 1}`,
       };
     });
   }, [sales, period, metric]);
