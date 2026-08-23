@@ -93,6 +93,7 @@ export type Database = {
           id: number
           path: string
           referrer: string | null
+          source: string | null
           user_agent: string | null
           visited_at: string
         }
@@ -100,6 +101,7 @@ export type Database = {
           id?: never
           path: string
           referrer?: string | null
+          source?: string | null
           user_agent?: string | null
           visited_at?: string
         }
@@ -107,6 +109,7 @@ export type Database = {
           id?: never
           path?: string
           referrer?: string | null
+          source?: string | null
           user_agent?: string | null
           visited_at?: string
         }

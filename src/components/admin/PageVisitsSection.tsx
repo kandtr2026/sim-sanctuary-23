@@ -1,11 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Globe, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
 type PageVisitRow = Tables<"page_visits">;
+
+const SOURCE_LABELS: Record<string, { label: string; color: string }> = {
+  facebook: { label: "Facebook", color: "bg-blue-500/15 text-blue-400" },
+  tiktok: { label: "TikTok", color: "bg-neutral-300/15 text-neutral-200" },
+  google: { label: "Google", color: "bg-red-500/15 text-red-400" },
+  zalo: { label: "Zalo", color: "bg-sky-500/15 text-sky-400" },
+  instagram: { label: "Instagram", color: "bg-pink-500/15 text-pink-400" },
+  youtube: { label: "YouTube", color: "bg-red-600/15 text-red-500" },
+  telegram: { label: "Telegram", color: "bg-sky-600/15 text-sky-500" },
+  linkedin: { label: "LinkedIn", color: "bg-blue-700/15 text-blue-500" },
+  bing: { label: "Bing", color: "bg-teal-500/15 text-teal-400" },
+  coccoc: { label: "Cốc Cốc", color: "bg-orange-500/15 text-orange-400" },
+  pinterest: { label: "Pinterest", color: "bg-red-400/15 text-red-400" },
+  twitter: { label: "Twitter/X", color: "bg-neutral-400/15 text-neutral-300" },
+  direct: { label: "Trực tiếp", color: "bg-emerald-500/15 text-emerald-400" },
+  internal: { label: "Nội bộ", color: "bg-primary/15 text-primary" },
+  other: { label: "Khác", color: "bg-muted text-muted-foreground" },
+};
 
 const Skeleton = () => (
   <div className="space-y-3">
@@ -48,6 +66,18 @@ export function PageVisitsSection() {
   useEffect(() => {
     void load();
   }, []);
+
+  // Aggregate the fetched rows by source so the admin sees "khách đến từ đâu".
+  const sourceCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const v of visits) {
+      const key = v.source || "other";
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  }, [visits]);
+
+  const total = visits.length;
 
   return (
     <section>
@@ -92,35 +122,69 @@ export function PageVisitsSection() {
           </div>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-card">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-left text-muted-foreground">
-              <tr>
-                <th className="px-4 py-2.5 font-medium">Đường dẫn</th>
-                <th className="hidden px-4 py-2.5 font-medium sm:table-cell">Referrer</th>
-                <th className="px-4 py-2.5 font-medium">Thời gian</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {visits.map((visit) => (
-                <tr key={visit.id} className="transition-colors hover:bg-muted/30">
-                  <td className="max-w-[200px] truncate px-4 py-2.5 font-mono text-xs text-foreground">
-                    {visit.path}
-                  </td>
-                  <td className="hidden max-w-[160px] truncate px-4 py-2.5 text-xs text-muted-foreground sm:table-cell sm:max-w-[200px]">
-                    {visit.referrer || "—"}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-xs text-muted-foreground">
-                    {new Date(visit.visited_at).toLocaleString("vi-VN")}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="border-t border-border px-4 py-2 text-xs text-muted-foreground">
-            {visits.length} lượt gần nhất — tự động ghi khi khách đổi trang.
+        <>
+          {/* Khách đến từ đâu — aggregated over the last 50 visits */}
+          <div className="mb-4 rounded-xl border border-border bg-card p-4 shadow-card">
+            <h3 className="mb-3 text-sm font-semibold text-foreground">Khách đến từ đâu</h3>
+            <div className="flex flex-wrap gap-2">
+              {sourceCounts.map(([source, count]) => {
+                const meta = SOURCE_LABELS[source] ?? SOURCE_LABELS.other;
+                const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                return (
+                  <span
+                    key={source}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs"
+                  >
+                    <span className={`rounded px-1.5 py-0.5 font-semibold ${meta.color}`}>
+                      {meta.label}
+                    </span>
+                    <span className="font-bold text-foreground">{count}</span>
+                    <span className="text-muted-foreground">({pct}%)</span>
+                  </span>
+                );
+              })}
+            </div>
           </div>
-        </div>
+
+          <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-card">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-left text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-2.5 font-medium">Đường dẫn</th>
+                  <th className="hidden px-4 py-2.5 font-medium sm:table-cell">Nguồn</th>
+                  <th className="hidden px-4 py-2.5 font-medium md:table-cell">Referrer</th>
+                  <th className="px-4 py-2.5 font-medium">Thời gian</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {visits.map((visit) => {
+                  const srcMeta = SOURCE_LABELS[visit.source || "other"] ?? SOURCE_LABELS.other;
+                  return (
+                    <tr key={visit.id} className="transition-colors hover:bg-muted/30">
+                      <td className="max-w-[200px] truncate px-4 py-2.5 font-mono text-xs text-foreground">
+                        {visit.path}
+                      </td>
+                      <td className="hidden px-4 py-2.5 sm:table-cell">
+                        <span className={`rounded px-1.5 py-0.5 text-xs font-semibold ${srcMeta.color}`}>
+                          {srcMeta.label}
+                        </span>
+                      </td>
+                      <td className="hidden max-w-[160px] truncate px-4 py-2.5 text-xs text-muted-foreground md:table-cell md:max-w-[200px]">
+                        {visit.referrer || "—"}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-xs text-muted-foreground">
+                        {new Date(visit.visited_at).toLocaleString("vi-VN")}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <div className="border-t border-border px-4 py-2 text-xs text-muted-foreground">
+              {visits.length} lượt gần nhất — tự động ghi khi khách đổi trang.
+            </div>
+          </div>
+        </>
       )}
     </section>
   );
