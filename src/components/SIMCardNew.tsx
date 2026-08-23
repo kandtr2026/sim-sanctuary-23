@@ -7,7 +7,7 @@ import type { NormalizedSIM, PromotionalData, QuyType } from '@/lib/simUtils';
 import QuickContactPopup from '@/components/QuickContactPopup';
 import { matchesQuyType, formatPrice } from '@/lib/simUtils';
 import { cn } from '@/lib/utils';
-import { createHighlightedNumber } from '@/lib/highlightUtils';
+import { createHighlightedNumber, createQuyHighlightedNumber } from '@/lib/highlightUtils';
 
 // Fallback only — mirrors NETWORK_PREFIXES in @/lib/simUtils, which deliberately
 // covers just Mobifone / Vinaphone / Gmobile. Keep the two lists in sync.
@@ -60,6 +60,15 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
   };
 
   const formatWithHighlight = (displayNumber: string): React.ReactNode => {
+    // Active quý filter: tôn cái DẠNG quý lên (vd *77777* ở giữa dãy số),
+    // không chỉ highlight đuôi như mặc định.
+    if (quyFilter && matchesQuyType(sim.rawDigits, quyFilter)) {
+      const quyHighlighted = createQuyHighlightedNumber(displayNumber, sim.rawDigits, quyFilter);
+      if (quyHighlighted.length !== 1 || typeof quyHighlighted[0] !== 'string') {
+        return <>{quyHighlighted}</>;
+      }
+    }
+
     // Empty query: show VIP highlight (last segment in gold)
     if (!searchQuery) {
       const parts = displayNumber.split('.');

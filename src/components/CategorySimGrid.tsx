@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { Search } from 'lucide-react';
 import { useSimData } from '@/hooks/useSimData';
 import SIMCardNew from '@/components/SIMCardNew';
+import type { QuyType } from '@/lib/simUtils';
 
 /**
  * Reusable "client island" for SIM category pages. Server Components render the
@@ -28,6 +29,11 @@ interface CategorySimGridProps {
   matchLastDigits?: string[];
   /** Show the full kho without filtering (used by phong thủy hợp mệnh). */
   matchAll?: boolean;
+  /**
+   * When set, cards render the quý block highlighted (e.g. Ngũ quý → *77777*).
+   * Matches the quý badges the homepage SimBrowser passes to the same cards.
+   */
+  quyFilter?: QuyType | null;
 }
 
 const getDigits = (s: { rawDigits?: string; displayNumber?: string }): string =>
@@ -42,6 +48,7 @@ const CategorySimGrid = ({
   matchPrefixes,
   matchLastDigits,
   matchAll,
+  quyFilter,
 }: CategorySimGridProps) => {
   const { allSims, isLoading } = useSimData();
   const [searchQuery, setSearchQuery] = useState('');
@@ -143,7 +150,7 @@ const CategorySimGrid = ({
       ) : displaySims.length > 0 ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {displaySims.map((sim) => (
-            <SIMCardNew key={sim.id} sim={sim} />
+            <SIMCardNew key={sim.id} sim={sim} quyFilter={quyFilter} />
           ))}
         </div>
       ) : (

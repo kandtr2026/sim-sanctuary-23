@@ -2,6 +2,7 @@
 // Highlights matching digits in SIM numbers based on search query
 
 import React from 'react';
+import type { QuyType } from '@/lib/simUtils';
 
 interface HighlightRange {
   start: number;
@@ -259,9 +260,14 @@ export const createHighlightedNumber = (
 };
 
 /**
- * Build React spans from a digit-index highlight set, preserving non-digit chars in display
+ * Build React spans from a digit-index highlight set, preserving non-digit chars in display.
+ * @param hlClassName class applied to highlighted spans (default: search red).
  */
-const buildSpansFromHlSet = (displayNumber: string, hlSet: Set<number>): React.ReactNode[] => {
+const buildSpansFromHlSet = (
+  displayNumber: string,
+  hlSet: Set<number>,
+  hlClassName: string = 'font-semibold text-red-600'
+): React.ReactNode[] => {
   const result: React.ReactNode[] = [];
   let digitIdx = 0;
   let buf = '';
@@ -272,7 +278,7 @@ const buildSpansFromHlSet = (displayNumber: string, hlSet: Set<number>): React.R
       result.push(
         React.createElement('span', {
           key: `s-${result.length}`,
-          className: bufHl ? 'font-semibold text-red-600' : 'opacity-80'
+          className: bufHl ? hlClassName : 'opacity-80'
         }, buf)
       );
       buf = '';
@@ -301,4 +307,46 @@ const buildSpansFromHlSet = (displayNumber: string, hlSet: Set<number>): React.R
   flush();
 
   return result;
+};
+
+/**
+ * Highlight the quý block inside a SIM number for a quý-filtered listing.
+ *
+ * Ngũ quý / Lục quý: the 5/6 identical consecutive digits ANYWHERE in the
+ * number (e.g. 0777.779.086 → "77777" sits in the middle, highlighted like
+ * `*77777*`). Tứ quý: the 4 identical tail digits. Returns [displayNumber] when
+ * the filter doesn't apply, so the caller can fall back to normal rendering.
+ */
+export const createQuyHighlightedNumber = (
+  displayNumber: string,
+  rawDigits: string,
+  quyType: QuyType
+): React.ReactNode[] => {
+  const digits = rawDigits.replace(/\D/g, '');
+  if (!digits || !quyType) return [displayNumber];
+
+  const run = quyType === 'Lục quý' ? 6 : quyType === 'Ngũ quý' ? 5 : 4;
+  const hlSet = new Set<number>();
+
+  if (quyType === 'Tứ quý') {
+    // Tứ quý: 4 số đuôi (quy ước của trang tứ quý)
+    const start = digits.length - run;
+    if (start >= 0 && /^(\d)\1{3}$/.test(digits.slice(start))) {
+      for (let i = start; i < digits.length; i++) hlSet.add(i);
+    }
+  } else {
+    // Ngũ quý / Lục quý: cụm run chữ số giống nhau liền nhau ở BẤT KỲ ĐÂU
+    const sameBlockRegex = new RegExp(`^(\\d)\\1{${run - 1}}$`);
+    for (let i = 0; i <= digits.length - run; i++) {
+      const block = digits.slice(i, i + run);
+      if (sameBlockRegex.test(block)) {
+        for (let j = i; j < i + run; j++) hlSet.add(j);
+        break;
+      }
+    }
+  }
+
+  if (hlSet.size === 0) return [displayNumber];
+  // Tôn dạng quý lên: vàng + đậm, giống style VIP đuôi trong thẻ SIM.
+  return buildSpansFromHlSet(displayNumber, hlSet, 'font-extrabold text-gold');
 };

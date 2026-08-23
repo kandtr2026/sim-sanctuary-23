@@ -141,6 +141,7 @@ export default async function SimNguQuyPage() {
             searchPlaceholder="Nhập số hoặc *88888 / *99999 để tìm đuôi ngũ quý..."
             emptyText="Hiện chưa có sim ngũ quý phù hợp trong kho. Vui lòng thử lại sau."
             matchTags={["Ngũ quý", "Lục quý"]}
+            quyFilter="Ngũ quý"
           />
 
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
