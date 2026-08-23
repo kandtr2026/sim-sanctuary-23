@@ -1,10 +1,19 @@
 import type { Metadata } from "next";
-import ZaloChatCard from "@/components/ZaloChatCard";
+import { Phone, Star, Shield, CheckCircle, Truck, DollarSign, Users, Sparkles } from "lucide-react";
+import CategorySimGrid from "@/components/CategorySimGrid";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { buildBreadcrumb } from "@/lib/seo";
 
-const TITLE = "Có Nên Mua Sim Trả Góp? Lợi Ích Và Lưu Ý | CHONSOMOBIFONE";
+const ZALO_URL = "https://zalo.me/0933356666";
+
+const TITLE = "Mua Sim Trả Góp | Chọn SIM Số Đẹp Trả Góp Lãi Suất Tốt";
 const DESCRIPTION =
-  "Phân tích ưu nhược điểm của dịch vụ mua sim số đẹp trả góp: điều kiện, thủ tục, lãi suất và những lưu ý quan trọng để tránh rủi ro khi trả góp sim tứ quý, ngũ quý, sim phong thủy.";
+  "Mua sim số đẹp trả góp tại CHONSOMOBIFONE.COM: chọn số tứ quý, thần tài, lộc phát trả góp linh hoạt. Điều kiện đơn giản, sang tên chính chủ sau khi tất toán.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-tra-gop";
 
 export const metadata: Metadata = {
@@ -12,126 +21,152 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   alternates: { canonical: CANONICAL },
   openGraph: {
-    type: "article",
+    type: "website",
     title: TITLE,
-    description: DESCRIPTION,
+    description: "Chọn sim số đẹp trả góp: tứ quý, thần tài, lộc phát. Điều kiện đơn giản, sang tên sau khi tất toán.",
     url: CANONICAL,
+    images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
   },
 };
+
+const faqItems = [
+  {
+    q: "Mua sim trả góp là gì?",
+    a: "Mua sim trả góp là hình thức bạn thanh toán trước một phần giá trị sim (thường 10–30%), phần còn lại chia nhỏ trả dần theo tháng. Khi thanh toán đủ, sim được sang tên chính chủ cho bạn.",
+  },
+  {
+    q: "Điều kiện để mua sim trả góp?",
+    a: "Điều kiện cơ bản: có CMND/CCCD còn hiệu lực, thu nhập ổn định và không có lịch sử nợ xấu. Với sim giá trị lớn, nhân viên sẽ tư vấn cụ thể hồ sơ và kỳ hạn phù hợp.",
+  },
+  {
+    q: "Khi nào sim được sang tên chính chủ?",
+    a: "Sim được sang tên chính chủ ngay sau khi bạn thanh toán đủ toàn bộ giá trị sim theo thỏa thuận. Trong thời gian trả góp, mọi cam kết về sang tên đều được ghi rõ trong hợp đồng.",
+  },
+  {
+    q: "Mua sim trả góp có phải trả lãi không?",
+    a: "Tùy chương trình. Có những gói lãi suất 0% trong thời gian đầu, sau đó tính lãi theo thỏa thuận trong hợp đồng. Toàn bộ chi phí được nêu rõ trước khi bạn ký, không phát sinh phí ẩn.",
+  },
+];
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqItems.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
+const conditions = [
+  { icon: Users, text: "CMND/CCCD còn hiệu lực" },
+  { icon: Shield, text: "Thu nhập ổn định, không nợ xấu" },
+  { icon: DollarSign, text: "Trả trước 10–30% giá trị sim" },
+  { icon: CheckCircle, text: "Kỳ hạn 6–12 tháng linh hoạt" },
+  { icon: Truck, text: "Giao sim tận nơi, nhận SIM mới trả tiền đợt đầu" },
+  { icon: Star, text: "Sang tên chính chủ khi tất toán" },
+];
 
 export default function SimTraGopPage() {
   return (
     <>
-      <main className="container mx-auto px-4 py-8">
-        <div className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
-          {/* Title */}
-          <h1 className="text-2xl md:text-3xl font-bold text-gold mb-6">
-            Có Nên Mua Sim Số Đẹp Trả Góp? Phân Tích Lợi Ích Và Những Lưu Ý Cần Biết
-          </h1>
-
-          {/* Introduction */}
-          <div className="space-y-4 text-foreground/90 mb-8">
-            <p>
-              Sở hữu một chiếc sim số đẹp (Tứ quý, Ngũ quý, Sim phong thủy...) không chỉ là cách để khẳng định đẳng cấp mà còn là công cụ hỗ trợ đắc lực cho công việc kinh doanh. Tuy nhiên, với mức giá từ vài chục triệu đến hàng tỷ đồng, không phải ai cũng sẵn sàng chi trả toàn bộ trong một lần. Đó là lý do dịch vụ mua sim trả góp ra đời.
+      <main className="min-h-screen bg-background">
+        <section
+          style={{ minHeight: "clamp(300px, 38vw, 380px)" }}
+          className="relative flex items-center bg-gradient-to-b from-primary via-primary-dark to-primary text-primary-foreground"
+        >
+          <div
+            className="pointer-events-none absolute inset-0 overflow-hidden opacity-[0.07]"
+            style={{
+              backgroundImage: `radial-gradient(circle at 25% 50%, hsl(var(--gold)) 0%, transparent 50%), radial-gradient(circle at 75% 50%, hsl(var(--gold)) 0%, transparent 50%)`,
+            }}
+          />
+          <div className="container relative mx-auto px-4 py-6 text-center">
+            <div className="mb-2 flex justify-center">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/30 bg-gold/15">
+                <Sparkles className="h-5 w-5 text-gold" />
+              </div>
+            </div>
+            <h1 className="mx-auto mb-3 max-w-3xl text-2xl font-extrabold leading-tight sm:text-3xl md:text-4xl">
+              Mua Sim Trả Góp — <span className="text-gold">chọn số, trả dần hàng tháng</span>
+            </h1>
+            <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
+              Chọn sim tứ quý, thần tài, lộc phát trả góp. Trả trước 10–30%, sang tên chính chủ khi tất toán.
             </p>
-            <p>
-              Vậy hình thức này có thực sự tốt? Hãy cùng phân tích chi tiết ngay dưới đây.
-            </p>
-          </div>
-
-          {/* Section 1 */}
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-primary mb-4">1. Tại sao nên chọn mua sim trả góp?</h2>
-            <div className="space-y-4 text-foreground/90">
-              <p>
-                Mua sim trả góp thực chất là hình thức bạn chỉ cần thanh toán trước một phần giá trị của sim (thường từ 10% - 30%), phần còn lại sẽ được chia nhỏ để trả dần theo từng tháng.
-              </p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>
-                  <strong>Sở hữu ngay sim VIP khi chưa đủ tài chính:</strong> Bạn không cần đợi đến khi tích lũy đủ hàng trăm triệu đồng mới có thể dùng sim Tứ quý hay Phát lộc.
-                </li>
-                <li>
-                  <strong>Cơ hội đầu tư sinh lời:</strong> Sim số đẹp là tài sản có giá trị gia tăng theo thời gian. Việc chốt mua sớm giúp bạn giữ được mức giá tốt trước khi thị trường tăng giá.
-                </li>
-                <li>
-                  <strong>Tận dụng vốn để kinh doanh:</strong> Thay vì dồn một cục tiền vào sim, bạn có thể dùng số tiền đó để xoay vòng vốn, đầu tư nhập hàng hoặc chạy quảng cáo.
-                </li>
-              </ul>
+            <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
+              <a
+                href="#kho-sim"
+                className="flex items-center justify-center gap-2 rounded-lg bg-gold px-7 py-2.5 font-bold text-header-bg shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:bg-gold-light hover:shadow-xl"
+              >
+                <Star className="h-4 w-4" /> Chọn số trả góp
+              </a>
+              <a
+                href={ZALO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 rounded-lg border border-primary-foreground/25 bg-primary-foreground/10 px-7 py-2.5 font-semibold text-primary-foreground transition-all duration-200 hover:bg-primary-foreground/20"
+              >
+                <Phone className="h-4 w-4" /> Tư vấn trả góp
+              </a>
             </div>
           </div>
+        </section>
 
-          {/* Section 2 */}
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-primary mb-4">2. Điểm lợi khi mua sim trả góp</h2>
-            <ul className="list-disc list-inside space-y-2 ml-4 text-foreground/90">
-              <li>
-                <strong>Thủ tục đơn giản, nhanh chóng:</strong> Thường chỉ cần CCCD, không cần chứng minh thu nhập rườm rà như vay ngân hàng.
-              </li>
-              <li>
-                <strong>Thời gian trả góp linh hoạt:</strong> Bạn có thể chọn kỳ hạn từ 6 tháng, 12 tháng hoặc lâu hơn tùy vào khả năng tài chính.
-              </li>
-              <li>
-                <strong>Được sử dụng sim ngay:</strong> Ngay sau khi ký hợp đồng và thanh toán đợt đầu, bạn đã có toàn quyền sử dụng sim để giao dịch, làm ăn.
-              </li>
-              <li>
-                <strong>Lãi suất cạnh tranh:</strong> Hiện nay nhiều đơn vị cung cấp mức lãi suất rất thấp, thậm chí có những chương trình ưu đãi lãi suất 0% trong thời gian đầu.
-              </li>
-            </ul>
-          </div>
+        <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
+          {/* Điều kiện */}
+          <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
+            <h2 className="mb-6 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
+              <span className="h-8 w-1 rounded-full bg-primary" />
+              Điều kiện mua sim trả góp
+            </h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {conditions.map((c, i) => (
+                <div key={i} className="flex items-start gap-3 rounded-lg bg-secondary/40 p-4">
+                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <c.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <span className="text-sm font-medium text-foreground">{c.text}</span>
+                </div>
+              ))}
+            </div>
+          </section>
 
-          {/* Section 3 */}
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-primary mb-4">3. Điểm hạn chế (Rủi ro cần lưu ý)</h2>
-            <p className="text-foreground/90 mb-4">
-              Bên cạnh những ưu điểm, hình thức này cũng có những mặt bạn cần cân nhắc kỹ:
-            </p>
-            <ul className="list-disc list-inside space-y-2 ml-4 text-foreground/90">
-              <li>
-                <strong>Tổng chi phí cao hơn:</strong> Do phải chịu thêm phần lãi suất hàng tháng, tổng số tiền bạn bỏ ra sẽ cao hơn so với việc mua đứt 1 lần.
-              </li>
-              <li>
-                <strong>Rủi ro về pháp lý:</strong> Trong thời gian trả góp, sim thường vẫn đứng tên chủ cũ (hoặc kho sim). Nếu bạn chọn đơn vị không uy tín, có thể xảy ra tranh chấp hoặc mất sim nếu cửa hàng đó phá sản.
-              </li>
-              <li>
-                <strong>Áp lực tài chính hàng tháng:</strong> Nếu không tính toán kỹ dòng tiền, việc trả gốc và lãi hàng tháng có thể trở thành gánh nặng.
-              </li>
-            </ul>
-          </div>
+          {/* Client island: SIM grid */}
+          <CategorySimGrid
+            title="Kho Sim Có Thể Trả Góp"
+            searchPlaceholder="Nhập số hoặc *đuôi để tìm sim trả góp..."
+            emptyText="Hiện chưa có sim phù hợp trong kho. Vui lòng thử lại sau."
+            matchAll
+          />
 
-          {/* Section 4 */}
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-primary mb-4">4. Lời khuyên để mua sim trả góp an toàn</h2>
-            <p className="text-foreground/90 mb-4">
-              Để đảm bảo quyền lợi tuyệt đối, bạn nên nằm lòng các nguyên tắc sau:
-            </p>
-            <ul className="list-disc list-inside space-y-2 ml-4 text-foreground/90">
-              <li>
-                <strong>Chọn địa chỉ uy tín:</strong> Chỉ mua tại các website có địa chỉ rõ ràng, có giấy phép kinh doanh và được cộng đồng chơi sim đánh giá cao.
-              </li>
-              <li>
-                <strong>Hợp đồng minh bạch:</strong> Mọi điều khoản về lãi suất, số tiền trả hàng tháng, thời hạn và cam kết sang tên chính chủ sau khi tất toán phải được ghi rõ trên văn bản có dấu đỏ.
-              </li>
-              <li>
-                <strong>Kiểm tra kỹ tình trạng sim:</strong> Đảm bảo sim sạch, không tranh chấp, không nợ cước trước khi ký hợp đồng.
-              </li>
-            </ul>
-          </div>
-
-          {/* Conclusion */}
-          <div className="mb-8 p-4 bg-muted/50 rounded-lg border border-border">
-            <p className="text-foreground/90">
-              <strong className="text-gold">Kết luận:</strong> Mua sim trả góp là giải pháp tài chính thông minh dành cho những người kinh doanh biết tận dụng đòn bẩy vốn. Chỉ cần bạn chọn đúng đơn vị uy tín, đây chính là "lối tắt" để bạn sở hữu tấm danh thiếp đẳng cấp cho riêng mình.
-            </p>
-          </div>
-
-          {/* Zalo Chat Card */}
-          <div className="mt-8 max-w-sm">
-            <h3 className="text-lg font-semibold text-foreground mb-3">Liên hệ tư vấn</h3>
-            <ZaloChatCard />
-          </div>
+          {/* FAQ */}
+          <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
+            <h2 className="mb-6 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
+              <span className="h-8 w-1 rounded-full bg-primary" />
+              Câu hỏi thường gặp
+            </h2>
+            <Accordion type="single" collapsible className="space-y-2">
+              {faqItems.map((faq, index) => (
+                <AccordionItem
+                  key={index}
+                  value={`faq-${index}`}
+                  className="rounded-lg border border-border px-4 data-[state=open]:bg-secondary/30"
+                >
+                  <AccordionTrigger className="py-4 text-left font-medium text-foreground hover:text-primary hover:no-underline">
+                    {faq.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-4 text-muted-foreground">{faq.a}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </section>
         </div>
       </main>
 
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

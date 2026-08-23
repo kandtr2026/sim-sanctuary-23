@@ -23,10 +23,10 @@ const IntroSection = ({ simCount = 0 }: IntroSectionProps) => {
     { Icon: Sparkles, value: simLabel, label: 'SIM số đẹp' },
     { Icon: Users, value: '100.000+', label: 'Khách hàng' },
     { Icon: Trophy, value: '10 Năm', label: 'Kinh nghiệm' },
-    // "24h Giao hàng" contradicted the TrustBar's "Ship HCM trong 2-4h" at the
-    // very top of the same page. The 2-4h figure is the one sales actually
-    // promises, and it also matches step 3 of ProcessSteps.
-    { Icon: Clock, value: '2-4h', label: 'Ship HCM' },
+    // "24h Giao hàng" contradicted the TrustBar's "Ship HCM" at the very top
+    // of the same page. The "30 phút – 2 giờ (nội thành HCM)" figure is the one
+    // sales actually promises, and it also matches step 3 of ProcessSteps.
+    { Icon: Clock, value: '30 phút – 2 giờ', label: 'Ship HCM' },
   ];
 
   return (

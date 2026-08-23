@@ -19,7 +19,7 @@ const TrustBar = () => {
           <div className="hidden sm:block text-primary-foreground/40">|</div>
           <div className="flex items-center gap-1.5">
             <span>⚡</span>
-            <span>Ship HCM trong 2-4h</span>
+            <span>Ship nội thành HCM 30 phút – 2 giờ</span>
           </div>
           <div className="hidden sm:block text-primary-foreground/40">|</div>
           <div className="flex items-center gap-1.5">

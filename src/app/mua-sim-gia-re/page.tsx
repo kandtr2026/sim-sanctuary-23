@@ -27,6 +27,7 @@ export const metadata: Metadata = {
     title: TITLE,
     description: `Toàn bộ SIM trong kho đúng ${PRICE_LABEL}, đã gồm gói cước TK179. Chọn số bạn thích, giá không đổi.`,
     url: CANONICAL,
+    images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
   },
 };
 

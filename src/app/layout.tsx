@@ -33,7 +33,7 @@ const STORE_JSON_LD = {
   logo: `${BASE_URL}/brand-logo.png`,
   telephone: "+84938868868",
   email: "hotro@chonsomobifone.com",
-  priceRange: "VND",
+  priceRange: "$$$",
   address: {
     "@type": "PostalAddress",
     streetAddress: "43A Đường số 9, Phường Tân Hưng",

@@ -32,6 +32,7 @@ export const metadata: Metadata = {
     title: "Tin Tức SIM Số Đẹp – CHONSOMOBIFONE.COM",
     description: "Kiến thức SIM số đẹp và phong thủy.",
     url: "https://www.chonsomobifone.com/tin-tuc",
+    images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
   },
 };
 

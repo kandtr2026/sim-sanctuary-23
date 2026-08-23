@@ -3,7 +3,7 @@ import SimBrowser from "@/components/SimBrowser";
 import FAQSection from "@/components/FAQSection";
 import { faqData } from "@/data/faqData";
 
-const TITLE = "Kho SIM số đẹp Mobifone giá rẻ – CHONSOMOBIFONE.COM";
+const TITLE = "Kho SIM số đẹp Mobifone giá rẻ, chính chủ – CHONSOMOBIFONE.COM";
 const DESCRIPTION =
   "Kho SIM số đẹp Mobifone: SIM tứ quý, phong thủy, tài lộc, năm sinh, giá rẻ. Tìm số ưng ý, giao SIM toàn quốc, sang tên chính chủ.";
 const CANONICAL = "https://www.chonsomobifone.com/";
@@ -43,9 +43,12 @@ export default function HomePage() {
         {/* Visible h1: it carries the same SEO weight it did as sr-only, but now also
             tells a first-time visitor what the page is. It replaces the deleted hero
             banner as the first painted element, so it is the new LCP candidate. */}
-        <h1 className="mb-3 text-lg font-bold leading-tight text-foreground md:text-2xl">
-          Kho SIM Mobifone số đẹp — <span className="text-gold">giá tốt, giao nhanh</span>
+        <h1 className="mb-2 text-lg font-bold leading-tight text-foreground md:text-2xl">
+          SIM Mobifone số đẹp — <span className="text-gold">nhận SIM rồi mới trả tiền</span>
         </h1>
+        <p className="mb-3 text-sm text-muted-foreground md:text-base">
+          Tứ quý · phong thủy · thần tài lộc phát. Giá niêm yết công khai, sang tên chính chủ, giao tận tay nội thành HCM.
+        </p>
 
         {/* Client island: search + filters + SIM grid (data fetched client-side via
             useSimData) + process steps + intro stats. */}

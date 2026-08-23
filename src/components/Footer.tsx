@@ -34,8 +34,7 @@ const Footer = () => {
               </Link>
             </h3>
             <p className="text-header-foreground/70 text-sm leading-relaxed mb-4 break-words">
-              Kho SIM số đẹp uy tín hàng đầu Việt Nam. Chuyên SIM Mobifone, SIM phong thủy, SIM tài lộc với giá tốt nhất
-              thị trường.
+              Chuyên SIM Mobifone số đẹp: phong thủy, tài lộc, tứ quý. Giá niêm yết công khai, sang tên chính chủ, giao SIM toàn quốc — nhận SIM rồi mới trả tiền.
             </p>
             <a href="tel:0938868868" className="inline-flex items-center gap-2 text-gold hover:text-gold-light transition-colors">
               <Phone className="w-4 h-4 flex-shrink-0" />
@@ -75,7 +74,7 @@ const Footer = () => {
             <ul className="space-y-3 text-sm text-header-foreground/70">
               <li className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 mt-0.5 text-gold flex-shrink-0" />
-                <span className="break-words">43A Đường số 9 Phường Tân Hưng TPHCM</span>
+                <span className="break-words">43A Đường số 9, Phường Tân Hưng, TP. Hồ Chí Minh</span>
               </li>
             </ul>
 

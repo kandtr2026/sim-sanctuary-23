@@ -17,6 +17,7 @@ export const metadata: Metadata = {
     title: TITLE,
     description: "Tra giá SIM số đẹp miễn phí, chính xác theo thị trường.",
     url: CANONICAL,
+    images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
   },
 };
 
