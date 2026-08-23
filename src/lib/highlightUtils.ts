@@ -313,9 +313,14 @@ const buildSpansFromHlSet = (
  * Highlight the quý block inside a SIM number for a quý-filtered listing.
  *
  * Ngũ quý / Lục quý: the 5/6 identical consecutive digits ANYWHERE in the
- * number (e.g. 0777.779.086 → "77777" sits in the middle, highlighted like
- * `*77777*`). Tứ quý: the 4 identical tail digits. Returns [displayNumber] when
- * the filter doesn't apply, so the caller can fall back to normal rendering.
+ * number. The display is reformatted to separate the quý block with dots:
+ *
+ *   raw 0777779086  →  0.77777.9086
+ *   raw 0902777775  →  0902.77777.5
+ *
+ * Tứ quý (4 tail digits) keeps the original 3-3-4 display format and just
+ * highlights the tail group in gold. Returns [displayNumber] when the filter
+ * doesn't apply, so the caller can fall back to normal rendering.
  */
 export const createQuyHighlightedNumber = (
   displayNumber: string,
@@ -326,27 +331,41 @@ export const createQuyHighlightedNumber = (
   if (!digits || !quyType) return [displayNumber];
 
   const run = quyType === 'Lục quý' ? 6 : quyType === 'Ngũ quý' ? 5 : 4;
-  const hlSet = new Set<number>();
+
+  // Find the quý block start index
+  let start = -1;
 
   if (quyType === 'Tứ quý') {
-    // Tứ quý: 4 số đuôi (quy ước của trang tứ quý)
-    const start = digits.length - run;
-    if (start >= 0 && /^(\d)\1{3}$/.test(digits.slice(start))) {
-      for (let i = start; i < digits.length; i++) hlSet.add(i);
-    }
-  } else {
-    // Ngũ quý / Lục quý: cụm run chữ số giống nhau liền nhau ở BẤT KỲ ĐÂU
-    const sameBlockRegex = new RegExp(`^(\\d)\\1{${run - 1}}$`);
-    for (let i = 0; i <= digits.length - run; i++) {
-      const block = digits.slice(i, i + run);
-      if (sameBlockRegex.test(block)) {
-        for (let j = i; j < i + run; j++) hlSet.add(j);
-        break;
-      }
-    }
+    // Tứ quý: 4 số đuôi — giữ nguyên format 3-3-4, chỉ highlight đuôi vàng
+    const s = digits.length - run;
+    if (s >= 0 && /^(\d)\1{3}$/.test(digits.slice(s))) start = s;
+    if (start === -1) return [displayNumber];
+    const hlSet = new Set<number>();
+    for (let i = start; i < digits.length; i++) hlSet.add(i);
+    return buildSpansFromHlSet(displayNumber, hlSet, 'font-extrabold text-gold');
   }
 
-  if (hlSet.size === 0) return [displayNumber];
-  // Tôn dạng quý lên: vàng + đậm, giống style VIP đuôi trong thẻ SIM.
-  return buildSpansFromHlSet(displayNumber, hlSet, 'font-extrabold text-gold');
+  // Ngũ quý / Lục quý: tìm cụm run chữ số giống nhau liền nhau ở BẤT KỲ ĐÂU
+  const sameBlockRegex = new RegExp(`^(\\d)\\1{${run - 1}}$`);
+  for (let i = 0; i <= digits.length - run; i++) {
+    if (sameBlockRegex.test(digits.slice(i, i + run))) {
+      start = i;
+      break;
+    }
+  }
+  if (start === -1) return [displayNumber];
+
+  // Reformat thành prefix.quýblock.suffix — dấu chấm tách cụm quý ra
+  // để mắt nhìn thấy ngay dạng đẹp (ví dụ 0.77777.9086).
+  const prefix = digits.slice(0, start);
+  const block = digits.slice(start, start + run);
+  const suffix = digits.slice(start + run);
+
+  const result: React.ReactNode[] = [];
+  result.push(React.createElement('span', { key: 'pre', className: 'opacity-80' }, prefix));
+  if (prefix) result.push('.');
+  result.push(React.createElement('span', { key: 'quy', className: 'font-extrabold text-gold' }, block));
+  if (suffix) result.push('.');
+  result.push(React.createElement('span', { key: 'suf', className: 'opacity-80' }, suffix));
+  return result;
 };
