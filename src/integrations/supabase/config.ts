@@ -20,7 +20,7 @@
  * Anything that must stay private belongs in a Supabase Edge Function (see
  * `supabase/functions/`), never in this file.
  */
-const FALLBACK_PROJECT_ID = 'pfeyyyvhzsuoccwoweco';
+const FALLBACK_PROJECT_ID = 'xhlpawjvtqvtdkhjanwl';
 
 export const SUPABASE_PROJECT_ID: string =
   process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID || FALLBACK_PROJECT_ID;
@@ -30,20 +30,20 @@ export const SUPABASE_URL: string =
 
 export const SUPABASE_PUBLISHABLE_KEY: string =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmZXl5eXZoenN1b2Njd293ZWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NTIzODEsImV4cCI6MjA4NDAyODM4MX0.RGOXDxNXOZn93fnZliCy48Hn2dH4tjogfAcdhp8KQiQ';
+  'sb_publishable_hh-3MDhY74qT3buUTtPasA_gfY9qzR1';
 
 /** Base URL for Edge Functions, e.g. `${EDGE_FUNCTIONS_URL}/sheet-proxy`. */
 export const EDGE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
 
 /**
- * Separate Supabase project for the admin panel (Auth + `profiles` +
- * `blog_posts` — see `supabase/migrations/`). It is deliberately NOT the same
- * project as SUPABASE_URL above: that one hosts the live `fetch-sim-data` /
- * `sheet-proxy` Edge Functions the storefront depends on, and it was created
- * outside any Supabase organization this account has access to, so the
- * admin/blog schema can't be added there. This project is the one Lovable
- * Cloud provisioned when the admin panel was built and is fully owned by
- * this account.
+ * The admin panel (Auth + `profiles` + `blog_posts` — see
+ * `supabase/migrations/`) now lives on the same project as the storefront
+ * Edge Functions. Both SUPABASE_URL and ADMIN_SUPABASE_URL resolve to
+ * `xhlpawjvtqvtdkhjanwl`, which this account owns; the storefront's
+ * `fetch-sim-data` / `sheet-proxy` / `make-webhook-proxy` were migrated here
+ * from the Lovable-provisioned project (`pfeyyyvhzsuoccwoweco`) that this
+ * account had no access to. The split is kept as two exports only to avoid
+ * touching every call site; they are the same project.
  */
 const ADMIN_FALLBACK_PROJECT_ID = 'xhlpawjvtqvtdkhjanwl';
 
