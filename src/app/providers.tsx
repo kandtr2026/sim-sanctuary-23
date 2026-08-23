@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePageVisitTracker } from "@/hooks/usePageVisitTracker";
+import { useConversionTracker } from "@/hooks/useConversionTracker";
 
 /**
  * Client-side providers, replacing the old `src/main.tsx` wrapper tree
@@ -14,6 +15,11 @@ import { usePageVisitTracker } from "@/hooks/usePageVisitTracker";
  */
 function PageVisitTracker() {
   usePageVisitTracker();
+  return null;
+}
+
+function ConversionTracker() {
+  useConversionTracker();
   return null;
 }
 
@@ -28,6 +34,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <Suspense fallback={null}>
           <PageVisitTracker />
         </Suspense>
+        <ConversionTracker />
         {children}
       </TooltipProvider>
     </QueryClientProvider>

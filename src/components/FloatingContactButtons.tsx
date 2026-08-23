@@ -66,6 +66,7 @@ const FloatingContactButtons = () => {
         {/* MESSENGER Button */}
         <button
           onClick={handleOpenMessengerChat}
+          data-conversion="messenger"
           aria-label="Chat Messenger"
           className="floating-contact-btn flex items-center justify-center rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-[#0084ff] focus:ring-offset-2"
           style={{

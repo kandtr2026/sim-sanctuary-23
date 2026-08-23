@@ -115,6 +115,33 @@ export type Database = {
         }
         Relationships: []
       }
+      conversion_clicks: {
+        Row: {
+          id: number
+          type: string
+          path: string
+          source: string | null
+          user_agent: string | null
+          clicked_at: string
+        }
+        Insert: {
+          id?: never
+          type: string
+          path: string
+          source?: string | null
+          user_agent?: string | null
+          clicked_at?: string
+        }
+        Update: {
+          id?: never
+          type?: string
+          path?: string
+          source?: string | null
+          user_agent?: string | null
+          clicked_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

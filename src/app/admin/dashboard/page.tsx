@@ -9,6 +9,7 @@ import RequireAdmin from "@/components/admin/RequireAdmin";
 import { SalesChart } from "@/components/admin/SalesChart";
 import { StatCard } from "@/components/admin/StatCard";
 import { PageVisitsSection } from "@/components/admin/PageVisitsSection";
+import { ConversionsSection } from "@/components/admin/ConversionsSection";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { getLastUpdateInfo, getPromotionalData, useSimData } from "@/hooks/useSimData";
 import { formatPrice, PRICE_RANGES } from "@/lib/simUtils";
@@ -252,6 +253,8 @@ function AdminDashboardContent() {
         <SalesChart />
 
         <PageVisitsSection />
+
+        <ConversionsSection />
 
         <PostsTable posts={posts} loading={postsLoading} onDelete={(post) => void handleDeletePost(post)} />
       </main>
