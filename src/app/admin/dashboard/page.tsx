@@ -1,32 +1,24 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { Loader2, LogOut, Pencil, Plus, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { BadgePercent, Crown, FileText, Smartphone, TrendingUp, Wallet } from "lucide-react";
+import { BarList } from "@/components/admin/BarList";
+import { DashboardHeader } from "@/components/admin/DashboardHeader";
+import { PostsTable, type PostRow } from "@/components/admin/PostsTable";
 import RequireAdmin from "@/components/admin/RequireAdmin";
+import { StatCard } from "@/components/admin/StatCard";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { useSimData } from "@/hooks/useSimData";
-import { PRICE_RANGES } from "@/lib/simUtils";
+import { getLastUpdateInfo, getPromotionalData, useSimData } from "@/hooks/useSimData";
+import { formatPrice, PRICE_RANGES } from "@/lib/simUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-interface PostRow {
-  id: string;
-  slug: string;
-  title: string;
-  category: string | null;
-  published: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-const StatCard = ({ label, value }: { label: string; value: string | number }) => (
-  <div className="rounded-lg border border-border bg-card p-4">
-    <p className="text-sm text-muted-foreground">{label}</p>
-    <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
-  </div>
-);
+const formatCompactVnd = (n: number) =>
+  n >= 1_000_000_000
+    ? `${(n / 1_000_000_000).toFixed(1)} tỷ`
+    : n >= 1_000_000
+      ? `${(n / 1_000_000).toFixed(0)} tr`
+      : n.toLocaleString("vi-VN");
 
 function AdminDashboardContent() {
   const { user, signOut } = useAdminAuth();
@@ -35,7 +27,7 @@ function AdminDashboardContent() {
   // uses, so "how many numbers of what kind are in stock" always matches
   // what a visitor actually sees on the site — no separate data pipeline to
   // keep in sync.
-  const { allSims, isLoading: simsLoading, tagCounts, prefixes } = useSimData();
+  const { allSims, isLoading: simsLoading, isFetching, forceReload, tagCounts, prefixes } = useSimData();
 
   const [posts, setPosts] = useState<PostRow[]>([]);
   const [postsLoading, setPostsLoading] = useState(true);
@@ -65,6 +57,23 @@ function AdminDashboardContent() {
     };
   }, []);
 
+  const stats = useMemo(() => {
+    const total = allSims.length;
+    const inventoryValue = allSims.reduce((sum, sim) => sum + (sim.price || 0), 0);
+    const discountedCount = allSims.filter((sim) => {
+      const promo = getPromotionalData(sim.id);
+      return promo?.finalPrice && promo.originalPrice > 0 && promo.finalPrice < promo.originalPrice;
+    }).length;
+    return {
+      total,
+      inventoryValue,
+      avgPrice: total > 0 ? inventoryValue / total : 0,
+      maxPrice: Math.max(0, ...allSims.map((sim) => sim.price || 0)),
+      vipCount: allSims.filter((sim) => sim.isVIP).length,
+      discountedCount,
+    };
+  }, [allSims]);
+
   const networkCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const sim of allSims) {
@@ -88,6 +97,54 @@ function AdminDashboardContent() {
     [tagCounts],
   );
 
+  const networkItems = useMemo(
+    () =>
+      Object.entries(networkCounts)
+        .sort((a, b) => {
+          const isMobifoneA = a[0] === "Mobifone" ? 0 : 1;
+          const isMobifoneB = b[0] === "Mobifone" ? 0 : 1;
+          if (isMobifoneA !== isMobifoneB) return isMobifoneA - isMobifoneB;
+          return b[1] - a[1];
+        })
+        .map(([network, count]) => ({
+          label: network,
+          count,
+          fillClass: network === "Mobifone" ? "bg-primary" : "bg-muted-foreground/40",
+        })),
+    [networkCounts],
+  );
+
+  const priceItems = useMemo(
+    () =>
+      priceBucketCounts
+        .filter((bucket) => bucket.count > 0)
+        .map((bucket) => ({
+          label: bucket.label,
+          count: bucket.count,
+          fillClass: "bg-[hsl(var(--gold-soft))]",
+        })),
+    [priceBucketCounts],
+  );
+
+  const tagItems = useMemo(
+    () =>
+      topTags.map(([tag, count]) => ({
+        label: tag,
+        count,
+        fillClass: "bg-[hsl(var(--gold-soft))]",
+      })),
+    [topTags],
+  );
+
+  const lastUpdate = getLastUpdateInfo();
+  const lastUpdateLabel = lastUpdate.timestamp
+    ? new Date(lastUpdate.timestamp).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
+    : "—";
+
+  const publishedCount = posts.filter((post) => post.published).length;
+  const draftCount = posts.length - publishedCount;
+  const discountPct = stats.total > 0 ? Math.round((stats.discountedCount / stats.total) * 100) : 0;
+
   const handleDeletePost = async (post: PostRow) => {
     if (!window.confirm(`Xoá bài viết "${post.title}"? Không thể hoàn tác.`)) return;
     const { error } = await supabase.from("blog_posts").delete().eq("id", post.id);
@@ -101,139 +158,96 @@ function AdminDashboardContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto flex items-center justify-between px-4 py-4">
-          <div>
-            <h1 className="text-lg font-semibold text-foreground">Trang quản trị</h1>
-            <p className="text-sm text-muted-foreground">{user?.email}</p>
-          </div>
-          <Button variant="outline" size="sm" onClick={() => void signOut()}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Đăng xuất
-          </Button>
-        </div>
-      </header>
+      <DashboardHeader
+        email={user?.email ?? ""}
+        lastUpdate={lastUpdateLabel}
+        simCount={stats.total}
+        isCache={lastUpdate.isCache}
+        isFetching={isFetching}
+        onRefresh={() => forceReload()}
+        onSignOut={() => void signOut()}
+      />
 
-      <main className="container mx-auto space-y-10 px-4 py-8">
+      <main className="container space-y-10 px-4 py-8">
         <section>
           <h2 className="mb-4 text-base font-semibold text-foreground">Thống kê kho số (đang bán)</h2>
+
           {simsLoading ? (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" /> Đang tải dữ liệu kho...
-            </div>
-          ) : (
             <>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
-                <StatCard label="Tổng số còn hàng" value={allSims.length.toLocaleString("vi-VN")} />
-                {Object.entries(networkCounts).map(([network, count]) => (
-                  <StatCard key={network} label={network} value={count.toLocaleString("vi-VN")} />
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="h-[120px] animate-pulse rounded-xl bg-muted" />
                 ))}
               </div>
+              <div className="mt-6 grid gap-4 md:grid-cols-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="h-44 animate-pulse rounded-xl bg-muted" />
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+                <StatCard label="Tổng SIM còn hàng" value={stats.total.toLocaleString("vi-VN")} icon={Smartphone} />
+                <StatCard
+                  label="Tổng giá trị kho"
+                  value={formatCompactVnd(stats.inventoryValue)}
+                  icon={Wallet}
+                  iconClass="bg-gold/15 text-gold"
+                  valueClass="text-gold"
+                />
+                <StatCard
+                  label="SIM đang giảm giá"
+                  value={stats.discountedCount.toLocaleString("vi-VN")}
+                  sub={`${discountPct}% tổng kho`}
+                  icon={BadgePercent}
+                  iconClass="bg-primary/15 text-primary"
+                  valueClass="text-primary"
+                />
+                <StatCard
+                  label="SIM VIP"
+                  value={stats.vipCount.toLocaleString("vi-VN")}
+                  icon={Crown}
+                  iconClass="bg-gold/15 text-gold"
+                  valueClass="text-gold"
+                />
+                <StatCard label="Giá trung bình" value={formatPrice(stats.avgPrice)} icon={TrendingUp} />
+                <StatCard
+                  label="Bài viết"
+                  value={posts.length.toLocaleString("vi-VN")}
+                  sub={postsLoading ? "Đang tải…" : `${publishedCount} đăng · ${draftCount} nháp`}
+                  icon={FileText}
+                />
+              </div>
 
-              <div className="mt-6 grid gap-6 md:grid-cols-2">
-                <div className="rounded-lg border border-border bg-card p-4">
-                  <h3 className="mb-3 text-sm font-medium text-foreground">Theo khoảng giá</h3>
-                  <ul className="space-y-1.5 text-sm">
-                    {priceBucketCounts
-                      .filter((b) => b.count > 0)
-                      .map((b) => (
-                        <li key={b.label} className="flex items-center justify-between text-muted-foreground">
-                          <span>{b.label}</span>
-                          <span className="font-medium text-foreground">{b.count.toLocaleString("vi-VN")}</span>
-                        </li>
-                      ))}
-                  </ul>
-                </div>
-
-                <div className="rounded-lg border border-border bg-card p-4">
-                  <h3 className="mb-3 text-sm font-medium text-foreground">Loại số phổ biến nhất</h3>
-                  <ul className="space-y-1.5 text-sm">
-                    {topTags.map(([tag, count]) => (
-                      <li key={tag} className="flex items-center justify-between text-muted-foreground">
-                        <span>{tag}</span>
-                        <span className="font-medium text-foreground">{count.toLocaleString("vi-VN")}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    Đầu 3 số phổ biến nhất: {prefixes.prefix3.slice(0, 10).join(", ") || "—"}
-                  </p>
-                </div>
+              <div className="mt-6 grid gap-4 md:grid-cols-3">
+                <BarList title="Phân bố theo mạng" items={networkItems} />
+                <BarList title="Theo khoảng giá" items={priceItems} />
+                <BarList
+                  title="Loại số phổ biến nhất"
+                  items={tagItems}
+                  footer={
+                    <div className="border-t border-border pt-3">
+                      <p className="mb-2 text-xs font-medium text-muted-foreground">Đầu số phổ biến</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {prefixes.prefix3.slice(0, 10).map((prefix) => (
+                          <span
+                            key={prefix}
+                            className="rounded-full border border-border bg-muted px-2 py-0.5 text-xs text-foreground"
+                          >
+                            {prefix}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  }
+                />
               </div>
             </>
           )}
         </section>
 
-        <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-foreground">Bài viết</h2>
-            <Button asChild size="sm">
-              <Link href="/admin/posts/new">
-                <Plus className="mr-2 h-4 w-4" />
-                Đăng bài mới
-              </Link>
-            </Button>
-          </div>
-
-          {postsLoading ? (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" /> Đang tải bài viết...
-            </div>
-          ) : posts.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Chưa có bài viết nào được tạo qua trang quản trị.</p>
-          ) : (
-            <div className="overflow-x-auto rounded-lg border border-border">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50 text-left text-muted-foreground">
-                  <tr>
-                    <th className="px-4 py-2 font-medium">Tiêu đề</th>
-                    <th className="px-4 py-2 font-medium">Danh mục</th>
-                    <th className="px-4 py-2 font-medium">Trạng thái</th>
-                    <th className="px-4 py-2 font-medium">Cập nhật</th>
-                    <th className="px-4 py-2" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {posts.map((post) => (
-                    <tr key={post.id}>
-                      <td className="px-4 py-2 text-foreground">
-                        {post.title}
-                        <div className="text-xs text-muted-foreground">/tin-tuc/{post.slug}</div>
-                      </td>
-                      <td className="px-4 py-2 text-muted-foreground">{post.category || "—"}</td>
-                      <td className="px-4 py-2">
-                        <span
-                          className={
-                            post.published
-                              ? "rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800"
-                              : "rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
-                          }
-                        >
-                          {post.published ? "Đã đăng" : "Nháp"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2 text-muted-foreground">
-                        {new Date(post.updated_at).toLocaleDateString("vi-VN")}
-                      </td>
-                      <td className="px-4 py-2">
-                        <div className="flex justify-end gap-2">
-                          <Button asChild variant="ghost" size="sm">
-                            <Link href={`/admin/posts/${post.id}`}>
-                              <Pencil className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={() => void handleDeletePost(post)}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
+        <PostsTable posts={posts} loading={postsLoading} onDelete={(post) => void handleDeletePost(post)} />
       </main>
     </div>
   );
