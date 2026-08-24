@@ -149,11 +149,11 @@ export default function RootLayout({
         {/* Google tag (gtag.js) */}
         <Script
           id="ga4-src"
-          src="https://www.googletagmanager.com/gtag/js?id=G-W7G7B81W6S"
+          src="https://www.googletagmanager.com/gtag/js?id=G-QGN17FVXPG"
           strategy="beforeInteractive"
         />
         <Script id="ga4-init" strategy="beforeInteractive">
-          {`window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-W7G7B81W6S');`}
+          {`window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-QGN17FVXPG');`}
         </Script>
         {/* Google Tag Manager (noscript) */}
         <noscript>

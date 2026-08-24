@@ -331,3 +331,21 @@ Băng CTA nhắc-lại (đặt ngay sau lưới kho ở Task 5):
 2. Đăng nhập `/admin` → vào `/admin/du-an`: thấy header chiến dịch + 3 cột trụ, tiến độ tổng, 4 phase với % và task đúng trạng thái (T1 = Xong, T2 = Chờ/P0, T6 = Đang làm → đổi thành Xong khi commit).
 3. Từ `/admin/dashboard` bấm được sang trang Dự án.
 4. Commit + push `main`. Đổi T6 trong `roadmap.ts` sang `done` + đánh dấu Task 6 = ✅ trong file này.
+
+---
+
+## Task 7 — ✅ ĐÃ LÀM · [P0 nhanh] Đổi mã GA4 sang property mới `G-QGN17FVXPG`
+
+**Bối cảnh:** chủ dự án đã tạo GA4 property mới cho chonsomobifone (Measurement ID **`G-QGN17FVXPG`**, Stream ID 15493718398). Web đang trỏ vào mã CŨ `G-W7G7B81W6S` → dữ liệu (gồm `generate_lead`) vẫn chảy vào property cũ. Đổi sang mã mới để lead chảy về property A Khoa toàn quyền, rồi mới đánh dấu Key event + nối Ads.
+
+### Việc — chỉ 1 file
+- **Sửa `src/app/layout.tsx`**: thay chuỗi `G-W7G7B81W6S` → `G-QGN17FVXPG` ở **đúng 2 chỗ**:
+  1. `src="https://www.googletagmanager.com/gtag/js?id=G-W7G7B81W6S"` (thẻ `ga4-src`).
+  2. `gtag('config', 'G-W7G7B81W6S')` (thẻ `ga4-init`).
+- **GIỮ NGUYÊN** container GTM `GTM-MWKVVS7M` (2 chỗ còn lại) — KHÔNG đụng.
+- Không đụng file/logic nào khác. `generate_lead` bắn qua `window.gtag` nên tự chảy về mã mới sau khi đổi.
+
+### Nghiệm thu
+1. `npm run build` **xanh**.
+2. View-source trang chủ (sau deploy) có `gtag/js?id=G-QGN17FVXPG` và `gtag('config', 'G-QGN17FVXPG')`; **không còn** `G-W7G7B81W6S`.
+3. Commit + push `main`. Đánh dấu Task 7 = ✅. (Fix ops nhỏ — không cần đổi `roadmap.ts`.)
