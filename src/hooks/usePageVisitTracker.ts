@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { getPagePath, classifySource } from "@/lib/trackingUtils";
+import { captureAttribution, getAttribution } from "@/lib/attribution";
 
 /**
  * Logs every page navigation to `public.page_visits` so the admin dashboard
@@ -27,6 +28,10 @@ export function usePageVisitTracker() {
   const lastLoggedRef = useRef<{ path: string; at: number } | null>(null);
 
   useEffect(() => {
+    // First-touch UTM/gclid capture — runs on first mount and is a no-op after
+    // (sessionStorage guard), so later internal navigations keep the original.
+    captureAttribution();
+
     const path = getPagePath(pathname, searchParams.toString());
     const now = Date.now();
 
@@ -42,6 +47,7 @@ export function usePageVisitTracker() {
       referrer,
       source,
       user_agent: navigator.userAgent,
+      ...getAttribution(),
     };
 
     supabase

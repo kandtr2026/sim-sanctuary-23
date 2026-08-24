@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getPagePath, classifySource } from "@/lib/trackingUtils";
+import { getAttribution } from "@/lib/attribution";
 
 /**
  * Global conversion-click tracker.
@@ -59,10 +60,12 @@ export function useConversionTracker() {
       // Một nguồn sự thật duy nhất cho "lead" trên GA4: mọi CTA liên hệ
       // (desktop + mobile) đều bắn đúng 1 event generate_lead ở đây. Guard
       // window.gtag?. vì ad-blocker có thể chặn gtag.
+      const attr = getAttribution();
       window.gtag?.("event", "generate_lead", {
         method: type,
         lead_source: source,
         page_path: path,
+        ...attr,
       });
 
       supabase
@@ -72,6 +75,7 @@ export function useConversionTracker() {
           path,
           source,
           user_agent: navigator.userAgent,
+          ...attr,
         })
         .then(({ error }) => {
           if (error) console.debug("[conversion] not logged:", error.message);
