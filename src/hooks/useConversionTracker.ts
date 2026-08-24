@@ -56,6 +56,15 @@ export function useConversionTracker() {
       const path = getPagePath(window.location.pathname, window.location.search);
       const { source } = classifySource(document.referrer);
 
+      // Một nguồn sự thật duy nhất cho "lead" trên GA4: mọi CTA liên hệ
+      // (desktop + mobile) đều bắn đúng 1 event generate_lead ở đây. Guard
+      // window.gtag?. vì ad-blocker có thể chặn gtag.
+      window.gtag?.("event", "generate_lead", {
+        method: type,
+        lead_source: source,
+        page_path: path,
+      });
+
       supabase
         .from("conversion_clicks")
         .insert({

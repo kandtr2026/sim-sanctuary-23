@@ -91,13 +91,6 @@ const FloatingContactButtons = () => {
         <a
           href={CALL_URL}
           aria-label="Gọi điện tư vấn"
-          onClick={() => {
-            window.gtag?.("event", "call_click", {
-              event_category: "contact",
-              event_label: "floating_call",
-              phone_number: CALL_URL.replace("tel:", ""),
-            });
-          }}
           className="floating-contact-btn flex items-center justify-center bg-green-500 hover:bg-green-600 rounded-full"
           style={{
             width: "clamp(48px, 4.5vw, 60px)",
@@ -119,12 +112,6 @@ const FloatingContactButtons = () => {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Chat Zalo"
-          onClick={() => {
-            window.gtag?.("event", "click_zalo", {
-              event_category: "contact",
-              event_label: "floating_zalo",
-            });
-          }}
           className="floating-contact-btn flex items-center bg-white hover:bg-gray-50 shadow-lg focus:outline-none focus:ring-2 focus:ring-[#0068ff] focus:ring-offset-2"
           style={{
             height: "clamp(48px, 4.5vw, 60px)",

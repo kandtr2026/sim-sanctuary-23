@@ -111,3 +111,99 @@ Web nền đen (`--background #0F0F0F`, `--card #1A1A1A`), nhấn **đỏ Mobifo
 - [x] Bảng bài viết vẫn sửa/xoá được; badge không chói trên nền đen.
 - [x] Có skeleton lúc tải; không còn `<ul>` phẳng trơ.
 - [x] `npm run build` xanh; mobile 375px không tràn ngang.
+
+---
+
+# 🚀 CHIẾN DỊCH "GREAT AGAIN" — Giai đoạn 0: Vá xô + gắn đồng hồ (trước khi bật Ads)
+
+> **Bối cảnh chiến lược (Claude + chủ dự án chốt 24/08):** North Star = **lead Zalo/gọi chất lượng/tháng**. Web hiện **gần như chưa có khách**; chủ dự án **sẵn sàng chi Ads (Google/FB)** + có kênh **Facebook + TikTok**. Kế hoạch chạy 2 đồng hồ song song: (A) bật Ads/social kéo khách nhanh, (B) dựng SEO programmatic gặt về sau. **NHƯNG** trước khi tiêu đồng Ads nào phải xong Giai đoạn 0 này — nếu không sẽ "đổ nước vào xô thủng, lại còn bịt mắt".
+>
+> **Phát hiện chí mạng khi audit hệ đo (đã verify trong source):** tín hiệu "lead" (click Zalo/gọi/messenger) hiện chỉ ghi vào **bảng Supabase `conversion_clicks`** — nơi **Google Ads KHÔNG đọc được**. Đồng thời event GA4 bị chắp vá: **chỉ `FloatingContactButtons` (desktop) mới bắn** `click_zalo`/`call_click`, còn **`StickyCtaBottomBar` (kênh liên hệ duy nhất trên mobile) KHÔNG bắn GA4**. → Nếu bật Ads bây giờ, Google Ads mù, không tối ưu được về lead.
+>
+> **Thứ tự làm:** **Task 2 (P0, chặn Ads) → Task 3 (P1) → Task 4 & 5 (P1, spec chi tiết vòng sau).** Làm xong Task nào đánh ✅, đừng xoá.
+>
+> **Hiện trạng đã xác minh (để khỏi phá):**
+> - GA4 `G-W7G7B81W6S` + GTM `GTM-MWKVVS7M` gắn ở `src/app/layout.tsx` (`strategy="beforeInteractive"`).
+> - `useConversionTracker` (`src/hooks/useConversionTracker.ts`) + `usePageVisitTracker` đã **mount sống** trong `src/app/providers.tsx`. Listener conversion chạy **capture-phase**, bắt **mọi** click liên hệ toàn site qua selector `a[href^='tel:'] , a[href^='https://zalo.me'] , [data-conversion]` → phủ cả floating desktop, sticky mobile, ZaloChatCard, popup. Có throttle 5s/loại.
+> - `window.gtag` đã có type ở `src/global.d.ts` (optional, phải guard `?.`).
+> - Bảng Supabase: `conversion_clicks(type,path,source,user_agent,clicked_at)` + `page_visits(path,referrer,source,user_agent,visited_at)`. RLS: anon INSERT `with check (true)` (thêm cột KHÔNG phá policy), chỉ admin SELECT. Migration ở `supabase/migrations/`.
+> - Dashboard admin đã đọc lead: `ConversionsSection` (theo loại + %) & `PageVisitsSection` ("khách đến từ đâu").
+
+---
+
+## Task 2 — ✅ ĐÃ LÀM · [P0 · CHẶN ADS] Thống nhất tín hiệu lead → 1 event GA4 `generate_lead` cho MỌI click liên hệ
+
+**Mục tiêu:** một nguồn sự thật duy nhất cho "lead", bắn từ **mọi** nút (desktop + mobile), để đánh dấu Key event trong GA4 và import sang Google Ads. Bỏ event chắp vá đang double-count trên desktop.
+
+### Sửa file
+1. **`src/hooks/useConversionTracker.ts`** — trong `onClick`, **sau** khi đã xác định `type` và qua throttle (ngay trước/cạnh chỗ `supabase.from("conversion_clicks").insert(...)`), thêm:
+   ```ts
+   window.gtag?.("event", "generate_lead", {
+     method: type,          // 'zalo' | 'call' | 'messenger'
+     lead_source: source,   // kết quả classifySource(document.referrer)
+     page_path: path,
+   });
+   ```
+   Giữ nguyên throttle 5s (để GA4 không double-count double-click), giữ nguyên insert Supabase, giữ capture-phase.
+2. **`src/components/FloatingContactButtons.tsx`** — **XOÁ** 2 khối `window.gtag?.("event", "call_click", …)` (trong `onClick` nút CALL) và `window.gtag?.("event", "click_zalo", …)` (trong `onClick` nút ZALO). Lý do: listener trung tâm giờ bắn thay; giữ lại sẽ **đếm gấp đôi** trên desktop. Giữ nguyên `href`, `aria-label`, và `handleOpenMessengerChat` (nút messenger vẫn có `data-conversion="messenger"` để listener bắt).
+
+### Ràng buộc
+- Tên event **chính xác** là `generate_lead` (event chuẩn GA4 cho lead), param `method` phân kênh. Đừng đổi tên.
+- Không thêm dependency. Không đụng bảng/RLS/Supabase ở task này.
+- `window.gtag?.` phải guard (ad-blocker có thể chặn gtag).
+
+### Nghiệm thu
+1. `npm run build` **xanh**.
+2. `npm run dev`, bật GA4 DebugView (hoặc GTM Preview). Bấm **Zalo / Gọi / Messenger** trên **desktop** (nút floating) và **mobile** (sticky bar — dùng devtools responsive 375px): mỗi lần đúng **1** event `generate_lead` với `method` đúng. **Không** còn `click_zalo`/`call_click` cũ.
+3. Bảng `conversion_clicks` vẫn ghi bình thường (kiểm ở `/admin/dashboard` mục "Chuyển đổi").
+4. Bấm nhanh 2 lần < 5s → chỉ 1 event (throttle).
+5. Commit + push `main` → Vercel `sim-sanctuary-23` deploy. Đánh dấu Task 2 = ✅ + báo đã đổi gì.
+
+### Bước cấu hình của CHỦ DỰ ÁN (không phải code — Claude sẽ hướng dẫn từng bước sau khi deploy)
+- GA4 → Admin → Events → đánh dấu `generate_lead` là **Key event**.
+- Link **Google Ads ↔ GA4**, import `generate_lead` làm **conversion action**, đặt làm mục tiêu tối ưu chiến dịch.
+
+---
+
+## Task 3 — ⏳ CHƯA LÀM · [P1] Bắt UTM + gclid/fbclid vào lead & lượt xem (để dashboard biết campaign nào ra lead)
+
+**Mục tiêu:** attribution nội bộ đang chỉ dựa `document.referrer` → khách Ads (đến với `?gclid=…`, không referrer) bị đếm nhầm "direct". Task này lưu UTM/gclid để **dashboard admin** cho chủ dự án thấy "lead này từ campaign nào" ngay trên web. **KHÔNG chặn việc chạy Ads** (GA4 đã tự bắt gclid/utm cho attribution của Ads) — nên P1.
+
+### Việc
+1. **Migration mới** `supabase/migrations/<ngày>_tracking_utm.sql` — additive cho **cả 2 bảng** `conversion_clicks` và `page_visits`:
+   ```sql
+   alter table public.conversion_clicks
+     add column if not exists utm_source text,
+     add column if not exists utm_medium text,
+     add column if not exists utm_campaign text,
+     add column if not exists utm_term text,
+     add column if not exists utm_content text,
+     add column if not exists gclid text,
+     add column if not exists fbclid text;
+   -- lặp lại y hệt cho public.page_visits
+   ```
+   Không đụng RLS (anon insert `check(true)` đã cho phép mọi cột). **Nếu opencode không có quyền `supabase db push`**, để nguyên file migration + ghi rõ trong báo cáo để chủ dự án dán vào Supabase SQL Editor chạy.
+2. **Cập nhật types** `src/integrations/supabase/types.ts` — thêm 7 cột mới (nullable) vào `conversion_clicks` & `page_visits` (regen hoặc sửa tay), để TS không đỏ.
+3. **Util mới** `src/lib/attribution.ts` (server-safe, guard `typeof window`):
+   - `captureAttribution()`: đọc `URLSearchParams` từ `window.location.search`; nếu có bất kỳ `utm_*`/`gclid`/`fbclid` → lưu `sessionStorage['attr']` **first-touch** (chỉ set nếu key chưa tồn tại trong session, để internal nav sau không ghi đè nguồn gốc).
+   - `getAttribution(): Record<string,string|null>` đọc lại (rỗng nếu không có / SSR).
+4. **Wire:**
+   - Gọi `captureAttribution()` một lần lúc vào — trong `src/app/providers.tsx` hoặc effect đầu của `usePageVisitTracker`.
+   - `useConversionTracker` + `usePageVisitTracker`: spread `...getAttribution()` vào payload `.insert(...)`.
+   - (Tuỳ) kèm `...getAttribution()` vào params event `generate_lead` của Task 2.
+
+### Nghiệm thu
+1. Migration chạy được; 7 cột xuất hiện ở cả 2 bảng.
+2. Mở `/?utm_source=google&utm_medium=cpc&utm_campaign=than-tai&gclid=TESTgclid` → bấm Zalo → row `conversion_clicks` có `utm_source=google`, `utm_campaign=than-tai`, `gclid=TESTgclid`.
+3. Điều hướng nội bộ sang trang khác rồi bấm Zalo lại → **vẫn giữ** campaign gốc (first-touch).
+4. `npm run build` **xanh**. Commit + push. Đánh dấu ✅.
+
+---
+
+## Task 4 — 🕓 SPEC SAU · [P1] Rà & vá lớp CTA + niềm tin trên các landing
+
+**Định hướng (chốt chi tiết sau khi có ảnh feedback thật từ chủ dự án + xem data đầu tiên):** mỗi landing quan trọng (`sim-than-tai`, `sim-loc-phat`, `sim-ngu-quy`, `sim-dau-so/[dauso]`, `mua-sim-gia-re`) có CTA Zalo/gọi **trong màn đầu** và **nhắc lại cuối trang**; thêm khối **cam kết** (sang tên chính chủ, COD kiểm SIM rồi trả tiền, đổi/hoàn) + khối **bằng chứng thật**. Đây là thứ quyết định khách lạ từ Ads có dám bấm Zalo. *Chưa thi công — chờ Claude spec chi tiết.*
+
+## Task 5 — 🕓 SPEC SAU · [P1] Chuẩn hoá 2–3 trang đích đón Ads + gắn pixel Facebook
+
+**Định hướng (chốt sau khi bàn chiến thuật Ads: nhóm từ khoá + ngân sách):** chọn 2–3 trang đích khớp intent quảng cáo (giá rẻ / thần tài–lộc phát / theo đầu số), message match với mẫu Ads, CTA màn đầu, **tải nhanh trên mobile** (< 2.5s 4G), gắn **Facebook Pixel**. *Chưa thi công — chờ Claude spec chi tiết.*
