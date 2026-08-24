@@ -56,9 +56,9 @@ export const ROADMAP: RoadmapPhase[] = [
       {
         id: "T4",
         title: "Vá CTA + lớp niềm tin trên landing",
-        status: "todo",
+        status: "done",
         priority: "P1",
-        next: "Chờ ảnh feedback thật + data đầu",
+        updated: "2026-08-24",
       },
       {
         id: "T5",

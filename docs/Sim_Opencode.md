@@ -200,13 +200,74 @@ Web nền đen (`--background #0F0F0F`, `--card #1A1A1A`), nhấn **đỏ Mobifo
 
 ---
 
-## Task 4 — 🕓 SPEC SAU · [P1] Rà & vá lớp CTA + niềm tin trên các landing
+## Task 4 — ✅ ĐÃ LÀM · [P1 · làm TRƯỚC khi bật Ads] Dựng 3 component tái dùng: cam kết + bằng chứng + CTA nhắc-lại
 
-**Định hướng (chốt chi tiết sau khi có ảnh feedback thật từ chủ dự án + xem data đầu tiên):** mỗi landing quan trọng (`sim-than-tai`, `sim-loc-phat`, `sim-ngu-quy`, `sim-dau-so/[dauso]`, `mua-sim-gia-re`) có CTA Zalo/gọi **trong màn đầu** và **nhắc lại cuối trang**; thêm khối **cam kết** (sang tên chính chủ, COD kiểm SIM rồi trả tiền, đổi/hoàn) + khối **bằng chứng thật**. Đây là thứ quyết định khách lạ từ Ads có dám bấm Zalo. *Chưa thi công — chờ Claude spec chi tiết.*
+**Mục tiêu:** khách lạ từ Ads chỉ bấm Zalo/gọi khi TIN. Dựng sẵn 3 component để Task 5 gắn vào các trang đích (thay vì sửa lẻ). **Chỉ tạo component, chưa gắn vào trang** (Task 5 mới gắn).
 
-## Task 5 — 🕓 SPEC SAU · [P1] Chuẩn hoá 2–3 trang đích đón Ads + gắn pixel Facebook
+**Hằng số liên hệ dùng chung** (bám repo): `ZALO_URL = "https://zalo.me/0933356666"`, `CALL = "tel:+84938868868"`. Lưu ý: mọi thẻ `<a href="tel:…">` hoặc `href="https://zalo.me…">` **tự động bắn `generate_lead`** qua listener toàn cục (`useConversionTracker`) — KHÔNG cần thêm onClick tracking.
 
-**Định hướng (chốt sau khi bàn chiến thuật Ads: nhóm từ khoá + ngân sách):** chọn 2–3 trang đích khớp intent quảng cáo (giá rẻ / thần tài–lộc phát / theo đầu số), message match với mẫu Ads, CTA màn đầu, **tải nhanh trên mobile** (< 2.5s 4G), gắn **Facebook Pixel**. *Chưa thi công — chờ Claude spec chi tiết.*
+### 1. `src/components/TrustCommitments.tsx` (Server Component, không cần "use client")
+Khối "Cam kết khi mua" — 5 cam kết xoá rủi ro, mỗi cái: icon `lucide-react` + tiêu đề đậm + 1 dòng mô tả. **Thứ tự đúng như dưới** (cái xoá rủi ro mạnh nhất lên đầu):
+1. `ShieldCheck` — **Nhận SIM, kiểm tra rồi mới trả tiền** · "Ship COD nội thành: cầm SIM, kích hoạt thử rồi mới thanh toán."
+2. `BadgeCheck` — **Sang tên chính chủ 100%** · "Hỗ trợ sang tên qua cửa hàng MobiFone / app My MobiFone."
+3. `Tag` — **Giá niêm yết công khai** · "Giá hiện ngay trên số — không phí ẩn, không hét giá."
+4. `Truck` — **Giao nhanh toàn quốc** · "Nội thành HCM 30 phút–2 giờ; tỉnh khác 1–3 ngày."
+5. `RefreshCw` — **Đổi/hoàn nếu SIM lỗi** · "SIM không kích hoạt được → đổi số khác hoặc hoàn tiền."
+
+- Bọc card `rounded-xl border border-border bg-card p-6 shadow-card md:p-8`, tiêu đề `<h2>` kiểu các section sẵn có (thanh `bg-primary` + text-primary). Grid `sm:grid-cols-2 lg:grid-cols-3`, mỗi item icon trong ô `bg-primary/10 rounded-lg`, tiêu đề `text-foreground font-semibold`, mô tả `text-sm text-muted-foreground`.
+- Prop `title?: string` (mặc định "Cam kết khi mua tại CHONSOMOBIFONE.COM").
+
+### 2. `src/components/CustomerProof.tsx` + `src/data/testimonials.ts`
+- `src/data/testimonials.ts`:
+  ```ts
+  export interface Testimonial { quote: string; author: string; role?: string; image?: string; } // image = đường dẫn trong /public, vd "/proof/kh1.jpg"
+  // CHỦ DỰ ÁN điền feedback THẬT vào đây (ảnh bỏ vào /public/proof/). Để trống → khối tự ẩn, KHÔNG bịa proof.
+  export const TESTIMONIALS: Testimonial[] = [];
+  ```
+- `CustomerProof.tsx` (Server Component): nếu `TESTIMONIALS.length === 0` → `return null` (không hiện khối rỗng, TUYỆT ĐỐI không bịa review). Nếu có → section "Khách hàng nói gì" grid card: quote + author (+ role); nếu có `image` thì `<img src={t.image} loading="lazy" …>` (không dùng next/image để khỏi cấu hình). Style card đồng bộ web.
+
+### 3. `src/components/LeadMagnetCta.tsx` (Server Component)
+Băng CTA nhắc-lại (đặt ngay sau lưới kho ở Task 5): 
+- Tiêu đề (prop `title`, mặc định "Chưa tìm được số ưng ý?") + phụ (prop `subtitle`, mặc định "Nhắn Zalo, tụi mình lọc số theo tuổi, mệnh & ngân sách của bạn trong 5 phút.").
+- 2 nút: **Chat Zalo chọn số** (`ZALO_URL`, `target="_blank" rel="noopener noreferrer"`, icon `MessageCircle`, nền `bg-gold text-header-bg`) và **Gọi tư vấn** (`CALL`, icon `Phone`, viền).
+- Băng nổi bật: nền `bg-gradient-to-b from-primary to-primary-dark text-primary-foreground` `rounded-xl p-6 md:p-8`, canh giữa.
+
+### Ràng buộc & Xong việc
+- **Không thêm dependency.** Dark theme, bám token (`--primary`, `--gold`, `--card`, `--border`). Responsive 375/1280.
+- `npm run build` **xanh**. Commit + push. Cập nhật `roadmap.ts` T4 (title giữ, `status: "done"`, `updated`) + đánh dấu Task 4 = ✅.
+
+---
+
+## Task 5 — ⏳ CHƯA LÀM · [P1 · làm TRƯỚC khi bật Ads] Gắn component vào 3 trang đích Ads + Facebook Pixel
+
+**Mục tiêu:** 3 trang đích Ads chốt được lead. Trang đích theo chiến thuật Ads đã chốt: **nhóm A phong thuỷ–tài lộc → `sim-than-tai`, `sim-loc-phat`** · **nhóm B đầu số → `sim-dau-so/[dauso]`**. (Phụ thuộc Task 4 xong trước.)
+
+### 1. Gắn component (dùng 3 component từ Task 4)
+- **`src/app/sim-than-tai/page.tsx`** và **`src/app/sim-loc-phat/page.tsx`**:
+  - Thêm `<LeadMagnetCta />` **ngay sau `<CategorySimGrid … />`** (đúng lúc khách vừa xem kho mà chưa ưng → mời nhắn Zalo).
+  - Thêm `<CustomerProof />` sau khối "Giá…" / trước FAQ.
+  - **Thay** khối niềm tin inline (mảng `benefits` + section render `benefits.map`) bằng `<TrustCommitments />` (mạnh hơn, đỡ trùng). Xoá luôn mảng `benefits` + import icon thừa.
+- **`src/app/sim-dau-so/[dauso]/page.tsx`** (đang MỎNG — nâng lên ngang than-tai):
+  - **Bổ sung** `<TrustCommitments />`, `<CustomerProof />`, `<LeadMagnetCta />` (sau `<CategorySimGrid />`).
+  - Thêm khối **FAQ ngắn 3 câu** (giá đầu số / sang tên chính chủ / thời gian giao) kèm JSON-LD `FAQPage` — tái dùng đúng mẫu accordion + `faqJsonLd` như `sim-than-tai`, đổi nội dung theo `{dauso}`.
+
+### 2. Facebook Pixel (base, gated env — inert khi chưa set)
+- Tạo `src/components/FacebookPixel.tsx`: đọc `process.env.NEXT_PUBLIC_FB_PIXEL_ID`; nếu có → chèn base pixel chuẩn qua `next/script` (`strategy="afterInteractive"`) + `<noscript><img …/></noscript>`; nếu không → `return null`.
+- Thêm `<FacebookPixel />` vào `src/app/layout.tsx` (cạnh khối GA4).
+- Thêm dòng `NEXT_PUBLIC_FB_PIXEL_ID=` vào `.env.example` (comment: chủ dự án set giá trị trong Vercel env khi chạy FB Ads).
+
+### 3. Bắn `Lead` về Facebook Pixel (parity với generate_lead)
+- Trong `src/hooks/useConversionTracker.ts`, ngay cạnh dòng `window.gtag?.("event","generate_lead",…)` đã có, thêm (guard): `window.fbq?.("track", "Lead", { content_name: type });`
+- Thêm khai báo `fbq?: (...args: unknown[]) => void;` vào `Window` trong `src/global.d.ts`.
+
+### Ràng buộc & Nghiệm thu
+- **Không thêm dependency.** Giữ mọi trang SSG (Server Component), ảnh proof `loading="lazy"` — không làm nặng mobile.
+- `npm run build` **xanh**.
+- 3 trang đích: có khối cam kết + CTA nhắc-lại sau kho; `sim-dau-so` không còn "mỏng" (có cam kết + FAQ). `CustomerProof` ẩn khi `TESTIMONIALS` rỗng (đúng — chưa bịa).
+- Set thử `NEXT_PUBLIC_FB_PIXEL_ID` → có script pixel; bấm Zalo → Network có request `facebook.com/tr` (fbq Lead) + GA4 vẫn có `generate_lead`.
+- Commit + push. Cập nhật `roadmap.ts` T5 `status: "done"` + `updated`; đánh dấu Task 5 = ✅.
+
+> **Việc của CHỦ DỰ ÁN (không phải code):** (a) điền feedback thật vào `src/data/testimonials.ts` + bỏ ảnh vào `/public/proof/` để kích hoạt khối bằng chứng; (b) khi chạy FB Ads thì tạo Pixel, lấy ID set vào Vercel env `NEXT_PUBLIC_FB_PIXEL_ID`.
 
 ---
 
