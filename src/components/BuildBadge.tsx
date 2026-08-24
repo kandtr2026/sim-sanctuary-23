@@ -49,7 +49,11 @@ const readInitialVisibility = (): boolean => {
 };
 
 const BuildBadge = () => {
-  const [visible, setVisible] = useState(readInitialVisibility);
+  // Bắt đầu ẩn cố định để lần render đầu (SSR + hydration) KHỚP nhau — trước
+  // đây useState(readInitialVisibility) đọc window/localStorage/URL ngay lúc
+  // render đầu: SSR trả false, client có thể trả true → hydration mismatch #418.
+  // Việc đọc trạng thái thật chuyển vào useEffect (chạy sau khi mount).
+  const [visible, setVisible] = useState(false);
   // Recomputed on a timer so "5 phút trước" doesn't freeze on a long-open tab.
   const [age, setAge] = useState(() => formatBuildAge());
   // The mobile sticky CTA occupies the bottom edge on some routes only. Rather than
@@ -57,6 +61,10 @@ const BuildBadge = () => {
   // measure whatever is actually rendered and lift the badge clear of it.
   const [liftPx, setLiftPx] = useState(0);
   const pathname = usePathname();
+
+  useEffect(() => {
+    setVisible(readInitialVisibility());
+  }, []);
 
   useEffect(() => {
     if (!visible) return;

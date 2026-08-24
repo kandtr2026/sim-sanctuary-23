@@ -388,3 +388,22 @@ Băng CTA nhắc-lại (đặt ngay sau lưới kho ở Task 5):
 2. Mở thử `/sim-dau-so/090/than-tai` và `/sim-dau-so/093/loc-phat`: kho lọc đúng (số bắt đầu đúng đầu số + đuôi đúng loại), có cam kết + CTA nhắc-lại + FAQ + JSON-LD.
 3. `sitemap.xml` có 24 URL mới. Combo sai (vd `/sim-dau-so/098/than-tai`, `/sim-dau-so/090/abc`) → 404.
 4. Commit + push. Cập nhật `roadmap.ts`: `G2-seo` → `status: "doing"` + `next: "combo đầu số×loại xong, tiếp ý nghĩa số + hợp tuổi (chờ bảng nạp âm)"`. Đánh dấu Task 8 = ✅.
+
+---
+
+## Task 9 — ✅ ĐÃ LÀM · [P1 · chất lượng landing] Vá lỗi hydration React #418 toàn site
+
+**Bối cảnh:** Claude verify trên web thật (25/08): console **prod** báo `Uncaught Minified React error #418` (hydration mismatch) trên **mọi trang landing** — reproduce ở `/sim-than-tai` (2 lần) và `/sim-dau-so/090/than-tai`. **KHÔNG phải lỗi Task 8** — lỗi có sẵn ở **tầng layout dùng chung**. Hydration mismatch khiến React **vứt HTML server render lại ở client** → layout shift (CLS) + chậm tương tác → **tụt Core Web Vitals** → **tăng CPC Google Ads (Landing Page Experience) + tụt rank SEO**. Đây là trang đích Ads/SEO đổ khách vào nên đáng vá.
+
+### Cách làm — CHẨN ĐOÁN trước, sửa tối thiểu sau
+1. **`npm run dev`**, mở `/sim-than-tai` (và 1 trang combo). Bản **dev** in **đầy đủ** lỗi #418 kèm **component stack** chỉ đúng component/thuộc tính bị lệch — đây là bước chính (prod minified không đọc được, ĐỪNG đoán mò).
+2. **Nghi phạm ưu tiên (kiểm trước theo component stack):**
+   - **`src/components/BuildBadge.tsx`** — `useState(readInitialVisibility)` đọc `window`/`localStorage`/URL param **ngay lúc render đầu** → SSR trả `false`, client-first-render có thể khác → mismatch. Fix chuẩn: khởi tạo state cố định (`false`), chuyển việc đọc `localStorage`/URL vào `useEffect` (SSR và client-first-render khớp).
+   - **`src/app/layout.tsx`** — nếu có ThemeProvider/`next-themes` set class theo localStorage mà `<html>` thiếu `suppressHydrationWarning`.
+   - Component tầng layout đọc `window`/`Date`/`Math.random`/`matchMedia` khi render đầu (StickyCtaBottomBar/`useIsMobile`, TrustBar…).
+3. **Sửa tối thiểu** đúng chỗ component stack chỉ. Nguyên tắc: giá trị phụ thuộc browser → **render giống server ở lần đầu, cập nhật trong `useEffect`** (hoặc `suppressHydrationWarning` cho chỗ chủ đích khác như build/time).
+
+### Nghiệm thu
+1. `npm run dev` mở `/sim-than-tai` + `/sim-dau-so/090/than-tai` → **console KHÔNG còn React #418** (và không phát sinh warning hydration mới).
+2. `npm run build` **xanh**; hành vi trang giữ nguyên (kho, CTA, generate_lead vẫn chạy).
+3. Commit + push. Đánh dấu Task 9 = ✅. (Fix chất lượng — không cần đổi `roadmap.ts`.)

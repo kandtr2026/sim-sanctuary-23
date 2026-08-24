@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 // ============================================================
@@ -102,7 +103,14 @@ const fetchDeliveredCount = async (): Promise<number> => {
  * - isLoading: đang tải lần đầu và chưa có cache
  */
 export const useDeliveredCount = () => {
-  const cached = loadCache();
+  // Đọc localStorage TRONG EFFECT, không đọc lúc render: nếu đọc ở render thì
+  // SSR (cached=null → TrustBar hiện "…") khác client khi có cache → hydration
+  // mismatch React #418 trên MỌI trang (TrustBar nằm ở layout dùng chung).
+  const [cached, setCached] = useState<number | null>(null);
+
+  useEffect(() => {
+    setCached(loadCache());
+  }, []);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['deliveredCount'],
