@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
-import { Phone, Star, Shield, CheckCircle, Truck, DollarSign, Users, Sparkles } from "lucide-react";
+import { Phone, Star, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
 import SimSnapshot from "@/components/SimSnapshot";
+import TrustCommitments from "@/components/TrustCommitments";
+import CustomerProof from "@/components/CustomerProof";
+import LeadMagnetCta from "@/components/LeadMagnetCta";
 import {
   Accordion,
   AccordionContent,
@@ -59,15 +62,6 @@ const faqJsonLd = {
     acceptedAnswer: { "@type": "Answer", text: item.a },
   })),
 };
-
-const benefits = [
-  { icon: Star, text: "Kho sim thần tài Mobifone đẹp" },
-  { icon: Shield, text: "Giao dịch an toàn, bảo mật" },
-  { icon: CheckCircle, text: "Sang tên chính chủ" },
-  { icon: DollarSign, text: "Giá niêm yết công khai" },
-  { icon: Truck, text: "Nhận SIM rồi mới trả tiền" },
-  { icon: Users, text: "Tư vấn chọn số 24/7" },
-];
 
 export default async function SimThanTaiPage() {
   const snapshotSims = await getCategorySnapshot({ suffixes: ["39", "79"] }, 8);
@@ -146,6 +140,8 @@ export default async function SimThanTaiPage() {
             matchSuffixes={["39", "79"]}
           />
 
+          <LeadMagnetCta />
+
           {/* Price */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
@@ -158,6 +154,9 @@ export default async function SimThanTaiPage() {
               đặt.
             </p>
           </section>
+
+          {/* Customer proof */}
+          <CustomerProof />
 
           {/* Who should buy */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
@@ -172,22 +171,7 @@ export default async function SimThanTaiPage() {
           </section>
 
           {/* Trust */}
-          <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
-            <h2 className="mb-6 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
-              <span className="h-8 w-1 rounded-full bg-primary" />
-              Mua sim thần tài ở đâu uy tín — cam kết &amp; sang tên
-            </h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {benefits.map((b, i) => (
-                <div key={i} className="flex items-start gap-3 rounded-lg bg-secondary/40 p-4">
-                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                    <b.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="text-sm font-medium text-foreground">{b.text}</span>
-                </div>
-              ))}
-            </div>
-          </section>
+          <TrustCommitments />
 
           {/* FAQ */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">

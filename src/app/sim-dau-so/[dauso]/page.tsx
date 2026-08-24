@@ -3,6 +3,15 @@ import { notFound } from "next/navigation";
 import { Phone, Star, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
 import SimSnapshot from "@/components/SimSnapshot";
+import TrustCommitments from "@/components/TrustCommitments";
+import CustomerProof from "@/components/CustomerProof";
+import LeadMagnetCta from "@/components/LeadMagnetCta";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { buildBreadcrumb } from "@/lib/seo";
 import { getCategorySnapshot } from "@/lib/serverSimData";
 
@@ -52,6 +61,31 @@ export default async function SimDauSoPage({ params }: Props) {
   if (!isValidPrefix(dauso)) notFound();
 
   const snapshotSims = await getCategorySnapshot({ prefixes: [dauso] }, 8);
+
+  const faqItems = [
+    {
+      q: `Sim đầu số ${dauso} giá bao nhiêu?`,
+      a: `Sim đầu số ${dauso} Mobifone có giá từ vài trăm nghìn đến hàng chục triệu đồng, tùy độ đẹp của dãy số (tứ quý, thần tài, lộc phát, phong thủy). Giá niêm yết công khai ngay trên kho, không phát sinh phí ẩn.`,
+    },
+    {
+      q: `Mua sim đầu số ${dauso} có sang tên chính chủ được không?`,
+      a: `Được. Toàn bộ sim đầu số ${dauso} tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Bạn nhận SIM trước, kiểm tra kỹ rồi mới trả tiền; hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.`,
+    },
+    {
+      q: `Giao sim đầu số ${dauso} mất bao lâu?`,
+      a: "Nội thành TP.HCM: 30 phút – 2 giờ làm việc. Các tỉnh thành khác: 1–3 ngày làm việc qua chuyển phát nhanh. Thanh toán COD khi nhận hàng hoặc chuyển khoản trước.",
+    },
+  ];
+
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  };
 
   return (
     <>
@@ -120,6 +154,32 @@ export default async function SimDauSoPage({ params }: Props) {
             matchPrefixes={[dauso]}
           />
 
+          <TrustCommitments />
+          <CustomerProof />
+          <LeadMagnetCta />
+
+          {/* FAQ */}
+          <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
+            <h2 className="mb-6 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
+              <span className="h-8 w-1 rounded-full bg-primary" />
+              Câu hỏi thường gặp
+            </h2>
+            <Accordion type="single" collapsible className="space-y-2">
+              {faqItems.map((faq, index) => (
+                <AccordionItem
+                  key={index}
+                  value={`faq-${index}`}
+                  className="rounded-lg border border-border px-4 data-[state=open]:bg-secondary/30"
+                >
+                  <AccordionTrigger className="py-4 text-left font-medium text-foreground hover:text-primary hover:no-underline">
+                    {faq.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-4 text-muted-foreground">{faq.a}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </section>
+
           {/* Cross-links to other prefixes + categories */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
@@ -162,6 +222,10 @@ export default async function SimDauSoPage({ params }: Props) {
         </div>
       </main>
 
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

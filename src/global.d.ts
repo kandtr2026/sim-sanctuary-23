@@ -25,6 +25,9 @@ declare global {
       params?: Record<string, unknown>,
     ) => void;
 
+    /** Facebook Pixel (fbq). Guard trước khi gọi. */
+    fbq?: (...args: unknown[]) => void;
+
     /** Global opener for the quick-message template panel. */
     __showMessengerTemplates?: () => void;
   }

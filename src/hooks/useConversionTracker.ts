@@ -67,6 +67,8 @@ export function useConversionTracker() {
         page_path: path,
         ...attr,
       });
+      // Đồng bộ với generate_lead: bắn Lead về Facebook Pixel (guard — có thể bị chặn).
+      window.fbq?.("track", "Lead", { content_name: type });
 
       supabase
         .from("conversion_clicks")

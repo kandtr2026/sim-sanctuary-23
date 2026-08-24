@@ -238,7 +238,7 @@ Băng CTA nhắc-lại (đặt ngay sau lưới kho ở Task 5):
 
 ---
 
-## Task 5 — ⏳ CHƯA LÀM · [P1 · làm TRƯỚC khi bật Ads] Gắn component vào 3 trang đích Ads + Facebook Pixel
+## Task 5 — ✅ ĐÃ LÀM · [P1 · làm TRƯỚC khi bật Ads] Gắn component vào 3 trang đích Ads + Facebook Pixel
 
 **Mục tiêu:** 3 trang đích Ads chốt được lead. Trang đích theo chiến thuật Ads đã chốt: **nhóm A phong thuỷ–tài lộc → `sim-than-tai`, `sim-loc-phat`** · **nhóm B đầu số → `sim-dau-so/[dauso]`**. (Phụ thuộc Task 4 xong trước.)
 

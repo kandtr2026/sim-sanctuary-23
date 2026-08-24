@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
-import { Phone, Star, Shield, CheckCircle, Truck, DollarSign, Users, Sparkles } from "lucide-react";
+import { Phone, Star, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
 import SimSnapshot from "@/components/SimSnapshot";
+import TrustCommitments from "@/components/TrustCommitments";
+import CustomerProof from "@/components/CustomerProof";
+import LeadMagnetCta from "@/components/LeadMagnetCta";
 import {
   Accordion,
   AccordionContent,
@@ -59,15 +62,6 @@ const faqJsonLd = {
     acceptedAnswer: { "@type": "Answer", text: item.a },
   })),
 };
-
-const benefits = [
-  { icon: Star, text: "Kho sim lộc phát Mobifone đẹp" },
-  { icon: Shield, text: "Giao dịch an toàn, bảo mật" },
-  { icon: CheckCircle, text: "Sang tên chính chủ" },
-  { icon: DollarSign, text: "Giá niêm yết công khai" },
-  { icon: Truck, text: "Nhận SIM rồi mới trả tiền" },
-  { icon: Users, text: "Tư vấn chọn số 24/7" },
-];
 
 export default async function SimLocPhatPage() {
   const snapshotSims = await getCategorySnapshot({ suffixes: ["68", "86"] }, 8);
@@ -144,6 +138,8 @@ export default async function SimLocPhatPage() {
             matchSuffixes={["68", "86"]}
           />
 
+          <LeadMagnetCta />
+
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
               <span className="h-8 w-1 rounded-full bg-primary" />
@@ -156,6 +152,9 @@ export default async function SimLocPhatPage() {
             </p>
           </section>
 
+          {/* Customer proof */}
+          <CustomerProof />
+
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
               <span className="h-8 w-1 rounded-full bg-primary" />
@@ -167,22 +166,8 @@ export default async function SimLocPhatPage() {
             </p>
           </section>
 
-          <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
-            <h2 className="mb-6 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
-              <span className="h-8 w-1 rounded-full bg-primary" />
-              Mua sim lộc phát ở đâu uy tín — cam kết &amp; sang tên
-            </h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {benefits.map((b, i) => (
-                <div key={i} className="flex items-start gap-3 rounded-lg bg-secondary/40 p-4">
-                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                    <b.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="text-sm font-medium text-foreground">{b.text}</span>
-                </div>
-              ))}
-            </div>
-          </section>
+          {/* Trust */}
+          <TrustCommitments />
 
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-6 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">

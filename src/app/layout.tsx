@@ -10,6 +10,7 @@ import FloatingContactButtons from "@/components/FloatingContactButtons";
 import MessengerQuickTemplates from "@/components/MessengerQuickTemplates";
 import StickyCtaBottomBar from "@/components/StickyCtaBottomBar";
 import BuildBadge from "@/components/BuildBadge";
+import FacebookPixel from "@/components/FacebookPixel";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 
@@ -163,6 +164,9 @@ export default function RootLayout({
             style={{ display: "none", visibility: "hidden" }}
           />
         </noscript>
+
+        {/* Facebook Pixel (gated: inert until NEXT_PUBLIC_FB_PIXEL_ID is set) */}
+        <FacebookPixel />
 
         {/* Structured data (server-rendered → present in the raw HTML) */}
         <script

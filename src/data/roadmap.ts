@@ -63,9 +63,9 @@ export const ROADMAP: RoadmapPhase[] = [
       {
         id: "T5",
         title: "2–3 trang đích đón Ads + FB Pixel",
-        status: "todo",
+        status: "done",
         priority: "P1",
-        next: "Chờ bàn từ khoá + ngân sách",
+        updated: "2026-08-24",
       },
       { id: "T6", title: "Trang tiến độ Dự án trong admin", status: "done", updated: "2026-08-24" },
     ],
