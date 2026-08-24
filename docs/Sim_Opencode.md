@@ -349,3 +349,42 @@ Băng CTA nhắc-lại (đặt ngay sau lưới kho ở Task 5):
 1. `npm run build` **xanh**.
 2. View-source trang chủ (sau deploy) có `gtag/js?id=G-QGN17FVXPG` và `gtag('config', 'G-QGN17FVXPG')`; **không còn** `G-W7G7B81W6S`.
 3. Commit + push `main`. Đánh dấu Task 7 = ✅. (Fix ops nhỏ — không cần đổi `roadmap.ts`.)
+
+---
+
+## Task 8 — ✅ ĐÃ LÀM · [GĐ2 SEO] Trang tự sinh combo "sim [loại] × đầu số" (an toàn, ý định mua cao)
+
+**Bối cảnh:** khởi động cỗ máy SEO (nguồn khách free lớn nhất). Bắt đầu bằng set **an toàn, không dính rủi ro phong thủy**: cross **loại số × đầu số** → hàng chục trang bắt truy vấn thương mại kiểu *"sim thần tài 090"*, *"sim lộc phát 093"*. Tái dùng 100% bộ lọc + component sẵn có, không phịa logic mới.
+> ⚠️ KHÔNG làm set "sim hợp tuổi theo NĂM SINH" ở task này — cần bảng nạp âm (năm→mệnh) đã kiểm chứng, chủ dự án sẽ cấp sau. Auto-sinh bảng đó dễ sai → mất uy tín với dân phong thủy.
+
+### Việc — 1 route tự sinh + sitemap
+- **Tạo `src/app/sim-dau-so/[dauso]/[loai]/page.tsx`** (Server Component, SSG — mirror cấu trúc `src/app/sim-than-tai/page.tsx`).
+- **Dữ liệu (khai báo trong file):**
+  ```ts
+  const PREFIXES = ["090","093","070","076","077","078","079","089"] as const; // khớp trang đầu số hiện có
+  const LOAI = {
+    "than-tai": { label: "thần tài", suffixes: ["39","79"], y: "đuôi 39 (thần tài nhỏ), 79 (thần tài lớn) — cầu tài lộc, buôn may bán đắt" },
+    "loc-phat": { label: "lộc phát", suffixes: ["68","86"], y: "đuôi 68 (lộc phát), 86 (phát lộc) — cầu phát đạt" },
+    "ong-dia":  { label: "ông địa", suffixes: ["38","78"], y: "đuôi 38, 78 — ông địa, giữ của" },
+  } as const;
+  ```
+- **`generateStaticParams`**: `PREFIXES × Object.keys(LOAI)` = 24 trang, trả `{ dauso, loai }`.
+- **`generateMetadata`**: title `Sim ${label} đầu số ${dauso} Mobifone | Giá tốt, chính chủ`, description theo combo, `alternates.canonical = /sim-dau-so/${dauso}/${loai}`, og:image `/share-banner.png?v=999`. Validate `dauso∈PREFIXES && loai∈LOAI`, sai → `notFound()` (đừng render trang rỗng).
+- **Nội dung trang (bám mẫu than-tai):**
+  - Hero: H1 `Sim ${label} đầu số ${dauso} Mobifone`, phụ đề dùng `LOAI[loai].y`, 2 nút: `#kho-sim` (gold) + Zalo `https://zalo.me/0933356666`.
+  - `SimSnapshot` (server): `getCategorySnapshot({ prefixes:[dauso], suffixes: LOAI[loai].suffixes }, 8)` — hàm này ĐÃ hỗ trợ lọc kết hợp (xem `src/lib/serverSimData.ts`).
+  - `CategorySimGrid` (client island) với `matchPrefixes={[dauso]}` + `matchSuffixes={LOAI[loai].suffixes}` (cả 2 filter được AND sẵn trong component).
+  - `<TrustCommitments />` + `<LeadMagnetCta />` (component Task 4) — đặt cam kết trước, CTA nhắc-lại sau kho.
+  - **FAQ 3 câu** (giá combo / sang tên chính chủ / thời gian giao) + JSON-LD `FAQPage` (mẫu accordion + `faqJsonLd` như than-tai), nội dung theo `${label}` + `${dauso}`.
+  - Cross-links: các **loại khác cùng đầu số** (`/sim-dau-so/${dauso}/${otherLoai}`), **cùng loại các đầu số khác** (vài prefix), và link về `/sim-dau-so/${dauso}` + `/sim-${loai}`. + breadcrumb JSON-LD (`buildBreadcrumb`).
+- **`src/app/sitemap.ts`**: thêm 24 URL combo theo pattern các trang đầu số hiện có.
+
+### Ràng buộc
+- **Không thêm dependency.** Tái dùng: `CategorySimGrid`, `SimSnapshot`, `getCategorySnapshot`, `TrustCommitments`, `LeadMagnetCta`, `buildBreadcrumb`, `ui/accordion`. Giữ SSG, dark theme, responsive, mobile nhanh.
+- Message match: tiêu đề/H1/nội dung đúng combo `[loại] + [đầu số]`.
+
+### Nghiệm thu
+1. `npm run build` **xanh**, sinh đủ **24 trang tĩnh** `/sim-dau-so/{dauso}/{loai}`.
+2. Mở thử `/sim-dau-so/090/than-tai` và `/sim-dau-so/093/loc-phat`: kho lọc đúng (số bắt đầu đúng đầu số + đuôi đúng loại), có cam kết + CTA nhắc-lại + FAQ + JSON-LD.
+3. `sitemap.xml` có 24 URL mới. Combo sai (vd `/sim-dau-so/098/than-tai`, `/sim-dau-so/090/abc`) → 404.
+4. Commit + push. Cập nhật `roadmap.ts`: `G2-seo` → `status: "doing"` + `next: "combo đầu số×loại xong, tiếp ý nghĩa số + hợp tuổi (chờ bảng nạp âm)"`. Đánh dấu Task 8 = ✅.

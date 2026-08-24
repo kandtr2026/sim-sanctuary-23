@@ -56,6 +56,10 @@ const ROUTES: StaticRoute[] = [
 // because the pages are pre-rendered at build time via generateStaticParams.
 const DAU_SO_PREFIXES = ["090", "093", "070", "076", "077", "078", "079", "089"];
 
+// Combo "sim [loại] × đầu số" (kept in sync with
+// src/app/sim-dau-so/[dauso]/[loai]/page.tsx — generateStaticParams = 24 trang).
+const LOAI_COMBOS = ["than-tai", "loc-phat", "ong-dia"] as const;
+
 // Static pages that genuinely change only on a code deploy get a fixed
 // lastModified instead of the build timestamp, so the sitemap stops "pinging"
 // every deployment and diluting the crawl signal.
@@ -80,5 +84,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  return [...staticEntries, ...dauSoEntries];
+  const comboEntries = DAU_SO_PREFIXES.flatMap((dauso) =>
+    LOAI_COMBOS.map((loai) => ({
+      url: `${BASE_URL}/sim-dau-so/${dauso}/${loai}`,
+      lastModified,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    })),
+  );
+
+  return [...staticEntries, ...dauSoEntries, ...comboEntries];
 }
