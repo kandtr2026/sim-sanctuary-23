@@ -210,7 +210,7 @@ Web nền đen (`--background #0F0F0F`, `--card #1A1A1A`), nhấn **đỏ Mobifo
 
 ---
 
-## Task 6 — ⏳ CHƯA LÀM · [P1] Trang tiến độ "Dự án — Make Mobi Great Again" trong `/admin` (read-only)
+## Task 6 — ✅ ĐÃ LÀM · [P1] Trang tiến độ "Dự án — Make Mobi Great Again" trong `/admin` (read-only)
 
 **Bối cảnh:** chủ dự án muốn mở admin ra là thấy cả chiến dịch đang ở đâu, làm gì tiếp — một "trí nhớ sống". Đã chốt kiểu **read-only, opencode tự cập nhật** (không DB). Nguồn sự thật là **một file dữ liệu trong repo**; mỗi khi opencode xong/bắt đầu một task thì cập nhật file đó.
 
