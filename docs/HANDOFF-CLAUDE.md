@@ -15,6 +15,7 @@
 - **T7** Đổi GA4: `G-W7G7B81W6S` → **`G-QGN17FVXPG`** (2 chỗ `layout.tsx`); GTM `GTM-MWKVVS7M` giữ nguyên.
 - **T8** 24 trang combo "sim [loại] × đầu số" (SSG, sitemap, FAQ JSON-LD, cross-links).
 - **T9** Vá hydration React #418: `useDeliveredCount` (đọc localStorage trong render → TrustBar mismatch toàn site) + `BuildBadge` (useState đọc window đầu render). Cả hai sửa theo pattern "render giống SSR, cập nhật trong useEffect".
+- **T10** Dọn event GA4 legacy còn sót ở `Header.tsx` (`call_click`/`click_zalo`) — giờ toàn repo chỉ còn 1 nguồn lead `generate_lead`.
 
 ## CHỜ CLAUDE / CHỦ DỰ ÁN (không phải code)
 

@@ -27,13 +27,6 @@ const Header = () => {
         <div className="flex items-center gap-4">
   <a
   href="tel:+84938868868"
-  onClick={() => {
-    window.gtag?.("event", "call_click", {
-      event_category: "contact",
-      event_label: "header_call",
-      phone_number: "+84938868868",
-    });
-  }}
   className="flex items-center gap-2 font-bold text-lg hover:opacity-80 transition"
 >
   <Phone className="w-5 h-5 text-gold" />
@@ -46,12 +39,6 @@ const Header = () => {
     href="https://zalo.me/0933356666"
     target="_blank"
     rel="noopener noreferrer"
-    onClick={() => {
-      window.gtag?.("event", "click_zalo", {
-        event_category: "contact",
-        event_label: "header_zalo",
-      });
-    }}
     aria-label="Chat Zalo tư vấn"
     className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-primary-foreground px-4 py-2 rounded"
   >

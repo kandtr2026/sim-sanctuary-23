@@ -407,3 +407,17 @@ Băng CTA nhắc-lại (đặt ngay sau lưới kho ở Task 5):
 1. `npm run dev` mở `/sim-than-tai` + `/sim-dau-so/090/than-tai` → **console KHÔNG còn React #418** (và không phát sinh warning hydration mới).
 2. `npm run build` **xanh**; hành vi trang giữ nguyên (kho, CTA, generate_lead vẫn chạy).
 3. Commit + push. Đánh dấu Task 9 = ✅. (Fix chất lượng — không cần đổi `roadmap.ts`.)
+
+---
+
+## Task 10 — ✅ ĐÃ LÀM · [P2 dọn dẹp] Xoá event GA4 cũ còn sót ở `Header.tsx` (nhất quán Task 2)
+
+**Bối cảnh:** opencode phát hiện `src/components/Header.tsx` vẫn còn 2 khối `window.gtag?.("event","call_click"…)` và `"click_zalo"…` trong onClick nút gọi/Zalo — Task 2 mới chỉ xoá ở `FloatingContactButtons`. Listener trung tâm `useConversionTracker` ĐÃ bắn `generate_lead` cho các nút này (chúng là `tel:`/`zalo.me` anchor). → 2 event cũ là **legacy dư, KHÔNG thổi phồng conversion `generate_lead`** (số lead vẫn đúng), chỉ gây noise + double event GA4. Dọn cho đúng "một nguồn sự thật".
+
+### Việc — 1 file
+- `src/components/Header.tsx`: **xoá** 2 khối `window.gtag?.("event","call_click"…)` và `window.gtag?.("event","click_zalo"…)` trong onClick nút gọi/Zalo. Giữ nguyên `href`, `aria-label`, hành vi. Không đụng gì khác.
+
+### Nghiệm thu
+1. `npm run build` **xanh**. `grep -rn "call_click\|click_zalo" src/` → **0 kết quả** (đã sạch toàn repo).
+2. Bấm nút Zalo/gọi ở Header → chỉ còn `generate_lead` bắn (qua listener), không còn event cũ.
+3. Commit + push. Đánh dấu Task 10 = ✅. (Không đổi `roadmap.ts`.)
