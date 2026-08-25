@@ -442,3 +442,36 @@ Băng CTA nhắc-lại (đặt ngay sau lưới kho ở Task 5):
 1. Mở `/sim-than-tai` **và** `/sim-dau-so/090/than-tai` (dev hoặc `next start`) → **console 0 lỗi #418, 0 warning hydration**.
 2. `npm run build` xanh; kho/CTA/generate_lead giữ nguyên.
 3. Commit + push. Đánh dấu Task 11 = ✅. Deploy xong báo Claude verify lại trên live.
+
+---
+
+## Task 12 — ✅ ĐÃ LÀM · [P0 · trị gốc "kho 14k/49k"] Chuyển tìm/lọc SANG SERVER — Phase 1: các trang landing (`CategorySimGrid`)
+
+**Bối cảnh (Claude verify LIVE 25/08):** kho THẬT có **49.106 số** (đọc `total` trong `localStorage['chonsomobifone_sim_cache']`), nhưng cache tạm chỉ chứa **14.066** (giới hạn `CACHE_CHAR_BUDGET = 700_000` ký tự trong `useSimData.ts`). Cơ chế hiện tại: client tải **full CSV ~10MB (~49k dòng)** qua edge `fetch-sim-data`, lọc/tìm **toàn bộ ở client**. Khi fetch chậm/đứt (`ERR_CONNECTION_RESET`) hoặc chưa xong → client kẹt ở **14k** → **khách chỉ thấy ~28% kho** → mất đơn. Chủ dự án chốt **trị gốc = đưa tìm/lọc sang server**, client không tải 49k nữa.
+
+> **Chia phase để an toàn** (`useSimData` bị dùng ở 18 file). **Task 12 = Phase 1**: chỉ các trang **landing/category** dùng `CategorySimGrid` (đúng chỗ Ads/SEO đổ khách): `sim-than-tai`, `sim-loc-phat`, `sim-ong-dia`, `sim-ngu-quy`, `sim-dau-so/[dauso]`, combo `sim-dau-so/[dauso]/[loai]`, `sim-phong-thuy-hop-menh`. **Phase 2 (spec sau):** homepage `SimBrowser` + tool pages (`mua-sim-tu-quy`, `mua-sim-gia-re`, `dinh-gia-sim`) + admin dashboard. **KHÔNG đụng Phase 2 trong task này.**
+
+### Kiến trúc (bám đồ có sẵn)
+1. **Route Handler mới `src/app/api/sims/route.ts`** (GET — đây là route handler ĐẦU TIÊN của repo → đọc guide route handler trong `node_modules/next/dist/docs/` trước khi viết):
+   - Đọc query params: `search`, `prefixes`, `suffixes`, `tags`, `lastDigits`, `matchAll`, `quyType`, `quyPosition`, `limit` (mặc định 30), `offset` (mặc định 0).
+   - Gọi **`getServerSims()`** (đã có ở `src/lib/serverSimData.ts` — fetch CSV server-side, **cache ở module scope**, 1 retry). CSV chỉ tải 1 lần/instance rồi tái dùng cho mọi request → hết cảnh mỗi khách tải 10MB.
+   - Lọc + tìm bằng **một hàm thuần dùng chung** (xem #2), sort giá tăng dần (giữ đúng hành vi `CategorySimGrid` hiện tại), trả JSON `{ items: NormalizedSIM[], total: number }` (items = trang `limit` từ `offset`; total = tổng khớp).
+   - Thêm cache tầng route để đỡ cold-start: `export const revalidate = 300` (hoặc tương đương theo guide). KHÔNG để route chạy fully-dynamic mỗi request mà không cache.
+2. **Hàm lọc/tìm thuần dùng chung `src/lib/simFilter.ts`** — trích logic từ `useSimData.ts` (khối `filteredSims` + rule tìm kiếm A/B/C wildcard) và `serverSimData.ts` thành **một nguồn sự thật**, KHÔNG phụ thuộc browser/react:
+   - Nhận `(sims, criteria)` → trả mảng đã lọc + sort. Hỗ trợ: prefixes/suffixes/tags/lastDigits/matchAll (như `SnapshotFilter`) + `search` (exact 10 số, `*đuôi`, `đầu*`, chứa) + quý (dùng `matchesQuyFilter` sẵn có ở `simUtils`).
+   - Route handler dùng hàm này; `CategorySimGrid` cũ (client) cũng có thể import lại sau (parity).
+3. **Sửa `src/components/CategorySimGrid.tsx`**: bỏ `useSimData()`; thay bằng `useQuery` (react-query) gọi `/api/sims?...` với key = các match-prop + `activeSearch` (debounce ô tìm ~300ms). Giữ NGUYÊN: giao diện props, skeleton lúc tải, empty state, ô tìm (exact/`*`/chứa), `SIMCardNew`, `quyFilter`, slice 30. Người dùng gõ tìm → gọi lại API, KHÔNG lọc client trên 49k nữa.
+
+### Ràng buộc
+- **Chỉ Phase 1** — KHÔNG sửa `useSimData.ts` (để Phase 2), KHÔNG đụng homepage/tool/admin. `CategorySimGrid` sau task này KHÔNG còn import `useSimData`.
+- Không thêm dependency nặng. Giữ page shell SSG (Server Component vẫn render `SimSnapshot` server-side như cũ cho SEO). Dark theme/responsive giữ nguyên.
+- JSON trả về gọn (chỉ field cần cho `SIMCardNew`): tránh trả 49k — luôn có `limit`.
+
+### Nghiệm thu (BẮT BUỘC qua TRÌNH DUYỆT thật — Playwright/next start, như Task 11)
+1. Mở `/sim-than-tai`, `/sim-dau-so/090/than-tai`, `/sim-phong-thuy-hop-menh` → **Network KHÔNG còn request `fetch-sim-data` ~10MB từ client** (chỉ có `/api/sims` JSON nhỏ). Kho hiển thị + tìm được **trên toàn 49k** (thử tìm 1 số chỉ nằm ngoài top-14k để chứng minh không còn kẹt cache).
+2. Tìm kiếm trong kho (exact / `*đuôi` / chứa) trả đúng, sort giá tăng, skeleton + empty state vẫn chạy. 0 lỗi console, 0 #418.
+3. `npm run build` **xanh**; `getServerSims` cache hoạt động (không tải CSV lặp mỗi request).
+4. Commit + push. Cập nhật `roadmap.ts`: thêm/đánh dấu mục SEO-data hoặc `G2-seo.next` ghi "server-side search Phase 1 xong; Phase 2 homepage". Đánh dấu Task 12 = ✅. Deploy xong báo Claude verify live.
+
+### Phase 2 (KHÔNG làm bây giờ — ghi để nhớ)
+Homepage `SimBrowser` + `AdvancedFilterSidebar`/`MobileFilterDrawer` (đủ bộ lọc giá/mạng/tag/VIP/sort) + tool pages + admin dashboard chuyển sang `/api/sims` (mở rộng params). Bỏ hẳn tải 49k ở client. Claude sẽ spec riêng.

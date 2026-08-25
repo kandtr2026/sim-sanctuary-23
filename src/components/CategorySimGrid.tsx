@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useMemo } from 'react';
-import { Search } from 'lucide-react';
-import { useSimData } from '@/hooks/useSimData';
-import SIMCardNew from '@/components/SIMCardNew';
-import type { QuyType } from '@/lib/simUtils';
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Search } from "lucide-react";
+import SIMCardNew from "@/components/SIMCardNew";
+import type { NormalizedSIM, QuyType } from "@/lib/simUtils";
 
 /**
  * Reusable "client island" for SIM category pages. Server Components render the
- * page shell + metadata + JSON-LD; this component pulls the live SIM dataset via
- * useSimData and filters it by suffix/tag/prefix — the same mechanisms the
- * homepage SimBrowser uses, without modifying the hook.
+ * page shell + metadata + JSON-LD; this component pulls SIMs from the server via
+ * `/api/sims` (server-side filter/search over the FULL catalogue — no more
+ * shipping ~10MB CSV / stuck-at-14k cache to the client).
+ *
+ * Search + filter đều chạy ở server bằng `src/lib/simFilter.ts` (một nguồn sự
+ * thật). Ô tìm debounce ~300ms rồi gọi lại API; skeleton hiện lúc tải lần đầu.
  */
 interface CategorySimGridProps {
   /** Heading shown above the grid. */
@@ -36,9 +39,6 @@ interface CategorySimGridProps {
   quyFilter?: QuyType | null;
 }
 
-const getDigits = (s: { rawDigits?: string; displayNumber?: string }): string =>
-  s.rawDigits || s.displayNumber?.replace(/\D/g, '') || '';
-
 const CategorySimGrid = ({
   title,
   searchPlaceholder,
@@ -50,53 +50,59 @@ const CategorySimGrid = ({
   matchAll,
   quyFilter,
 }: CategorySimGridProps) => {
-  const { allSims, isLoading } = useSimData();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeSearch, setActiveSearch] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeSearch, setActiveSearch] = useState("");
 
-  const categorySims = useMemo(() => {
-    const list = allSims.filter((s) => {
-      if (s.price <= 0) return false;
-      if (matchAll) return true;
-      const digits = getDigits(s);
-      if (matchPrefixes?.length && !matchPrefixes.some((p) => digits.startsWith(p))) return false;
-      if (matchSuffixes?.length && !matchSuffixes.some((suf) => digits.endsWith(suf))) return false;
-      if (matchTags?.length && !matchTags.some((t) => s.tags?.includes(t))) return false;
-      if (matchLastDigits?.length && !matchLastDigits.includes(digits.slice(-1))) return false;
-      return true;
-    });
-    return [...list].sort((a, b) => a.price - b.price).slice(0, 30);
-  }, [allSims, matchSuffixes, matchTags, matchPrefixes, matchLastDigits, matchAll]);
+  // Debounce ô tìm: gõ xong ~300ms mới gọi lại API (không spam mỗi phím).
+  useEffect(() => {
+    const timer = setTimeout(() => setActiveSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-  const searchResults = useMemo(() => {
-    if (!activeSearch.trim()) return null;
-    const raw = activeSearch.replace(/\s/g, '');
-    const q = raw.startsWith('*') ? raw.slice(1) : raw;
-    const suffixOnly = raw.startsWith('*');
-    const clean = q.replace(/\D/g, '');
-    if (!clean) return null;
-    return allSims
-      .filter((s) => {
-        if (s.price <= 0) return false;
-        const digits = getDigits(s);
-        return suffixOnly ? digits.endsWith(clean) : digits.includes(clean);
-      })
-      .sort((a, b) => a.price - b.price)
-      .slice(0, 30);
-  }, [allSims, activeSearch]);
+  const queryKey = [
+    "category-sims",
+    matchAll ?? false,
+    matchPrefixes ?? [],
+    matchSuffixes ?? [],
+    matchTags ?? [],
+    matchLastDigits ?? [],
+    quyFilter ?? null,
+    activeSearch,
+  ] as const;
+
+  const { data, isLoading } = useQuery<{ items: NormalizedSIM[]; total: number }>({
+    queryKey,
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (activeSearch.trim()) params.set("search", activeSearch);
+      if (matchAll) params.set("matchAll", "true");
+      if (matchPrefixes?.length) params.set("prefixes", matchPrefixes.join(","));
+      if (matchSuffixes?.length) params.set("suffixes", matchSuffixes.join(","));
+      if (matchTags?.length) params.set("tags", matchTags.join(","));
+      if (matchLastDigits?.length) params.set("lastDigits", matchLastDigits.join(","));
+      if (quyFilter) params.set("quyType", quyFilter);
+      params.set("limit", "30");
+
+      const res = await fetch(`/api/sims?${params.toString()}`);
+      if (!res.ok) throw new Error(`/api/sims HTTP ${res.status}`);
+      return res.json();
+    },
+    staleTime: 60_000,
+  });
+
+  const displaySims = data?.items ?? [];
+  const hasActiveSearch = activeSearch.trim().length > 0;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    // Bấm Enter / nút Tìm thì áp dụng ngay, không chờ debounce.
     setActiveSearch(searchQuery);
   };
 
   const clearSearch = () => {
-    setSearchQuery('');
-    setActiveSearch('');
+    setSearchQuery("");
+    setActiveSearch("");
   };
-
-  const displaySims = searchResults ?? categorySims;
-  const hasActiveSearch = !!activeSearch.trim();
 
   return (
     <section id="kho-sim" className="rounded-xl border border-border bg-card p-4 shadow-card md:p-6">
@@ -115,7 +121,7 @@ const CategorySimGrid = ({
               type="text"
               inputMode="tel"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value.replace(/[^0-9*]/g, ''))}
+              onChange={(e) => setSearchQuery(e.target.value.replace(/[^0-9*]/g, ""))}
               placeholder={searchPlaceholder}
               className="w-full bg-card py-3 pl-12 pr-3 text-base text-foreground focus:outline-none md:py-3.5"
             />

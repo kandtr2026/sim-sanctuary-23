@@ -29,6 +29,7 @@
 - **T9** Vá hydration React #418: `useDeliveredCount` (đọc localStorage trong render → TrustBar mismatch toàn site) + `BuildBadge` (useState đọc window đầu render). Cả hai sửa theo pattern "render giống SSR, cập nhật trong useEffect".
 - **T10** Dọn event GA4 legacy còn sót ở `Header.tsx` (`call_click`/`click_zalo`) — giờ toàn repo chỉ còn 1 nguồn lead `generate_lead`.
 - **T11** Truy hết hydration #418: thủ phạm còn lại là `useSimData.ts` — `INITIAL_PLACEHOLDER = getCachedInitialData()` đọc localStorage **ở module scope** (server→SEED_SIMS, client→SIM thật → CategorySimGrid lệch). Đã fix: placeholder cố định `SEED_SIMS` + nạp cache vào query trong `useEffect`. **Verify bằng Playwright (trình duyệt thật): console 0 lỗi trên /sim-than-tai + /sim-dau-so/090/than-tai, kể cả kịch bản đã có localStorage cache.**
+- **T12** Chuyển tìm/lọc CategorySimGrid SANG SERVER (Phase 1). Route handler `/api/sims` dùng `getServerSims()` + `simFilter.ts` (hàm thuần dùng chung). Client gọi `/api/sims` qua react-query (debounce 300ms). **Verify Playwright: total=49106 (full 49k), search số ngoài top-14k (0777776122) → found=true; 0 fetch-sim-data client; sort price ascending; 3 trang sạch console.**
 
 ## CHỜ CLAUDE / CHỦ DỰ ÁN (không phải code)
 
