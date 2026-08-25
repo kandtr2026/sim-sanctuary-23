@@ -269,6 +269,73 @@ export const isVIPSim = (tags: string[], price: number, vipThreshold: number = 5
   return vipTags.some(t => tags.includes(t)) || price >= vipThreshold;
 };
 
+// Số ngày trong tháng (1-based index). Dùng để loại "31.11" ra khỏi sim năm sinh.
+const NGAY_TRONG_THANG = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+const laNamNhuan = (y: number): boolean =>
+  (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+
+/**
+ * Đọc ngày sinh từ 6 chữ số cuối của số thuê bao. Trả về dạng `{d, m, y}` hợp
+ * lệ hoặc null.
+ *
+ * Hai cách đọc được hỗ trợ, theo đúng cách chủ kho đặt tên số năm sinh:
+ *
+ *   1. DDMMYY (2-2-2): 0903.20.01.98 → 20/01/1998 (năm 2 chữ số)
+ *   2. D.M.YYYY (1-1-4): 0908.8.9.2001 → 08/09/2001 (ngày+tháng 1 chữ, năm 4)
+ *
+ * Số nào đọc theo cách nào thì tuỳ khoá nào ra ngày tháng hợp lệ TRƯỚC (thử
+ * DDMMYY trước, vì phổ biến hơn). Ngày phải tồn tại thật trong lịch — "31.11"
+ * (tháng 11 chỉ có 30 ngày) và "29.02" không thuộc năm nhuận đều bị loại.
+ */
+export function parseBirthDate(
+  rawDigits: string,
+): { d: number; m: number; y: number; display: string } | null {
+  const digits = String(rawDigits ?? '').replace(/\D/g, '');
+  const tail = digits.slice(-6);
+  if (tail.length < 6) return null;
+
+  const tryDate = (d: number, m: number, y: number): boolean => {
+    if (d < 1 || m < 1 || m > 12) return false;
+    const maxDay = NGAY_TRONG_THANG[m - 1] + (m === 2 && laNamNhuan(y) ? 1 : 0);
+    return d <= maxDay;
+  };
+
+  // 1) DDMMYY: dd mm yy
+  const dd = Number(tail.slice(0, 2));
+  const mm = Number(tail.slice(2, 4));
+  const yy = Number(tail.slice(4, 6));
+  // yy 00–29 → 2000s, 50–99 → 1900s; 30–49 mơ hồ nên bỏ.
+  const yFull1 = yy <= 29 ? 2000 + yy : yy >= 50 ? 1900 + yy : null;
+  if (yFull1 !== null && tryDate(dd, mm, yFull1)) {
+    return { d: dd, m: mm, y: yFull1, display: `${dd}.${mm}.${yy}` };
+  }
+
+  // 2) D.M.YYYY: d m yyyy (ngày & tháng mỗi bên 1 chữ số)
+  const d = Number(tail[0]);
+  const m = Number(tail[1]);
+  const yFull2 = Number(tail.slice(2, 6));
+  if (d >= 1 && m >= 1 && yFull2 >= 1950 && yFull2 <= 2029 && tryDate(d, m, yFull2)) {
+    return { d, m, y: yFull2, display: `${d}.${m}.${yFull2}` };
+  }
+
+  return null;
+}
+
+/**
+ * Format số sim năm sinh cho card: prefix + ngày sinh có dấu chấm.
+ * 0909922000 (sinh 09/02/2000) → "0909.9.2.2000"
+ * 0908892001 (sinh 08/09/2001) → "0908.8.9.2001"
+ *
+ * Không đọc được ngày → trả về null để caller giữ nguyên format cũ.
+ */
+export const formatBirthDateDisplay = (rawDigits: string): string | null => {
+  const digits = String(rawDigits ?? '').replace(/\D/g, '');
+  const parsed = parseBirthDate(digits);
+  if (!parsed) return null;
+  return `${digits.slice(0, digits.length - 6)}.${parsed.display}`;
+};
+
 // Format SIM number for display
 export const formatSIMNumber = (rawDigits: string): string => {
   if (rawDigits.length === 10) {

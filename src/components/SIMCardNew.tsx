@@ -5,7 +5,7 @@ import { Phone } from 'lucide-react';
 import Link from 'next/link';
 import type { NormalizedSIM, PromotionalData, QuyType } from '@/lib/simUtils';
 import QuickContactPopup from '@/components/QuickContactPopup';
-import { matchesQuyType, formatPrice } from '@/lib/simUtils';
+import { matchesQuyType, formatPrice, formatBirthDateDisplay, formatSIMNumber } from '@/lib/simUtils';
 import { cn } from '@/lib/utils';
 import { createHighlightedNumber, createQuyHighlightedNumber } from '@/lib/highlightUtils';
 
@@ -47,6 +47,17 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
 
   const checkoutHref = `/mua-ngay/${encodeURIComponent(sim.id)}`;
 
+  // SIM năm sinh hiển thị theo ngày sinh thay vì dãy số rối từ sheet
+  // (VD 0934.092.029 → 0934.1.9.1991, 0909.922.000 → 0909.9.2.2000).
+  // Không đọc được ngày (34/152 số chỉ trùng đuôi năm) thì dùng format 4-3-3
+  // đồng nhất thay vì displayNumber của sheet — sheet chấm kiểu tuỳ hứng
+  // (090.9922.000, 093.888.2026), nhìn vẫn rối.
+  const isBirthYear = sim.tags.includes('Năm sinh');
+  const birthDisplay = isBirthYear
+    ? formatBirthDateDisplay(sim.rawDigits) ?? formatSIMNumber(sim.rawDigits)
+    : null;
+  const cardDisplay = birthDisplay || sim.displayNumber || sim.formattedNumber || sim.rawDigits;
+
   const formatDiscountAmount = (amount: number): string => {
     if (amount >= 1000000) {
       const millions = amount / 1000000;
@@ -67,6 +78,21 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
       if (quyHighlighted.length !== 1 || typeof quyHighlighted[0] !== 'string') {
         return <>{quyHighlighted}</>;
       }
+    }
+
+    // SIM năm sinh: ngày sinh (phần sau dấu chấm đầu tiên) tô vàng — khách thấy
+    // ngay 0909.9.2.2000 chứ không phải dãy số lẫn lộn.
+    if (isBirthYear && birthDisplay && !searchQuery) {
+      const dotIdx = birthDisplay.indexOf('.');
+      if (dotIdx > -1) {
+        return (
+          <>
+            <span className="opacity-80">{birthDisplay.slice(0, dotIdx)}.</span>
+            <span className="text-gold font-extrabold">{birthDisplay.slice(dotIdx + 1)}</span>
+          </>
+        );
+      }
+      return birthDisplay;
     }
 
     // Empty query: show VIP highlight (last segment in gold)
@@ -181,16 +207,16 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
 
         <Link
           href={checkoutHref}
-          aria-label={`Đặt mua SIM ${sim.displayNumber || sim.formattedNumber} — ${formatPrice(sim.price)}`}
+          aria-label={`Đặt mua SIM ${cardDisplay} — ${formatPrice(sim.price)}`}
           className="sim-number-auto mb-1.5 block transition-all whitespace-nowrap overflow-hidden text-ellipsis group-hover:[text-shadow:0_0_12px_hsl(var(--gold)_/_0.4)]"
         >
           {searchQuery?.trim()
             ? createHighlightedNumber(
-                sim.displayNumber || sim.formattedNumber,
-                sim.displayNumber.replace(/\D/g, ''),
+                cardDisplay,
+                cardDisplay.replace(/\D/g, ''),
                 searchQuery
               )
-            : formatWithHighlight(sim.displayNumber || sim.formattedNumber)
+            : formatWithHighlight(cardDisplay)
           }
         </Link>
 
@@ -232,7 +258,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
             <button
               type="button"
               onClick={() => setContactOpen(true)}
-              aria-label={`Gọi hoặc chat Zalo về SIM ${sim.displayNumber || sim.formattedNumber}`}
+              aria-label={`Gọi hoặc chat Zalo về SIM ${cardDisplay}`}
               title="Gọi / Chat Zalo"
               className="flex items-center justify-center rounded border border-primary/40 bg-primary/10 px-1.5 text-primary transition-colors hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
@@ -240,7 +266,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
             </button>
             <Link
               href={checkoutHref}
-              aria-label={`Đặt ngay SIM ${sim.displayNumber || sim.formattedNumber}`}
+              aria-label={`Đặt ngay SIM ${cardDisplay}`}
               className="btn-cta-sm flex min-w-0 items-center justify-center whitespace-nowrap text-center"
               style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
             >
@@ -253,7 +279,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
       <QuickContactPopup
         open={contactOpen}
         onOpenChange={setContactOpen}
-        simNumber={sim.displayNumber || sim.formattedNumber}
+        simNumber={cardDisplay}
         simPrice={formatPrice(sim.price)}
         simNetwork={carrier}
       />
