@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import SearchBarAdvanced from "@/components/SearchBarAdvanced";
 import QuickPickChips from "@/components/QuickPickChips";
 import AdvancedFilterSidebar from "@/components/AdvancedFilterSidebar";
@@ -55,7 +55,16 @@ const isFilterActive = <K extends keyof FilterState>(filters: FilterState, key: 
   return value !== defaultFilterState[key];
 };
 
-const SimBrowser = () => {
+const SimBrowser = ({
+  initialData,
+  initialTotal,
+  initialFacets,
+}: {
+  /** 40 SIM đầu trang render sẵn ở build (SSG) — bỏ skeleton ở lần load đầu. */
+  initialData?: NormalizedSIM[];
+  initialTotal?: number;
+  initialFacets?: { tagCounts: Record<string, number>; prefixes: { prefix3: string[]; prefix4: string[] } };
+}) => {
   const [filters, setFilters] = useState<FilterState>(defaultFilterState);
   const [limit, setLimit] = useState(ITEMS_PER_PAGE);
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -304,6 +313,10 @@ const SimBrowser = () => {
       return res.json();
     },
     staleTime: 60 * 60 * 1000,
+    initialData:
+      initialFacets && initialTotal !== undefined
+        ? { items: [], total: initialTotal, facets: initialFacets }
+        : undefined,
   });
 
   const tagCounts = facetsQuery.data?.facets?.tagCounts ?? {};
@@ -341,6 +354,13 @@ const SimBrowser = () => {
       if (!res.ok) throw new Error(`/api/sims HTTP ${res.status}`);
       return res.json();
     },
+    // initialData từ SSR → lần load đầu hiện SIM ngay (không skeleton); giữ data
+    // cũ trong lúc đổi filter (keepPreviousData) để không nháy skeleton.
+    initialData:
+      initialData && initialData.length > 0
+        ? { items: initialData, total: initialTotal ?? initialData.length }
+        : undefined,
+    placeholderData: keepPreviousData,
   });
 
   const forceReload = useCallback(() => {
@@ -453,8 +473,7 @@ const SimBrowser = () => {
             {isLoading && (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="w-10 h-10 text-primary animate-spin mb-3" />
-                <span className="text-muted-foreground">Đang tải dữ liệu...</span>
-                <span className="text-xs text-muted-foreground mt-1">Lần đầu có thể mất vài giây</span>
+                <span className="text-muted-foreground">Đang tải kho số...</span>
               </div>
             )}
 

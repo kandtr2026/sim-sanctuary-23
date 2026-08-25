@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import SimBrowser from "@/components/SimBrowser";
 import FAQSection from "@/components/FAQSection";
 import { faqData } from "@/data/faqData";
+import { getServerSims } from "@/lib/serverSimData";
+import { filterSims } from "@/lib/simFilter";
+import { countTags, getUniquePrefixes } from "@/lib/simUtils";
 
 const TITLE = "Kho SIM số đẹp Mobifone giá rẻ, chính chủ – CHONSOMOBIFONE.COM";
 const DESCRIPTION =
@@ -36,7 +39,20 @@ const faqJsonLd = {
   })),
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  // SSG-first: lấy 40 SIM đầu + facets lúc build để SimBrowser nhận initialData —
+  // lần đầu vào web hiện SIM ngay (không còn skeleton "Đang tải..."), react-query
+  // refetch nền cho dữ liệu luôn tươi. getServerSims đã cache module scope + trả
+  // [] khi lỗi (build không vỡ, client tự retry).
+  const sims = await getServerSims();
+  const catalogue = filterSims(sims, {});
+  const initialData = catalogue.slice(0, 40);
+  const initialTotal = catalogue.length;
+  const initialFacets = {
+    tagCounts: countTags(sims),
+    prefixes: getUniquePrefixes(sims),
+  };
+
   return (
     <>
       <main className="container mx-auto px-4 pt-4 pb-6">
@@ -50,9 +66,13 @@ export default function HomePage() {
           Tứ quý · phong thủy · thần tài lộc phát. Giá niêm yết công khai, sang tên chính chủ, giao tận tay nội thành HCM.
         </p>
 
-        {/* Client island: search + filters + SIM grid (data fetched client-side via
-            useSimData) + process steps + intro stats. */}
-        <SimBrowser />
+        {/* Client island: search + filters + SIM grid (SSG initialData + server fetch
+            qua /api/sims) + process steps + intro stats. */}
+        <SimBrowser
+          initialData={initialData}
+          initialTotal={initialTotal}
+          initialFacets={initialFacets}
+        />
 
         {/* FAQ Section. id is "faq", not "phong-thuy": this block is the FAQ, and the
             phong thuy content lives on its own page at /sim-phong-thuy. */}

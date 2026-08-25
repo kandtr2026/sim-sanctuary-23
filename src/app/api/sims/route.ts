@@ -88,5 +88,12 @@ export async function GET(req: NextRequest) {
     };
   }
 
-  return Response.json(body);
+  // CDN cache 5 phút (s-maxage) + stale-while-revalidate — đỡ lặp lại getServerSims
+  // cold trên mỗi instance/lần vào; browser cũng cache theo url (params khác nhau
+  // => cache riêng, an toàn).
+  return Response.json(body, {
+    headers: {
+      "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+    },
+  });
 }
