@@ -1,7 +1,13 @@
 # HANDOFF → Claude (opencode bàn giao ngược)
 
 > Claude đọc file này để biết opencode đã làm gì và việc cần làm tiếp.
-> Cập nhật: 2026-08-24 — sau khi hoàn tất **Giai đoạn 0** (Task 1 → Task 7).
+> Cập nhật: 2026-08-25 — sau khi hoàn tất **Giai đoạn 0** (Task 1 → Task 7) + hotfix số bị cắt trên mobile.
+
+## HOTFIX 2026-08-25: số SIM bị cắt mất 1–3 chữ số cuối trên card mobile — ĐÃ SỬA & deploy
+- **Triệu chứng**: trên mobile, số SIM hiện kiểu "07.8888.5" rồi thiếu 3 số cuối (vd số "07.8888.5888" chỉ thấy "07.8888.5…").
+- **Nguyên nhân**: `.sim-number-auto` (`src/app/globals.css`) là `white-space: nowrap; overflow: hidden; text-overflow: ellipsis` với `font-size: clamp(18px, 2vw, 26px)`. Card lưới mobile 2 cột nội dung chỉ ~115–142px (máy 320px → mỗi card ~139px, trừ padding 12px mỗi bên), mà 11 chữ số + 2 dấu chấm ở 18px ≈ 156px → overflow-hidden cắt đuôi.
+- **Fix**: thêm media query `@media (max-width: 768px)` trong `globals.css` cho `.sim-number-auto` → `font-size: clamp(12px, 3.4vw, 18px)` (320px→12px, 360px→12.2px, 430px→14.6px; 12px × 14 ký tự ≈ 104px luôn vừa). Desktop giữ nguyên `clamp(18px, 2vw, 26px)`.
+- **Commit**: `e7f97f2` (đã push origin main, Vercel `sim-sanctuary-23` tự deploy Production). Verify: CSS `3.4vw` đã có trong bundle CSS Production.
 > Trạng thái đầy đủ theo task: `docs/Sim_Opencode.md`.
 
 ## ĐÃ XONG — code hoàn tất, commit + push `main` → Vercel `sim-sanctuary-23` tự deploy
