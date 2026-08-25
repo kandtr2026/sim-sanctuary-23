@@ -336,6 +336,55 @@ export const formatBirthDateDisplay = (rawDigits: string): string | null => {
   return `${digits.slice(0, digits.length - 6)}.${parsed.display}`;
 };
 
+/**
+ * Parser NỚI hơn cho hiển thị card (không đổi `parseBirthDate` — bộ lọc chặt
+ * "Năm sinh" vẫn dùng parser nghiêm để loại số ảo). Thêm 1 pattern nữa:
+ *
+ *   DD.M.YY (2-1-2) trên 5 số cuối — vd `20213` → 20/2/13, `090920213` → 0909.20.2.13
+ *
+ * Trả về `{ d, m, y, display, tailLen }` (tailLen 6 nếu theo parser nghiêm, 5 nếu
+ * DD.M.YY) để caller cắt đúng phần prefix.
+ */
+export function tryParseBirthDateLenient(
+  rawDigits: string,
+): { d: number; m: number; y: number; display: string; tailLen: 5 | 6 } | null {
+  const digits = String(rawDigits ?? '').replace(/\D/g, '');
+
+  // 1) Các pattern nghiêm (DDMMYY + D.M.YYYY) trên 6 số cuối.
+  const strict = parseBirthDate(digits);
+  if (strict) return { ...strict, tailLen: 6 };
+
+  // 2) DD.M.YY — 5 số cuối: 2 + 1 + 2.
+  const tail5 = digits.slice(-5);
+  if (tail5.length === 5) {
+    const dd = Number(tail5.slice(0, 2));
+    const m = Number(tail5[2]);
+    const yy = Number(tail5.slice(3, 5));
+    const yFull = yy <= 29 ? 2000 + yy : yy >= 50 ? 1900 + yy : null;
+    const tryDate = (d: number, mm: number, y2: number): boolean => {
+      if (d < 1 || mm < 1 || mm > 12) return false;
+      const maxDay = NGAY_TRONG_THANG[mm - 1] + (mm === 2 && laNamNhuan(y2) ? 1 : 0);
+      return d <= maxDay;
+    };
+    if (yFull !== null && tryDate(dd, m, yFull)) {
+      return { d: dd, m, y: yFull, display: `${dd}.${m}.${yy}`, tailLen: 5 };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Format số sim năm sinh cho card — dùng parser nới: prefix + ngày sinh có dấu
+ * chấm. Không đọc được ngày → null để caller giữ format 4-3-3.
+ */
+export const formatBirthDateDisplayLenient = (rawDigits: string): string | null => {
+  const digits = String(rawDigits ?? '').replace(/\D/g, '');
+  const parsed = tryParseBirthDateLenient(digits);
+  if (!parsed) return null;
+  return `${digits.slice(0, digits.length - parsed.tailLen)}.${parsed.display}`;
+};
+
 // Format SIM number for display
 export const formatSIMNumber = (rawDigits: string): string => {
   if (rawDigits.length === 10) {

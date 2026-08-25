@@ -5,7 +5,7 @@ import { Phone } from 'lucide-react';
 import Link from 'next/link';
 import type { NormalizedSIM, PromotionalData, QuyType } from '@/lib/simUtils';
 import QuickContactPopup from '@/components/QuickContactPopup';
-import { matchesQuyType, formatPrice, formatBirthDateDisplay, formatSIMNumber } from '@/lib/simUtils';
+import { matchesQuyType, formatPrice, formatBirthDateDisplayLenient, formatSIMNumber } from '@/lib/simUtils';
 import { cn } from '@/lib/utils';
 import { createHighlightedNumber, createQuyHighlightedNumber } from '@/lib/highlightUtils';
 
@@ -49,12 +49,14 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
 
   // SIM năm sinh hiển thị theo ngày sinh thay vì dãy số rối từ sheet
   // (VD 0934.092.029 → 0934.1.9.1991, 0909.922.000 → 0909.9.2.2000).
-  // Không đọc được ngày (34/152 số chỉ trùng đuôi năm) thì dùng format 4-3-3
-  // đồng nhất thay vì displayNumber của sheet — sheet chấm kiểu tuỳ hứng
-  // (090.9922.000, 093.888.2026), nhìn vẫn rối.
-  const isBirthYear = sim.tags.includes('Năm sinh');
+  // Áp dụng khi: sim có tag "Năm sinh" HOẶC người dùng đang tìm theo một năm
+  // (vd gõ "2013", "*1999") — lúc đó hệ thống tự "chấm lại" theo năm sinh, không
+  // phụ thuộc dấu chấm tuỳ hứng của sheet (090.9922.000, 093.888.2026).
+  // Không đọc được ngày (chỉ trùng đuôi năm) thì dùng format 4-3-3 đồng nhất.
+  const yearSearchActive = /(19[89]\d|20[0-2]\d)/.test(searchQuery);
+  const isBirthYear = sim.tags.includes('Năm sinh') || yearSearchActive;
   const birthDisplay = isBirthYear
-    ? formatBirthDateDisplay(sim.rawDigits) ?? formatSIMNumber(sim.rawDigits)
+    ? formatBirthDateDisplayLenient(sim.rawDigits) ?? formatSIMNumber(sim.rawDigits)
     : null;
   const cardDisplay = birthDisplay || sim.displayNumber || sim.formattedNumber || sim.rawDigits;
 
