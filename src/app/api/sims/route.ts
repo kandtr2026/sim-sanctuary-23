@@ -1,7 +1,8 @@
 import type { NextRequest } from "next/server";
 import { getServerSims } from "@/lib/serverSimData";
 import { filterSims, paginateSims, type SimFilterCriteria } from "@/lib/simFilter";
-import type { QuyType } from "@/lib/simUtils";
+import { countTags, getUniquePrefixes } from "@/lib/simUtils";
+import type { QuyType, SortOption } from "@/lib/simUtils";
 
 // Cache tầng route để đỡ cold-start; chính thực ra `getServerSims` đã cache CSV
 // ở module scope (tải 1 lần/instance, mọi request tái dùng) nên không có cảnh
@@ -9,6 +10,7 @@ import type { QuyType } from "@/lib/simUtils";
 export const revalidate = 300;
 
 const QUY_TYPES: QuyType[] = ["Tứ quý", "Ngũ quý", "Lục quý"];
+const SORT_OPTIONS: SortOption[] = ["default", "price_asc", "price_desc", "beauty", "suffix_beauty"];
 const MAX_LIMIT = 200;
 
 const splitParam = (value: string | null): string[] | undefined => {
@@ -26,11 +28,27 @@ const clampInt = (raw: string | null, fallback: number, min: number, max: number
   return Math.min(Math.max(n, min), max);
 };
 
+const parseNullableInt = (raw: string | null): number | null => {
+  if (raw === null || raw.trim() === "") return null;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+};
+
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
 
   const quyRaw = searchParams.get("quyType");
   const quyType = quyRaw && QUY_TYPES.includes(quyRaw as QuyType) ? (quyRaw as QuyType) : null;
+
+  const sortRaw = searchParams.get("sort");
+  const sortBy =
+    sortRaw && (SORT_OPTIONS as string[]).includes(sortRaw) ? (sortRaw as SortOption) : undefined;
+
+  const vipRaw = searchParams.get("vip");
+  const vipFilter =
+    vipRaw === "only" || vipRaw === "hide" ? vipRaw : vipRaw === "all" ? "all" : undefined;
+
+  const priceRanges = splitParam(searchParams.get("priceRanges"))?.map((s) => Number(s)).filter((n) => Number.isInteger(n) && n >= 0);
 
   const criteria: SimFilterCriteria = {
     search: searchParams.get("search") || undefined,
@@ -41,14 +59,34 @@ export async function GET(req: NextRequest) {
     matchAll: searchParams.get("matchAll") === "true" ? true : undefined,
     quyType,
     quyPosition: searchParams.get("quyPosition"),
+    priceRanges: priceRanges && priceRanges.length ? priceRanges : undefined,
+    customPriceMin: parseNullableInt(searchParams.get("priceMin")),
+    customPriceMax: parseNullableInt(searchParams.get("priceMax")),
+    networks: splitParam(searchParams.get("networks")),
+    vipFilter,
+    sortBy,
+    mobifoneFirst: searchParams.get("mobifoneFirst") === "true" ? true : undefined,
   };
 
   const limit = clampInt(searchParams.get("limit"), 30, 1, MAX_LIMIT);
   const offset = clampInt(searchParams.get("offset"), 0, 0, Number.MAX_SAFE_INTEGER);
+  const includeFacets = searchParams.get("includeFacets") === "1";
 
   const sims = await getServerSims();
   const filtered = filterSims(sims, criteria);
   const items = paginateSims(filtered, limit, offset);
 
-  return Response.json({ items, total: filtered.length });
+  const body: { items: typeof items; total: number; facets?: { tagCounts: Record<string, number>; prefixes: { prefix3: string[]; prefix4: string[] } } } = {
+    items,
+    total: filtered.length,
+  };
+
+  if (includeFacets) {
+    body.facets = {
+      tagCounts: countTags(sims),
+      prefixes: getUniquePrefixes(sims),
+    };
+  }
+
+  return Response.json(body);
 }

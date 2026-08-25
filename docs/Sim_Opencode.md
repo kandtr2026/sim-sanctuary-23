@@ -475,3 +475,32 @@ Băng CTA nhắc-lại (đặt ngay sau lưới kho ở Task 5):
 
 ### Phase 2 (KHÔNG làm bây giờ — ghi để nhớ)
 Homepage `SimBrowser` + `AdvancedFilterSidebar`/`MobileFilterDrawer` (đủ bộ lọc giá/mạng/tag/VIP/sort) + tool pages + admin dashboard chuyển sang `/api/sims` (mở rộng params). Bỏ hẳn tải 49k ở client. Claude sẽ spec riêng.
+
+---
+
+## Task 13 — ✅ ĐÃ LÀM · [P1 · Phase 2 data] Chuyển TRANG CHỦ (`SimBrowser`) sang `/api/sims` — hết cảnh "0 tứ quý"
+
+**Bối cảnh (Claude verify LIVE 25/08):** Task 12 (Phase 1) đã trị các trang category — `/api/sims?quyType=Tứ quý` trả **154 con tứ quý** trên toàn 49k ✅. NHƯNG **trang chủ `SimBrowser` vẫn dùng `useSimData` (client, kẹt 14k)** → chủ dự án bấm bộ lọc "Tứ quý" ở trang chủ ra **0 con** (bản-tạm 14k không chứa con tứ quý nào — đã đếm). Đây là lỗi bán hàng nặng (khách tìm số VIP thấy "không tìm thấy" → bỏ đi). Phase 2 = đưa trang chủ sang đường server đã dựng.
+
+> Tái dùng hạ tầng Task 12: `/api/sims` (route) + `src/lib/simFilter.ts` (hàm lọc chung) + `getServerSims()`. **Chỉ MỞ RỘNG** cho đủ bộ lọc trang chủ, KHÔNG dựng lại.
+
+### Việc
+1. **Mở rộng `src/lib/simFilter.ts` (`SimFilterCriteria` + `filterSims`)** cho đủ bộ lọc trang chủ (port nốt phần còn lại của `filteredSims` trong `useSimData.ts` vào đây — biến simFilter thành nguồn lọc DUY NHẤT):
+   - `priceRanges` (chỉ số vào `PRICE_RANGES`) + `customPriceMin`/`customPriceMax`.
+   - `networks` (Mobifone/Vinaphone/Gmobile).
+   - `vipFilter` ('all'|'only'|'hide').
+   - `sortBy` (`SortOption`) + `mobifoneFirst`.
+   - (Tuỳ) ưu tiên SIM giảm giá lên đầu — nếu server chưa có promo data thì tạm bỏ, KHÔNG chặn task.
+2. **Mở rộng `src/app/api/sims/route.ts`** đọc thêm params tương ứng (`priceRanges`, `priceMin`, `priceMax`, `networks`, `vip`, `sort`, `mobifoneFirst`), truyền vào `filterSims`. Giữ `limit`/`offset` (trang chủ phân trang / "xem thêm").
+3. **Chuyển `src/components/SimBrowser.tsx`** (và bộ lọc `AdvancedFilterSidebar`/`MobileFilterDrawer` nếu cần) sang gọi `/api/sims` bằng `useQuery` (key = toàn bộ filter state + trang), **bỏ `useSimData().allSims` + lọc client**. GIỮ NGUYÊN UX: sidebar lọc, sort dropdown, chip bộ lọc đang chọn, phân trang/"xem thêm", skeleton, empty state.
+   - `searchSuggestions` / `relaxFilters` (gợi ý khi 0 kết quả): được phép **đơn giản hoá** — khi 0 kết quả, gọi lại API với ít filter hơn (relax) hoặc chỉ hiện empty state + nút "nới lỏng"; KHÔNG cần tái tạo gợi ý theo-substring phức tạp (cần cả 49k ở client). Miễn không vỡ luồng.
+4. **KHÔNG đụng** trong task này: tool pages (`mua-sim-tu-quy`, `mua-sim-gia-re`, `dinh-gia-sim`) + admin dashboard — **Phase 2b, spec sau**. (Ghi rõ cho chủ dự án: mấy trang đó vẫn còn lỗi 14k tới khi làm 2b.)
+
+### Nghiệm thu (BẮT BUỘC qua TRÌNH DUYỆT thật)
+1. Mở **trang chủ**, bấm bộ lọc **"Tứ quý"** → **ra số thật (khớp ~154 con), KHÔNG còn "Không tìm thấy"**. Thử thêm "Ngũ quý", lọc theo giá/mạng/VIP/sort → đúng.
+2. **Network KHÔNG còn** request `fetch-sim-data` ~10MB từ trang chủ (chỉ `/api/sims` JSON). 0 lỗi console/#418.
+3. `npm run build` **xanh**; các trang category (Task 12) vẫn chạy.
+4. Commit + push. Cập nhật `roadmap.ts`. Đánh dấu Task 13 = ✅. Deploy xong báo Claude verify live (bấm "Tứ quý" trang chủ).
+
+### Phase 2b (ghi để nhớ — chưa làm)
+Tool pages `mua-sim-tu-quy`/`mua-sim-gia-re`/`dinh-gia-sim` + admin dashboard chuyển nốt sang `/api/sims`, gỡ hẳn `useSimData` (client 49k) khỏi repo.

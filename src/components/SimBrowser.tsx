@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import SearchBarAdvanced from "@/components/SearchBarAdvanced";
 import QuickPickChips from "@/components/QuickPickChips";
 import AdvancedFilterSidebar from "@/components/AdvancedFilterSidebar";
@@ -12,580 +13,444 @@ import ActiveFilterChips from "@/components/ActiveFilterChips";
 import SortDropdown from "@/components/SortDropdown";
 import MobileFilterDrawer from "@/components/MobileFilterDrawer";
 import EmptyStateHelper from "@/components/EmptyStateHelper";
-import { useSimData, getPromotionalData } from "@/hooks/useSimData";
+import { defaultFilterState, getPromotionalData } from "@/hooks/useSimData";
+import type { FilterState } from "@/hooks/useSimData";
 import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { PRICE_RANGES } from "@/lib/simUtils";
 import type { NormalizedSIM, QuyType } from "@/lib/simUtils";
 
 const ITEMS_PER_PAGE = 40;
 
-// Helper: normalize any value to digit-only string
-const normalizeSim = (v?: unknown) => String(v ?? "").replace(/\D/g, "");
+// ── Port from useSimData: relax order + neutral helpers (thuần, không đọc browser) ──
+const RELAX_ORDER: (keyof FilterState)[] = [
+  "customSuffix",
+  "selectedSuffixes",
+  "selectedPrefixes3",
+  "selectedPrefixes4",
+  "quyType",
+  "quyPosition",
+  "vipFilter",
+  "selectedTags",
+  "priceRanges",
+  "customPriceMin",
+  "customPriceMax",
+  "selectedNetworks",
+  "searchQuery",
+];
 
-/**
- * Widen a SIM to a plain record. The lookups below deliberately probe field
- * names that are NOT on NormalizedSIM (sim_normalized, msisdn, SimID, ...) —
- * they are legacy sheet column names kept as fallbacks so an upstream rename
- * degrades to a slower path instead of returning nothing. The cast is confined
- * to this one helper so the rest of the file stays typed.
- */
-const asRow = (sim: NormalizedSIM | null | undefined) =>
-  sim as unknown as Record<string, unknown> | null | undefined;
-
-// Helper: robust digit extraction from SIM object
-const getDigits = (sim: NormalizedSIM | null | undefined) => {
-  const row = asRow(sim);
-
-  // Try common fields first
-  const direct =
-    row?.rawDigits ??
-    row?.sim_normalized ??
-    row?.number ??
-    row?.formattedNumber ??
-    row?.sim ??
-    row?.phone ??
-    row?.msisdn ??
-    row?.value ??
-    row?.simNumber ??
-    row?.displayNumber;
-
-  const d1 = normalizeSim(direct);
-  if (d1.length >= 8) return d1;
-
-  // Fallback: scan object values for a string containing many digits
-  if (row && typeof row === "object") {
-    for (const k of Object.keys(row)) {
-      const v = row[k];
-      if (typeof v === "string" || typeof v === "number") {
-        const d = normalizeSim(v);
-        if (d.length >= 8) return d;
-      }
-    }
-  }
-
-  return "";
+const neutralFilterValue = <K extends keyof FilterState>(key: K): FilterState[K] => {
+  const neutral = defaultFilterState[key];
+  return (Array.isArray(neutral) ? [...neutral] : neutral) as FilterState[K];
 };
 
-// Helper: extract digits from SIM - uses robust getDigits
-const simDigits = (sim: NormalizedSIM | null | undefined) => getDigits(sim);
-
-// Helper: normalize string for comparison
-const norm = (s: unknown) => (s ?? "").toString().trim().toLowerCase().replace(/\s+/g, " ");
-
-// Helper: check if array includes a label (case-insensitive)
-const includesLabel = (arr: unknown, label: string) => {
-  if (!Array.isArray(arr)) return false;
-  const target = norm(label);
-  return (arr as unknown[]).some((x) => {
-    // Handle both string and object with label property
-    const val = typeof x === "object" && x !== null ? (x as { label?: unknown }).label : x;
-    return norm(val) === target;
-  });
+const resetFilterKey = <K extends keyof FilterState>(target: FilterState, key: K): void => {
+  target[key] = neutralFilterValue(key);
 };
 
-// Tail-based quý detection (inline for accuracy)
-// Tứ quý: 4 số cuối giống nhau (tail-based)
-const isQuadTail = (sim: NormalizedSIM) => {
-  const d = simDigits(sim);
-  return d.length >= 4 && /^(\d)\1{3}$/.test(d.slice(-4));
+const isFilterActive = <K extends keyof FilterState>(filters: FilterState, key: K): boolean => {
+  const value = filters[key];
+  if (Array.isArray(value)) return value.length > 0;
+  return value !== defaultFilterState[key];
 };
-
-// Ngũ quý: 5 số giống nhau LIỀN NHAU ở bất kỳ vị trí nào
-const isQuintAnywhere = (sim: NormalizedSIM) => {
-  const d = simDigits(sim);
-  if (d.length < 5) return false;
-  return /(\d)\1{4}/.test(d);
-};
-
-// Lục quý: 6 số giống nhau LIỀN NHAU ở bất kỳ vị trí nào
-const isHexAnywhere = (sim: NormalizedSIM) => {
-  const d = simDigits(sim);
-  if (d.length < 6) return false;
-  return /(\d)\1{5}/.test(d);
-};
-
-// Helper functions for landing page random ordering
-
-// Seeded random number generator (Mulberry32)
-function createSeededRandom(seed: number): () => number {
-  return function () {
-    let t = (seed += 0x6d2b79f5);
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-// Seeded shuffle - deterministic based on seed
-function seededShuffle<T>(arr: T[], seed: number): T[] {
-  const result = [...arr];
-  const random = createSeededRandom(seed);
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-}
-
-function getSimKey(sim: NormalizedSIM | null | undefined): string {
-  const row = asRow(sim);
-  return String(row?.SimID || row?.SimRef || row?.id || "");
-}
-
-// Get numeric VND price for landing filtering
-// MUST use sim.price (numeric VND from normalizeSIM), NOT formatted string
-function getFinalPriceForLanding(sim: NormalizedSIM | null | undefined): number {
-  // Priority: sim.price (the effective price set during normalization)
-  // This is the numeric VND value used for display and sorting
-  const v = sim?.price;
-  if (typeof v === "number" && Number.isFinite(v) && v > 0) {
-    return v;
-  }
-  // Fallback to finalPricePick if price is not available
-  const row = asRow(sim);
-  const fallback = row?.finalPricePick ?? row?.finalPrice;
-  if (typeof fallback === "number" && Number.isFinite(fallback) && fallback > 0) {
-    return fallback;
-  }
-  return NaN;
-}
-
-// Reorder for landing: prioritize 3-5M, supplement from <3M, then rest
-// Uses seeded shuffle for deterministic randomization
-function reorderForLanding(list: NormalizedSIM[], seed: number = 0): NormalizedSIM[] {
-  const min = 3_000_000;
-  const max = 5_000_000;
-
-  const in3to5: NormalizedSIM[] = [];
-  const lowerThan3: NormalizedSIM[] = [];
-  const others: NormalizedSIM[] = [];
-
-  for (const sim of list) {
-    const p = getFinalPriceForLanding(sim);
-    if (!Number.isFinite(p)) {
-      others.push(sim);
-    } else if (p >= min && p <= max) {
-      in3to5.push(sim);
-    } else if (p < min) {
-      lowerThan3.push(sim);
-    } else {
-      others.push(sim); // > 5tr
-    }
-  }
-
-  // Apply seeded shuffle to each group
-  const shuffled3to5 = seededShuffle(in3to5, seed);
-  const shuffledLower = seededShuffle(lowerThan3, seed + 1);
-
-  // Build initial100: prioritize 3-5M, supplement from <3M if needed
-  let initial100 = shuffled3to5.slice(0, 100);
-  if (initial100.length < 100) {
-    const needed = 100 - initial100.length;
-    initial100 = [...initial100, ...shuffledLower.slice(0, needed)];
-  }
-
-  // Track picked keys to avoid duplicates
-  const pickedKeys = new Set(initial100.map(getSimKey));
-
-  // Build rest: remaining from 3-5M, then <3M (not picked), then others
-  const rest = [...shuffled3to5.slice(100), ...shuffledLower.filter((s) => !pickedKeys.has(getSimKey(s))), ...others];
-
-  // Final deduplication
-  const seen = new Set<string>();
-  return [...initial100, ...rest].filter((s) => {
-    const k = getSimKey(s);
-    if (!k) return true;
-    if (seen.has(k)) return false;
-    seen.add(k);
-    return true;
-  });
-}
 
 const SimBrowser = () => {
-  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const [filters, setFilters] = useState<FilterState>(defaultFilterState);
+  const [limit, setLimit] = useState(ITEMS_PER_PAGE);
   const [showBackToTop, setShowBackToTop] = useState(false);
-
-  // Landing list freeze state - prevents re-randomization on scroll
-  const [landingSeed, setLandingSeed] = useState(0);
-  const [landingFrozenList, setLandingFrozenList] = useState<NormalizedSIM[]>([]);
-  const [hasInteracted, setHasInteracted] = useState(false);
-
-  // Flag to prevent duplicate hash processing
   const [hashProcessed, setHashProcessed] = useState(false);
-  const {
-    allSims,
-    filteredSims,
-    isLoading,
-    isFetching,
-    error,
-    forceReload,
-    prefixes,
-    tagCounts,
-    filters,
-    updateFilter,
-    togglePriceRange,
-    toggleTag,
-    toggleNetwork,
-    toggleSuffix,
-    resetFilters,
-    activeFilters,
-    activeConstraints,
-    relaxFilters,
-    relaxAllFilters,
-    searchSuggestion,
-    searchSuggestions,
-  } = useSimData();
+  const queryClient = useQueryClient();
 
-  // Mark interaction and increment seed to trigger new random order
-  const markInteracted = useCallback(() => {
-    setHasInteracted(true);
-    setLandingSeed((s) => s + 1);
-    setVisibleCount(ITEMS_PER_PAGE); // Reset pagination when filter/search/sort
+  // Reset phân trang mỗi khi filter đổi (giữ hành vi "xem thêm" như cũ).
+  useEffect(() => {
+    setLimit(ITEMS_PER_PAGE);
+  }, [filters]);
+
+  // ── Filter handlers (port từ useSimData — chỉ là setState cục bộ) ─────────
+  const updateFilter = useCallback(<K extends keyof FilterState>(key: K, value: FilterState[K]) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
   }, []);
 
-  // Wrapped filter handlers that trigger re-randomization
-  const updateFilterWithSeed = useCallback(
-    <K extends keyof typeof filters>(key: K, value: (typeof filters)[K]) => {
-      markInteracted();
-      return updateFilter(key, value);
-    },
-    [updateFilter, markInteracted],
-  );
+  const togglePriceRange = useCallback((index: number) => {
+    setFilters((prev) => ({
+      ...prev,
+      priceRanges: prev.priceRanges.includes(index)
+        ? prev.priceRanges.filter((i) => i !== index)
+        : [...prev.priceRanges, index],
+    }));
+  }, []);
 
-  const togglePriceRangeWithSeed = useCallback(
-    (index: number) => {
-      markInteracted();
-      return togglePriceRange(index);
-    },
-    [togglePriceRange, markInteracted],
-  );
+  const toggleTag = useCallback((tag: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      selectedTags: prev.selectedTags.includes(tag)
+        ? prev.selectedTags.filter((t) => t !== tag)
+        : [...prev.selectedTags, tag],
+    }));
+  }, []);
 
-  const toggleTagWithSeed = useCallback(
-    (tag: string) => {
-      markInteracted();
-      return toggleTag(tag);
-    },
-    [toggleTag, markInteracted],
-  );
+  const toggleNetwork = useCallback((network: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      selectedNetworks: prev.selectedNetworks.includes(network)
+        ? prev.selectedNetworks.filter((n) => n !== network)
+        : [...prev.selectedNetworks, network],
+    }));
+  }, []);
 
-  const toggleNetworkWithSeed = useCallback(
-    (network: string) => {
-      markInteracted();
-      return toggleNetwork(network);
-    },
-    [toggleNetwork, markInteracted],
-  );
+  const toggleSuffix = useCallback((suffix: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      selectedSuffixes: prev.selectedSuffixes.includes(suffix)
+        ? prev.selectedSuffixes.filter((s) => s !== suffix)
+        : [...prev.selectedSuffixes, suffix],
+    }));
+  }, []);
 
-  const toggleSuffixWithSeed = useCallback(
-    (suffix: string) => {
-      markInteracted();
-      return toggleSuffix(suffix);
-    },
-    [toggleSuffix, markInteracted],
-  );
+  const resetFilters = useCallback(() => {
+    setFilters(defaultFilterState);
+    toast.info("Đã đặt lại bộ lọc");
+  }, []);
 
-  const resetFiltersWithSeed = useCallback(() => {
-    markInteracted();
-    return resetFilters();
-  }, [resetFilters, markInteracted]);
+  const relaxFilters = useCallback(() => {
+    const relaxedMessages: string[] = [];
+    setFilters((prev) => {
+      const newFilters = { ...prev };
+      for (const key of RELAX_ORDER) {
+        if (isFilterActive(newFilters, key)) {
+          resetFilterKey(newFilters, key);
+          const keyLabels: Record<string, string> = {
+            searchQuery: "Từ khóa tìm kiếm",
+            selectedSuffixes: "Bộ lọc đuôi số",
+            customSuffix: "Đuôi số tùy chỉnh",
+            selectedPrefixes3: "Bộ lọc đầu số",
+            selectedPrefixes4: "Bộ lọc đầu 4 số",
+            quyType: "Bộ lọc quý",
+            quyPosition: "Vị trí quý",
+            vipFilter: "Bộ lọc VIP",
+            selectedTags: "Bộ lọc loại số",
+            priceRanges: "Khoảng giá",
+            customPriceMin: "Giá tối thiểu",
+            customPriceMax: "Giá tối đa",
+            selectedNetworks: "Bộ lọc mạng",
+          };
+          relaxedMessages.push(keyLabels[key] || key);
+          break;
+        }
+      }
+      return newFilters;
+    });
+    if (relaxedMessages.length > 0) toast.info(`Đã bỏ: ${relaxedMessages.join(", ")}`);
+  }, []);
 
-  const relaxFiltersWithSeed = useCallback(() => {
-    markInteracted();
-    return relaxFilters();
-  }, [relaxFilters, markInteracted]);
+  const relaxAllFilters = useCallback(() => {
+    setFilters((prev) => {
+      const next = { ...prev };
+      for (const key of RELAX_ORDER) resetFilterKey(next, key);
+      return next;
+    });
+    toast.success("Đã nới lỏng tất cả bộ lọc");
+  }, []);
 
-  const relaxAllFiltersWithSeed = useCallback(() => {
-    markInteracted();
-    return relaxAllFilters();
-  }, [relaxAllFilters, markInteracted]);
+  // ── Active filter chips (port từ useSimData) ──────────────────────────────
+  const activeFilters = useMemo(() => {
+    const chips: { key: string; label: string; onRemove: () => void }[] = [];
 
-  // Auto-apply filters from SEO landing hashes: #ns=YYYY, #price=under-1m,
-  // #landing=tamhoa-1-3tr. One effect, one guard — previously three effects
-  // shared a single flag, so whichever ran first blocked the other two.
+    if (filters.searchQuery) {
+      chips.push({ key: "search", label: `Tìm: ${filters.searchQuery}`, onRemove: () => updateFilter("searchQuery", "") });
+    }
+    filters.priceRanges.forEach((index) => {
+      chips.push({
+        key: `price-${index}`,
+        label: PRICE_RANGES[index]?.label ?? `#${index}`,
+        onRemove: () => togglePriceRange(index),
+      });
+    });
+    if (filters.customPriceMin !== null || filters.customPriceMax !== null) {
+      const min = filters.customPriceMin ? `${(filters.customPriceMin / 1000000).toFixed(0)}tr` : "0";
+      const max = filters.customPriceMax ? `${(filters.customPriceMax / 1000000).toFixed(0)}tr` : "∞";
+      chips.push({
+        key: "custom-price",
+        label: `${min} - ${max}`,
+        onRemove: () => {
+          updateFilter("customPriceMin", null);
+          updateFilter("customPriceMax", null);
+        },
+      });
+    }
+    filters.selectedTags.forEach((tag) => {
+      chips.push({ key: `tag-${tag}`, label: tag, onRemove: () => toggleTag(tag) });
+    });
+    filters.selectedNetworks.forEach((network) => {
+      chips.push({ key: `network-${network}`, label: network, onRemove: () => toggleNetwork(network) });
+    });
+    filters.selectedPrefixes3.forEach((prefix) => {
+      chips.push({
+        key: `prefix3-${prefix}`,
+        label: `Đầu ${prefix}`,
+        onRemove: () => updateFilter("selectedPrefixes3", filters.selectedPrefixes3.filter((p) => p !== prefix)),
+      });
+    });
+    filters.selectedSuffixes.forEach((suffix) => {
+      chips.push({ key: `suffix-${suffix}`, label: `Đuôi ${suffix}`, onRemove: () => toggleSuffix(suffix) });
+    });
+    if (filters.customSuffix) {
+      chips.push({ key: "custom-suffix", label: `Đuôi ${filters.customSuffix}`, onRemove: () => updateFilter("customSuffix", "") });
+    }
+    if (filters.vipFilter === "only") {
+      chips.push({ key: "vip-only", label: "Chỉ VIP", onRemove: () => updateFilter("vipFilter", "all") });
+    } else if (filters.vipFilter === "hide") {
+      chips.push({ key: "vip-hide", label: "Ẩn VIP", onRemove: () => updateFilter("vipFilter", "all") });
+    }
+    if (filters.quyType) {
+      chips.push({
+        key: "quyType",
+        label: filters.quyType,
+        onRemove: () => {
+          updateFilter("quyType", null);
+          updateFilter("quyPosition", null);
+        },
+      });
+    }
+
+    return chips;
+  }, [filters, updateFilter, togglePriceRange, toggleTag, toggleNetwork, toggleSuffix]);
+
+  const activeConstraints = useMemo(() => {
+    const constraints: { key: keyof FilterState; label: string; onRemove: () => void }[] = [];
+
+    if (filters.searchQuery) {
+      constraints.push({ key: "searchQuery", label: `Tìm: "${filters.searchQuery}"`, onRemove: () => updateFilter("searchQuery", "") });
+    }
+    if (filters.selectedSuffixes.length > 0) {
+      constraints.push({ key: "selectedSuffixes", label: `Đuôi số: ${filters.selectedSuffixes.join(", ")}`, onRemove: () => updateFilter("selectedSuffixes", []) });
+    }
+    if (filters.customSuffix) {
+      constraints.push({ key: "customSuffix", label: `Đuôi: ${filters.customSuffix}`, onRemove: () => updateFilter("customSuffix", "") });
+    }
+    if (filters.selectedPrefixes3.length > 0) {
+      constraints.push({ key: "selectedPrefixes3", label: `Đầu số: ${filters.selectedPrefixes3.join(", ")}`, onRemove: () => updateFilter("selectedPrefixes3", []) });
+    }
+    if (filters.selectedTags.length > 0) {
+      constraints.push({ key: "selectedTags", label: `Loại: ${filters.selectedTags.join(", ")}`, onRemove: () => updateFilter("selectedTags", []) });
+    }
+    if (filters.priceRanges.length > 0) {
+      constraints.push({ key: "priceRanges", label: "Khoảng giá đã chọn", onRemove: () => updateFilter("priceRanges", []) });
+    }
+    if (filters.customPriceMin !== null || filters.customPriceMax !== null) {
+      const min = filters.customPriceMin ? `${(filters.customPriceMin / 1000000).toFixed(0)}tr` : "0";
+      const max = filters.customPriceMax ? `${(filters.customPriceMax / 1000000).toFixed(0)}tr` : "∞";
+      constraints.push({
+        key: "customPriceMin",
+        label: `Giá: ${min} - ${max}`,
+        onRemove: () => {
+          updateFilter("customPriceMin", null);
+          updateFilter("customPriceMax", null);
+        },
+      });
+    }
+    if (filters.selectedNetworks.length > 0) {
+      constraints.push({ key: "selectedNetworks", label: `Mạng: ${filters.selectedNetworks.join(", ")}`, onRemove: () => updateFilter("selectedNetworks", []) });
+    }
+    if (filters.quyType) {
+      constraints.push({
+        key: "quyType",
+        label: filters.quyType,
+        onRemove: () => {
+          updateFilter("quyType", null);
+          updateFilter("quyPosition", null);
+        },
+      });
+    }
+
+    return constraints;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, updateFilter]);
+
+  // ── Auto-apply filter từ SEO landing hashes (giữ nguyên như cũ) ───────────
   useEffect(() => {
     if (hashProcessed) return;
-
     const hash = window.location.hash || "";
     if (!hash) return;
 
     const birthYear = hash.match(/^#ns=(\d{4})$/);
-
     if (birthYear) {
-      // Both updates batch into one render — no setTimeout needed.
       updateFilter("selectedTags", ["Năm sinh"]);
       updateFilter("searchQuery", `*${birthYear[1]}`);
     } else if (hash === "#price=under-1m") {
-      // "Dưới 1 triệu" = index 0 in PRICE_RANGES
       togglePriceRange(0);
     } else if (hash === "#landing=tamhoa-1-3tr") {
       toggleTag("Tam hoa");
-      // "1 - 3 triệu" = index 1 in PRICE_RANGES
       togglePriceRange(1);
     } else {
-      // Unrecognised hash — leave it alone (e.g. anchor links).
       return;
     }
 
-    // Clean the hash out of the URL so a refresh doesn't re-apply the filter.
     history.replaceState(null, "", window.location.pathname + window.location.search);
     setHashProcessed(true);
   }, [hashProcessed, updateFilter, togglePriceRange, toggleTag]);
 
-  // Search suggestions from hook (per 5 search rules)
-  const combinedSuggestions = searchSuggestions;
-
-  // Check multiple sources for quý filter state
-  // Include: filters.selectedTags (toggle chips), filters.quyType (dropdown), activeFilters (chips)
-  const typeSources = [filters?.selectedTags, activeFilters].filter(Boolean);
-
-  // Also check quyType directly (it's a separate filter field)
-  const quyTypeOn = filters?.quyType;
-  const isQuadOn = quyTypeOn === "Tứ quý" || typeSources.some((src) => includesLabel(src, "Tứ quý"));
-  const isQuintOn = quyTypeOn === "Ngũ quý" || typeSources.some((src) => includesLabel(src, "Ngũ quý"));
-  const isHexOn = quyTypeOn === "Lục quý" || typeSources.some((src) => includesLabel(src, "Lục quý"));
-  const anyQuyOn = isQuadOn || isQuintOn || isHexOn;
-
-  /**
-   * Which quý badge the cards should show.
-   *
-   * The cards used to receive `filters.quyType` directly, but that field is only
-   * written by the sidebar's quý buttons. The filter itself also honours
-   * `filters.selectedTags` and `activeFilters` (see isQuadOn/isQuintOn/isHexOn
-   * above), so a quý filter arriving through either of those returned correctly
-   * filtered SIMs with no badge on any of them.
-   *
-   * Deriving the badge from the same flags the filter uses means it cannot drift
-   * from the filter again, whichever control set it. The order matches
-   * applyQuyFilter's precedence (Lục > Ngũ > Tứ), so the badge always names the
-   * rule that actually produced the list — a number like 0777777840 shown under
-   * the Ngũ quý filter is badged "Ngũ quý" even though it also has six 7s.
-   */
-  const activeQuyType: QuyType | null = isHexOn
-    ? "Lục quý"
-    : isQuintOn
-      ? "Ngũ quý"
-      : isQuadOn
-        ? "Tứ quý"
-        : null;
-
-  // Helper: apply quý filter to a list (defined after quý state variables).
-  // useCallback so the memos below can list it as a dependency instead of
-  // silently depending on the flags it closes over — a plain function would get
-  // a fresh identity every render and the dep arrays would be lying about what
-  // the memo actually reads.
-  const applyQuyFilter = useCallback(
-    (list: NormalizedSIM[]) => {
-      if (!anyQuyOn) return list;
-      if (isHexOn) return list.filter(isHexAnywhere);
-      if (isQuintOn) return list.filter(isQuintAnywhere);
-      return list.filter(isQuadTail);
+  // ── Facets (tagCounts / prefixes cho sidebar) — 1 lần, cache lâu ──────────
+  const facetsQuery = useQuery<{
+    items: NormalizedSIM[];
+    total: number;
+    facets?: { tagCounts: Record<string, number>; prefixes: { prefix3: string[]; prefix4: string[] } };
+  }>({
+    queryKey: ["sims-facets"],
+    queryFn: async () => {
+      const res = await fetch("/api/sims?includeFacets=1&limit=1");
+      if (!res.ok) throw new Error(`/api/sims facets HTTP ${res.status}`);
+      return res.json();
     },
-    [anyQuyOn, isHexOn, isQuintOn],
-  );
+    staleTime: 60 * 60 * 1000,
+  });
 
-  // Check if any type selection is active (for landing detection)
-  const hasTypeSelection =
-    (Array.isArray(filters?.selectedTags) && filters.selectedTags.length > 0) || !!filters?.quyType;
+  const tagCounts = facetsQuery.data?.facets?.tagCounts ?? {};
+  const prefixes = facetsQuery.data?.facets?.prefixes ?? { prefix3: [], prefix4: [] };
+  const catalogueTotal = facetsQuery.data?.total ?? 0;
 
-  // Landing page: check if in default state (no search query AND no active filters AND no quý filter)
-  const isDefaultLanding =
-    !anyQuyOn &&
-    !hasTypeSelection &&
-    (!filters?.searchQuery || filters.searchQuery.replace(/[.\s]/g, "").trim() === "") &&
-    (!activeFilters || activeFilters.length === 0);
+  // ── Main query: toàn bộ filter state + trang (server lọc full 49k) ────────
+  const queryKey = ["sims", filters, limit] as const;
 
-  const finalCombinedSuggestions = isDefaultLanding
-    ? reorderForLanding(combinedSuggestions, landingSeed)
-    : combinedSuggestions;
+  const { data, isLoading, isFetching, error, refetch } = useQuery<{
+    items: NormalizedSIM[];
+    total: number;
+  }>({
+    queryKey,
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (filters.searchQuery.trim()) params.set("search", filters.searchQuery);
+      if (filters.priceRanges.length) params.set("priceRanges", filters.priceRanges.join(","));
+      if (filters.customPriceMin !== null) params.set("priceMin", String(filters.customPriceMin));
+      if (filters.customPriceMax !== null) params.set("priceMax", String(filters.customPriceMax));
+      if (filters.selectedTags.length) params.set("tags", filters.selectedTags.join(","));
+      if (filters.selectedNetworks.length) params.set("networks", filters.selectedNetworks.join(","));
+      const prefixList = [...filters.selectedPrefixes3, ...filters.selectedPrefixes4];
+      if (prefixList.length) params.set("prefixes", prefixList.join(","));
+      const suffixes = [...filters.selectedSuffixes];
+      if (filters.customSuffix) suffixes.push(filters.customSuffix);
+      if (suffixes.length) params.set("suffixes", suffixes.join(","));
+      if (filters.vipFilter !== "all") params.set("vip", filters.vipFilter);
+      if (filters.sortBy !== "default") params.set("sort", filters.sortBy);
+      if (filters.mobifoneFirst) params.set("mobifoneFirst", "1");
+      if (filters.quyType) params.set("quyType", filters.quyType);
+      params.set("limit", String(limit));
 
-  // Apply quý filter to suggestions
-  const finalSuggestionsWithQuy = useMemo(
-    () => applyQuyFilter(finalCombinedSuggestions),
-    [finalCombinedSuggestions, applyQuyFilter],
-  );
+      const res = await fetch(`/api/sims?${params.toString()}`);
+      if (!res.ok) throw new Error(`/api/sims HTTP ${res.status}`);
+      return res.json();
+    },
+  });
 
-  const isNoResultsWithSuggestions =
-    filteredSims.length === 0 && finalSuggestionsWithQuy.length > 0 && !isLoading && !error;
+  const forceReload = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["sims"] });
+    queryClient.invalidateQueries({ queryKey: ["sims-facets"] });
+    toast.info("Đang tải lại dữ liệu...");
+  }, [queryClient]);
 
-  // Freeze landing list when in default landing state (random once, keep on scroll)
-  // Uses seeded shuffle for deterministic ordering based on landingSeed
-  // IMPORTANT: Use allSims (full dataset), NOT filteredSims
-  useEffect(() => {
-    if (!isDefaultLanding) return;
-    if (!allSims || allSims.length === 0) return;
+  const displayedSIMs = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const hasMoreItems = !!data && total > displayedSIMs.length;
+  const remainingCount = Math.max(0, total - displayedSIMs.length);
 
-    // Freeze the list based on seed (random once, stable during scroll)
-    // reorderForLanding: prioritizes 3-5M SIMs (by finalPricePick), supplements from <3M if needed
-    const next = reorderForLanding(allSims, landingSeed);
-
-    setLandingFrozenList(next);
-  }, [isDefaultLanding, landingSeed, allSims]);
-
-  // When user returns to default landing after interaction, re-randomize once
-  useEffect(() => {
-    if (isDefaultLanding && hasInteracted) {
-      setHasInteracted(false);
-      setLandingSeed((s) => s + 1);
-    }
-  }, [isDefaultLanding, hasInteracted]);
-
-  // Check if search query is empty (only whitespace/dots)
-  const isSearchEmpty = !filters?.searchQuery || filters.searchQuery.replace(/[.\s]/g, "").trim() === "";
-
-  // Apply quý filtering directly (not relying on types array)
-  // Tứ quý: tail-based, Ngũ/Lục quý: anywhere in number
-  // CRITICAL FIX: When quý filter is ON and no search query, filter from allSims directly
-  // This prevents falling into "SỐ TƯƠNG TỰ" branch when filteredSims=0
-  const filteredByQuy = useMemo(() => {
-    // No quý filter active -> use normal flow
-    if (!anyQuyOn) {
-      return isDefaultLanding ? landingFrozenList : filteredSims;
-    }
-
-    // Quý filter is ON
-    // If search is empty, filter directly from allSims (full dataset)
-    // This ensures we get results even when filteredSims is empty
-    const sourceList = isSearchEmpty ? allSims : filteredSims;
-
-    // Priority: Lục > Ngũ > Tứ
-    if (isHexOn) return sourceList.filter(isHexAnywhere);
-    if (isQuintOn) return sourceList.filter(isQuintAnywhere);
-    return sourceList.filter(isQuadTail);
-  }, [
-    filteredSims,
-    allSims,
-    isDefaultLanding,
-    landingFrozenList,
-    isSearchEmpty,
-    anyQuyOn,
-    // isQuadOn is deliberately absent: the Tứ quý branch is the unconditional
-    // fallback, so this memo never reads it. anyQuyOn already covers the
-    // on/off transition, and isQuintOn/isHexOn cover the precedence switches —
-    // toggling Tứ quý always flips anyQuyOn, so no recompute is missed.
-    isQuintOn,
-    isHexOn,
-  ]);
-
-  // Base list for display: use filteredByQuy directly (it already handles landing vs filtered logic)
-  const baseListForDisplay = filteredByQuy;
-
-  // Reset visible count when landing state changes (filter applied/removed)
-  useEffect(() => {
-    setVisibleCount(ITEMS_PER_PAGE);
-  }, [isDefaultLanding]);
-
-  // Reset pagination when quý filter changes
-  useEffect(() => {
-    if (isQuadOn || isQuintOn || isHexOn) {
-      setVisibleCount(ITEMS_PER_PAGE);
-    }
-  }, [isQuadOn, isQuintOn, isHexOn]);
-
-  const displayedSIMs = useMemo(() => {
-    return baseListForDisplay.slice(0, visibleCount);
-  }, [baseListForDisplay, visibleCount]);
-
-  const hasMoreItems = visibleCount < baseListForDisplay.length;
-  const remainingCount = baseListForDisplay.length - visibleCount;
-
-  // handleLoadMore: ONLY increases visibleCount, NO re-randomization
   const handleLoadMore = useCallback(() => {
-    setVisibleCount((prev) => Math.min(prev + ITEMS_PER_PAGE, baseListForDisplay.length));
-  }, [baseListForDisplay.length]);
+    setLimit((prev) => prev + ITEMS_PER_PAGE);
+  }, []);
+
+  // ── Quý badge cho card (server lọc theo quyType; badge suy từ filter state) ─
+  const isQuadOn = filters.quyType === "Tứ quý" || filters.selectedTags.includes("Tứ quý");
+  const isQuintOn = filters.quyType === "Ngũ quý" || filters.selectedTags.includes("Ngũ quý");
+  const isHexOn = filters.quyType === "Lục quý" || filters.selectedTags.includes("Lục quý");
+  const activeQuyType: QuyType | null = isHexOn ? "Lục quý" : isQuintOn ? "Ngũ quý" : isQuadOn ? "Tứ quý" : null;
+
+  const searchSuggestion = useMemo(() => {
+    if (total === 0 && filters.searchQuery) {
+      const query = filters.searchQuery;
+      if (query.includes("*")) return "Thử bỏ dấu * hoặc giảm số ký tự";
+      if (query.length > 6) return "Thử tìm với ít số hơn (4-6 số)";
+    }
+    return null;
+  }, [total, filters.searchQuery]);
+
+  const noData = !isLoading && !error && facetsQuery.data !== undefined && catalogueTotal === 0;
+  const noMatch = !isLoading && !error && !!data && total === 0 && catalogueTotal > 0;
 
   const scrollToTop = useCallback(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  // Track scroll position for back-to-top button
   useEffect(() => {
-    const handleScroll = () => {
-      setShowBackToTop(window.scrollY > 500);
-    };
+    const handleScroll = () => setShowBackToTop(window.scrollY > 500);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
     <>
-      {/* ONE search bar for both breakpoints. There used to be a second, desktop-only
-          copy (<section id="sim-so" className="hidden lg:block">) sitting below the
-          banner and the process steps, which meant two SearchBarAdvanced instances on
-          one page and a desktop search box pushed 863px down. This is sticky on mobile
-          and static on desktop. */}
       <div
         className="sticky z-40 -mx-4 mb-4 border-b border-border bg-background/95 px-4 py-1.5 shadow-sm backdrop-blur lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none lg:backdrop-blur-none"
         style={{ top: "var(--nav-height)" }}
       >
         <SearchBarAdvanced
           value={filters.searchQuery}
-          onChange={(value) => updateFilterWithSeed("searchQuery", value)}
+          onChange={(value) => updateFilter("searchQuery", value)}
         />
       </div>
 
-      {/* Quick-pick chips replace the banner: one tap gets a visitor who doesn't know
-          what to search for into a real result set. Also carries the banner's only
-          real CTA (KHO SIM ĐỒNG GIÁ 229K) forward as the "SIM 229K" chip. */}
       <QuickPickChips
         filters={filters}
-        onTogglePriceRange={togglePriceRangeWithSeed}
-        onToggleTag={toggleTagWithSeed}
-        onUpdateFilter={updateFilterWithSeed}
+        onTogglePriceRange={togglePriceRange}
+        onToggleTag={toggleTag}
+        onUpdateFilter={updateFilter}
       />
 
-      {/* Mobile Filter Button */}
       <div className="lg:hidden mb-4 flex justify-between items-center">
         <MobileFilterDrawer
           filters={filters}
           tagCounts={tagCounts}
           prefixes={prefixes}
           activeFilterCount={activeFilters.length}
-          onTogglePriceRange={togglePriceRangeWithSeed}
-          onToggleTag={toggleTagWithSeed}
-          onToggleNetwork={toggleNetworkWithSeed}
-          onToggleSuffix={toggleSuffixWithSeed}
-          onUpdateFilter={updateFilterWithSeed}
-          onReset={resetFiltersWithSeed}
+          onTogglePriceRange={togglePriceRange}
+          onToggleTag={toggleTag}
+          onToggleNetwork={toggleNetwork}
+          onToggleSuffix={toggleSuffix}
+          onUpdateFilter={updateFilter}
+          onReset={resetFilters}
         />
-        <SortDropdown value={filters.sortBy} onChange={(value) => updateFilterWithSeed("sortBy", value)} />
+        <SortDropdown value={filters.sortBy} onChange={(value) => updateFilter("sortBy", value)} />
       </div>
 
-      {/* Main 3-Column Layout */}
       <div className="flex gap-4 lg:gap-6">
-        {/* Left Sidebar - Filters (Desktop) - Scrolls with page */}
         <aside className="hidden lg:block w-[160px] flex-shrink-0">
           <AdvancedFilterSidebar
             filters={filters}
             tagCounts={tagCounts}
             prefixes={prefixes}
-            onTogglePriceRange={togglePriceRangeWithSeed}
-            onToggleTag={toggleTagWithSeed}
-            onToggleNetwork={toggleNetworkWithSeed}
-            onToggleSuffix={toggleSuffixWithSeed}
-            onUpdateFilter={updateFilterWithSeed}
+            onTogglePriceRange={togglePriceRange}
+            onToggleTag={toggleTag}
+            onToggleNetwork={toggleNetwork}
+            onToggleSuffix={toggleSuffix}
+            onUpdateFilter={updateFilter}
           />
         </aside>
 
-        {/* Center - SIM Listing */}
         <section className="flex-1 min-w-0">
           <div className="bg-card rounded-2xl shadow-card border border-border/50 p-3 md:p-6 mb-6">
-            {/* Header with sort and reload */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-4 mb-4">
               <div className="hidden lg:block">
-                <SortDropdown value={filters.sortBy} onChange={(value) => updateFilterWithSeed("sortBy", value)} />
+                <SortDropdown value={filters.sortBy} onChange={(value) => updateFilter("sortBy", value)} />
               </div>
             </div>
 
-            {/* Active Filters */}
             <ActiveFilterChips
               chips={activeFilters}
-              resultCount={0}
-              onResetAll={resetFiltersWithSeed}
+              resultCount={total}
+              onResetAll={resetFilters}
               hideResultCount={true}
             />
 
-            {/* Loading State - only show full-screen when no data yet */}
-            {isLoading && allSims.length === 0 && filteredSims.length === 0 && (
+            {isLoading && (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="w-10 h-10 text-primary animate-spin mb-3" />
                 <span className="text-muted-foreground">Đang tải dữ liệu...</span>
@@ -593,7 +458,6 @@ const SimBrowser = () => {
               </div>
             )}
 
-            {/* Error State with Reload */}
             {error && !isLoading && (
               <div className="text-center py-12">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
@@ -608,7 +472,6 @@ const SimBrowser = () => {
               </div>
             )}
 
-            {/* SIM Grid */}
             {!isLoading && !error && displayedSIMs.length > 0 && (
               <>
                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-2.5 md:gap-3 mt-4">
@@ -624,51 +487,39 @@ const SimBrowser = () => {
                   ))}
                 </div>
 
-                {/* Load More Button */}
                 {hasMoreItems && (
                   <div className="mt-6 text-center">
-                    <button
-                      onClick={handleLoadMore}
-                      className="btn-cta inline-flex items-center gap-2 px-8 py-3 text-base"
-                    >
+                    <button onClick={handleLoadMore} className="btn-cta inline-flex items-center gap-2 px-8 py-3 text-base">
                       <ChevronDown className="w-5 h-5" />
                       <span>Xem thêm {Math.min(remainingCount, ITEMS_PER_PAGE)} SIM</span>
                     </button>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Còn {remainingCount.toLocaleString()} SIM khác
-                    </p>
+                    <p className="text-sm text-muted-foreground mt-2">Còn {remainingCount.toLocaleString()} SIM khác</p>
                   </div>
                 )}
 
-                {/* All loaded message */}
-                {!hasMoreItems && filteredSims.length > ITEMS_PER_PAGE && (
+                {!hasMoreItems && total > ITEMS_PER_PAGE && (
                   <div className="mt-6 text-center">
-                    <p className="text-sm text-muted-foreground">
-                      ✓ Đã hiển thị tất cả {filteredSims.length.toLocaleString()} SIM
-                    </p>
+                    <p className="text-sm text-muted-foreground">✓ Đã hiển thị tất cả {total.toLocaleString()} SIM</p>
                   </div>
                 )}
               </>
             )}
 
-            {/* Empty State with Helper and Suggestions */}
-            {!isLoading && !error && filteredSims.length === 0 && allSims.length > 0 && (
+            {noMatch && (
               <EmptyStateHelper
                 constraints={activeConstraints}
                 searchSuggestion={searchSuggestion}
-                onRelaxOne={relaxFiltersWithSeed}
-                onRelaxAll={relaxAllFiltersWithSeed}
-                onReset={resetFiltersWithSeed}
-                allSims={allSims}
+                onRelaxOne={relaxFilters}
+                onRelaxAll={relaxAllFilters}
+                onReset={resetFilters}
                 searchQuery={filters.searchQuery}
                 filters={filters}
                 quyFilter={activeQuyType}
-                precomputedSuggestions={finalSuggestionsWithQuy}
+                precomputedSuggestions={[]}
               />
             )}
 
-            {/* No Data State (data loaded but empty) */}
-            {!isLoading && !error && allSims.length === 0 && (
+            {noData && (
               <div className="text-center py-12">
                 <p className="text-muted-foreground text-lg">Chưa có dữ liệu SIM</p>
                 <Button onClick={forceReload} variant="outline" className="mt-4 gap-2">
@@ -680,26 +531,17 @@ const SimBrowser = () => {
           </div>
         </section>
 
-        {/* Right Sidebar - Scrolls with page */}
         <aside className="hidden lg:block w-[220px] flex-shrink-0">
           <RightSidebar />
         </aside>
       </div>
 
-      {/* Process Steps — moved BELOW the grid. It used to sit between the banner and
-          the search box, pushing the first SIM card 610px down on mobile. "How to buy"
-          only matters after a visitor has found a number they want. */}
-      {!isNoResultsWithSuggestions && <ProcessSteps />}
+      <ProcessSteps />
 
-      {/* Introduction Section. simCount comes from the dataset this page has
-          already fetched, so the "SIM số đẹp" stat reflects the real kho
-          instead of a hard-coded number that goes stale. */}
       <section className="my-8">
-        <IntroSection simCount={allSims.length} />
+        <IntroSection simCount={catalogueTotal} />
       </section>
 
-      {/* Back to Top Button — bottom-LEFT so it can't collide with the
-          floating contact stack / messenger panel on the right. */}
       {showBackToTop && (
         <button
           onClick={scrollToTop}

@@ -84,7 +84,7 @@ export const ROADMAP: RoadmapPhase[] = [
     title: "Khoan giếng: SEO + YouTube",
     goal: "Khách miễn phí từ Google & YouTube, gặt từ tháng 4+",
     tasks: [
-      { id: "G2-seo", title: "Trang tự sinh: đầu số / ý nghĩa số / loại số / hợp tuổi", status: "doing", next: "server-side search Phase 1 xong (CategorySimGrid qua /api/sims full 49k); Phase 2 homepage. Tiếp ý nghĩa số + hợp tuổi (chờ bảng nạp âm)" },
+      { id: "G2-seo", title: "Trang tự sinh: đầu số / ý nghĩa số / loại số / hợp tuổi", status: "doing", next: "server-side search Phase 1+2 xong (CategorySimGrid + SimBrowser qua /api/sims full 49k); Phase 2b tool pages. Tiếp ý nghĩa số + hợp tuổi (chờ bảng nạp âm)" },
       { id: "G2-yt", title: "Video YouTube ý nghĩa sim + nhúng lên web", status: "todo" },
     ],
   },
