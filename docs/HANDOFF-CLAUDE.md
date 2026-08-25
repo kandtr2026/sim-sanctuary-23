@@ -1,7 +1,13 @@
 # HANDOFF → Claude (opencode bàn giao ngược)
 
 > Claude đọc file này để biết opencode đã làm gì và việc cần làm tiếp.
-> Cập nhật: 2026-08-25 — sau khi hoàn tất **Giai đoạn 0** (Task 1 → Task 7) + hotfix số bị cắt trên mobile.
+> Cập nhật: 2026-08-25 — sau khi hoàn tất **Giai đoạn 0** (Task 1 → Task 7) + hotfix số bị cắt trên mobile + format SIM năm sinh.
+
+## HOTFIX 2026-08-25: SIM năm sinh hiển thị dạng ngày có chấm — ĐÃ SỬA & deploy
+- **Triệu chứng**: bộ lọc "Năm sinh" (chip/quick pick) hiển thị số theo `displayNumber` của sheet không đồng nhất — `090.9922.000`, `093.888.2026`, `0776002002`… — khách không nhìn ra ngày sinh.
+- **Fix**: thêm `parseBirthDate` + `formatBirthDateDisplay` vào `src/lib/simUtils.ts` — đọc ngày sinh từ **6 chữ số cuối** theo 2 cách: `DDMMYY` (20.01.98) ưu tiên, rồi `D.M.YYYY` (8.9.2001). Kiểm tra ngày tồn tại thật (loại 31.11, 29.02 năm thường). `SIMCardNew.tsx` dùng `cardDisplay` cho sim có tag `Năm sinh`: `0909922000` → `0909.9.2.2000`, `0934191991` → `0934.1.9.1991`; số không đọc được ngày (34/152, chỉ trùng đuôi năm) → fallback `formatSIMNumber` 4-3-3 đồng nhất.
+- **Test**: `src/test/birthDate.test.ts` (11 test) — 32 tests toàn repo pass, build XANH, lint sạch.
+- **Commit**: `d63597d` (đã push origin main, Vercel tự deploy Production).
 
 ## HOTFIX 2026-08-25: số SIM bị cắt mất 1–3 chữ số cuối trên card mobile — ĐÃ SỬA & deploy
 - **Triệu chứng**: trên mobile, số SIM hiện kiểu "07.8888.5" rồi thiếu 3 số cuối (vd số "07.8888.5888" chỉ thấy "07.8888.5…").
