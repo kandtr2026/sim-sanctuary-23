@@ -45,8 +45,9 @@ Dựng 1 job chạy **mỗi ngày 1 lần** (giờ đề xuất: 8:00 sáng gi�
 3. Chọn 1 chủ đề trong kho chủ đề bên dưới (mục 5) — chủ đề đầu tiên có slug CHƯA tồn tại. Nếu
    hết kho, tự nghĩ chủ đề mới cùng tinh thần (SIM số đẹp, phong thủy theo năm sinh, ý nghĩa đầu
    số Mobifone), slug mới không trùng.
-4. Sinh nội dung bài viết (gọi LLM API bất kỳ OpenCode có sẵn — Claude API, hay model khác đều
-   được, miễn theo đúng văn phong ở mục 6).
+4. Sinh nội dung bài viết — dùng **model AI miễn phí đang có sẵn/đã kết nối trong OpenCode**
+   (không bắt buộc phải là GPT/OpenAI — key OpenAI không có gói miễn phí, đừng đổi sang đó nếu
+   đang có model khác chạy ổn, ví dụ DeepSeek). Miễn nội dung đúng văn phong ở mục 6 là được.
 5. Lưu bài: `POST {ADMIN_SUPABASE_URL}/rest/v1/blog_posts` với `apikey` + `Authorization: Bearer
    <access_token>` + body JSON `{slug, title, meta_title, meta_description, content_html,
    category, published: false}`.
@@ -76,15 +77,35 @@ Chuỗi giải thích đầu số Mobifone (category "Đầu số"), mẫu tiêu
 Ý nghĩa và cách chọn sim đầu {đầu số}", mẫu slug "dau-so-{đầu số}-la-mang-gi":
 `090, 093, 089, 070, 076, 077, 078, 079`
 
-Bài kiến thức chung (category "Kiến thức mua sim" trừ khi ghi chú khác):
-- `phan-biet-sim-tu-quy-that-tu-quy-giua` — "Sim tứ quý là gì? Cách phân biệt tứ quý thật, tứ quý giữa và tứ quý lệch"
+Chuỗi **các dạng số đẹp** (category "Ý nghĩa sim") — đây là nhóm ưu tiên cao nhất, dựa theo đúng
+phân loại từ khóa mà đối thủ simthanglong.vn đang khai thác mạnh nhất (mục "SIM THEO LOẠI" trên
+trang chủ họ). Mỗi bài giải thích 1 dạng số: định nghĩa, ý nghĩa phong thủy/thị trường, cách nhận
+biết, ai nên mua. Site đã có sẵn trang danh mục cho vài dạng — bài blog PHẢI link về đúng trang đó
+nếu có (xem whitelist link ở mục 6), KHÔNG phải trang trùng lặp mà là nội dung dẫn dắt vào trang
+bán hàng:
+- `sim-tu-quy-la-gi-y-nghia` — "Sim tứ quý là gì? Ý nghĩa và cách phân biệt tứ quý thật – tứ quý giữa – tứ quý lệch"
+- `sim-luc-quy-la-gi-y-nghia` — "Sim lục quý là gì? Vì sao là dạng số đẹp hiếm và đắt giá nhất"
+- `sim-tam-hoa-la-gi-y-nghia` — "Sim tam hoa là gì? Phân biệt tam hoa thường và tam hoa kép"
+- `sim-loc-phat-la-gi-y-nghia` — "Sim lộc phát là gì? Ý nghĩa và cách chọn số đuôi lộc phát hợp mệnh" (link `/sim-loc-phat`)
+- `sim-than-tai-la-gi-y-nghia` — "Sim thần tài là gì? Ý nghĩa phong thủy và cách chọn số đuôi thần tài" (link `/sim-than-tai`)
+- `sim-ong-dia-la-gi-y-nghia` — "Sim ông địa là gì? Ý nghĩa và cách chọn số hợp phong thủy kinh doanh" (link `/sim-ong-dia`)
+- `sim-ngu-quy-la-gi-y-nghia` — "Sim ngũ quý là gì? Vì sao sim ngũ quý luôn có giá trị cao" (link `/sim-ngu-quy`)
+- `sim-taxi-la-gi-y-nghia` — "Sim taxi là gì? Vì sao được giới kinh doanh vận tải săn đón"
+- `sim-ganh-dao-la-gi-y-nghia` — "Sim gánh đảo là gì? Cách nhận biết sim gánh đảo đẹp"
+- `sim-tien-len-la-gi-y-nghia` — "Sim tiến lên (số tiến) là gì? Ý nghĩa và các dạng phổ biến"
+- `sim-lap-kep-la-gi-y-nghia` — "Sim lặp kép là gì? Vì sao dễ nhớ và được ưa chuộng"
+- `sim-so-doc-la-gi-y-nghia` — "Sim số độc là gì? Vì sao càng độc lạ càng có giá trị cao"
+- `sim-de-nho-la-gi-y-nghia` — "Sim dễ nhớ là gì? Tiêu chí chọn số dễ nhớ cho kinh doanh"
+- `sim-dau-so-co-la-gi-y-nghia` — "Sim đầu số cổ là gì? Vì sao đầu số cổ luôn có giá trị cao hơn"
+
+Bài kiến thức chung khác (category "Kiến thức mua sim"):
 - `cach-kiem-tra-sim-mobifone-chinh-chu` — "Cách kiểm tra sim Mobifone chính chủ trước khi mua, tránh mua phải sim lỗi"
 - `nen-mua-sim-tra-gop-hay-tra-thang` — "Nên mua sim trả góp hay trả thẳng? So sánh ưu nhược điểm"
-- `sim-taxi-la-gi-y-nghia` — "Sim taxi là gì? Vì sao được giới kinh doanh vận tải săn đón" (category "Ý nghĩa sim")
-- `sim-loc-phat-la-gi-y-nghia` — "Sim lộc phát là gì? Ý nghĩa và cách chọn số đuôi lộc phát hợp mệnh" (category "Ý nghĩa sim")
-- `sim-than-tai-la-gi-y-nghia` — "Sim thần tài là gì? Ý nghĩa phong thủy và cách chọn số đuôi thần tài" (category "Ý nghĩa sim")
 - `thu-tuc-sang-ten-sim-chinh-chu-mobifone` — "Thủ tục sang tên sim chính chủ Mobifone mới nhất"
-- `sim-ngu-quy-la-gi-y-nghia` — "Sim ngũ quý là gì? Vì sao sim ngũ quý luôn có giá trị cao" (category "Ý nghĩa sim")
+
+**Lưu ý bắt buộc:** tiêu đề và nội dung mỗi bài phải khác biệt hoàn toàn với các bài đã có (đã
+kiểm slug ở bước 2) — không viết lại gần giống 1 bài cũ dưới tên khác, không dùng lại cùng mở bài
+hay cùng bố cục câu chữ giữa các bài liên tiếp.
 
 **KHÔNG BAO GIỜ dùng các slug này** — đã tồn tại là trang riêng viết cứng trên site
 (`src/app/tin-tuc/*/page.tsx`), không phải hàng trong `blog_posts`: `y-nghia-sim-so-dep`,
@@ -102,9 +123,14 @@ bài tĩnh trong `src/app/tin-tuc/y-nghia-sim-so-dep/page.tsx`.
 - Phong thủy/số học trình bày như niềm tin dân gian ("theo quan niệm dân gian/phong thủy",
   "nhiều người tin rằng"), không khẳng định tuyệt đối, không phải lời khuyên y tế/tài chính.
 - Không bịa số liệu, tên khách hàng, đánh giá giả. Không nói xấu đối thủ theo tên.
-- Chèn đúng 1 link nội bộ `<a href="...">` — chỉ chọn trong: `/sim-phong-thuy` (chủ đề phong
-  thủy/năm sinh), `/sim-tra-gop` (trả góp), `/mua-sim-gia-re` (mua sim nói chung),
-  `/tin-tuc/cac-dau-so-mang-mobifone-moi-nhat` (đầu số/nhà mạng), hoặc `/` (mặc định).
+- Chèn đúng 1 link nội bộ `<a href="...">` — chọn URL khớp nhất với chủ đề bài, chỉ trong danh
+  sách sau (không tự bịa URL khác, kiểm tra route thật đã tồn tại trong `src/app/` trước khi
+  dùng vì site có thể có thêm trang mới): `/sim-phong-thuy` (phong thủy/năm sinh),
+  `/sim-loc-phat` (bài về lộc phát), `/sim-than-tai` (bài về thần tài), `/sim-ong-dia` (bài về
+  ông địa), `/sim-ngu-quy` (bài về ngũ quý), `/sim-dau-so/{đầu số}` (bài về 1 đầu số cụ thể, ví
+  dụ `/sim-dau-so/090`), `/sim-tra-gop` (trả góp), `/mua-sim-gia-re` (mua sim nói chung),
+  `/tin-tuc/cac-dau-so-mang-mobifone-moi-nhat` (đầu số/nhà mạng nói chung), hoặc `/` (mặc định
+  nếu không có trang nào khớp).
 - `meta_title` ≤ 60 ký tự, có từ khóa chính. `meta_description` 140–160 ký tự, tự nhiên.
 
 ## 7. Sau khi dựng xong
