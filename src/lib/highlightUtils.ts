@@ -242,7 +242,7 @@ export const createHighlightedNumber = (
     spans.push(
       React.createElement('span', {
         key: `highlight-${i}`,
-        className: 'font-semibold text-red-600'
+        className: 'font-extrabold text-gold'
       }, displayNumber.slice(range.start, range.end))
     );
     lastEnd = range.end;
@@ -266,7 +266,7 @@ export const createHighlightedNumber = (
 const buildSpansFromHlSet = (
   displayNumber: string,
   hlSet: Set<number>,
-  hlClassName: string = 'font-semibold text-red-600'
+  hlClassName: string = 'font-extrabold text-gold'
 ): React.ReactNode[] => {
   const result: React.ReactNode[] = [];
   let digitIdx = 0;
