@@ -7,7 +7,7 @@
  * client (khi Phase 2 chuyển sang) không lệch kết quả.
  */
 
-import { matchesQuyFilter, sortSIMs, PRICE_RANGES } from '@/lib/simUtils';
+import { matchesQuyFilter, parseBirthDate, sortSIMs, PRICE_RANGES } from '@/lib/simUtils';
 import type { NormalizedSIM, QuyType, SortOption } from '@/lib/simUtils';
 
 export interface SimFilterCriteria {
@@ -34,6 +34,8 @@ export interface SimFilterCriteria {
   vipFilter?: 'all' | 'only' | 'hide';
   sortBy?: SortOption;
   mobifoneFirst?: boolean;
+  /** Chỉ giữ SIM có ngày sinh THẬT (parseBirthDate hợp lệ) — lọc "Năm sinh" chặt. */
+  birthDateOnly?: boolean;
 }
 
 const getDigits = (s: NormalizedSIM): string =>
@@ -130,6 +132,11 @@ export function filterSims(sims: NormalizedSIM[], criteria: SimFilterCriteria): 
 
   if (criteria.quyType) {
     result = result.filter((s) => matchesQuyFilter(getDigits(s), criteria.quyType!, null));
+  }
+
+  // Lọc "Năm sinh" chặt: chỉ giữ sim đọc được ngày sinh thật từ 6 số cuối.
+  if (criteria.birthDateOnly) {
+    result = result.filter((s) => parseBirthDate(getDigits(s)) !== null);
   }
 
   // ── Sort ──────────────────────────────────────────────────────────────────

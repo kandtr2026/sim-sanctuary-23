@@ -348,6 +348,8 @@ const SimBrowser = ({
       if (filters.sortBy !== "default") params.set("sort", filters.sortBy);
       if (filters.mobifoneFirst) params.set("mobifoneFirst", "1");
       if (filters.quyType) params.set("quyType", filters.quyType);
+      // "Năm sinh" lọc chặt: chỉ sim đọc được ngày sinh thật, hết số đuôi-năm ảo.
+      if (filters.selectedTags.includes("Năm sinh")) params.set("birthDateOnly", "1");
       params.set("limit", String(limit));
 
       const res = await fetch(`/api/sims?${params.toString()}`);

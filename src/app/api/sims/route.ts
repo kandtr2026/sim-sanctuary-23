@@ -66,6 +66,7 @@ export async function GET(req: NextRequest) {
     vipFilter,
     sortBy,
     mobifoneFirst: searchParams.get("mobifoneFirst") === "true" ? true : undefined,
+    birthDateOnly: searchParams.get("birthDateOnly") === "1" ? true : undefined,
   };
 
   const limit = clampInt(searchParams.get("limit"), 30, 1, MAX_LIMIT);
