@@ -16,6 +16,7 @@
 - **T8** 24 trang combo "sim [loại] × đầu số" (SSG, sitemap, FAQ JSON-LD, cross-links).
 - **T9** Vá hydration React #418: `useDeliveredCount` (đọc localStorage trong render → TrustBar mismatch toàn site) + `BuildBadge` (useState đọc window đầu render). Cả hai sửa theo pattern "render giống SSR, cập nhật trong useEffect".
 - **T10** Dọn event GA4 legacy còn sót ở `Header.tsx` (`call_click`/`click_zalo`) — giờ toàn repo chỉ còn 1 nguồn lead `generate_lead`.
+- **T11** Truy hết hydration #418: thủ phạm còn lại là `useSimData.ts` — `INITIAL_PLACEHOLDER = getCachedInitialData()` đọc localStorage **ở module scope** (server→SEED_SIMS, client→SIM thật → CategorySimGrid lệch). Đã fix: placeholder cố định `SEED_SIMS` + nạp cache vào query trong `useEffect`. **Verify bằng Playwright (trình duyệt thật): console 0 lỗi trên /sim-than-tai + /sim-dau-so/090/than-tai, kể cả kịch bản đã có localStorage cache.**
 
 ## CHỜ CLAUDE / CHỦ DỰ ÁN (không phải code)
 

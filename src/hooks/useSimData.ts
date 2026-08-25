@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { invokeEdgeFunctionText } from '@/integrations/supabase/edgeFunctions';
 import {
@@ -665,20 +665,26 @@ const isFilterActive = <K extends keyof FilterState>(filters: FilterState, key: 
   return value !== defaultFilterState[key];
 };
 
-// Pre-compute cached initial data at module level (not inside hook)
-const getCachedInitialData = (): NormalizedSIM[] => {
-  const cached = loadFromCache();
-  // loadFromCache() rebuilds every derived field through normalizeSIM, so these
-  // are ready to render as-is.
-  if (cached && cached.data.length > 0) return cached.data;
-  return SEED_SIMS;
-};
-
-const INITIAL_PLACEHOLDER = getCachedInitialData();
+// Cố định bằng SEED_SIMS — KHÔNG đọc localStorage ở module scope. Trước đây
+// getCachedInitialData() đọc cache ở đây: server (không window) ra SEED_SIMS,
+// client (có cache) ra SIM thật → CategorySimGrid render khác nhau giữa server
+// & client → hydration mismatch React #418 trên mọi trang dùng lưới SIM.
+// Cache thật được nạp vào query cache trong useEffect (xem useSimData).
+const INITIAL_PLACEHOLDER = SEED_SIMS;
 
 export const useSimData = () => {
   const [filters, setFilters] = useState<FilterState>(defaultFilterState);
   const queryClient = useQueryClient();
+
+  // Nạp cache từ localStorage SAU KHI mount để lần render đầu (SSR + hydration)
+  // khớp nhau (đều dùng SEED_SIMS). setQueryData cho UI hiện cache ngay, không
+  // bị trắng; khi queryFn resolve xong dữ liệu mới thay thế.
+  useEffect(() => {
+    const cached = loadFromCache();
+    if (cached && cached.data.length > 0) {
+      queryClient.setQueryData(['simData'], cached.data);
+    }
+  }, [queryClient]);
 
   const { data: allSims = [], isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['simData'],

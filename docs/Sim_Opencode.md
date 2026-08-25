@@ -421,3 +421,24 @@ Băng CTA nhắc-lại (đặt ngay sau lưới kho ở Task 5):
 1. `npm run build` **xanh**. `grep -rn "call_click\|click_zalo" src/` → **0 kết quả** (đã sạch toàn repo).
 2. Bấm nút Zalo/gọi ở Header → chỉ còn `generate_lead` bắn (qua listener), không còn event cũ.
 3. Commit + push. Đánh dấu Task 10 = ✅. (Không đổi `roadmap.ts`.)
+
+---
+
+## Task 11 — ✅ ĐÃ LÀM · [P1] Truy nốt nguyên nhân hydration #418 CÒN SÓT (Task 9 mới vá 1 phần)
+
+**Bối cảnh (Claude verify LIVE 25/08):** deploy `7473799`+`f226f0e` ĐÃ lên (HTML gốc từ server: TrustBar render `…<!-- --> đơn đã giao` — đúng như fix Task 9). **NHƯNG console prod VẪN báo `Uncaught Minified React error #418`** (4 lần) trên `/sim-than-tai` và trang combo. → Task 9 mới xử 1 nguyên nhân (TrustBar `useDeliveredCount`); **còn ≥1 nguồn hydration mismatch khác**, site-wide.
+
+> ⚠️ **BÀI HỌC VERIFY:** nhìn SSR HTML ra `…` **KHÔNG đủ** để kết luận hết #418. Phải **mở trang trong TRÌNH DUYỆT và xác nhận CONSOLE sạch** (dev để đọc lỗi, rồi `next start` để xác nhận bản prod).
+
+### Cách làm — chẩn đoán bằng console, KHÔNG đoán mò
+1. **`npm run dev`** → mở `/sim-than-tai` → console dev in **đầy đủ** #418 kèm **diff** (`Server: "X"` ↔ `Client: "Y"`) + **component stack** → chỉ ĐÚNG chỗ lệch. (Nếu dev không lộ rõ: `npm run build && npx next start` rồi mở trang — lỗi prod hiện y hệt live.)
+2. **Nghi phạm còn lại** (TrustBar + BuildBadge đã xử ở Task 9, đừng lặp):
+   - **`toLocaleString` / `Intl` / format ngày-giờ** khác nhau giữa Node (server) và trình duyệt (client) — vd format giá/số trong một **client component** render lúc hydration.
+   - **HTML nesting không hợp lệ** bị trình duyệt tự sửa (`<a>` lồng `<a>`, block-level trong `<p>`, `<button>` lồng nhau…) → DOM lệch SSR → #418. Rà `LeadMagnetCta`, `TrustCommitments`, `Header`, `Footer`, `Navigation`, `SimSnapshot`, `SIMCardNew`.
+   - Component `use client` tầng layout đọc `window`/`Date`/`Math.random`/`matchMedia` khi render đầu mà Task 9 chưa rà.
+3. Sửa tối thiểu đúng chỗ console chỉ.
+
+### Nghiệm thu (BẮT BUỘC qua console trình duyệt, không phải SSR HTML)
+1. Mở `/sim-than-tai` **và** `/sim-dau-so/090/than-tai` (dev hoặc `next start`) → **console 0 lỗi #418, 0 warning hydration**.
+2. `npm run build` xanh; kho/CTA/generate_lead giữ nguyên.
+3. Commit + push. Đánh dấu Task 11 = ✅. Deploy xong báo Claude verify lại trên live.
