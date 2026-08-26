@@ -201,11 +201,16 @@ export const detectSimTags = (rawDigits: string): string[] => {
     }
   }
 
-  // Năm sinh (ends with year 1980-2029)
-  const yearMatch = rawDigits.slice(-4);
-  const year = parseInt(yearMatch, 10);
-  if (year >= 1980 && year <= 2029) {
+  // Năm sinh: ưu tiên parser linh hoạt (web tự xử lý, bắt được DDMMYY/DMYYYY/
+  // DDMYY/DDMYYYY — ~1.451 trong 49k). Fallback: 4 số cuối là năm 1980-2029.
+  if (tryParseBirthDateLenient(rawDigits) !== null) {
     tags.push('Năm sinh');
+  } else {
+    const yearMatch = rawDigits.slice(-4);
+    const year = parseInt(yearMatch, 10);
+    if (year >= 1980 && year <= 2029) {
+      tags.push('Năm sinh');
+    }
   }
 
   // Taxi = ABABAB or ABCABC on last 6 digits
