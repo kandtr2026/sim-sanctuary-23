@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Calendar, ChevronDown } from "lucide-react";
-import Link from "next/link";
-import { formatPrice, formatSIMNumber } from "@/lib/simUtils";
 
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -105,18 +103,6 @@ export default function SimNamSinhFinder() {
         <Search className="h-5 w-5" />
         Tìm SIM năm sinh
       </button>
-
-      <div className="mt-6 flex flex-wrap justify-center gap-2">
-        {YEARS.slice(0, 10).map((y) => (
-          <Link
-            key={y}
-            href={`/sim-nam-sinh/${y}`}
-            className="rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-xs font-medium text-gold transition-colors hover:bg-gold/20"
-          >
-            {y}
-          </Link>
-        ))}
-      </div>
     </div>
   );
 }
