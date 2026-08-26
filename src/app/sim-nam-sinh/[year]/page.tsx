@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Phone, Star, Sparkles } from "lucide-react";
-import SimSnapshot from "@/components/SimSnapshot";
 import TrustCommitments from "@/components/TrustCommitments";
 import CustomerProof from "@/components/CustomerProof";
 import LeadMagnetCta from "@/components/LeadMagnetCta";
@@ -208,12 +207,7 @@ export default async function SimNamSinhPage({ params }: Props) {
 
           {/* Server-rendered snapshot: số thật + ItemList/Product schema */}
           <div id="kho-sim">
-            <SimSnapshot
-              title={`Sim Năm Sinh ${year} Nổi Bật Trong Kho`}
-              sims={snapshotSims}
-              pageUrl={`${BASE_URL}/sim-nam-sinh/${year}`}
-            />
-          </div>
+                      </div>
 
           {/* Cố ý KHÔNG dùng client grid (CategorySimGrid) ở trang năm sinh: bộ
               lọc /api/sims chỉ hỗ trợ đuôi/đầu/tag, KHÔNG có "năm trong 6 số

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Phone, Star, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
-import SimSnapshot from "@/components/SimSnapshot";
 import TrustCommitments from "@/components/TrustCommitments";
 import CustomerProof from "@/components/CustomerProof";
 import LeadMagnetCta from "@/components/LeadMagnetCta";
@@ -134,8 +133,7 @@ export default async function SimThanTaiPage() {
           </section>
 
           {/* Server-rendered snapshot: real SIM numbers + ItemList/Product schema */}
-          <SimSnapshot title="Sim Thần Tài Nổi Bật Trong Kho" sims={snapshotSims} pageUrl={CANONICAL} />
-
+          
           {/* Client island: SIM grid */}
           <CategorySimGrid
             title="Kho Sim Thần Tài Cập Nhật"

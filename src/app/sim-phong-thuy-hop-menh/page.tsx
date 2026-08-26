@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Phone, Star, Sparkles } from "lucide-react";
 import PhongThuyMenhTool from "./PhongThuyMenhTool";
-import SimSnapshot from "@/components/SimSnapshot";
 import {
   Accordion,
   AccordionContent,
@@ -147,8 +146,7 @@ export default async function SimPhongThuyHopMenhPage() {
             </p>
           </section>
 
-          <SimSnapshot title="SIM Phong Thủy Nổi Bật Trong Kho" sims={snapshotSims} />
-
+          
           {/* Client island: mệnh picker + grid */}
           <PhongThuyMenhTool />
 

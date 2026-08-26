@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Phone, Shield, Star, Truck, CheckCircle, Sparkles, Award, Users, DollarSign } from "lucide-react";
 import MuaSimTuQuyTool from "./MuaSimTuQuyTool";
-import SimSnapshot from "@/components/SimSnapshot";
 import {
   Accordion,
   AccordionContent,
@@ -189,11 +188,6 @@ export default async function MuaSimTuQuyPage() {
               </p>
             </div>
           </section>
-
-          {/* Server-rendered snapshot: real SIM numbers + ItemList/Product schema
-              in the raw HTML (crawlers see real stock even though the tool below
-              is a client island). */}
-          <SimSnapshot title="Sim Tứ Quý Nổi Bật Trong Kho" sims={snapshotSims} pageUrl={CANONICAL} />
 
           {/* ===== 3 + 3b. SEARCH + KHO SIM TỨ QUÝ (client island) ===== */}
           <MuaSimTuQuyTool />

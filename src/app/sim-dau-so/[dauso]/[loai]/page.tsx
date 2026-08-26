@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Phone, Star, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
-import SimSnapshot from "@/components/SimSnapshot";
 import TrustCommitments from "@/components/TrustCommitments";
 import LeadMagnetCta from "@/components/LeadMagnetCta";
 import {
@@ -147,8 +146,7 @@ export default async function SimDauSoLoaiPage({ params }: Props) {
         </section>
 
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
-          <SimSnapshot title={`Sim ${label} ${dauso} Nổi Bật Trong Kho`} sims={snapshotSims} />
-
+          
           <CategorySimGrid
             title={`Kho Sim ${label} Đầu Số ${dauso} Cập Nhật`}
             searchPlaceholder={`Nhập số hoặc *39 / *79 để tìm ${label} đầu ${dauso}...`}

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Phone, Star, Shield, CheckCircle, Truck, DollarSign, Users, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
-import SimSnapshot from "@/components/SimSnapshot";
 import {
   Accordion,
   AccordionContent,
@@ -138,8 +137,7 @@ export default async function SimTraGopPage() {
             </div>
           </section>
 
-          <SimSnapshot title="Sim Trả Góp Nổi Bật Trong Kho" sims={snapshotSims} />
-
+          
           {/* Client island: SIM grid */}
           <CategorySimGrid
             title="Kho Sim Có Thể Trả Góp"

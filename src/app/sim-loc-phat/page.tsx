@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Phone, Star, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
-import SimSnapshot from "@/components/SimSnapshot";
 import TrustCommitments from "@/components/TrustCommitments";
 import CustomerProof from "@/components/CustomerProof";
 import LeadMagnetCta from "@/components/LeadMagnetCta";
@@ -133,8 +132,7 @@ export default async function SimLocPhatPage() {
             </div>
           </section>
 
-          <SimSnapshot title="Sim Lộc Phát Nổi Bật Trong Kho" sims={snapshotSims} />
-
+          
           <CategorySimGrid
             title="Kho Sim Lộc Phát Cập Nhật"
             searchPlaceholder="Nhập số hoặc *68 / *86 để tìm đuôi lộc phát..."

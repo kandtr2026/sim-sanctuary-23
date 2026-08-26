@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Wifi, PhoneCall, BadgeCheck, Truck, MessageCircle, Search } from "lucide-react";
 import MuaSimGiaReTool from "./MuaSimGiaReTool";
-import SimSnapshot from "@/components/SimSnapshot";
 import {
   Accordion,
   AccordionContent,
@@ -143,15 +142,6 @@ export default async function MuaSimGiaRePage() {
 
         {/* ===== SEARCH + INVENTORY (client island) ===== */}
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
-          {/* Server-rendered snapshot: real promo SIMs + ItemList/Product schema
-              in the raw HTML, so crawlers see actual stock before the client
-              island (below) fetches the live warehouse. */}
-          <SimSnapshot
-            title={`SIM Giá Rẻ Nổi Bật — Đồng Giá ${PRICE_LABEL}`}
-            sims={snapshotSims}
-            pageUrl={CANONICAL}
-          />
-
           <MuaSimGiaReTool />
 
           {/* ===== WHAT THIS KHO IS ===== */}

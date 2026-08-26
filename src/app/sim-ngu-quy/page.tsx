@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Phone, Star, Shield, CheckCircle, Truck, DollarSign, Users, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
-import SimSnapshot from "@/components/SimSnapshot";
 import {
   Accordion,
   AccordionContent,
@@ -138,8 +137,7 @@ export default async function SimNguQuyPage() {
             </div>
           </section>
 
-          <SimSnapshot title="Sim Ngũ Quý Nổi Bật Trong Kho" sims={snapshotSims} />
-
+          
           <CategorySimGrid
             title="Kho Sim Ngũ Quý Cập Nhật"
             searchPlaceholder="Nhập số hoặc *88888 / *99999 để tìm đuôi ngũ quý..."

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Phone, Star, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
-import SimSnapshot from "@/components/SimSnapshot";
 import TrustCommitments from "@/components/TrustCommitments";
 import CustomerProof from "@/components/CustomerProof";
 import LeadMagnetCta from "@/components/LeadMagnetCta";
@@ -142,8 +141,7 @@ export default async function SimDauSoPage({ params }: Props) {
             </p>
           </section>
 
-          <SimSnapshot title={`Sim ${dauso} Nổi Bật Trong Kho`} sims={snapshotSims} />
-
+          
           <CategorySimGrid
             title={`Kho Sim ${dauso} Cập Nhật`}
             searchPlaceholder={`Nhập số cần tìm trong kho ${dauso}...`}
