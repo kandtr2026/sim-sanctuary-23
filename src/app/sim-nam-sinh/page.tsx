@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { Sparkles } from "lucide-react";
 import SimNamSinhFinder from "./SimNamSinhFinder";
-import ZaloChatCard from "@/components/ZaloChatCard";
-import TrustCommitments from "@/components/TrustCommitments";
 import {
   Accordion,
   AccordionContent,
@@ -29,22 +28,27 @@ export const metadata: Metadata = {
   },
 };
 
-const faqData = [
+interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+const faqData: FaqItem[] = [
   {
-    q: "Làm sao tìm sim năm sinh của mình?",
-    a: "Nhập ngày, tháng, năm sinh của bạn vào ô trên. Hệ thống tự tìm những sim có số năm sinh (4 số của năm trong dãy số) và hiển thị để bạn chọn.",
+    question: "Làm sao tìm sim năm sinh của mình?",
+    answer: "Nhập ngày, tháng, năm sinh của bạn vào ô trên. Hệ thống tự tìm những sim có số năm sinh (4 số của năm trong dãy số) và hiển thị để bạn chọn.",
   },
   {
-    q: "Sim năm sinh có đắt không?",
-    a: "Sim năm sinh có giá từ vài trăm nghìn đến vài chục triệu tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số. Giá niêm yết công khai, không phát sinh phí ẩn.",
+    question: "Sim năm sinh có đắt không?",
+    answer: "Sim năm sinh có giá từ vài trăm nghìn đến vài chục triệu tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số. Giá niêm yết công khai, không phát sinh phí ẩn.",
   },
   {
-    q: "Chọn sim hợp tuổi như thế nào?",
-    a: "Theo quan niệm dân gian, nhiều người chọn sim gắn với năm sinh của mình hoặc người thân vì dễ nhớ và mang ý nghĩa cá nhân. Đây là niềm tin tham khảo, không phải khẳng định tuyệt đối.",
+    question: "Chọn sim hợp tuổi như thế nào?",
+    answer: "Theo quan niệm dân gian, nhiều người chọn sim gắn với năm sinh của mình hoặc người thân vì dễ nhớ và mang ý nghĩa cá nhân. Đây là niềm tin tham khảo, không phải khẳng định tuyệt đối.",
   },
   {
-    q: "Mua sim năm sinh có sang tên chính chủ không?",
-    a: "Được. Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Bạn nhận SIM trước, kiểm tra kỹ rồi mới trả tiền.",
+    question: "Mua sim năm sinh có sang tên chính chủ không?",
+    answer: "Được. Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Bạn nhận SIM trước, kiểm tra kỹ rồi mới trả tiền.",
   },
 ];
 
@@ -53,85 +57,165 @@ const faqJsonLd = {
   "@type": "FAQPage",
   mainEntity: faqData.map((f) => ({
     "@type": "Question",
-    name: f.q,
-    acceptedAnswer: { "@type": "Answer", text: f.a },
+    name: f.question,
+    acceptedAnswer: { "@type": "Answer", text: f.answer },
   })),
 };
+
+const cardBaseClass = "relative rounded-2xl p-6 md:p-9";
+const cardStyle: React.CSSProperties = {
+  background: "#161214",
+  border: "1px solid rgba(255,255,255,0.08)",
+};
+
+const PILLARS: { title: string; body: string }[] = [
+  {
+    title: "Sim năm sinh là gì?",
+    body: "Sim năm sinh là dòng sim có số năm sinh ở các số cuối — gắn với năm sinh của bạn hoặc người thân. Nhiều người chọn vì dễ nhớ và mang ý nghĩa cá nhân. Nhập ngày sinh phía trên, hệ thống sẽ tự tìm những sim có số năm sinh phù hợp trong kho để bạn chọn.",
+  },
+  {
+    title: "Lợi ích khi chọn sim năm sinh",
+    body: "Sim có số năm sinh giúp bạn dễ dàng ghi nhớ số điện thoại, tạo ấn tượng cá nhân và chuyên nghiệp khi giao dịch. Nhiều người chọn sim có số năm sinh của mình hoặc người thân như một cách lưu giữ kỷ niệm và thể hiện phong cách riêng.",
+  },
+  {
+    title: "Giá sim năm sinh có đắt không?",
+    body: "Sim năm sinh Mobifone có giá từ vài trăm nghìn đến vài chục triệu đồng, tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số quanh số năm sinh. Giá niêm yết công khai trên kho, không phát sinh phí ẩn.",
+  },
+  {
+    title: "Chọn sim hợp tuổi theo quan niệm dân gian",
+    body: "Theo quan niệm dân gian, nhiều người chọn sim gắn với năm sinh của mình hoặc người thân vì dễ nhớ và mang ý nghĩa cá nhân. Nếu muốn phân tích sâu hơn theo ngũ hành, âm dương, quẻ dịch, bạn có thể dùng công cụ Sim phong thủy hợp tuổi.",
+  },
+  {
+    title: "Cam kết khi mua sim tại CHONSOMOBIFONE",
+    body: "Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Bạn nhận SIM trước, kiểm tra kỹ rồi mới trả tiền. Giao nội thành HCM 30 phút – 2h, toàn quốc 1–3 ngày. Hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.",
+  },
+];
 
 export default function SimNamSinhPage() {
   return (
     <>
-      <main className="min-h-screen bg-background">
-        <section
-          style={{ minHeight: "clamp(320px, 40vw, 420px)" }}
-          className="relative flex items-center bg-gradient-to-b from-primary via-primary-dark to-primary text-primary-foreground"
-        >
-          <div
-            className="pointer-events-none absolute inset-0 overflow-hidden opacity-[0.07]"
-            style={{
-              backgroundImage: `radial-gradient(circle at 25% 50%, hsl(var(--gold)) 0%, transparent 50%), radial-gradient(circle at 75% 50%, hsl(var(--gold)) 0%, transparent 50%)`,
-            }}
-          />
-          <div className="container relative mx-auto px-4 py-8 text-center">
-            <h1 className="mx-auto mb-3 max-w-3xl text-2xl font-extrabold leading-tight sm:text-3xl md:text-4xl">
-              SIM Năm Sinh — <span className="text-gold">nhập ngày sinh, chọn số hợp tuổi</span>
-            </h1>
-            <p className="mx-auto mb-6 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Nhập ngày/tháng/năm sinh của bạn để tìm sim có số năm sinh. Giá niêm yết công khai, sang tên chính chủ,
-              giao tận nơi toàn quốc.
-            </p>
+      <main className="flex-1 flex flex-col bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950">
+        <div className="flex-1 container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Hero Section */}
+            <div className="text-center mb-10 md:mb-12">
+              <h1 className="mb-3 flex items-center justify-center gap-2.5 font-bold leading-tight text-[clamp(28px,5vw,44px)]" style={{ color: "#F5F5F5", letterSpacing: "-0.02em" }}>
+                <Sparkles className="w-7 h-7 shrink-0" style={{ color: "#D9B778" }} />
+                <span>
+                  Sim Năm Sinh <span style={{ color: "#D9B778" }}>Theo Ngày Sinh</span>
+                </span>
+              </h1>
+              <p style={{ color: "rgba(237, 237, 237, 0.7)" }} className="mx-auto max-w-xl text-sm md:text-base leading-relaxed">
+                Nhập ngày/tháng/năm sinh — tìm sim có số năm sinh, hợp tuổi. Giá niêm yết công khai, sang tên chính chủ, giao toàn quốc.
+              </p>
+            </div>
+
+            {/* Client island: công cụ tìm sim năm sinh */}
             <Suspense fallback={null}>
               <SimNamSinhFinder />
             </Suspense>
-          </div>
-        </section>
 
-        <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
-          <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
-            <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
-              <span className="h-8 w-1 rounded-full bg-primary" />
-              Sim năm sinh là gì?
-            </h2>
-            <div className="space-y-4 leading-relaxed text-muted-foreground">
-              <p>
-                Sim năm sinh là dòng sim có <strong className="text-foreground">số năm sinh ở các số cuối</strong> —
-                gắn với năm sinh của bạn hoặc người thân. Nhiều người chọn vì dễ nhớ và mang ý nghĩa cá nhân.
+            {/* SEO content — sim năm sinh */}
+            <div className={`${cardBaseClass} mt-10 md:mt-14`} style={cardStyle}>
+              <h2
+                className="text-[22px] md:text-2xl font-semibold mb-3 flex items-center gap-3"
+                style={{ color: "#F5F5F5", letterSpacing: "-0.01em" }}
+              >
+                <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: "#D9B778" }} />
+                Sim năm sinh — thông tin cần biết
+              </h2>
+              <p className="mb-6 text-sm leading-relaxed" style={{ color: "rgba(237,237,237,0.7)" }}>
+                Kho sim năm sinh Mobifone của CHONSOMOBIFONE với hàng ngàn số có sẵn, giá niêm yết công khai để bạn dễ so sánh và chọn số nhanh.
               </p>
-              <p>
-                Nhập ngày sinh phía trên, hệ thống sẽ tự tìm những sim có số năm sinh phù hợp trong kho để bạn chọn.
+              <div className="space-y-4">
+                {PILLARS.map((pillar) => (
+                  <div
+                    key={pillar.title}
+                    className="rounded-xl p-4"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                  >
+                    <h3 className="mb-1.5 text-base font-semibold" style={{ color: "#D9B778" }}>
+                      {pillar.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed" style={{ color: "rgba(237,237,237,0.75)" }}>
+                      {pillar.body}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Vì sao chọn CHONSOMOBIFONE */}
+            <div className={`${cardBaseClass} mt-10 md:mt-14`} style={cardStyle}>
+              <h2
+                className="text-[22px] md:text-2xl font-semibold mb-3 flex items-center gap-3"
+                style={{ color: "#F5F5F5", letterSpacing: "-0.01em" }}
+              >
+                <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: "#D9B778" }} />
+                Vì sao mua sim năm sinh tại CHONSOMOBIFONE?
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  "Kho SIM Mobifone thật, giá niêm yết công khai",
+                  "Tra cứu sim năm sinh nhanh theo ngày sinh",
+                  "Sang tên chính chủ, nhận SIM rồi mới trả tiền",
+                  "Giao nội thành HCM 30 phút – 2h, toàn quốc 1–3 ngày",
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-start gap-3 rounded-xl p-4"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                  >
+                    <span aria-hidden className="mt-0.5 inline-block w-2 h-2 rounded-full flex-shrink-0" style={{ background: "#D9B778" }} />
+                    <p className="text-sm leading-relaxed" style={{ color: "rgba(237,237,237,0.8)" }}>{item}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* FAQ Section */}
+            <div className={`${cardBaseClass} mt-10 md:mt-14`} style={cardStyle}>
+              <h2
+                className="text-[22px] md:text-2xl font-semibold mb-6 flex items-center gap-3"
+                style={{ color: "#F5F5F5", letterSpacing: "-0.01em" }}
+              >
+                <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: "#D9B778" }} />
+                Câu hỏi thường gặp
+              </h2>
+              <Accordion type="single" collapsible className="w-full">
+                {faqData.map((faq, index) => (
+                  <AccordionItem key={index} value={`faq-${index}`} style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+                    <AccordionTrigger className="text-left hover:no-underline" style={{ color: "#EDEDED" }}>
+                      {faq.question}
+                    </AccordionTrigger>
+                    <AccordionContent style={{ color: "rgba(237, 237, 237, 0.7)" }}>
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
+
+            {/* Disclaimer */}
+            <div
+              className="rounded-xl p-5 text-center mt-8"
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              <p className="text-sm" style={{ color: "rgba(237, 237, 237, 0.8)" }}>
+                <strong style={{ color: "#D9B778" }}>Lưu ý:</strong> Sim năm sinh là dòng sim có số năm sinh ở các số cuối, mang ý nghĩa cá nhân và dễ nhớ. Việc chọn sim nên kết hợp nhiều yếu tố để được số ưng ý nhất.
               </p>
             </div>
-          </section>
-
-          <div className="my-8 max-w-sm mx-auto">
-            <ZaloChatCard />
           </div>
-
-          <TrustCommitments />
-
-          <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
-            <h2 className="mb-6 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
-              <span className="h-8 w-1 rounded-full bg-primary" />
-              Câu hỏi thường gặp
-            </h2>
-            <Accordion type="single" collapsible className="space-y-2">
-              {faqData.map((faq, index) => (
-                <AccordionItem
-                  key={index}
-                  value={`faq-${index}`}
-                  className="rounded-lg border border-border px-4 data-[state=open]:bg-secondary/30"
-                >
-                  <AccordionTrigger className="py-4 text-left font-medium text-foreground hover:text-primary hover:no-underline">
-                    {faq.q}
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-4 text-muted-foreground">{faq.a}</AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </section>
         </div>
       </main>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
