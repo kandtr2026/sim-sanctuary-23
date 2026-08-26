@@ -11,6 +11,10 @@ import {
 import { buildBreadcrumb } from "@/lib/seo";
 import { getCategorySnapshot } from "@/lib/serverSimData";
 
+// ISR: prerender + revalidate every 300s (khớp /api/sims) so crawlers hit a
+// cached page instead of forcing SSR (ƒ) on every request.
+export const revalidate = 300;
+
 const ZALO_URL = "https://zalo.me/0933356666";
 
 const TITLE = "SIM Phong Thủy Hợp Mệnh | Chọn Số Hợp Mệnh Kim, Mộc, Thủy, Hỏa, Thổ";

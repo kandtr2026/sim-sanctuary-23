@@ -14,6 +14,10 @@ import {
 import { buildBreadcrumb } from "@/lib/seo";
 import { getCategorySnapshot } from "@/lib/serverSimData";
 
+// ISR: prerender + revalidate every 300s (khớp /api/sims) so crawlers hit a
+// cached page instead of forcing SSR (ƒ) on every request.
+export const revalidate = 300;
+
 const ZALO_URL = "https://zalo.me/0933356666";
 
 const TITLE = "Sim Thần Tài 39 79 | Kho Sim Thần Tài Mobifone Đẹp";
@@ -130,7 +134,7 @@ export default async function SimThanTaiPage() {
           </section>
 
           {/* Server-rendered snapshot: real SIM numbers + ItemList/Product schema */}
-          <SimSnapshot title="Sim Thần Tài Nổi Bật Trong Kho" sims={snapshotSims} />
+          <SimSnapshot title="Sim Thần Tài Nổi Bật Trong Kho" sims={snapshotSims} pageUrl={CANONICAL} />
 
           {/* Client island: SIM grid */}
           <CategorySimGrid

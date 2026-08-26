@@ -14,29 +14,26 @@ import {
 } from "@/components/ui/accordion";
 import { buildBreadcrumb } from "@/lib/seo";
 import { getCategorySnapshot } from "@/lib/serverSimData";
+import { DAU_SO_PREFIXES, isDauSoPrefix } from "@/lib/simTaxonomy";
+
+// ISR: prerender each đầu số page + revalidate every 300s (khớp /api/sims) so
+// crawlers hit a cached page instead of forcing SSR (ƒ) on every request.
+export const revalidate = 300;
 
 const ZALO_URL = "https://zalo.me/0933356666";
 const BASE_URL = "https://www.chonsomobifone.com";
-
-// Mobifone prefixes with a dedicated category page. Each entry drives the
-// generateStaticParams pre-render, generateMetadata, H1 and sitemap. Unknown
-// prefixes (e.g. a Viettel 098) 404 rather than soft-render an empty page.
-const PREFIXES = ["090", "093", "070", "076", "077", "078", "079", "089"] as const;
-
-const isValidPrefix = (dauso: string): dauso is (typeof PREFIXES)[number] =>
-  (PREFIXES as readonly string[]).includes(dauso);
 
 type Props = {
   params: Promise<{ dauso: string }>;
 };
 
 export function generateStaticParams() {
-  return PREFIXES.map((dauso) => ({ dauso }));
+  return DAU_SO_PREFIXES.map((dauso) => ({ dauso }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { dauso } = await params;
-  if (!isValidPrefix(dauso)) return {};
+  if (!isDauSoPrefix(dauso)) return {};
 
   const title = `Sim ${dauso} Mobifone | Kho Sim Đầu Số ${dauso} Đẹp, Giá Tốt`;
   const description = `Kho sim đầu số ${dauso} Mobifone đẹp, giá tốt: tứ quý, thần tài, lộc phát, phong thủy. Giá niêm yết công khai, sang tên chính chủ, giao nội thành HCM 30 phút – 2 giờ.`;
@@ -58,7 +55,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function SimDauSoPage({ params }: Props) {
   const { dauso } = await params;
-  if (!isValidPrefix(dauso)) notFound();
+  if (!isDauSoPrefix(dauso)) notFound();
 
   const snapshotSims = await getCategorySnapshot({ prefixes: [dauso] }, 8);
 
@@ -187,7 +184,7 @@ export default async function SimDauSoPage({ params }: Props) {
               Các đầu số Mobifone khác
             </h2>
             <ul className="flex flex-wrap gap-3 text-sm">
-              {PREFIXES.map((p) => (
+              {DAU_SO_PREFIXES.map((p) => (
                 <li key={p}>
                   <a
                     href={`/sim-dau-so/${p}`}

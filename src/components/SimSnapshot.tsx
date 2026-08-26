@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Phone } from "lucide-react";
 import type { NormalizedSIM } from "@/lib/simUtils";
 import { formatPrice } from "@/lib/simUtils";
-import { BASE_URL } from "@/lib/seo";
 
 const ZALO_URL = "https://zalo.me/0933356666";
 
@@ -16,38 +15,68 @@ const detectCarrier = (number: string): string => {
 };
 
 /**
- * Server-rendered snapshot of real SIM numbers for a category page (C6).
+ * ItemList + Product JSON-LD for a set of real SIMs. Exported so pages that
+ * already hold server SIM data (e.g. the homepage) can emit the same schema
+ * without rendering the visual table below.
  *
- * The numbers in the JSON-LD ItemList are exactly the ones rendered in this
- * section — the client island below renders its own live data, so this
- * snapshot and its schema can never drift from each other. Only SIMs actually
- * present in the build-time catalogue are marked, never invented ones.
+ * `pageUrl` (optional): canonical URL of the page these SIMs are shown on. When
+ * set, each Product/Offer `url` points there. When omitted, the `url` fields
+ * are dropped entirely — they are never pointed at `/mua-ngay/[id]`, which is
+ * noindex + robots-disallowed and would trigger structured-data warnings.
  */
-const SimSnapshot = ({ title, sims }: { title: string; sims: NormalizedSIM[] }) => {
-  if (!sims || sims.length === 0) return null;
-
-  const itemListJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    name: title,
-    itemListElement: sims.map((sim, index) => ({
+export const buildSimItemListJsonLd = (
+  title: string,
+  sims: NormalizedSIM[],
+  pageUrl?: string,
+) => ({
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: title,
+  itemListElement: sims.map((sim, index) => {
+    const offers: Record<string, unknown> = {
+      "@type": "Offer",
+      priceCurrency: "VND",
+      price: sim.price,
+      availability: "https://schema.org/InStock",
+      ...(pageUrl ? { url: pageUrl } : {}),
+    };
+    return {
       "@type": "ListItem",
       position: index + 1,
       item: {
         "@type": "Product",
         name: `SIM ${sim.displayNumber}`,
         description: `SIM số đẹp ${sim.displayNumber} — ${detectCarrier(sim.displayNumber)}. Giá niêm yết ${formatPrice(sim.price)}.`,
-        url: `${BASE_URL}/mua-ngay/${encodeURIComponent(sim.id)}`,
-        offers: {
-          "@type": "Offer",
-          priceCurrency: "VND",
-          price: sim.price,
-          availability: "https://schema.org/InStock",
-          url: `${BASE_URL}/mua-ngay/${encodeURIComponent(sim.id)}`,
-        },
+        ...(pageUrl ? { url: pageUrl } : {}),
+        offers,
       },
-    })),
-  };
+    };
+  }),
+});
+
+/**
+ * Server-rendered snapshot of real SIM numbers for a category page (C6).
+ *
+ * The numbers in the JSON-LD ItemList are exactly the ones rendered in this
+ * section — the client island below renders its own live data, so this
+ * snapshot and its schema can never drift from each other. Only SIMs actually
+ * present in the build-time catalogue are marked, never invented ones.
+ *
+ * `pageUrl` is forwarded to the Product/Offer `url` fields (see
+ * buildSimItemListJsonLd); optional and safe to omit.
+ */
+const SimSnapshot = ({
+  title,
+  sims,
+  pageUrl,
+}: {
+  title: string;
+  sims: NormalizedSIM[];
+  pageUrl?: string;
+}) => {
+  if (!sims || sims.length === 0) return null;
+
+  const itemListJsonLd = buildSimItemListJsonLd(title, sims, pageUrl);
 
   return (
     <>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Wifi, PhoneCall, BadgeCheck, Truck, MessageCircle, Search } from "lucide-react";
 import MuaSimGiaReTool from "./MuaSimGiaReTool";
+import SimSnapshot from "@/components/SimSnapshot";
 import {
   Accordion,
   AccordionContent,
@@ -9,6 +10,8 @@ import {
 } from "@/components/ui/accordion";
 import { CHEAP_PRICE } from "@/lib/cheapSimSheet";
 import { CHEAP_FACETS, type CheapFacet } from "@/lib/cheapSimFacets";
+import { getCheapSnapshot } from "@/lib/serverCheapSims";
+import { normalizeSIM } from "@/lib/simUtils";
 import { buildBreadcrumb } from "@/lib/seo";
 
 const ZALO_URL = 'https://zalo.me/0933356666';
@@ -17,6 +20,10 @@ const PRICE_LABEL = `${CHEAP_PRICE.toLocaleString('vi-VN')}đ`;
 const TITLE = `Mua SIM Giá Rẻ – Kho SIM MobiFone Đồng Giá ${PRICE_LABEL}`;
 const DESCRIPTION = `Kho SIM MobiFone khuyến mãi đồng giá ${PRICE_LABEL}, đã gồm gói TK179 (7GB/ngày, miễn phí nội mạng). Chọn số theo đuôi kép, tránh 4-7, đuôi 6-8-9. Đặt online, giao SIM toàn quốc.`;
 const CANONICAL = "https://www.chonsomobifone.com/mua-sim-gia-re";
+
+// ISR: match the 10-minute promo-warehouse window loosely at 5 minutes, so the
+// server-rendered snapshot below refreshes without a per-request sheet fetch.
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -86,7 +93,14 @@ const FACET_COPY: Record<CheapFacet, string> = {
   tien: 'Ba số cuối tăng dần một đơn vị: …123, …456, …789. Đây là dạng hiếm nhất trong kho — số lượng rất ít và thường hết trước, nên nếu thấy số ưng ý thì nên đặt sớm.',
 };
 
-export default function MuaSimGiaRePage() {
+export default async function MuaSimGiaRePage() {
+  // Real promo SIMs, server-rendered into the HTML. The checkout route
+  // (/mua-ngay/[id]) resolves these SIMKM… ids, and SimSnapshot only reads
+  // id/displayNumber/price, so mapping through normalizeSIM is enough.
+  const cheapSnapshot = await getCheapSnapshot(8);
+  const snapshotSims = cheapSnapshot.map((s) =>
+    normalizeSIM(s.rawDigits, s.displayNumber, s.price, s.id),
+  );
   return (
     <>
       <main className="min-h-screen bg-background">
@@ -129,6 +143,15 @@ export default function MuaSimGiaRePage() {
 
         {/* ===== SEARCH + INVENTORY (client island) ===== */}
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
+          {/* Server-rendered snapshot: real promo SIMs + ItemList/Product schema
+              in the raw HTML, so crawlers see actual stock before the client
+              island (below) fetches the live warehouse. */}
+          <SimSnapshot
+            title={`SIM Giá Rẻ Nổi Bật — Đồng Giá ${PRICE_LABEL}`}
+            sims={snapshotSims}
+            pageUrl={CANONICAL}
+          />
+
           <MuaSimGiaReTool />
 
           {/* ===== WHAT THIS KHO IS ===== */}

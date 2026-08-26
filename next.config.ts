@@ -37,11 +37,18 @@ const nextConfig: NextConfig = {
         destination: "https://www.chonsomobifone.com/:path*",
         permanent: true,
       },
-      // "Sim năm sinh" cluster is retired — fold every /sim-nam-sinh-YYYY back
-      // into the homepage.
+      // Legacy "sim năm sinh" URLs used a single hyphenated segment
+      // (/sim-nam-sinh-1990). The cluster is now a proper nested route
+      // (/sim-nam-sinh/1990), so redirect the old form to the new one to
+      // preserve link equity. `permanent: true` → 308 (method-preserving); for
+      // SEO this passes equity identically to a 301. The new route accepts any
+      // in-range year (dynamicParams), so redirected years resolve; out-of-range
+      // years 404 (acceptable — no real inbound links to those). Note the source
+      // has a hyphen (…-:year) while the destination has a slash (…/:year), so
+      // the new nested route is NOT swallowed by this redirect.
       {
         source: "/sim-nam-sinh-:year(\\d{4})",
-        destination: "/",
+        destination: "/sim-nam-sinh/:year",
         permanent: true,
       },
     ];

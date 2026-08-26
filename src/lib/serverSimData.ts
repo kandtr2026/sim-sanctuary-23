@@ -117,20 +117,47 @@ const safeParseVnd = (v: unknown): number => {
 };
 
 // ── Fetch + parse + normalise ───────────────────────────────────────────────
+// IMPORTANT (Next 16): do NOT pass an AbortController/AbortSignal to this fetch.
+// Per node_modules/next/dist/docs/01-app/03-api-reference/04-functions/fetch.md
+// ("## Memoization"), a `signal` opts the request OUT of Next's fetch
+// memoization/cache. Combined with the (previous) lack of a `cache`/`revalidate`
+// option, that made every category route render dynamically (ƒ / SSR) on each
+// request and burn crawl budget. We now cache the CSV with `next.revalidate`
+// (see caching-without-cache-components.md → "Time-based revalidation") so the
+// route can be statically prerendered + ISR, and enforce the fail-fast timeout
+// with Promise.race — which never touches the fetch, keeping it cacheable.
+const FETCH_TIMEOUT_MS = 15_000;
+
 const fetchCsv = async (): Promise<string> => {
   const url = `${EDGE_FUNCTIONS_URL}/fetch-sim-data`;
-  const res = await fetch(url, {
-    method: "GET",
-    headers: {
-      apikey: SUPABASE_PUBLISHABLE_KEY,
-      Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
-    },
-    // Fail fast when called from a build environment where the edge function
-    // is unreachable — the client island remains functional.
-    signal: AbortSignal.timeout(15_000),
+
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new Error(`fetch-sim-data: timeout after ${FETCH_TIMEOUT_MS}ms`)),
+      FETCH_TIMEOUT_MS,
+    );
   });
-  if (!res.ok) throw new Error(`fetch-sim-data: HTTP ${res.status}`);
-  return res.text();
+
+  try {
+    const res = await Promise.race([
+      fetch(url, {
+        method: "GET",
+        headers: {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        // Cache the CSV for 300s (matches /api/sims `revalidate = 300`) → the
+        // consuming routes become statically prerendered + ISR instead of SSR.
+        next: { revalidate: 300 },
+      }),
+      timeout,
+    ]);
+    if (!res.ok) throw new Error(`fetch-sim-data: HTTP ${res.status}`);
+    return await res.text();
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 };
 
 const parseAndNormalize = (csvText: string): NormalizedSIM[] => {
@@ -218,10 +245,21 @@ export interface SnapshotFilter {
   tags?: string[];
   prefixes?: string[];
   lastDigits?: string[];
+  /** rawDigits' LAST 6 digits contain this 4-digit year (sim năm sinh). */
+  birthYear?: string;
 }
 
 const getDigits = (s: NormalizedSIM): string =>
   s.rawDigits || s.displayNumber.replace(/\D/g, "") || "";
+
+// Sim "năm sinh" match rule (single source of truth — snapshot, count,
+// generateStaticParams, sitemap để không bao giờ lệch nhau). Một SIM khớp năm
+// YYYY khi 4 số của năm xuất hiện TRONG 6 SỐ CUỐI — bao phủ cả sim đuôi năm
+// (…1999) lẫn sim mã hoá ngày sinh DDMMYY (…091299). Trang dùng câu chữ "có số
+// {year}" cho khớp luật này; `getCategorySnapshot` xếp sim ĐUÔI đúng năm lên đầu
+// để kết quả mạnh nhất hiện trước.
+const simMatchesBirthYear = (s: NormalizedSIM, year: string): boolean =>
+  getDigits(s).slice(-6).includes(year);
 
 /**
  * Filter the full catalogue by category criteria, sort by price ascending, and
@@ -247,12 +285,90 @@ export const getCategorySnapshot = async (
   if (filter.lastDigits?.length) {
     sims = sims.filter((s) => filter.lastDigits!.includes(getDigits(s).slice(-1)));
   }
+  if (filter.birthYear) {
+    sims = sims.filter((s) => simMatchesBirthYear(s, filter.birthYear!));
+  }
 
   // Only SIMs with a positive price
   sims = sims.filter((s) => s.price > 0);
 
-  // Sort by price ascending, then by beauty score descending
-  sims.sort((a, b) => a.price - b.price || b.beautyScore - a.beautyScore);
+  // Sort by price ascending, then by beauty score descending. For birth-year
+  // snapshots, surface true "đuôi năm" matches (last 4 === year) first so the
+  // strongest, most on-topic results lead the table.
+  const by = filter.birthYear;
+  sims.sort((a, b) => {
+    if (by) {
+      const aTail = getDigits(a).slice(-4) === by ? 0 : 1;
+      const bTail = getDigits(b).slice(-4) === by ? 0 : 1;
+      if (aTail !== bTail) return aTail - bTail;
+    }
+    return a.price - b.price || b.beautyScore - a.beautyScore;
+  });
 
   return sims.slice(0, limit);
+};
+
+// ── Sim "năm sinh" inventory helpers ─────────────────────────────────────────
+//
+// Match rule lives in `simMatchesBirthYear` above (4-digit year inside the last
+// 6 digits). These helpers count inventory per year and are the SINGLE source
+// used by the sim-nam-sinh/[year] page (snapshot + generateStaticParams) and by
+// sitemap.ts, so the prerendered set and the sitemap always agree.
+
+/** Plausible birth-year window. Wider than we promote — the threshold prunes it. */
+const BIRTH_YEAR_RANGE = { from: 1955, to: 2025 } as const;
+
+/** Minimum in-stock SIMs a year needs before we prerender + sitemap it. */
+export const BIRTH_YEAR_MIN_INVENTORY = 8;
+
+/** True when `year` is a 4-digit string inside the plausible birth-year window. */
+export const isPlausibleBirthYear = (year: string): boolean => {
+  if (!/^\d{4}$/.test(year)) return false;
+  const y = Number(year);
+  return y >= BIRTH_YEAR_RANGE.from && y <= BIRTH_YEAR_RANGE.to;
+};
+
+/** Count in-stock (price > 0) SIMs matching birth-year `year` (last-6 contains). */
+export const countBirthYearSims = async (year: string): Promise<number> => {
+  if (!isPlausibleBirthYear(year)) return 0;
+  const sims = await getServerSims();
+  let n = 0;
+  for (const s of sims) {
+    if (s.price > 0 && simMatchesBirthYear(s, year)) n++;
+  }
+  return n;
+};
+
+/**
+ * Birth years (as "YYYY") that currently have at least `minInventory` in-stock
+ * SIMs matching (4-digit year within the last 6 digits). Shared by
+ * `sim-nam-sinh/[year]` `generateStaticParams` AND `sitemap.ts` so both promote
+ * the exact same set. Returns [] on data failure (never throws) so the build
+ * never fails.
+ */
+export const getInStockBirthYears = async (
+  minInventory = BIRTH_YEAR_MIN_INVENTORY,
+): Promise<string[]> => {
+  const sims = await getServerSims();
+  if (sims.length === 0) return [];
+
+  const counts = new Map<string, number>();
+  for (const s of sims) {
+    if (s.price <= 0) continue;
+    const last6 = getDigits(s).slice(-6);
+    // Count each DISTINCT plausible year appearing in the last 6 digits once.
+    const seen = new Set<string>();
+    for (let i = 0; i + 4 <= last6.length; i++) {
+      const cand = last6.slice(i, i + 4);
+      if (!seen.has(cand) && isPlausibleBirthYear(cand)) {
+        seen.add(cand);
+        counts.set(cand, (counts.get(cand) ?? 0) + 1);
+      }
+    }
+  }
+
+  return [...counts.entries()]
+    .filter(([, n]) => n >= minInventory)
+    .map(([year]) => year)
+    .sort();
 };

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Phone, Shield, Star, Truck, CheckCircle, Sparkles, Award, Users, DollarSign } from "lucide-react";
 import MuaSimTuQuyTool from "./MuaSimTuQuyTool";
+import SimSnapshot from "@/components/SimSnapshot";
 import {
   Accordion,
   AccordionContent,
@@ -8,6 +9,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { buildBreadcrumb } from "@/lib/seo";
+import { getCategorySnapshot } from "@/lib/serverSimData";
 
 const ZALO_URL = 'https://zalo.me/0933356666';
 
@@ -15,6 +17,10 @@ const TITLE = "Mua Sim Tứ Quý Giá Tốt | Kho Sim Tứ Quý Đẹp Toàn Qu�
 const DESCRIPTION =
   "Kho sim tứ quý đẹp giá tốt từ CHONSOMOBIFONE.COM. Hàng nghìn sim 1111, 6666, 8888, 9999 cập nhật mỗi ngày. Mua sim tứ quý uy tín, giao dịch an toàn.";
 const CANONICAL = "https://www.chonsomobifone.com/mua-sim-tu-quy";
+
+// ISR: match the 5-minute cache window Back uses for the live SIM catalogue, so
+// the server-rendered snapshot below refreshes without a per-request refetch.
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -119,7 +125,8 @@ const benefits = [
 { icon: Truck, text: 'Giao sim toàn quốc nhanh chóng' },
 { icon: Users, text: 'Hỗ trợ tư vấn 24/7' }];
 
-export default function MuaSimTuQuyPage() {
+export default async function MuaSimTuQuyPage() {
+  const snapshotSims = await getCategorySnapshot({ tags: ["Tứ quý"] }, 8);
   return (
     <>
       <main className="min-h-screen bg-background">
@@ -182,6 +189,11 @@ export default function MuaSimTuQuyPage() {
               </p>
             </div>
           </section>
+
+          {/* Server-rendered snapshot: real SIM numbers + ItemList/Product schema
+              in the raw HTML (crawlers see real stock even though the tool below
+              is a client island). */}
+          <SimSnapshot title="Sim Tứ Quý Nổi Bật Trong Kho" sims={snapshotSims} pageUrl={CANONICAL} />
 
           {/* ===== 3 + 3b. SEARCH + KHO SIM TỨ QUÝ (client island) ===== */}
           <MuaSimTuQuyTool />

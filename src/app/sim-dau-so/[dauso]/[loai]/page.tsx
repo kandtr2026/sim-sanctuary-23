@@ -13,53 +13,34 @@ import {
 } from "@/components/ui/accordion";
 import { buildBreadcrumb } from "@/lib/seo";
 import { getCategorySnapshot } from "@/lib/serverSimData";
+import {
+  DAU_SO_PREFIXES,
+  LOAI,
+  LOAI_KEYS,
+  isDauSoPrefix,
+  isLoaiKey,
+} from "@/lib/simTaxonomy";
+
+// ISR: prerender each combo page + revalidate every 300s (khớp /api/sims) so
+// crawlers hit a cached page instead of forcing SSR (ƒ) on every request.
+export const revalidate = 300;
 
 const ZALO_URL = "https://zalo.me/0933356666";
 const BASE_URL = "https://www.chonsomobifone.com";
-
-// Khớp bộ đầu số của trang /sim-dau-so/[dauso].
-const PREFIXES = ["090", "093", "070", "076", "077", "078", "079", "089"] as const;
-
-// Các loại số an toàn (không dính rủi ro phong thủy chưa kiểm chứng).
-const LOAI = {
-  "than-tai": {
-    label: "thần tài",
-    suffixes: ["39", "79"],
-    y: "đuôi 39 (thần tài nhỏ), 79 (thần tài lớn) — cầu tài lộc, buôn may bán đắt",
-  },
-  "loc-phat": {
-    label: "lộc phát",
-    suffixes: ["68", "86"],
-    y: "đuôi 68 (lộc phát), 86 (phát lộc) — cầu phát đạt",
-  },
-  "ong-dia": {
-    label: "ông địa",
-    suffixes: ["38", "78"],
-    y: "đuôi 38, 78 — ông địa, giữ của",
-  },
-} as const;
-
-type LoaiKey = keyof typeof LOAI;
-
-const isDauSo = (v: string): v is (typeof PREFIXES)[number] =>
-  (PREFIXES as readonly string[]).includes(v);
-
-const isLoai = (v: string): v is LoaiKey =>
-  Object.prototype.hasOwnProperty.call(LOAI, v);
 
 type Props = {
   params: Promise<{ dauso: string; loai: string }>;
 };
 
 export function generateStaticParams() {
-  return PREFIXES.flatMap((dauso) =>
-    (Object.keys(LOAI) as LoaiKey[]).map((loai) => ({ dauso, loai })),
+  return DAU_SO_PREFIXES.flatMap((dauso) =>
+    LOAI_KEYS.map((loai) => ({ dauso, loai })),
   );
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { dauso, loai } = await params;
-  if (!isDauSo(dauso) || !isLoai(loai)) return {};
+  if (!isDauSoPrefix(dauso) || !isLoaiKey(loai)) return {};
 
   const label = LOAI[loai].label;
   const title = `Sim ${label} đầu số ${dauso} Mobifone | Giá tốt, chính chủ`;
@@ -82,7 +63,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function SimDauSoLoaiPage({ params }: Props) {
   const { dauso, loai } = await params;
-  if (!isDauSo(dauso) || !isLoai(loai)) notFound();
+  if (!isDauSoPrefix(dauso) || !isLoaiKey(loai)) notFound();
 
   const loaiInfo = LOAI[loai];
   const label = loaiInfo.label;
@@ -117,8 +98,8 @@ export default async function SimDauSoLoaiPage({ params }: Props) {
     })),
   };
 
-  const otherLoai = (Object.keys(LOAI) as LoaiKey[]).filter((k) => k !== loai);
-  const otherPrefixes = PREFIXES.filter((p) => p !== dauso).slice(0, 4);
+  const otherLoai = LOAI_KEYS.filter((k) => k !== loai);
+  const otherPrefixes = DAU_SO_PREFIXES.filter((p) => p !== dauso).slice(0, 4);
 
   return (
     <>

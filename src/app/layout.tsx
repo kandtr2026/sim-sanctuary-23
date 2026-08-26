@@ -78,6 +78,11 @@ const WEBSITE_JSON_LD = {
   "@type": "WebSite",
   name: SITE_NAME,
   url: `${BASE_URL}/`,
+  // NOTE: A SearchAction (sitelinks searchbox) was intentionally removed until
+  // the homepage actually handles a search-by-URL param. SimBrowser currently
+  // reads only hash state (#ns=, #price=), not `?q=`, so advertising a
+  // `/?q={search_term_string}` target would be a structured-data claim the site
+  // cannot fulfil. Re-add once SimBrowser seeds its query from the URL.
 };
 
 export const metadata: Metadata = {
