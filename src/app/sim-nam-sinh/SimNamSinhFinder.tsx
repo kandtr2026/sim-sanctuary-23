@@ -21,7 +21,7 @@ export default function SimNamSinhFinder() {
 
   const handleSearch = () => {
     if (!day || !month || !year) return;
-    router.push(`/sim-nam-sinh/${year}`);
+    router.push(`/sim-nam-sinh/${year}?d=${normalize(day)}&m=${normalize(month)}`);
   };
 
   return (

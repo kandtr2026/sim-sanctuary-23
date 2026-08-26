@@ -262,6 +262,76 @@ const simMatchesBirthYear = (s: NormalizedSIM, year: string): boolean =>
   getDigits(s).slice(-6).includes(year);
 
 /**
+ * Rank a SIM by how well it matches a customer's birth date (YYYY + DD + MM).
+ * Higher priority first. Returns -1 when the SIM doesn't match at all.
+ *
+ *  - 0 (ưu tiên nhất): đuôi đúng 4 số năm (…1987) HOẶC đuôi 2 số năm (…87)
+ *  - 1: 6 số cuối mã hoá ngày sinh theo yymmdd / ddmmyy (tháng/ngày 1 hoặc 2 số)
+ *  - 2: 4 số năm xuất hiện trong 6 số cuối (fallback như cũ)
+ */
+const rankBirthDateMatch = (
+  s: NormalizedSIM,
+  year: string,
+  day: string,
+  month: string,
+): number => {
+  const digits = getDigits(s);
+  const yy = year.slice(-2);
+  const d1 = day; // "5" hoặc "05"
+  const d2 = day.padStart(2, "0");
+  const m1 = month; // "5" hoặc "05"
+  const m2 = month.padStart(2, "0");
+
+  // Option 1: đuôi năm (4 số hoặc 2 số cuối)
+  if (digits.endsWith(year)) return 0;
+  if (digits.endsWith(yy)) return 0;
+
+  // Option 2: 6 số cuối = yymmdd hoặc ddmmyy (tháng/ngày 1 hoặc 2 số)
+  const tail6 = digits.slice(-6);
+  const yymmddVariants = [yy + m1 + d1, yy + m2 + d1, yy + m1 + d2, yy + m2 + d2];
+  const ddmmyyVariants = [d1 + m1 + yy, d2 + m1 + yy, d1 + m2 + yy, d2 + m2 + yy];
+  if (yymmddVariants.includes(tail6) || ddmmyyVariants.includes(tail6)) return 1;
+
+  // Fallback: năm xuất hiện trong 6 số cuối
+  if (tail6.includes(year)) return 2;
+
+  return -1;
+};
+
+/**
+ * Lọc sim khớp ngày sinh của khách (YYYY + DD + MM), sắp theo độ ưu tiên:
+ * đuôi năm → yymmdd/ddmmyy → năm trong 6 số cuối. Trả về top `limit`.
+ */
+export const getBirthDateSims = async (
+  year: string,
+  day: string,
+  month: string,
+  limit = 12,
+): Promise<{ sims: NormalizedSIM[]; total: number }> => {
+  const all = await getServerSims();
+  if (all.length === 0) return { sims: [], total: 0 };
+
+  const matches: { sim: NormalizedSIM; rank: number }[] = [];
+  for (const s of all) {
+    if (s.price <= 0) continue;
+    const rank = rankBirthDateMatch(s, year, day, month);
+    if (rank >= 0) matches.push({ sim: s, rank });
+  }
+
+  matches.sort(
+    (a, b) =>
+      a.rank - b.rank ||
+      a.sim.price - b.sim.price ||
+      b.sim.beautyScore - a.sim.beautyScore,
+  );
+
+  return {
+    sims: matches.slice(0, limit).map((m) => m.sim),
+    total: matches.length,
+  };
+};
+
+/**
  * Filter the full catalogue by category criteria, sort by price ascending, and
  * return the top `limit` SIMs. Pure function — does not fetch.
  */

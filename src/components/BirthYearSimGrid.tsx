@@ -10,16 +10,24 @@ const BirthYearSimGrid = ({
   year,
   sims,
   totalCount,
+  day,
+  month,
 }: {
   year: string;
   sims: NormalizedSIM[];
   totalCount?: number;
+  day?: string;
+  month?: string;
 }) => {
+  const heading = day && month
+    ? `Kho SIM Sinh ${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`
+    : `Kho SIM Năm Sinh ${year}`;
+
   if (sims.length === 0) {
     return (
       <div id="kho-sim" className="rounded-xl border border-border bg-card p-6 text-center shadow-card md:p-8">
         <p className="text-muted-foreground">
-          Hiện chưa có sim năm sinh {year} trong kho. Nhắn Zalo để được tư vấn tìm số.
+          Hiện chưa có sim sinh {day && month ? `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}` : `năm ${year}`} trong kho. Nhắn Zalo để được tư vấn tìm số.
         </p>
       </div>
     );
@@ -30,7 +38,7 @@ const BirthYearSimGrid = ({
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h2 className="flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
           <span className="h-8 w-1 rounded-full bg-primary" />
-          Kho SIM Năm Sinh {year}
+          {heading}
           {totalCount !== undefined && totalCount > 0 && (
             <span className="text-sm font-semibold text-muted-foreground">({totalCount.toLocaleString("vi-VN")} số)</span>
           )}

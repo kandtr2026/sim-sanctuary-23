@@ -14,6 +14,7 @@ import {
 import { buildBreadcrumb, BASE_URL } from "@/lib/seo";
 import {
   getCategorySnapshot,
+  getBirthDateSims,
   getInStockBirthYears,
   countBirthYearSims,
   isPlausibleBirthYear,
@@ -62,6 +63,7 @@ const getYearInfo = (year: string): YearInfo => {
 
 type Props = {
   params: Promise<{ year: string }>;
+  searchParams: Promise<{ d?: string; m?: string }>;
 };
 
 export async function generateStaticParams() {
@@ -99,15 +101,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function SimNamSinhPage({ params }: Props) {
+export default async function SimNamSinhPage({ params, searchParams }: Props) {
   const { year } = await params;
   if (!isPlausibleBirthYear(year)) notFound();
 
   const info = getYearInfo(year);
-  // Sim năm sinh = 4 số của năm trong 6 số cuối (dùng chung helper với
-  // generateStaticParams + sitemap). Lấy tới 12 số thật để render server-side.
-  const snapshotSims = await getCategorySnapshot({ birthYear: year }, 12);
-  const birthTotal = await countBirthYearSims(year);
+  // Nếu khách vào qua form (có ?d=&m=) → lọc ưu tiên theo ngày sinh đầy đủ:
+  // đuôi năm (1987/87) → yymmdd/ddmmyy → năm trong 6 số cuối. Ngược lại dùng
+  // snapshot theo năm như trước.
+  const sp = await searchParams;
+  const hasBirthDate = !!sp.d && !!sp.m && /^\d{1,2}$/.test(sp.d) && /^\d{1,2}$/.test(sp.m);
+  const birthResult = hasBirthDate
+    ? await getBirthDateSims(year, String(Number(sp.d)), String(Number(sp.m)), 12)
+    : null;
+
+  const snapshotSims = birthResult ? birthResult.sims : await getCategorySnapshot({ birthYear: year }, 12);
+  const birthTotal = birthResult ? birthResult.total : await countBirthYearSims(year);
 
   const faqItems = [
     {
@@ -185,7 +194,13 @@ export default async function SimNamSinhPage({ params }: Props) {
 
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
           {/* Grid sim thật — snapshot server-side, không cần fetch client */}
-          <BirthYearSimGrid year={year} sims={snapshotSims} totalCount={birthTotal} />
+          <BirthYearSimGrid
+            year={year}
+            sims={snapshotSims}
+            totalCount={birthTotal}
+            day={hasBirthDate ? sp.d : undefined}
+            month={hasBirthDate ? sp.m : undefined}
+          />
 
           {/* Cố ý KHÔNG dùng client grid (CategorySimGrid) ở trang năm sinh: bộ
               lọc /api/sims chỉ hỗ trợ đuôi/đầu/tag, KHÔNG có "năm trong 6 số
