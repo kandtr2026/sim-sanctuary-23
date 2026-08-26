@@ -63,8 +63,9 @@ const findKey = (keys: string[], pattern: string): string | undefined => {
   return keys.find(k => norm(k).includes(pattern));
 };
 
-// Mask phone: 0799515759 -> 0799****59
+// Mask phone: chỉ ẩn 2 số ở vị trí 7 và 8 -> 079951**59
 const masked = (digits: string): string => {
+  if (digits.length >= 8) return `${digits.slice(0, 6)}**${digits.slice(8)}`;
   if (digits.length >= 6) return `${digits.slice(0, 4)}****${digits.slice(-2)}`;
   if (digits.length >= 4) return `${digits.slice(0, 2)}****${digits.slice(-1)}`;
   return digits;
@@ -136,7 +137,7 @@ function formatSoldDate(v: unknown): string {
 
 const RightSidebar = () => {
   // ONLY real data from Google Sheet - NO mock/fallback
-  const [realOrders, setRealOrders] = useState<{ phone: string; time: string }[]>([]);
+  const [realOrders, setRealOrders] = useState<{ phone: string; time: string; price: string }[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
 
   useEffect(() => {
@@ -176,6 +177,8 @@ const RightSidebar = () => {
         const soldSimIdKey = findKey(soldKeys, "sothuebao");
         // Detect NgayBan column for sale date
         const soldDateKey = findKey(soldKeys, "ngayban");
+        // Detect GiaThu column for sale price
+        const soldPriceKey = findKey(soldKeys, "giathu");
 
         if (!simIdKey || !msisdnKey || !soldSimIdKey) {
           console.error("[RightSidebar] Missing required keys!", { simIdKey, msisdnKey, soldSimIdKey });
@@ -196,7 +199,7 @@ const RightSidebar = () => {
         }
 
         // Build orders by joining: SIM_SOLD.SoThueBao -> Sheet1.SimID -> Sheet1.SỐ THUÊ BAO
-        const built: { phone: string; time: string }[] = [];
+        const built: { phone: string; time: string; price: string }[] = [];
         
         for (const r of soldRows) {
           const soldSimId = String(r[soldSimIdKey] ?? "").trim(); // e.g. "SIM036227"
@@ -211,9 +214,22 @@ const RightSidebar = () => {
           const rawDate = soldDateKey ? r[soldDateKey] : "";
           const dateLabel = formatSoldDate(rawDate);
           
+          // Get GiaThu (sale price) from SIM_SOLD, format as VND
+          let priceLabel = "Liên hệ";
+          if (soldPriceKey) {
+            const rawPrice = String(r[soldPriceKey] ?? "").replace(/\D/g, "");
+            if (rawPrice) {
+              const num = parseInt(rawPrice, 10);
+              if (!isNaN(num) && num > 0) {
+                priceLabel = `${num.toLocaleString("vi-VN")}đ`;
+              }
+            }
+          }
+          
           built.push({ 
             phone: masked(digits), 
-            time: dateLabel || "--"
+            time: dateLabel || "--",
+            price: priceLabel
           });
         }
         
@@ -306,6 +322,7 @@ const RightSidebar = () => {
                 <div className="flex min-w-0 flex-1 flex-col">
                   <span className="font-medium leading-tight text-foreground">{order.phone}</span>
                   <span className="text-xs leading-tight text-muted-foreground">{order.time}</span>
+                  <span className="text-sm font-semibold leading-tight text-primary">{order.price}</span>
                 </div>
               </div>
             ))
