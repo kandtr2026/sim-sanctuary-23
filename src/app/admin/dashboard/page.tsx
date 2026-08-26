@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, BadgePercent, ClipboardList, Crown, FileText, Megaphone, Smartphone, TrendingUp, Wallet } from "lucide-react";
+import { ArrowRight, BadgePercent, ClipboardList, Crown, FileText, Megaphone, ShoppingCart, Smartphone, TrendingUp, Wallet } from "lucide-react";
 import { BarList } from "@/components/admin/BarList";
 import { DashboardHeader } from "@/components/admin/DashboardHeader";
 import { PostsTable, type PostRow } from "@/components/admin/PostsTable";
@@ -185,6 +185,26 @@ function AdminDashboardContent() {
 
       <main className="container space-y-10 px-4 py-8">
         <div className="grid gap-4 sm:grid-cols-2">
+          <a
+            href="/admin/shopee"
+            className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-colors hover:border-primary/40 hover:bg-card/70"
+          >
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-500/15 text-orange-600">
+                <ShoppingCart className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-foreground">
+                  Shopee bán hàng
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  Đồng bộ lô SIM lên Shopee · quản lý sản phẩm đã đăng
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+          </a>
+
           <a
             href="/admin/du-an"
             className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-colors hover:border-primary/40 hover:bg-card/70"

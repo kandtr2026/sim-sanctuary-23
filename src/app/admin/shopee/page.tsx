@@ -1,0 +1,752 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  ExternalLink,
+  KeyRound,
+  Loader2,
+  LogOut,
+  RefreshCw,
+  Search,
+  Settings,
+  ShieldCheck,
+  ShoppingCart,
+  Store,
+  Trash2,
+  XCircle,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import RequireAdmin from "@/components/admin/RequireAdmin";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useSimData } from "@/hooks/useSimData";
+import { formatPrice, PRICE_RANGES, type NormalizedSIM } from "@/lib/simUtils";
+import { toast } from "sonner";
+
+// ── Types ────────────────────────────────────────────────────────────────────
+
+interface CredStatus {
+  configured: boolean;
+  authorized: boolean;
+  partnerId: string | null;
+  shopId: string | null;
+  env: string;
+  partnerKeyMasked: string;
+  tokenExpired: boolean;
+  source: "db" | "env" | "none";
+}
+
+interface ShopeeSettings {
+  categoryId: number | null;
+  imageUrl: string | null;
+  logisticId: number | null;
+}
+
+interface ItemRow {
+  sim_id: string;
+  item_id: number | null;
+  status: string;
+  price: number | null;
+  stock: number;
+  last_synced_at: string | null;
+  last_error: string | null;
+}
+
+interface SyncResult {
+  batchId: string;
+  total: number;
+  created: number;
+  updated: number;
+  failed: number;
+  skipped: number;
+  errors: { simId: string; number: string; error: string }[];
+}
+
+const api = async <T,>(path: string, init?: RequestInit, token?: string): Promise<T> => {
+  const res = await fetch(path, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...init?.headers,
+    },
+    cache: "no-store",
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error((body as { error?: string })?.error || `HTTP ${res.status}`);
+  }
+  return body as T;
+};
+
+// ── Component chính ──────────────────────────────────────────────────────────
+
+function ShopeeAdminContent() {
+  const { user, session, signOut } = useAdminAuth();
+  const token = session?.access_token;
+  const { allSims, isLoading: simsLoading } = useSimData();
+
+  const [cred, setCred] = useState<CredStatus | null>(null);
+  const [settings, setSettings] = useState<ShopeeSettings | null>(null);
+  const [items, setItems] = useState<ItemRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Trạng thái UI
+  const [showConfig, setShowConfig] = useState(false);
+  const [configForm, setConfigForm] = useState({ partnerId: "", partnerKey: "", shopId: "", env: "live" });
+  const [configSaving, setConfigSaving] = useState(false);
+
+  const [syncing, setSyncing] = useState(false);
+  const [lastResult, setLastResult] = useState<SyncResult | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+
+  // Bộ lọc + chọn lô
+  const [network, setNetwork] = useState<string>("all");
+  const [priceMax, setPriceMax] = useState<string>("all");
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [showOnlySelected, setShowOnlySelected] = useState(false);
+
+  const loadStatus = useCallback(
+    async (tk?: string) => {
+      if (!tk) return;
+      try {
+        const data = await api<{
+          cred: CredStatus;
+          settings: ShopeeSettings;
+          items: ItemRow[];
+        }>("/api/admin/shopee/status", {}, tk);
+        setCred(data.cred);
+        setSettings(data.settings);
+        setItems(data.items);
+      } catch (err) {
+        toast.error((err as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    document.title = "Shopee bán hàng – CHONSOMOBIFONE.COM";
+  }, []);
+
+  useEffect(() => {
+    if (token) void loadStatus(token);
+  }, [token, loadStatus]);
+
+  // ── Bộ lọc SIM ──
+  const filtered = useMemo(() => {
+    let list = allSims.filter((s) => s.price > 0);
+    if (network !== "all") list = list.filter((s) => s.network === network);
+    if (priceMax !== "all") {
+      const max = Number(priceMax);
+      list = list.filter((s) => s.price <= max);
+    }
+    const q = search.trim();
+    if (q) {
+      const digits = q.replace(/\D/g, "");
+      if (digits) list = list.filter((s) => s.rawDigits.includes(digits));
+    }
+    if (showOnlySelected) list = list.filter((s) => selected.has(s.id));
+    return list;
+  }, [allSims, network, priceMax, search, selected, showOnlySelected]);
+
+  const networks = useMemo(() => {
+    const set = new Set(allSims.map((s) => s.network));
+    return Array.from(set);
+  }, [allSims]);
+
+  const toggle = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = (checked: boolean) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (checked) filtered.forEach((s) => next.add(s.id));
+      else filtered.forEach((s) => next.delete(s.id));
+      return next;
+    });
+  };
+
+  // ── Hành động ──
+  const handleSaveConfig = async () => {
+    if (!token) return;
+    setConfigSaving(true);
+    try {
+      const cred2 = await api<CredStatus>("/api/admin/shopee/config", {
+        method: "POST",
+        body: JSON.stringify({
+          partnerId: Number(configForm.partnerId),
+          partnerKey: configForm.partnerKey,
+          shopId: Number(configForm.shopId),
+          env: configForm.env,
+        }),
+      }, token);
+      setCred(cred2);
+      setShowConfig(false);
+      toast.success("Đã lưu cấu hình Shopee.");
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setConfigSaving(false);
+    }
+  };
+
+  const handleAuthUrl = async () => {
+    if (!token) return;
+    try {
+      const data = await api<{ url: string; redirect: string }>("/api/admin/shopee/auth-url", {}, token);
+      toast.info("Mở tab mới và đồng ý uỷ quyền. Code có hạn 10 phút.");
+      window.open(data.url, "_blank");
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    if (!token) return;
+    try {
+      const data = await api<{ settings: ShopeeSettings }>("/api/admin/shopee/settings", {
+        method: "POST",
+        body: JSON.stringify({
+          categoryId: settings?.categoryId ?? null,
+          imageUrl: settings?.imageUrl ?? "",
+        }),
+      }, token);
+      setSettings(data.settings);
+      toast.success("Đã lưu cài đặt đăng bán.");
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const handleSync = async () => {
+    if (!token) return;
+    const sims = filtered.filter((s) => selected.has(s.id));
+    if (sims.length === 0) {
+      toast.error("Chưa chọn SIM nào để đồng bộ.");
+      return;
+    }
+    setSyncing(true);
+    setLastResult(null);
+    try {
+      const result = await api<SyncResult>("/api/admin/shopee/sync", {
+        method: "POST",
+        body: JSON.stringify({ sims }),
+      }, token);
+      setLastResult(result);
+      toast.success(`Đồng bộ xong: ${result.created} tạo mới · ${result.updated} cập nhật · ${result.failed} lỗi.`);
+      await loadStatus(token);
+      setSelected(new Set());
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleRemove = async (row: ItemRow) => {
+    if (!token || !row.item_id) return;
+    if (!window.confirm(`Gỡ sản phẩm ${row.sim_id} khỏi Shopee?`)) return;
+    setRemovingId(row.sim_id);
+    try {
+      await api<{ ok: boolean }>("/api/admin/shopee/items/remove", {
+        method: "POST",
+        body: JSON.stringify({ simId: row.sim_id, itemId: row.item_id }),
+      }, token);
+      toast.success("Đã gỡ khỏi Shopee.");
+      await loadStatus(token);
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
+  const liveItems = items.filter((i) => i.status === "live").length;
+  const failedItems = items.filter((i) => i.status === "failed").length;
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-10 border-b border-border bg-card/80 backdrop-blur">
+        <div className="container flex items-center justify-between gap-3 px-4 py-3">
+          <div className="min-w-0">
+            <h1 className="truncate text-base font-semibold text-foreground sm:text-lg">
+              Shopee bán hàng
+            </h1>
+            <p className="truncate text-xs text-muted-foreground sm:text-sm">
+              {user?.email ?? ""} · {cred?.configured ? `Shop #${cred.shopId ?? "?"}` : "Chưa cấu hình"}
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button asChild variant="outline" size="sm" className="px-2.5 sm:px-3">
+              <a href="/" target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4" />
+                <span className="hidden sm:inline">Xem website</span>
+              </a>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="px-2.5 sm:px-3"
+              onClick={() => void loadStatus(token)}
+            >
+              <RefreshCw className="h-4 w-4" />
+              <span className="hidden sm:inline">Làm mới</span>
+            </Button>
+            <Button variant="outline" size="sm" className="px-2.5 sm:px-3" onClick={() => void signOut()}>
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Đăng xuất</span>
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="container space-y-6 px-4 py-6">
+        {/* ── Trạng thái kết nối Shopee ── */}
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-500/15 text-orange-600">
+                <Store className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Kết nối Shopee Open Platform</p>
+                <p className="text-xs text-muted-foreground">
+                  {!cred?.configured
+                    ? "Chưa khai báo partner_id / partner_key / shop_id."
+                    : !cred.authorized
+                      ? "Đã khai cấu hình nhưng chưa uỷ quyền shop."
+                      : `Đã uỷ quyền shop #${cred.shopId} · partner ${cred.partnerId} (${cred.env})`}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge
+                variant="outline"
+                className={
+                  cred?.authorized
+                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700"
+                    : "border-gold/40 bg-gold/10 text-gold"
+                }
+              >
+                {cred?.authorized ? "Đã uỷ quyền" : "Chưa uỷ quyền"}
+              </Badge>
+              {!cred?.configured ? (
+                <Button size="sm" onClick={() => setShowConfig((v) => !v)}>
+                  <KeyRound className="h-4 w-4" /> Cấu hình
+                </Button>
+              ) : !cred.authorized ? (
+                <Button size="sm" onClick={() => void handleAuthUrl()}>
+                  <ShieldCheck className="h-4 w-4" /> Uỷ quyền shop
+                </Button>
+              ) : (
+                <Button size="sm" variant="outline" onClick={() => setShowConfig((v) => !v)}>
+                  <Settings className="h-4 w-4" /> Cấu hình lại
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {showConfig && (
+            <div className="mt-4 grid gap-3 rounded-lg border border-border bg-muted/30 p-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="partnerId">Partner ID</Label>
+                <Input
+                  id="partnerId"
+                  value={configForm.partnerId}
+                  onChange={(e) => setConfigForm({ ...configForm, partnerId: e.target.value })}
+                  placeholder={cred?.partnerId ?? "2031725"}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="shopId">Shop ID</Label>
+                <Input
+                  id="shopId"
+                  value={configForm.shopId}
+                  onChange={(e) => setConfigForm({ ...configForm, shopId: e.target.value })}
+                  placeholder="Để trống cũng được — Shopee tự trả khi uỷ quyền"
+                />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label htmlFor="partnerKey">Partner Key</Label>
+                <Input
+                  id="partnerKey"
+                  type="password"
+                  value={configForm.partnerKey}
+                  onChange={(e) => setConfigForm({ ...configForm, partnerKey: e.target.value })}
+                  placeholder={cred?.configured ? "•••• đã lưu (bỏ trống để giữ nguyên)" : ""}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Partner Key là bí mật — chỉ lưu mã hoá trong DB, không hiện lại.
+                </p>
+              </div>
+              <div className="flex items-end gap-2">
+                <Button onClick={() => void handleSaveConfig()} disabled={configSaving}>
+                  {configSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  Lưu cấu hình
+                </Button>
+                <Button variant="ghost" onClick={() => setShowConfig(false)}>
+                  Đóng
+                </Button>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* ── Cài đặt đăng bán ── */}
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Settings className="h-4 w-4 text-gold" /> Cài đặt đăng bán
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>Danh mục sản phẩm (category)</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-between"
+                onClick={async () => {
+                  if (!token) return;
+                  try {
+                    const data = await api<{ categories: { category_id: number; category_name: string }[] }>(
+                      "/api/admin/shopee/categories",
+                      {},
+                      token,
+                    );
+                    const cats = data.categories ?? [];
+                    if (cats.length === 0) {
+                      toast.info("Chưa lấy được danh mục. Có thể cần uỷ quyền shop trước.");
+                      return;
+                    }
+                    const pick = window.prompt(
+                      "Nhập category_id (xem danh sách bên dưới). Chọn mục Sim/Thẻ cào:\n" +
+                        cats
+                          .filter((c) => /sim|thẻ|cào|điện thoại|phụ kiện/i.test(c.category_name))
+                          .map((c) => `${c.category_id} = ${c.category_name}`)
+                          .slice(0, 30)
+                          .join("\n"),
+                      settings?.categoryId ? String(settings.categoryId) : "",
+                    );
+                    if (pick) {
+                      const n = Number(pick.trim());
+                      if (Number.isFinite(n) && n > 0) {
+                        setSettings((prev) => ({ ...prev!, categoryId: n }));
+                      }
+                    }
+                  } catch (err) {
+                    toast.error((err as Error).message);
+                  }
+                }}
+              >
+                {settings?.categoryId ? `Category #${settings.categoryId}` : "Chọn danh mục…"}
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Nhấn để lấy danh mục trực tiếp từ Shopee và chọn mục SIM/Thẻ cào.
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="imageUrl">Ảnh sản phẩm (URL)</Label>
+              <Input
+                id="imageUrl"
+                value={settings?.imageUrl ?? ""}
+                onChange={(e) => setSettings((prev) => ({ ...prev!, imageUrl: e.target.value }))}
+                placeholder="https://www.chonsomobifone.com/sim-card-default.png"
+              />
+              <p className="text-xs text-muted-foreground">
+                Shopee bắt buộc ít nhất 1 ảnh. Mặc định dùng ảnh sim chung.
+              </p>
+            </div>
+          </div>
+          <div className="mt-3">
+            <Button size="sm" onClick={() => void handleSaveSettings()}>
+              Lưu cài đặt
+            </Button>
+          </div>
+        </section>
+
+        {/* ── Chọn lô & đồng bộ ── */}
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <ShoppingCart className="h-4 w-4 text-gold" /> Chọn lô SIM để đồng bộ
+              <Badge variant="outline" className="ml-1 text-primary">
+                {selected.size} đã chọn
+              </Badge>
+            </h2>
+            <div className="flex items-center gap-2">
+              <Button size="sm" onClick={() => void handleSync()} disabled={syncing || selected.size === 0}>
+                {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                {syncing ? "Đang đồng bộ…" : "Đồng bộ lên Shopee"}
+              </Button>
+              {selected.size > 0 && (
+                <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
+                  Bỏ chọn
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {!cred?.authorized && (
+            <div className="mb-3 rounded-lg border border-gold/40 bg-gold/5 p-3 text-sm text-gold">
+              Chưa uỷ quyền shop nên chưa đồng bộ được. Bấm <b>Uỷ quyền shop</b> ở mục Kết nối
+              trước.
+            </div>
+          )}
+
+          {/* Bộ lọc */}
+          <div className="mb-3 grid gap-2 sm:grid-cols-3">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                className="pl-8"
+                placeholder="Tìm số (vd 0903, *8888)"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <Select value={network} onValueChange={setNetwork}>
+              <SelectTrigger>
+                <SelectValue placeholder="Nhà mạng" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả nhà mạng</SelectItem>
+                {networks.map((n) => (
+                  <SelectItem key={n} value={n}>
+                    {n}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={priceMax} onValueChange={setPriceMax}>
+              <SelectTrigger>
+                <SelectValue placeholder="Giá tối đa" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Mọi mức giá</SelectItem>
+                {PRICE_RANGES.map((r) => (
+                  <SelectItem key={r.max} value={String(r.max)}>
+                    Dưới {r.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Danh sách SIM */}
+          <div className="mb-3 flex items-center gap-3 text-xs text-muted-foreground">
+            <label className="flex cursor-pointer items-center gap-1.5">
+              <input
+                type="checkbox"
+                checked={filtered.length > 0 && filtered.every((s) => selected.has(s.id))}
+                onChange={(e) => toggleAll(e.target.checked)}
+              />
+              Chọn tất cả ({filtered.length} SIM đang hiện)
+            </label>
+            <label className="flex cursor-pointer items-center gap-1.5">
+              <input
+                type="checkbox"
+                checked={showOnlySelected}
+                onChange={(e) => setShowOnlySelected(e.target.checked)}
+              />
+              Chỉ hiện SIM đã chọn
+            </label>
+          </div>
+
+          {simsLoading ? (
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-16 animate-pulse rounded-lg bg-muted" />
+              ))}
+            </div>
+          ) : (
+            <div className="max-h-[520px] space-y-1.5 overflow-y-auto pr-1">
+              {filtered.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  Không có SIM nào khớp bộ lọc.
+                </p>
+              ) : (
+                filtered.map((s) => {
+                  const isSel = selected.has(s.id);
+                  const synced = items.find((i) => i.sim_id === s.id);
+                  return (
+                    <div
+                      key={s.id}
+                      onClick={() => toggle(s.id)}
+                      className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg border px-3 py-2 transition-colors ${
+                        isSel
+                          ? "border-primary/50 bg-primary/5"
+                          : "border-border bg-background hover:border-primary/30"
+                      }`}
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <input type="checkbox" checked={isSel} onChange={() => toggle(s.id)} readOnly />
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-foreground">
+                            {s.displayNumber}
+                          </p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {s.network} · {s.tags?.slice(0, 3).join(" · ") || "—"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        {synced ? (
+                          synced.status === "live" ? (
+                            <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-700">
+                              <CheckCircle2 className="mr-1 h-3 w-3" /> Đã đăng
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="border-red-500/40 bg-red-500/10 text-red-700">
+                              <XCircle className="mr-1 h-3 w-3" /> Lỗi
+                            </Badge>
+                          )
+                        ) : null}
+                        <span className="text-sm font-bold text-gold">{formatPrice(s.price)}</span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+
+          {lastResult && (
+            <div className="mt-3 rounded-lg border border-border bg-muted/30 p-3 text-sm">
+              <p className="font-semibold text-foreground">
+                Kết quả lô {lastResult.batchId}
+              </p>
+              <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                <span className="text-emerald-700">Tạo mới: {lastResult.created}</span>
+                <span className="text-blue-700">Cập nhật: {lastResult.updated}</span>
+                <span className="text-red-700">Lỗi: {lastResult.failed}</span>
+              </div>
+              {lastResult.errors.length > 0 && (
+                <div className="mt-2 max-h-40 space-y-1 overflow-y-auto text-xs">
+                  {lastResult.errors.map((e, i) => (
+                    <p key={i} className="break-words text-red-700">
+                      {e.number}: {e.error}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* ── Đã đăng lên Shopee ── */}
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Store className="h-4 w-4 text-gold" /> Sản phẩm đã đăng
+            <Badge variant="outline" className="ml-1">
+              {liveItems} đang bán · {failedItems} lỗi
+            </Badge>
+          </h2>
+          {items.length === 0 ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              Chưa có SIM nào được đồng bộ lên Shopee.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-border text-xs text-muted-foreground">
+                    <th className="py-2 pr-3 font-medium">SIM</th>
+                    <th className="py-2 pr-3 font-medium">Item ID</th>
+                    <th className="py-2 pr-3 font-medium">Trạng thái</th>
+                    <th className="py-2 pr-3 font-medium">Giá</th>
+                    <th className="py-2 pr-3 font-medium">Lần sync</th>
+                    <th className="py-2 font-medium"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.slice(0, 50).map((row) => (
+                    <tr key={row.sim_id} className="border-b border-border/60 last:border-0">
+                      <td className="py-2 pr-3 font-medium text-foreground">{row.sim_id}</td>
+                      <td className="py-2 pr-3 text-muted-foreground">{row.item_id ?? "—"}</td>
+                      <td className="py-2 pr-3">
+                        {row.status === "live" ? (
+                          <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-700">
+                            Đang bán
+                          </Badge>
+                        ) : row.status === "failed" ? (
+                          <Badge variant="outline" className="border-red-500/40 bg-red-500/10 text-red-700">
+                            Lỗi
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">{row.status}</Badge>
+                        )}
+                      </td>
+                      <td className="py-2 pr-3 text-gold">{row.price ? formatPrice(row.price) : "—"}</td>
+                      <td className="py-2 pr-3 text-muted-foreground">
+                        {row.last_synced_at ? new Date(row.last_synced_at).toLocaleString("vi-VN") : "—"}
+                      </td>
+                      <td className="py-2 text-right">
+                        {row.item_id && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground hover:text-red-600"
+                            onClick={() => void handleRemove(row)}
+                            disabled={removingId === row.sim_id}
+                          >
+                            {removingId === row.sim_id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {items.length > 50 && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  …và {items.length - 50} sản phẩm nữa (chỉ hiện 50 gần nhất).
+                </p>
+              )}
+            </div>
+          )}
+        </section>
+      </main>
+    </div>
+  );
+}
+
+export default function ShopeeAdminPage() {
+  return (
+    <RequireAdmin>
+      <ShopeeAdminContent />
+    </RequireAdmin>
+  );
+}

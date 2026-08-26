@@ -4,31 +4,37 @@ _Cập nhật: 2026-08-26. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone 
 
 ## 1. ĐÃ XONG phiên này
 
-- **Engine Bát Cực Linh Số** (`src/lib/batCuc.ts`): 8 năng lượng (Sinh Khí, Thiên Y, Diên Niên, Phục Vị, Họa Hại, Lục Sát, Ngũ Quỷ, Tuyệt Mệnh), 64 cặp số, phân tích SIM/CCCD (cặp chồng lấn), đề xuất hóa giải (hung → cát tương ứng), chấm điểm Bát Cực 0–10, bộ lọc NL chủ đạo / NL phải có (≤5) / Loại trừ NL (≤5).
-- **Nâng cấp `simHopTuoi.ts`**: thêm `batCucScore`, `nlChuDao`, `nlCounts` vào `ScoredSim`; `scoreInventory` nhận thêm `BatCucFilter` tùy chọn để lọc từ server.
-- **Nâng cấp API `/api/sim-hop-tuoi`**: nhận params `cccd`, `nlChuDao`, `nlPhaiCo`, `nlLoaiTru`; trả về `batCuc` object với phân tích CCCD + filter active.
-- **Nâng cấp UI `SimHopTuoiTool.tsx`**: form CCCD (12 số), accordion "Kết hợp Bát Cực Linh Số" (NL chủ đạo select, NL phải có toggle, NL loại trừ toggle), panel "Hóa giải CCCD" hiển thị năng lượng hung + đề xuất hóa giải + chi tiết từng cặp, SIM card hiển thị nlChuDao badge + 3 năng lượng nổi bật × count.
-- Đã build OK, deploy lên production (commit `2648f25`, push `origin main`).
-- **Hotfix crash accordion Bát Cực** (commit `98f2008`): Radix Select v2.2.5 **throw Error** khi render `<SelectItem value="">` → mở accordion "Kết hợp Bát Cực Linh Số" crash trang. Đã đổi thành `value="tat-ca"` + map `v === "tat-ca" → null`. Verify: build XANH, deploy Ready, JS bundle live chứa `tat-ca`.
-- **Spin SEO trang `/sim-than-tai`** theo flow simthanglong.vn (commit `3cb7117`): viết lại nội dung đầy đủ — giải mã ý nghĩa 39/79, công thức 3 yếu tố chọn sim (đuôi số/đầu số/thân số), bảng so sánh 39 vs 79, hướng dẫn chọn theo ngân sách 3 cấp, tránh 3 sai lầm phổ biến, xu hướng 2026 kết hợp taxi. Thêm section "Mọi người cũng tìm kiếm", FAQ mở rộng 4→6 câu. Deploy OK, verify các section có trên live.
-- **Fix highlight `*suffix` bị tách chấm** (commit `4ca8e80`): tìm `*6879` trước hiển thị `0703.756.879` (cụm bị tách `6.879`) → nay reformat thành `070.375.6879` tô vàng `.6879`. Sửa `src/lib/highlightUtils.ts` (nhánh `*suffix` trong `createHighlightedNumber` + helper `groupDigitsInThrees`). Thêm test `src/test/highlight-suffix.test.ts` (3 case). ⚠️ Bẫy: `next build` type-check cả test file, React 19 `ReactElement` props mặc định là `unknown` → phải khai `ReactElement<{className?; children?}>`. Lần đầu deploy lỗi vì thiếu cái này.
+- **Engine Bát Cực Linh Số** (`src/lib/batCuc.ts`): (đã có từ phiên trước)
+- **Shopee Product Sync** (MỚI): đồng bộ lô SIM lên Shopee Open Platform
+  - Migration: `supabase/migrations/20260826220000_shopee_sync.sql` (4 bảng: shopee_credential, shopee_settings, shopee_item_map, shopee_sync_log)
+  - Shopee lib: `src/lib/shopee/` (crypto, config, credentials, client, sync, http, admin)
+  - API routes: `/api/admin/shopee/{status,config,settings,auth-url,exchange,sync,items,items/remove,categories}`
+  - Admin page: `/admin/shopee` + `/admin/shopee/callback`
+  - Dashboard link: card "Shopee bán hàng" ở `/admin/dashboard`
+  - Ảnh sim placeholder: `public/sim-card-default.png` (tạo bằng sharp)
+  - Vercel env: SET SUPABASE_SERVICE_ROLE_KEY, SHOPEE_PARTNER_ID=2031725, SHOPEE_PARTNER_KEY
+  - Build XANH, migration applied
 
 ## 2. CÒN LẠI / việc làm tiếp
 
-- **Mục tiêu chọn sim** (Tài lộc / Công danh / Tình cảm / Học hành) — chưa có trong bộ lọc. Cần thêm vào API + UI.
-- **Quick filter chips + lọc nâng cao cho CategorySimGrid** (simthanglong có: chip đầu số/giá, lọc loại trừ số, sắp xếp) — CategorySimGrid là component dùng chung nhiều trang, cần làm cẩn thận không ảnh hưởng trang khác.
-- **Hào động** — engine Kinh Dịch hiện chỉ tính quẻ từ 4 số cuối (mod 80), chưa tính hào động. Cần thêm bảng 64 quẻ Kinh Dịch + hào động để hiển thị "Hào động" trên card SIM.
-- **"Vì sao hợp tuổi"** luận giải tự động — chưa có. Có thể sinh từ điểm ngũ hành + âm dương + quẻ dịch.
-- **"Tốt cho việc" tags** — chưa có. Có thể map từ quẻ dịch (mỗi quẻ ứng với 1 số lĩnh vực).
+- **Shopee**: cần vào open.shopee.com → thêm redirect URL `https://www.chonsomobifone.com/admin/shopee/callback` + bật module Product. Sau đó vào `/admin/shopee` → bấm "Uỷ quyền shop" → đăng nhập shop SIM → đồng ý.
+- **Mục tiêu chọn sim** (Tài lộc / Công danh / Tình cảm / Học hành) — chưa có trong bộ lọc.
+- **Quick filter chips + lọc nâng cao cho CategorySimGrid** — WIP.
+- **Hào động** — engine Kinh Dịch hiện chỉ tính quẻ từ 4 số cuối (mod 80), chưa tính hào động.
+- **"Vì sao hợp tuổi"** luận giải tự động — chưa có.
+- **"Tốt cho việc" tags** — chưa có.
 - **Số thần học** — chưa tính (cộng dồn ngày sinh ra số 1–9).
 - **Phân trang** — hiện chỉ trả 12 kết quả. Cần thêm `limit` + `offset` param + pagination UI.
 - **So sánh 2 SIM** — cần thêm khay so sánh + trang so sánh.
 - **Xem chi tiết SIM phong thủy** — trang `/sim-phong-thuy?so=...` chưa có.
 - **Lịch âm/dương toggle** — form nhập giờ sinh hiện chỉ âm lịch, cần thêm toggle.
+- **WIP phiên khác (chưa commit)**: `src/lib/simDisplay.ts`, `src/test/sim-display.test.ts`, sửa `MuaSimGiaReTool.tsx`, `CategorySimGrid.tsx`, `highlightUtils.ts`.
 
 ## 3. Bẫy phải biết
 
 - **Deploy bắt buộc push GitHub** (auto-deploy từ Vercel Git integration). Không dùng `npx vercel --prod`.
-- **Supabase Edge Function fetch-sim-data** timeout 15s, data ~7MB → không cache được. Build có thể fail nếu Supabase down.
+- **Supabase Edge Function fetch-sim-data** timeout 15s, data ~7MB → không cache được.
 - **SimNamSinhFinder.tsx** có WIP chưa commit — không stage nếu không liên quan.
-- **Bát Cực hóa giải mapping**: TuyệtMệnh→SinhKhí, NgũQuỷ→ThiênY, LụcSát→DiênNiên, HọaHại→PhụcVị. Có thể cần điều chỉnh theo ý kiến chuyên gia phong thủy.
+- **Bát Cực hóa giải mapping**: TuyệtMệnh→SinhKhí, NgũQuỷ→ThiênY, LụcSát→DiênNiên, HọaHại→PhụcVị.
+- **Shopee sync**: partner_id=2031725, partner_key đã set trong Vercel env. Cần thêm redirect URL + uỷ quyền shop trước khi sync.
+- **Migration conflict**: `20260826_sims_catalog.sql` (WIP phiên khác) cùng version 20260826 — đã repair remote history, không đụng.
