@@ -83,11 +83,19 @@ const WEBSITE_JSON_LD = {
   "@type": "WebSite",
   name: SITE_NAME,
   url: `${BASE_URL}/`,
-  // NOTE: A SearchAction (sitelinks searchbox) was intentionally removed until
-  // the homepage actually handles a search-by-URL param. SimBrowser currently
-  // reads only hash state (#ns=, #price=), not `?q=`, so advertising a
-  // `/?q={search_term_string}` target would be a structured-data claim the site
-  // cannot fulfil. Re-add once SimBrowser seeds its query from the URL.
+  // SearchAction quay lại được vì trang chủ ĐÃ nhận câu tìm qua URL: SimBrowser
+  // seed `searchQuery` từ `?q=` (nhận cả `?search=` cũ) rồi ghi lại vào URL.
+  // Lưu ý kỳ vọng: Google đã bỏ hiển thị sitelinks searchbox từ 21/11/2024 nên
+  // markup này KHÔNG còn tạo ô tìm trong SERP và không ảnh hưởng thứ hạng; giữ
+  // vì nó khai báo đúng khả năng của site cho crawler/agent khác dùng.
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: `${BASE_URL}/?q={search_term_string}`,
+    },
+    "query-input": "required name=search_term_string",
+  },
 };
 
 export const metadata: Metadata = {

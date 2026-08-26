@@ -73,6 +73,7 @@ const SimBrowser = ({
   const [limit, setLimit] = useState(ITEMS_PER_PAGE);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [hashProcessed, setHashProcessed] = useState(false);
+  const [urlQuerySeeded, setUrlQuerySeeded] = useState(false);
   const queryClient = useQueryClient();
 
   // Reset phân trang mỗi khi filter đổi (giữ hành vi "xem thêm" như cũ).
@@ -303,6 +304,36 @@ const SimBrowser = ({
     history.replaceState(null, "", window.location.pathname + window.location.search);
     setHashProcessed(true);
   }, [hashProcessed, updateFilter, togglePriceRange, toggleTag]);
+
+  // ── Câu tìm đi theo URL (?q=, chấp nhận cả ?search= cũ) ───────────────────
+  // Trước đây câu tìm chỉ nằm trong state: F5 hay gửi link cho khách là mất,
+  // và sitelinks searchbox của Google không dùng được vì site không nhận query
+  // qua URL. Đọc trong effect (KHÔNG đọc lúc render) để HTML server và client
+  // khớp nhau, khỏi lỗi hydrate.
+  useEffect(() => {
+    if (urlQuerySeeded) return;
+    setUrlQuerySeeded(true);
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("q") ?? params.get("search") ?? "";
+    // Cùng bộ ký tự mà ô tìm cho phép; chặn độ dài để không ai nhét rác vào URL.
+    const seed = raw.replace(/[^0-9*]/g, "").slice(0, 15);
+    if (seed.replace(/\*/g, "").length >= 2) updateFilter("searchQuery", seed);
+  }, [urlQuerySeeded, updateFilter]);
+
+  // Ghi câu tìm ra URL (replaceState — không nhồi history) để khách share được
+  // đúng danh sách đang xem. Chỉ chạy sau khi đã đọc seed, kẻo xoá luôn ?q= vừa vào.
+  useEffect(() => {
+    if (!urlQuerySeeded) return;
+    const url = new URL(window.location.href);
+    const q = filters.searchQuery.trim();
+    if (q) url.searchParams.set("q", q);
+    else url.searchParams.delete("q");
+    url.searchParams.delete("search");
+    const next = url.pathname + (url.search || "") + url.hash;
+    if (next !== window.location.pathname + window.location.search + window.location.hash) {
+      history.replaceState(null, "", next);
+    }
+  }, [filters.searchQuery, urlQuerySeeded]);
 
   // ── Facets (tagCounts / prefixes / networkCounts / priceCounts cho sidebar) ─
   const facetsQuery = useQuery<{
