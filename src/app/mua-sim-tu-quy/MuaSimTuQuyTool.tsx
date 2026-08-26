@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Phone, Search, ChevronRight } from "lucide-react";
 import SIMCardNew from "@/components/SIMCardNew";
 import { formatPrice } from "@/lib/simUtils";
+import { planSimDisplay } from "@/lib/simDisplay";
 import type { NormalizedSIM } from "@/lib/simUtils";
 
 const ZALO_URL = "https://zalo.me/0933356666";
@@ -137,10 +138,13 @@ const MuaSimTuQuyTool = () => {
                   <tr key={s.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
                     <td className="py-3 px-4 font-bold text-foreground tracking-wide">
                       {(() => {
-                        // Tứ quý: format 3-3-4 để 4 số cuối liền nhau (VD 093.368.6666)
+                        // Tứ quý phải hiện 4 số cuối liền nhau (VD 093.368.6666).
+                        // Dùng rule chấm dùng chung thay vì tự cắt 3-3-4 ở đây —
+                        // xem `src/lib/simDisplay.ts`.
                         const raw = s.rawDigits || (s.displayNumber || "").replace(/\D/g, "");
-                        if (raw.length === 10) return `${raw.slice(0, 3)}.${raw.slice(3, 6)}.${raw.slice(6)}`;
-                        return s.formattedNumber || s.displayNumber;
+                        const preferred = s.formattedNumber || s.displayNumber;
+                        if (raw.length < 5) return preferred;
+                        return planSimDisplay(raw, `*${raw.slice(-4)}`, preferred).display;
                       })()}
                     </td>
                     <td className="py-3 px-4 text-muted-foreground hidden sm:table-cell">
@@ -203,7 +207,15 @@ const MuaSimTuQuyTool = () => {
         ) : displaySims.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3">
             {displaySims.map((sim) => (
-              <SIMCardNew key={sim.id} sim={sim} searchQuery={hasActiveSearch ? activeSearch : ""} />
+              <SIMCardNew
+                key={sim.id}
+                sim={sim}
+                // Danh sách mặc định của trang này là kho tứ quý → tôn cụm 4 số
+                // đuôi lên (077.867.0000). Khi khách tìm thì kết quả là toàn kho,
+                // không còn chắc là tứ quý nên bỏ cờ đi.
+                quyFilter={hasActiveSearch ? null : "Tứ quý"}
+                searchQuery={hasActiveSearch ? activeSearch : ""}
+              />
             ))}
           </div>
         ) : (

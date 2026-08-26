@@ -1,8 +1,25 @@
 ﻿import { describe, it, expect } from "vitest";
 import type { ReactElement } from "react";
-import { createHighlightedNumber } from "@/lib/highlightUtils";
+import { createHighlightedNumber, createQuyHighlightedNumber } from "@/lib/highlightUtils";
 
 type HlSpan = ReactElement<{ className?: string; children?: string }>;
+
+describe("createQuyHighlightedNumber — tứ quý liền cụm", () => {
+  it("gom 4 số đuôi thành một cụm thay vì để 4-3-3 cắt", () => {
+    const result = createQuyHighlightedNumber("0778.670.000", "0778670000", "Tứ quý");
+    const text = result.map((n) => (typeof n === "string" ? n : (n as HlSpan).props.children)).join("");
+    expect(text).toBe("077.867.0000");
+
+    const lastSpan = result[result.length - 1] as HlSpan;
+    expect(lastSpan.props.className).toContain("text-gold");
+    expect(lastSpan.props.children).toBe("0000");
+  });
+
+  it("không phải tứ quý thì để nguyên", () => {
+    const result = createQuyHighlightedNumber("0703.756.879", "0703756879", "Tứ quý");
+    expect(result).toEqual(["0703.756.879"]);
+  });
+});
 
 describe("createHighlightedNumber â€” suffix wildcard reformat", () => {
   it("reformats *6879 so 6879 is a contiguous group at the end", () => {

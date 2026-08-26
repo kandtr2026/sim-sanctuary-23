@@ -136,9 +136,9 @@ export const createHighlightedNumber = (
  *   raw 0777779086  →  0.77777.9086
  *   raw 0902777775  →  0902.77777.5
  *
- * Tứ quý (4 tail digits) keeps the original 3-3-4 display format and just
- * highlights the tail group in gold. Returns [displayNumber] when the filter
- * doesn't apply, so the caller can fall back to normal rendering.
+ * Tứ quý (4 số đuôi) cũng được chấm lại qua `planSimDisplay` để cụm đuôi liền
+ * mạch (`077.867.0000`, không phải `0778.670.000`). Trả về [displayNumber] khi
+ * filter không áp được, để caller render kiểu thường.
  */
 export const createQuyHighlightedNumber = (
   displayNumber: string,
@@ -154,13 +154,12 @@ export const createQuyHighlightedNumber = (
   let start = -1;
 
   if (quyType === 'Tứ quý') {
-    // Tứ quý: 4 số đuôi — giữ nguyên format 3-3-4, chỉ highlight đuôi vàng
+    // Tứ quý: 4 số đuôi phải hiện LIỀN MỘT CỤM. Format 4-3-3 cắt mất cụm
+    // (`0778.67|0.000`) nên chấm lại theo rule dùng chung ở `simDisplay`.
     const s = digits.length - run;
-    if (s >= 0 && /^(\d)\1{3}$/.test(digits.slice(s))) start = s;
-    if (start === -1) return [displayNumber];
-    const hlSet = new Set<number>();
-    for (let i = start; i < digits.length; i++) hlSet.add(i);
-    return buildSpansFromHlSet(displayNumber, hlSet, 'font-extrabold text-gold');
+    if (s < 0 || !/^(\d)\1{3}$/.test(digits.slice(s))) return [displayNumber];
+    const plan = planSimDisplay(digits, `*${digits.slice(s)}`, displayNumber);
+    return buildSpansFromHlSet(plan.display, blocksToDigitSet(plan.hl), 'font-extrabold text-gold');
   }
 
   // Ngũ quý / Lục quý: tìm cụm run chữ số giống nhau liền nhau ở BẤT KỲ ĐÂU

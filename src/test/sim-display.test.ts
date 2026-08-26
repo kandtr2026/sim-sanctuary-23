@@ -107,4 +107,8 @@ describe("planSimDisplay — đuôi khách tìm không bị dấu chấm cắt",
   it("phần dư 2 số vẫn được đứng riêng", () => {
     expect(planSimDisplay("0932687953", "6879", "0932.687.953").display).toBe("0932.6879.53");
   });
+
+  it("tứ quý: 4 số cuối liền nhau, không để 4-3-3 cắt (dùng ở bảng /mua-sim-tu-quy)", () => {
+    expect(planSimDisplay("0933686666", "*6666", "0933.686.666").display).toBe("093.368.6666");
+  });
 });
