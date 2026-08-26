@@ -135,7 +135,14 @@ const MuaSimTuQuyTool = () => {
               <tbody>
                 {featuredTuQuySims.map((s) => (
                   <tr key={s.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
-                    <td className="py-3 px-4 font-bold text-foreground tracking-wide">{s.formattedNumber || s.displayNumber}</td>
+                    <td className="py-3 px-4 font-bold text-foreground tracking-wide">
+                      {(() => {
+                        // Tứ quý: format 3-3-4 để 4 số cuối liền nhau (VD 093.368.6666)
+                        const raw = s.rawDigits || (s.displayNumber || "").replace(/\D/g, "");
+                        if (raw.length === 10) return `${raw.slice(0, 3)}.${raw.slice(3, 6)}.${raw.slice(6)}`;
+                        return s.formattedNumber || s.displayNumber;
+                      })()}
+                    </td>
                     <td className="py-3 px-4 text-muted-foreground hidden sm:table-cell">
                       {(() => {
                         const digits = (s.displayNumber || "").replace(/\D/g, "");
