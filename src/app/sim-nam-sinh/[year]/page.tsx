@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Phone, Star, Sparkles } from "lucide-react";
+import BirthYearSimGrid from "@/components/BirthYearSimGrid";
 import TrustCommitments from "@/components/TrustCommitments";
 import CustomerProof from "@/components/CustomerProof";
 import LeadMagnetCta from "@/components/LeadMagnetCta";
@@ -106,6 +107,7 @@ export default async function SimNamSinhPage({ params }: Props) {
   // Sim năm sinh = 4 số của năm trong 6 số cuối (dùng chung helper với
   // generateStaticParams + sitemap). Lấy tới 12 số thật để render server-side.
   const snapshotSims = await getCategorySnapshot({ birthYear: year }, 12);
+  const birthTotal = await countBirthYearSims(year);
   const otherYears = (await getInStockBirthYears())
     .filter((y) => y !== year)
     .slice(0, 12);
@@ -205,9 +207,8 @@ export default async function SimNamSinhPage({ params }: Props) {
             </div>
           </section>
 
-          {/* Server-rendered snapshot: số thật + ItemList/Product schema */}
-          <div id="kho-sim">
-                      </div>
+          {/* Grid sim thật — snapshot server-side, không cần fetch client */}
+          <BirthYearSimGrid year={year} sims={snapshotSims} totalCount={birthTotal} />
 
           {/* Cố ý KHÔNG dùng client grid (CategorySimGrid) ở trang năm sinh: bộ
               lọc /api/sims chỉ hỗ trợ đuôi/đầu/tag, KHÔNG có "năm trong 6 số
