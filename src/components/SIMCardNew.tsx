@@ -23,9 +23,15 @@ interface SIMCardNewProps {
   promotional?: PromotionalData;
   quyFilter?: QuyType | null;
   searchQuery?: string;
+  /**
+   * Hiển thị số theo ngày sinh khi SIM khớp (vd 04/07/1993 → "090371.4.7.93").
+   * Truyền từ BirthYearSimGrid — parser mặc định không nhận dạng mọi pattern
+   * (vd d1m1yy 4 số), nên grid tự format và override cardDisplay.
+   */
+  birthDateDisplay?: string | null;
 }
 
-const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNewProps) => {
+const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '', birthDateDisplay }: SIMCardNewProps) => {
   const [buyNowOpen, setBuyNowOpen] = useState(false);
   // Build rawNumber from ALL possible sources
   const rawNumber = (() => {
@@ -61,7 +67,8 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
   // Menu quyết định format hiển thị: luôn ưu tiên formattedNumber (4.3.3 chuẩn,
   // đồng nhất mọi nơi) thay vì displayNumber (dấu chấm tùy hứng từ sheet).
   // Chỉ birthDisplay (SIM năm sinh) được giữ riêng vì nó hiển thị ngày sinh.
-  const cardDisplay = birthDisplay || sim.formattedNumber || sim.displayNumber || sim.rawDigits;
+  // birthDateDisplay (từ BirthYearSimGrid) override tất cả khi khớp ngày sinh.
+  const cardDisplay = birthDateDisplay ?? (birthDisplay || sim.formattedNumber || sim.displayNumber || sim.rawDigits);
 
   const formatDiscountAmount = (amount: number): string => {
     if (amount >= 1000000) {

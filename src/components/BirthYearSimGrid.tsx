@@ -2,6 +2,47 @@ import SIMCardNew from "@/components/SIMCardNew";
 import type { NormalizedSIM } from "@/lib/simUtils";
 
 /**
+ * Format số theo ngày sinh khớp: 0903714793 (khớp d1m1yy "4793" = 4.7.93)
+ * → "090371.4.7.93". Trả về null khi không khớp pattern nào.
+ */
+const buildBirthDateDisplay = (
+  digits: string,
+  year: string,
+  day: string,
+  month: string,
+): string | null => {
+  const yy = year.slice(-2);
+  const d1 = day;
+  const d2 = day.padStart(2, "0");
+  const m1 = month;
+  const m2 = month.padStart(2, "0");
+
+  // Zone 1: d-m-y đầy đủ, ưu tiên 2-2 → 2-1 → 1-1
+  const candidates: { suffix: string; display: string }[] = [
+    { suffix: d2 + m2 + yy, display: `${d2}.${m2}.${yy}` },
+    { suffix: d2 + m1 + yy, display: `${d2}.${m1}.${yy}` },
+    { suffix: d1 + m1 + yy, display: `${d1}.${m1}.${yy}` },
+    { suffix: d2 + m2 + year, display: `${d2}.${m2}.${year}` },
+    { suffix: d2 + m1 + year, display: `${d2}.${m1}.${year}` },
+    { suffix: d1 + m1 + year, display: `${d1}.${m1}.${year}` },
+  ];
+  for (const c of candidates) {
+    if (digits.endsWith(c.suffix)) {
+      return `${digits.slice(0, digits.length - c.suffix.length)}.${c.display}`;
+    }
+  }
+
+  // Zone 2: m-y
+  for (const mm of [m1, m2]) {
+    if (digits.endsWith(mm + year)) {
+      return `${digits.slice(0, digits.length - (mm + year).length)}.${mm}.${year}`;
+    }
+  }
+
+  return null;
+};
+
+/**
  * Server-rendered grid of SIMs for a birth year. Uses the server snapshot
  * (real SIMs matching the year in the last 6 digits) so the page shows actual
  * stock without shipping the full catalogue to the client.
@@ -67,11 +108,14 @@ const BirthYearSimGrid = ({
       </div>
 
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3 md:gap-3">
-        {sims.map((sim) => (
-          <div key={sim.id} className="min-w-0">
-            <SIMCardNew sim={sim} />
-          </div>
-        ))}
+{sims.map((sim) => {
+  const birthDisp = day && month ? buildBirthDateDisplay(sim.rawDigits, year, day, month) : undefined;
+  return (
+    <div key={sim.id} className="min-w-0">
+      <SIMCardNew sim={sim} birthDateDisplay={birthDisp} />
+    </div>
+  );
+})}
       </div>
     </section>
   );
