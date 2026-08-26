@@ -112,7 +112,7 @@ const AdvancedFilterSidebar = ({
                 }`}
               >
                 {displayLabel}
-                <span className="opacity-70">{fmtCount(priceCounts[index])}</span>
+                <span className="ml-1 text-[10px] font-medium leading-none text-red-500">{fmtCount(priceCounts[index])}</span>
               </button>
             );
           })}
@@ -135,7 +135,7 @@ const AdvancedFilterSidebar = ({
                   className={`filter-btn-sm ${isSelected ? 'active' : ''}`}
                 >
                   {quyType}
-                  <span className="opacity-70">{fmtCount(tagCounts[quyType])}</span>
+                  <span className="ml-1 text-[10px] font-medium leading-none text-red-500">{fmtCount(tagCounts[quyType])}</span>
                 </button>
               );
             })}
@@ -150,7 +150,7 @@ const AdvancedFilterSidebar = ({
                 className={`filter-btn-sm ${filters.selectedTags.includes(tag) ? 'active' : ''}`}
               >
                 {tag}
-                <span className="opacity-70">{fmtCount(tagCounts[tag])}</span>
+                <span className="ml-1 text-[10px] font-medium leading-none text-red-500">{fmtCount(tagCounts[tag])}</span>
               </button>
             ))}
           </div>
@@ -167,7 +167,7 @@ const AdvancedFilterSidebar = ({
               className={`filter-btn-sm ${filters.selectedTags.includes(tag) ? 'active' : ''}`}
             >
               {tag}
-              <span className="opacity-70">{fmtCount(tagCounts[tag])}</span>
+              <span className="ml-1 text-[10px] font-medium leading-none text-red-500">{fmtCount(tagCounts[tag])}</span>
             </button>
           ))}
         </div>
@@ -183,7 +183,7 @@ const AdvancedFilterSidebar = ({
               className={`filter-btn-sm ${filters.selectedTags.includes(tag) ? 'active' : ''}`}
             >
               {tag}
-              <span className="opacity-70">{fmtCount(tagCounts[tag])}</span>
+              <span className="ml-1 text-[10px] font-medium leading-none text-red-500">{fmtCount(tagCounts[tag])}</span>
             </button>
           ))}
         </div>
@@ -206,7 +206,7 @@ const AdvancedFilterSidebar = ({
               }`}
             >
               {network}
-              <span className="opacity-70">{fmtCount(networkCounts[network])}</span>
+              <span className="ml-1 text-[10px] font-medium leading-none text-red-500">{fmtCount(networkCounts[network])}</span>
             </button>
           ))}
         </div>
