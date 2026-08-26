@@ -11,8 +11,13 @@ Supabase chạy kho SIM — xem `src/integrations/supabase/config.ts` để phâ
 `SUPABASE_URL` (kho SIM) vs `ADMIN_SUPABASE_URL` (admin/blog) — chỉ dùng `ADMIN_SUPABASE_URL`
 cho việc này).
 
-Chủ shop muốn có 1 bot **tự viết + tự lưu nháp 1 bài blog SEO mỗi ngày** vào `blog_posts`
-(`published = false`) để họ tự duyệt và đăng qua `/admin`.
+> **CẬP NHẬT 2026-08-22 (v3):** Pipeline đã chạy thành công (bài `sim-hop-tuoi-1988` viết tay,
+> `sim-kep-la-gi` do bot tự viết qua Groq `openai/gpt-oss-20b`). Chủ shop đã đổi quyết định ban
+> đầu — xem mục 3 và "Ràng buộc" bên dưới đã được cập nhật lại, KHÔNG còn là draft-only nữa.
+
+Chủ shop muốn có 1 bot **tự viết + tự đăng công khai 2 bài blog SEO mỗi ngày** vào `blog_posts`
+(`published = true` ngay khi tạo — không cần duyệt tay nữa, đã đổi từ quyết định draft-only ban
+đầu).
 
 ## 2. Đã thử và bị chặn — lý do cần OpenCode thay vì Claude scheduled task
 
@@ -32,7 +37,8 @@ Job, v.v.) thì tự quyết, miễn đạt được: chạy hàng ngày, không
 
 ## 3. Việc cần làm
 
-Dựng 1 job chạy **mỗi ngày 1 lần** (giờ đề xuất: 8:00 sáng giờ Việt Nam / 01:00 UTC), thực hiện
+Dựng 1 job chạy **2 lần/ngày** (giờ đề xuất: 8:00 sáng và 20:00 tối giờ Việt Nam / 01:00 UTC và
+13:00 UTC — sửa `cron` trong `.github/workflows/blog-bot.yml` thành 2 dòng lịch), thực hiện
 đúng luồng đã kiểm chứng thủ công (xem `supabase/migrations/20260820091254_admin_blog_schema.sql`
 để biết schema đầy đủ của `blog_posts`/`profiles`):
 
@@ -45,15 +51,24 @@ Dựng 1 job chạy **mỗi ngày 1 lần** (giờ đề xuất: 8:00 sáng gi�
 3. Chọn 1 chủ đề trong kho chủ đề bên dưới (mục 5) — chủ đề đầu tiên có slug CHƯA tồn tại. Nếu
    hết kho, tự nghĩ chủ đề mới cùng tinh thần (SIM số đẹp, phong thủy theo năm sinh, ý nghĩa đầu
    số Mobifone), slug mới không trùng.
-4. Sinh nội dung bài viết — dùng **model AI miễn phí đang có sẵn/đã kết nối trong OpenCode**
-   (không bắt buộc phải là GPT/OpenAI — key OpenAI không có gói miễn phí, đừng đổi sang đó nếu
-   đang có model khác chạy ổn, ví dụ DeepSeek). Miễn nội dung đúng văn phong ở mục 6 là được.
+4. Sinh nội dung bài viết — đang dùng **Groq, model `openai/gpt-oss-20b`** (`LLM_PROVIDER=groq`,
+   `LLM_MODEL=openai/gpt-oss-20b`, secret `LLM_API_KEY` là key Groq miễn phí, không cần thẻ). Đây
+   là lựa chọn ĐÃ CHẠY ỔN — không tự đổi model trừ khi model này lỗi thật.
+   **KHÔNG dùng `llama-3.3-70b-versatile`** — model này thuộc nhóm Enterprise của Groq, tài khoản
+   miễn phí không có quyền gọi (đã test, lỗi 404 "does not exist or you do not have access to
+   it"). Nếu cần model dự phòng khi `openai/gpt-oss-20b` lỗi, dùng `openai/gpt-oss-120b` (cũng
+   free-tier trên Groq).
 5. Lưu bài: `POST {ADMIN_SUPABASE_URL}/rest/v1/blog_posts` với `apikey` + `Authorization: Bearer
    <access_token>` + body JSON `{slug, title, meta_title, meta_description, content_html,
-   category, published: false}`.
+   category, published: true}`.
 
-**Ràng buộc cứng: `published` LUÔN LUÔN là `false`.** Không bao giờ tự đăng công khai — chủ shop
-tự duyệt và bấm đăng thủ công trong `/admin/dashboard`.
+**Cập nhật ràng buộc (đã đổi so với bản v1/v2):** `published` giờ mặc định là `true` — bot tự
+đăng công khai ngay, không cần duyệt tay. Set secret `BOT_AUTO_PUBLISH=true` trên GitHub Actions
+(dùng `gh secret set BOT_AUTO_PUBLISH --body true` — `gh` đã cài và đăng nhập sẵn trên máy chủ
+shop) để kích hoạt logic auto-publish đã có sẵn trong `scripts/blog-bot/index.mjs`. Vẫn giữ
+nguyên toàn bộ validate nội dung (đếm từ, link nội bộ, độ dài meta) đã có — KHÔNG bỏ bớt kiểm tra
+chất lượng chỉ vì giờ tự đăng thẳng, ngược lại càng cần chắc để tránh bài lỗi lên web thật không
+ai duyệt trước.
 
 ## 4. Credentials
 
