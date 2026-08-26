@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import Script from "next/script";
 import "./globals.css";
 import { Providers } from "./providers";
 import Header from "@/components/Header";
 import TrustBar from "@/components/TrustBar";
 import Navigation from "@/components/Navigation";
+import PromoBanner from "@/components/PromoBanner";
 import Footer from "@/components/Footer";
 import FloatingContactButtons from "@/components/FloatingContactButtons";
 import MessengerQuickTemplates from "@/components/MessengerQuickTemplates";
@@ -187,6 +189,13 @@ export default function RootLayout({
           <Header />
           <TrustBar />
           <Navigation />
+          {/* Admin-driven promo / flash-sale bar. Server-fetches the active
+              campaign; renders null when there is none. Hides itself on /admin
+              (client, via usePathname). Suspense keeps a slow campaign query
+              from blocking the page shell. */}
+          <Suspense fallback={null}>
+            <PromoBanner />
+          </Suspense>
           {children}
           <Footer />
           <Toaster />

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { ArrowLeft, Rocket, Target } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Check, Copy, Rocket, Target } from "lucide-react";
 import RequireAdmin from "@/components/admin/RequireAdmin";
 import { NORTH_STAR, PILLARS, ROADMAP, type RoadmapTask } from "@/data/roadmap";
 import { cn } from "@/lib/utils";
@@ -35,6 +35,42 @@ function ProgressBar({ pct, fillClass }: { pct: number; fillClass: string }) {
         style={{ width: `${pct}%` }}
       />
     </div>
+  );
+}
+
+/**
+ * Mono chip showing `utm_campaign=<slug>` that the shop owner can one-click copy
+ * into an Ads/link builder. Falls back silently if the clipboard API is blocked.
+ */
+function UtmChip({ utm }: { utm: string }) {
+  const [copied, setCopied] = useState(false);
+  const text = `utm_campaign=${utm}`;
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard blocked — the text is still selectable manually */
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      title="Bấm để copy — gắn vào link quảng cáo"
+      className="mt-1.5 inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] text-foreground transition-colors hover:bg-muted/70"
+    >
+      <span className="select-all">{text}</span>
+      {copied ? (
+        <Check className="h-3 w-3 text-emerald-400" />
+      ) : (
+        <Copy className="h-3 w-3 text-muted-foreground" />
+      )}
+      <span className="sr-only">{copied ? "Đã copy" : "Copy utm_campaign"}</span>
+    </button>
   );
 }
 
@@ -163,8 +199,12 @@ function AdminDuAnContent() {
                         <span className="text-[11px] font-medium text-muted-foreground">{task.id}</span>
                       </div>
                       <p className="mt-1 text-sm font-medium text-foreground">{task.title}</p>
+                      {task.kpi ? (
+                        <p className="mt-0.5 text-xs text-muted-foreground">📊 KPI: {task.kpi}</p>
+                      ) : null}
+                      {task.utm ? <UtmChip utm={task.utm} /> : null}
                       {task.next ? (
-                        <p className="mt-0.5 text-xs text-muted-foreground">{task.next}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">{task.next}</p>
                       ) : null}
                     </div>
                     {task.updated ? (

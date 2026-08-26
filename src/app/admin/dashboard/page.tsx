@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, BadgePercent, ClipboardList, Crown, FileText, Smartphone, TrendingUp, Wallet } from "lucide-react";
+import { ArrowRight, BadgePercent, ClipboardList, Crown, FileText, Megaphone, Smartphone, TrendingUp, Wallet } from "lucide-react";
 import { BarList } from "@/components/admin/BarList";
 import { DashboardHeader } from "@/components/admin/DashboardHeader";
 import { PostsTable, type PostRow } from "@/components/admin/PostsTable";
@@ -10,6 +10,7 @@ import { SalesChart } from "@/components/admin/SalesChart";
 import { StatCard } from "@/components/admin/StatCard";
 import { PageVisitsSection } from "@/components/admin/PageVisitsSection";
 import { ConversionsSection } from "@/components/admin/ConversionsSection";
+import { CampaignPerformanceSection } from "@/components/admin/CampaignPerformanceSection";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { getLastUpdateInfo, getPromotionalData, useSimData } from "@/hooks/useSimData";
 import { formatPrice, PRICE_RANGES } from "@/lib/simUtils";
@@ -172,25 +173,47 @@ function AdminDashboardContent() {
       />
 
       <main className="container space-y-10 px-4 py-8">
-        <a
-          href="/admin/du-an"
-          className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-colors hover:border-primary/40 hover:bg-card/70"
-        >
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
-              <ClipboardList className="h-5 w-5" />
-            </span>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-foreground">
-                Dự án — Make Mobi Great Again
-              </p>
-              <p className="truncate text-xs text-muted-foreground">
-                Tiến độ chiến dịch: xong tới đâu · đang làm gì
-              </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <a
+            href="/admin/du-an"
+            className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-colors hover:border-primary/40 hover:bg-card/70"
+          >
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                <ClipboardList className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-foreground">
+                  Dự án — Make Mobi Great Again
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  Tiến độ chiến dịch: xong tới đâu · đang làm gì
+                </p>
+              </div>
             </div>
-          </div>
-          <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-        </a>
+            <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+          </a>
+
+          <a
+            href="/admin/chien-dich"
+            className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-colors hover:border-primary/40 hover:bg-card/70"
+          >
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gold/15 text-gold">
+                <Megaphone className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-foreground">
+                  Chiến dịch bán hàng
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  Banner · flash sale · ưu đãi — bật/tắt hiển thị trên web
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+          </a>
+        </div>
 
         <section>
           <h2 className="mb-4 text-base font-semibold text-foreground">Thống kê kho số (đang bán)</h2>
@@ -275,6 +298,8 @@ function AdminDashboardContent() {
         <PageVisitsSection />
 
         <ConversionsSection />
+
+        <CampaignPerformanceSection />
 
         <PostsTable posts={posts} loading={postsLoading} onDelete={(post) => void handleDeletePost(post)} />
       </main>

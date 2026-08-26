@@ -1,9 +1,12 @@
 /**
  * Nguồn sự thật duy nhất cho trang "Dự án — Make Mobi Great Again" (/admin/du-an).
  *
- * Mỗi khi làm xong / đổi trạng thái bất kỳ Task nào trong docs/Sim_Opencode.md,
- * phải cập nhật file này (status / updated / next) TRONG CÙNG commit — trang
+ * Kế hoạch chiến dịch bán hàng đa kênh. Mỗi khi làm xong / đổi trạng thái một
+ * task, cập nhật file này (status / updated / next) TRONG CÙNG commit — trang
  * tiến độ nhờ đó luôn khớp thực tế. Read-only, không đọc DB.
+ *
+ * `utm`: slug gắn vào link chiến dịch (utm_campaign) để bảng "Hiệu quả chiến dịch"
+ * trong dashboard gom được lead theo từng chiến dịch.
  */
 
 export type TaskStatus = "done" | "doing" | "todo";
@@ -13,6 +16,8 @@ export interface RoadmapTask {
   title: string;
   status: TaskStatus;
   priority?: "P0" | "P1" | "P2";
+  kpi?: string; // chỉ số đo (đo ở đâu)
+  utm?: string; // utm_campaign slug gắn vào link
   next?: string;
   updated?: string;
 }
@@ -24,76 +29,72 @@ export interface RoadmapPhase {
   tasks: RoadmapTask[];
 }
 
-export const NORTH_STAR = "Bán được hàng — biến web thành máy ra lead Zalo/gọi";
+export const NORTH_STAR =
+  "Mỗi kênh phải tự chứng minh bằng lead Zalo/gọi đo được theo utm_campaign — nhân cái ra đơn rẻ, cắt cái đốt tiền. Chốt qua mô hình nhận SIM rồi mới trả tiền.";
 
 export const PILLARS = [
-  { name: "Website", note: "chốt lead + SEO organic" },
-  { name: "YouTube", note: "nội dung & traffic bền" },
-  { name: "Ads", note: "tăng tốc có lead ngay" },
+  { name: "Website", note: "chốt lead + SEO organic — nơi mọi kênh đổ về" },
+  { name: "Google Ads", note: "lead ngay từ người đang gõ 'mua sim…'" },
+  { name: "Social/Video", note: "FB · TikTok · YouTube — phủ nhận diện + kho remarketing" },
+  { name: "Zalo CRM", note: "broadcast/ZNS + referral khách cũ, chi phí gần 0" },
 ];
 
 export const ROADMAP: RoadmapPhase[] = [
   {
-    id: "GĐ0",
-    title: "Vá xô + gắn đồng hồ",
-    goal: "Web sẵn sàng chốt lead + đo được trước khi bật Ads",
+    id: "GĐ-A",
+    title: "Nền tảng đo lường",
+    goal: "Mọi kênh đo được lead theo nguồn + chi phí TRƯỚC khi đổ tiền.",
     tasks: [
-      { id: "T1", title: "Làm lại Dashboard quản trị", status: "done", updated: "2026-08-24" },
-      {
-        id: "T2",
-        title: "Thống nhất event GA4 generate_lead",
-        status: "done",
-        priority: "P0",
-        updated: "2026-08-24",
-      },
-      {
-        id: "T3",
-        title: "Bắt UTM + gclid vào lead",
-        status: "done",
-        priority: "P1",
-        updated: "2026-08-24",
-      },
-      {
-        id: "T4",
-        title: "Vá CTA + lớp niềm tin trên landing",
-        status: "done",
-        priority: "P1",
-        updated: "2026-08-24",
-      },
-      {
-        id: "T5",
-        title: "2–3 trang đích đón Ads + FB Pixel",
-        status: "done",
-        priority: "P1",
-        updated: "2026-08-24",
-      },
-      { id: "T6", title: "Trang tiến độ Dự án trong admin", status: "done", updated: "2026-08-24" },
+      { id: "A1", title: "Chuẩn hoá event generate_lead + GA4 property mới", status: "done", priority: "P0", kpi: "100% CTA bắn 1 event; lead GA4 khớp conversion_clicks", updated: "2026-08-24" },
+      { id: "A2", title: "Bắt UTM/gclid/fbclid vào lead + lượt xem", status: "done", priority: "P0", kpi: "Mỗi lead có nguồn + campaign; dashboard lọc theo utm_campaign", updated: "2026-08-24" },
+      { id: "A3", title: "Nối GA4 → Google Ads + conversion action Zalo/gọi", status: "todo", priority: "P0", kpi: "Ads nhận chuyển đổi 'lead' → đấu thầu theo chuyển đổi", next: "CHẶN: chủ shop cấp AW-… + label Zalo" },
+      { id: "A4", title: "Kích hoạt Facebook Pixel (set NEXT_PUBLIC_FB_PIXEL_ID)", status: "todo", priority: "P1", kpi: "Pixel Helper xanh; có event Lead khi bấm Zalo", next: "Pixel đang inert — set env ở Vercel rồi redeploy" },
+      { id: "A5", title: "Search Console: verify + nộp sitemap + đọc query thật", status: "doing", priority: "P1", kpi: "100+ URL indexed; có bảng query thay suy đoán từ khoá" },
+      { id: "A6", title: "Sổ chốt đơn thủ công (lead → đơn)", status: "todo", priority: "P0", kpi: "Ghép SĐT/Zalo + utm_campaign với 'đã bán' → tính CPL & CPA", next: "Web KHÔNG có bảng đơn — đây là mắt xích đo doanh số duy nhất (việc vận hành)" },
     ],
   },
   {
-    id: "GĐ1",
-    title: "Bật vòi traffic (Ads + Social)",
-    goal: "Có lead Zalo/gọi ngay trong 90 ngày",
+    id: "GĐ-B",
+    title: "Bật Google Search Ads (lead ngay)",
+    goal: "Lead Zalo/gọi ngay từ người đang tìm mua sim; CPL đo theo nhóm.",
     tasks: [
-      { id: "G1-ads", title: "Google Search Ads từ khoá mua-ngay", status: "todo", next: "Sau khi GA4→Ads nối xong" },
-      { id: "G1-social", title: "Đăng số đẹp FB + video TikTok", status: "todo" },
+      { id: "B1", title: "Chiến dịch sim tứ quý / ngũ quý → /mua-sim-tu-quy, /sim-ngu-quy", status: "todo", priority: "P0", kpi: "lead & CPL theo utm_campaign", utm: "gg-search-tuquy" },
+      { id: "B2", title: "Chiến dịch sim đầu số 09x/07x/08x → /sim-dau-so/[dauso]", status: "todo", priority: "P1", kpi: "lead theo đầu số; đầu số nào CPL rẻ nhất", utm: "gg-search-dauso" },
+      { id: "B3", title: "Chiến dịch sim năm sinh / hợp tuổi → /sim-nam-sinh/[year]", status: "todo", priority: "P1", kpi: "lead + CPL; đối chiếu năm query nhiều (GSC)", utm: "gg-search-namsinh" },
+      { id: "B4", title: "Chiến dịch phong thủy / thần tài lộc phát", status: "todo", priority: "P2", kpi: "lead + CPL", utm: "gg-search-phongthuy" },
+      { id: "B5", title: "Sim giá rẻ / trả góp (mở rộng tệp)", status: "todo", priority: "P2", kpi: "volume lead — theo dõi CHẤT LƯỢNG (tệp rẻ dễ lead rác)", utm: "gg-search-giare" },
+      { id: "B6", title: "Brand 'chọn số MobiFone'", status: "todo", priority: "P2", kpi: "CTR brand cao, CPL rất thấp", utm: "gg-brand", next: "KHÔNG đặt tên đối thủ trong mẫu QC; luôn cài danh sách phủ định" },
     ],
   },
   {
-    id: "GĐ2",
-    title: "Khoan giếng: SEO + YouTube",
-    goal: "Khách miễn phí từ Google & YouTube, gặt từ tháng 4+",
+    id: "GĐ-C",
+    title: "Social + Video",
+    goal: "Phủ nhận diện + lead rẻ từ nội dung; dựng kho video cho remarketing.",
     tasks: [
-      { id: "G2-seo", title: "Trang tự sinh: đầu số / ý nghĩa số / loại số / hợp tuổi", status: "doing", next: "server-side search Phase 1+2 xong (CategorySimGrid + SimBrowser qua /api/sims full 49k); Phase 2b tool pages. Tiếp ý nghĩa số + hợp tuổi (chờ bảng nạp âm)" },
-      { id: "G2-yt", title: "Video YouTube ý nghĩa sim + nhúng lên web", status: "todo" },
+      { id: "C1", title: "Đăng số đẹp hằng ngày FB/Zalo (giá + ý nghĩa + CTA Zalo)", status: "todo", priority: "P1", kpi: "lead từ source=facebook; số inbox", utm: "fb-sodep-daily" },
+      { id: "C2", title: "TikTok/Reels 'ý nghĩa dãy số / sim hợp tuổi 199x'", status: "todo", priority: "P1", kpi: "page_visits source=tiktok → lead", utm: "tiktok-ynghia" },
+      { id: "C3", title: "YouTube video bền + nhúng vào /tin-tuc/*", status: "todo", priority: "P2", kpi: "watch time; traffic youtube → lead; hỗ trợ SEO", utm: "yt-ynghia" },
+      { id: "C4", title: "FB Retargeting người xem sim chưa bấm Zalo", status: "todo", priority: "P2", kpi: "CPL retargeting vs cold", utm: "fb-rmk-viewsim", next: "Phụ thuộc A4 (Pixel sống)" },
     ],
   },
   {
-    id: "GĐ3",
+    id: "GĐ-D",
+    title: "Zalo remarketing khách cũ",
+    goal: "Khai thác data khách cũ → đơn lặp lại + giới thiệu, chi phí gần 0.",
+    tasks: [
+      { id: "D1", title: "Gom & phân nhóm data khách cũ (đã mua / đã hỏi)", status: "todo", priority: "P1", kpi: "số liên hệ gom; % có SĐT", next: "Từ log Zalo + sổ chốt đơn (A6)" },
+      { id: "D2", title: "Broadcast Zalo OA / ZNS đợt số mới + ưu đãi khách cũ", status: "todo", priority: "P1", kpi: "tỉ lệ mở/bấm; lead quay lại (source=zalo); đơn lặp", utm: "zns-khachcu" },
+      { id: "D3", title: "Chương trình giới thiệu (referral)", status: "todo", priority: "P2", kpi: "số lead giới thiệu; đơn từ giới thiệu", utm: "zalo-referral" },
+    ],
+  },
+  {
+    id: "GĐ-E",
     title: "Vòng lặp tối ưu",
-    goal: "Nhân cái ra lead, cắt cái đốt tiền — chi phí/lead giảm dần",
+    goal: "Mỗi tuần đọc lead theo utm_campaign, dồn tiền cái CPL thấp, cắt cái đốt tiền.",
     tasks: [
-      { id: "G3-loop", title: "Đọc số liệu mỗi tuần, điều chỉnh", status: "todo" },
+      { id: "E1", title: "Báo cáo tuần: lead theo utm_campaign × loại + ghép chi phí Ads (tay) → CPL & CPA", status: "todo", priority: "P1", kpi: "≥1 quyết định nhân/cắt mỗi tuần" },
+      { id: "E2", title: "CRO: trang lượt xem cao nhưng ít lead → sửa CTA/nội dung", status: "todo", priority: "P2", kpi: "tỉ lệ lead/lượt xem theo trang tăng", next: "Giao ChuTot (chữ) + Front (nút)" },
+      { id: "E3", title: "Từ khoá thật thay suy đoán (GSC + search terms Ads)", status: "todo", priority: "P1", kpi: "số cụm mới có lead; giảm chi cho truy vấn không ra lead" },
     ],
   },
 ];
