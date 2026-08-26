@@ -5,6 +5,7 @@ import type { NormalizedSIM, PromotionalData, QuyType } from '@/lib/simUtils';
 import { matchesQuyType, formatPrice, formatBirthDateDisplayLenient, formatSIMNumber } from '@/lib/simUtils';
 import { cn } from '@/lib/utils';
 import { createHighlightedNumber, createQuyHighlightedNumber } from '@/lib/highlightUtils';
+import { planSimDisplay } from '@/lib/simDisplay';
 import BuyNowDialog from '@/components/BuyNowDialog';
 
 // Fallback only — mirrors NETWORK_PREFIXES in @/lib/simUtils, which deliberately
@@ -69,6 +70,13 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '', birthDateDi
   // Chỉ birthDisplay (SIM năm sinh) được giữ riêng vì nó hiển thị ngày sinh.
   // birthDateDisplay (từ BirthYearSimGrid) override tất cả khi khớp ngày sinh.
   const cardDisplay = birthDateDisplay ?? (birthDisplay || sim.formattedNumber || sim.displayNumber || sim.rawDigits);
+
+  // Đang có câu tìm: cách chấm phải theo rule chung ở `simDisplay` — cụm khách
+  // tìm (`*6879`) hiện liền một cụm, không bị dấu chấm của sheet/ngày sinh cắt.
+  // Dùng lại cho aria-label và popup đặt mua để khách thấy đúng một dạng số.
+  const searchDisplay = searchQuery?.trim()
+    ? planSimDisplay(sim.rawDigits || rawNumber, searchQuery, cardDisplay).display
+    : cardDisplay;
 
   const formatDiscountAmount = (amount: number): string => {
     if (amount >= 1000000) {
@@ -228,15 +236,11 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '', birthDateDi
         <button
           type="button"
           onClick={() => setBuyNowOpen(true)}
-          aria-label={`Đặt mua SIM ${cardDisplay} — ${formatPrice(sim.price)}`}
+          aria-label={`Đặt mua SIM ${searchDisplay} — ${formatPrice(sim.price)}`}
           className="sim-number-auto mb-1.5 block w-full cursor-pointer text-left transition-all whitespace-nowrap overflow-hidden text-ellipsis group-hover:[text-shadow:0_0_12px_hsl(var(--gold)_/_0.4)]"
         >
           {searchQuery?.trim()
-            ? createHighlightedNumber(
-                cardDisplay,
-                cardDisplay.replace(/\D/g, ''),
-                searchQuery
-              )
+            ? createHighlightedNumber(cardDisplay, sim.rawDigits || rawNumber, searchQuery)
             : formatWithHighlight(cardDisplay)
           }
         </button>
@@ -246,7 +250,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '', birthDateDi
           onOpenChange={setBuyNowOpen}
           sim={{
             id: sim.id,
-            displayNumber: cardDisplay,
+            displayNumber: searchDisplay,
             rawDigits: rawNumber,
             price: sim.price,
             network: carrier || undefined,

@@ -10,6 +10,8 @@ import { useCheapSimData } from '@/hooks/useCheapSimData';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { formatPrice } from '@/lib/simUtils';
+import { createHighlightedNumber } from '@/lib/highlightUtils';
+import { planSimDisplay } from '@/lib/simDisplay';
 import QuickContactPopup from '@/components/QuickContactPopup';
 import { CHEAP_PRICE, type CheapSim } from '@/lib/cheapSimSheet';
 import {
@@ -36,18 +38,32 @@ const searchDigits = (query: string): string => {
 
 // ===== SIM CARD =====
 
-const CheapSimCard = ({ sim, onContact }: { sim: CheapSim; onContact: (sim: CheapSim) => void }) => {
+const CheapSimCard = ({
+  sim,
+  onContact,
+  searchQuery = '',
+}: {
+  sim: CheapSim;
+  onContact: (sim: CheapSim) => void;
+  /** Câu tìm đang áp dụng — để cụm khách tìm hiện liền một cụm, tô vàng. */
+  searchQuery?: string;
+}) => {
   const checkoutHref = `/mua-ngay/${encodeURIComponent(sim.id)}`;
   const badges = badgesFor(sim.rawDigits);
 
-  const parts = sim.displayNumber.split('.');
-  const number = parts.length === 3 ? (
+  // Có câu tìm → theo rule chung ở `simDisplay` (đuôi khách tìm không bị chấm
+  // cắt). Không tìm gì → giữ nét cũ: cụm cuối tô vàng.
+  const display = planSimDisplay(sim.rawDigits, searchQuery, sim.displayNumber).display;
+  const parts = display.split('.');
+  const number = searchQuery.trim()
+    ? createHighlightedNumber(display, sim.rawDigits, searchQuery)
+    : parts.length === 3 ? (
     <>
       <span className="opacity-80">{parts[0]}.</span>
       <span className="opacity-80">{parts[1]}.</span>
       <span className="font-extrabold text-gold">{parts[2]}</span>
     </>
-  ) : sim.displayNumber;
+  ) : display;
 
   return (
     <div className="sim-card-compact group relative overflow-hidden">
@@ -71,7 +87,7 @@ const CheapSimCard = ({ sim, onContact }: { sim: CheapSim; onContact: (sim: Chea
 
       <Link
         href={checkoutHref}
-        aria-label={`Đặt mua SIM ${sim.displayNumber} — ${formatPrice(sim.price)}`}
+        aria-label={`Đặt mua SIM ${display} — ${formatPrice(sim.price)}`}
         className="sim-number-auto mb-1.5 block overflow-hidden text-ellipsis whitespace-nowrap transition-all group-hover:[text-shadow:0_0_12px_hsl(var(--gold)_/_0.4)]"
       >
         {number}
@@ -99,7 +115,7 @@ const CheapSimCard = ({ sim, onContact }: { sim: CheapSim; onContact: (sim: Chea
           <button
             type="button"
             onClick={() => onContact(sim)}
-            aria-label={`Gọi hoặc chat Zalo về SIM ${sim.displayNumber}`}
+            aria-label={`Gọi hoặc chat Zalo về SIM ${display}`}
             title="Gọi / Chat Zalo"
             className="flex items-center justify-center rounded border border-primary/40 bg-primary/10 px-1.5 text-primary transition-colors hover:bg-primary/20"
           >
@@ -107,7 +123,7 @@ const CheapSimCard = ({ sim, onContact }: { sim: CheapSim; onContact: (sim: Chea
           </button>
           <Link
             href={checkoutHref}
-            aria-label={`Đặt ngay SIM ${sim.displayNumber}`}
+            aria-label={`Đặt ngay SIM ${display}`}
             className="btn-cta-sm flex min-w-0 items-center justify-center whitespace-nowrap text-center"
             style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
           >
@@ -388,7 +404,7 @@ const MuaSimGiaReTool = () => {
             </p>
             <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3 lg:grid-cols-4 xl:grid-cols-5">
               {pageSims.map((sim) => (
-                <CheapSimCard key={sim.id} sim={sim} onContact={handleContact} />
+                <CheapSimCard key={sim.id} sim={sim} onContact={handleContact} searchQuery={activeSearch} />
               ))}
             </div>
 

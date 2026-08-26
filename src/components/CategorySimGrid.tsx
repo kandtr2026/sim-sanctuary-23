@@ -156,7 +156,7 @@ const CategorySimGrid = ({
       ) : displaySims.length > 0 ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
           {displaySims.map((sim) => (
-            <SIMCardNew key={sim.id} sim={sim} quyFilter={quyFilter} />
+            <SIMCardNew key={sim.id} sim={sim} quyFilter={quyFilter} searchQuery={activeSearch} />
           ))}
         </div>
       ) : (

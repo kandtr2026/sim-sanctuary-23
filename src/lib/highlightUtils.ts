@@ -1,13 +1,13 @@
 // Search Highlight Utilities
-// Highlights matching digits in SIM numbers based on search query
+// Tô sáng chữ số khớp câu tìm trong dãy SIM.
+//
+// LUẬT CHẤM (cụm khách tìm không được bị dấu chấm cắt đôi) nằm ở
+// `@/lib/simDisplay` — file này chỉ dựng span React từ kế hoạch đó. Đừng thêm
+// luật format mới ở đây, sửa `simDisplay.ts` để cả site đổi theo.
 
 import React from 'react';
 import type { QuyType } from '@/lib/simUtils';
-
-interface HighlightRange {
-  start: number;
-  end: number;
-}
+import { blocksToDigitSet, planSimDisplay } from '@/lib/simDisplay';
 
 /**
  * Get the best highlight digits for a suggestion card.
@@ -57,227 +57,9 @@ export const getSuggestionHighlightDigits = (
 };
 
 /**
- * Parse search query to extract prefix and suffix parts
- */
-export const parseSearchQuery = (query: string): { prefix: string; suffix: string; containsSearch: string } => {
-  if (!query) return { prefix: '', suffix: '', containsSearch: '' };
-  
-  // Clean query - remove dots, spaces
-  const cleanQuery = query.replace(/[.\s]/g, '').trim();
-  
-  // Exact match (=prefix) - treat as contains
-  if (cleanQuery.startsWith('=')) {
-    return { prefix: '', suffix: '', containsSearch: cleanQuery.slice(1) };
-  }
-  
-  // Wildcard pattern
-  if (cleanQuery.includes('*')) {
-    const parts = cleanQuery.split('*').filter(Boolean);
-    
-    // prefix*suffix
-    if (parts.length === 2 && !cleanQuery.startsWith('*') && !cleanQuery.endsWith('*')) {
-      return { prefix: parts[0], suffix: parts[1], containsSearch: '' };
-    }
-    
-    // *suffix
-    if (cleanQuery.startsWith('*') && parts.length === 1) {
-      return { prefix: '', suffix: parts[0], containsSearch: '' };
-    }
-    
-    // prefix*
-    if (cleanQuery.endsWith('*') && parts.length === 1) {
-      return { prefix: parts[0], suffix: '', containsSearch: '' };
-    }
-  }
-  
-  // Default: contains search
-  return { prefix: '', suffix: '', containsSearch: cleanQuery };
-};
-
-/**
- * Find highlight ranges in rawDigits based on search query
- */
-export const findHighlightRanges = (rawDigits: string, query: string): HighlightRange[] => {
-  if (!rawDigits || !query) return [];
-  
-  const { prefix, suffix, containsSearch } = parseSearchQuery(query);
-  const ranges: HighlightRange[] = [];
-  
-  // Prefix highlight
-  if (prefix && rawDigits.startsWith(prefix)) {
-    ranges.push({ start: 0, end: prefix.length });
-  }
-  
-  // Suffix highlight
-  if (suffix && rawDigits.endsWith(suffix)) {
-    const start = rawDigits.length - suffix.length;
-    ranges.push({ start, end: rawDigits.length });
-  }
-  
-  // Contains highlight (ALL occurrences, not just first)
-  if (containsSearch) {
-    let idx = 0;
-    while ((idx = rawDigits.indexOf(containsSearch, idx)) !== -1) {
-      ranges.push({ start: idx, end: idx + containsSearch.length });
-      idx += containsSearch.length; // Move past current match to find next
-    }
-  }
-  
-  return ranges;
-};
-
-/**
- * Map index from rawDigits to displayNumber position
- * displayNumber may contain dots/spaces, rawDigits is digits only
- */
-const mapRawIndexToDisplay = (rawIndex: number, displayNumber: string): number => {
-  let rawCount = 0;
-  for (let i = 0; i < displayNumber.length; i++) {
-    if (/\d/.test(displayNumber[i])) {
-      if (rawCount === rawIndex) return i;
-      rawCount++;
-    }
-  }
-  return displayNumber.length;
-};
-
-/** Gom một dãy chữ số thành nhóm 3 từ trái sang: "070375" → "070.375". */
-const groupDigitsInThrees = (digits: string): string => {
-  const out: string[] = [];
-  for (let i = 0; i < digits.length; i += 3) out.push(digits.slice(i, i + 3));
-  return out.join('.');
-};
-
-/**
- * Create highlighted spans for display number based on rawDigits highlight ranges
- */
-export const createHighlightedNumber = (
-  displayNumber: string,
-  rawDigits: string,
-  query: string
-): React.ReactNode[] => {
-  if (!query || !displayNumber) {
-    return [displayNumber];
-  }
-
-  const cleanQuery = query.replace(/[.\s]/g, '');
-  const starCount = (cleanQuery.match(/\*/g) || []).length;
-  let processedWildcard = false;
-
-  // Strict wildcard mode: if exactly 1 '*', handle prefix/suffix/mid and return immediately
-  if (starCount === 1) {
-    processedWildcard = true;
-    const starIdx = cleanQuery.indexOf('*');
-    const isStart = starIdx === 0;
-    const isEnd = starIdx === cleanQuery.length - 1;
-    const prefixDigits = cleanQuery.substring(0, starIdx).replace(/\D/g, '');
-    const suffixDigits = cleanQuery.substring(starIdx + 1).replace(/\D/g, '');
-    const candidateDigits = rawDigits.replace(/\D/g, '');
-    const len = candidateDigits.length;
-
-    
-
-    const hlSet = new Set<number>();
-
-    if (!isStart && !isEnd) {
-      // prefix*suffix
-      if (prefixDigits && candidateDigits.startsWith(prefixDigits)) {
-        for (let i = 0; i < prefixDigits.length; i++) hlSet.add(i);
-      }
-      if (suffixDigits && candidateDigits.endsWith(suffixDigits)) {
-        for (let i = len - suffixDigits.length; i < len; i++) hlSet.add(i);
-      }
-    } else if (isEnd && prefixDigits) {
-      // prefix*
-      if (candidateDigits.startsWith(prefixDigits)) {
-        for (let i = 0; i < prefixDigits.length; i++) hlSet.add(i);
-      }
-    } else if (isStart && suffixDigits) {
-      // *suffix
-      if (candidateDigits.endsWith(suffixDigits)) {
-        // Reformats to keep the matched suffix as one contiguous group at the
-        // end so customers see the ending they searched for at a glance:
-        //   tìm *6879 → 0703.756.879 (bị tách 6.879) → 070.375.6879 (.6879 vàng)
-        const suffixLen = suffixDigits.length;
-        const prefixRaw = candidateDigits.slice(0, len - suffixLen);
-        const groupedPrefix = groupDigitsInThrees(prefixRaw);
-        const display = groupedPrefix ? `${groupedPrefix}.${suffixDigits}` : suffixDigits;
-        const hlSet = new Set<number>();
-        for (let i = len - suffixLen; i < len; i++) hlSet.add(i);
-        return buildSpansFromHlSet(display, hlSet);
-      }
-    }
-
-    // Wildcard processed: no fallback allowed
-    if (hlSet.size === 0) return [displayNumber];
-    return buildSpansFromHlSet(displayNumber, hlSet);
-  }
-
-  // Non-wildcard: use existing findHighlightRanges
-  const ranges = findHighlightRanges(rawDigits, query);
-  if (ranges.length === 0) {
-    return [displayNumber];
-  }
-
-  // Map raw ranges to display ranges
-  const displayRanges: HighlightRange[] = ranges.map(range => ({
-    start: mapRawIndexToDisplay(range.start, displayNumber),
-    end: mapRawIndexToDisplay(range.end - 1, displayNumber) + 1
-  }));
-
-  // Merge overlapping ranges
-  const mergedRanges: HighlightRange[] = [];
-  const sortedRanges = [...displayRanges].sort((a, b) => a.start - b.start);
-
-  for (const range of sortedRanges) {
-    if (mergedRanges.length === 0) {
-      mergedRanges.push({ ...range });
-    } else {
-      const last = mergedRanges[mergedRanges.length - 1];
-      if (range.start <= last.end) {
-        last.end = Math.max(last.end, range.end);
-      } else {
-        mergedRanges.push({ ...range });
-      }
-    }
-  }
-
-  // Build spans
-  const spans: React.ReactNode[] = [];
-  let lastEnd = 0;
-
-  for (let i = 0; i < mergedRanges.length; i++) {
-    const range = mergedRanges[i];
-    if (range.start > lastEnd) {
-      spans.push(
-        React.createElement('span', { key: `normal-${i}`, className: 'opacity-80' },
-          displayNumber.slice(lastEnd, range.start)
-        )
-      );
-    }
-    spans.push(
-      React.createElement('span', {
-        key: `highlight-${i}`,
-        className: 'font-extrabold text-gold'
-      }, displayNumber.slice(range.start, range.end))
-    );
-    lastEnd = range.end;
-  }
-
-  if (lastEnd < displayNumber.length) {
-    spans.push(
-      React.createElement('span', { key: 'normal-end', className: 'opacity-80' },
-        displayNumber.slice(lastEnd)
-      )
-    );
-  }
-
-  return spans;
-};
-
-/**
- * Build React spans from a digit-index highlight set, preserving non-digit chars in display.
- * @param hlClassName class applied to highlighted spans (default: search red).
+ * Dựng span React từ set index chữ số cần tô, giữ nguyên dấu chấm trong display.
+ * Dấu chấm luôn thuộc phần KHÔNG tô để cụm vàng nhìn gọn.
+ * @param hlClassName class cho span được tô (mặc định: vàng đậm).
  */
 const buildSpansFromHlSet = (
   displayNumber: string,
@@ -309,13 +91,8 @@ const buildSpansFromHlSet = (
       buf += ch;
       digitIdx++;
     } else {
-      // Non-digit character: flush current buffer if needed, then add dot to result or next buffer
-      // We want dots to NOT be highlighted, so flush highlighted content first
-      if (buf && bufHl) {
-        // Current buffer is highlighted, flush it before adding the dot
-        flush();
-      }
-      // Add the non-digit to the buffer as non-highlighted
+      // Dấu chấm: xả cụm đang tô trước rồi mới nối dấu vào cụm không tô.
+      if (buf && bufHl) flush();
       bufHl = false;
       buf += ch;
     }
@@ -323,6 +100,31 @@ const buildSpansFromHlSet = (
   flush();
 
   return result;
+};
+
+/**
+ * Tô sáng dãy số theo câu tìm của khách.
+ *
+ * `displayNumber` chỉ là ĐỀ NGHỊ: nếu cách chấm đó cắt đôi cụm khách tìm
+ * (`*6879` mà ra `0703.75|6.879`) thì `planSimDisplay` chấm lại thành
+ * `070.375.6879`. Trả về `[displayNumber]` khi không có gì để tô — caller đang
+ * dựa vào việc mảng 1 phần tử string nghĩa là "không khớp".
+ */
+export const createHighlightedNumber = (
+  displayNumber: string,
+  rawDigits: string,
+  query: string
+): React.ReactNode[] => {
+  if (!query || !displayNumber) {
+    return [displayNumber];
+  }
+
+  const plan = planSimDisplay(rawDigits || displayNumber, query, displayNumber);
+  if (plan.hl.length === 0) {
+    return [plan.display];
+  }
+
+  return buildSpansFromHlSet(plan.display, blocksToDigitSet(plan.hl));
 };
 
 /**
