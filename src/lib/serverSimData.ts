@@ -265,11 +265,15 @@ const simMatchesBirthYear = (s: NormalizedSIM, year: string): boolean =>
  * Rank a SIM by how well it matches a customer's birth date (YYYY + DD + MM).
  * Higher priority first. Returns -1 when the SIM doesn't match at all.
  *
- *  - 0 (ưu tiên nhất): đuôi đúng 4 số năm (…1987) HOẶC đuôi 2 số năm (…87)
- *  - 1: đuôi mã hoá ngày sinh theo nhiều thứ tự, mỗi phần (ngày/tháng) 1–2 số:
- *        dmyy (…5787), ddmmyy (…050787), mdyy (…7587), yymmdd (…870705),
- *        ymd (…8775), v.v.
- *  - 2: 4 số năm xuất hiện trong 6 số cuối (fallback như cũ)
+ * ZONE 1 (rank 0) — đầy đủ ngày-tháng-năm, theo thứ tự d-m-y, mỗi phần ngày/
+ *   tháng có thể 1 hoặc 2 số:
+ *     dmyy   (…050887, …5887, …50887, …05887)
+ *     dmyyyy (…05081987, …581987, …5081987, …0581987)
+ *
+ * ZONE 2 (rank 1) — chỉ tháng-năm hoặc năm:
+ *     mmyyyy (…081987, …81987), yyyy (…1987), yy (…87)
+ *
+ * KHÔNG nhận các thứ tự khác (mdyy, ymd, ydm) hay "năm lẫn trong 6 số cuối".
  */
 const rankBirthDateMatch = (
   s: NormalizedSIM,
@@ -281,44 +285,37 @@ const rankBirthDateMatch = (
   const yy = year.slice(-2);
   const d1 = day; // "5" hoặc "05"
   const d2 = day.padStart(2, "0");
-  const m1 = month; // "7" hoặc "07"
+  const m1 = month; // "8" hoặc "08"
   const m2 = month.padStart(2, "0");
 
-  // Option 1: đuôi năm (4 số hoặc 2 số cuối)
-  if (digits.endsWith(year)) return 0;
-  if (digits.endsWith(yy)) return 0;
-
-  // Option 2: đuôi mã hoá ngày sinh — mọi thứ tự ngày/tháng/năm, mỗi phần 1-2 số.
-  // 05.07.1987 → 5787 (d m yy), 7587 (m d yy), 8775 (y m d), 050787, 870705…
-  const parts = [d1, d2, m1, m2];
-  const patterns = new Set<string>();
-  const dSet = [d1, d2];
-  const mSet = [m1, m2];
-  // d m yy / m d yy (4-6 số)
-  for (const dd of dSet) for (const mm of mSet) {
-    patterns.add(dd + mm + yy);
-    patterns.add(mm + dd + yy);
+  // ZONE 1: ngày-tháng-năm đầy đủ (thứ tự d-m-y, ngày/tháng 1-2 số)
+  const zone1 = new Set<string>();
+  for (const dd of [d1, d2]) {
+    for (const mm of [m1, m2]) {
+      zone1.add(dd + mm + yy);
+      zone1.add(dd + mm + year);
+    }
   }
-  // y m d / y d m
-  for (const dd of dSet) for (const mm of mSet) {
-    patterns.add(yy + mm + dd);
-    patterns.add(yy + dd + mm);
-  }
-  // d m y (ngày-tháng-năm đủ 2 số → 8 số hiếm, bỏ); y m d đủ 2 số cũng hiếm
+  for (const p of zone1) if (digits.endsWith(p)) return 0;
 
-  for (const p of patterns) {
-    if (digits.endsWith(p)) return 1;
+  // ZONE 2: tháng-năm hoặc năm
+  const zone2 = new Set<string>();
+  for (const mm of [m1, m2]) {
+    zone2.add(mm + yy);
+    zone2.add(mm + year);
   }
-
-  // Fallback: năm xuất hiện trong 6 số cuối
-  if (digits.slice(-6).includes(year)) return 2;
+  zone2.add(year);
+  zone2.add(yy);
+  for (const p of zone2) if (digits.endsWith(p)) return 1;
 
   return -1;
 };
 
 /**
- * Lọc sim khớp ngày sinh của khách (YYYY + DD + MM), sắp theo độ ưu tiên:
- * đuôi năm → yymmdd/ddmmyy → năm trong 6 số cuối. Trả về top `limit`.
+ * Lọc sim khớp ngày sinh của khách (YYYY + DD + MM), chia 2 zone:
+ *   ZONE 1 (trước): ngày-tháng-năm đầy đủ dmyy / dmyyyy (…050887, …5887, …581987)
+ *   ZONE 2 (fallback): tháng-năm mmyyyy / mmyy, hoặc năm (…081987, …1987, …87)
+ * Trả về top `limit`.
  */
 export const getBirthDateSims = async (
   year: string,
