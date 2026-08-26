@@ -11,6 +11,7 @@ _Cập nhật: 2026-08-26. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone 
 - Đã build OK, deploy lên production (commit `2648f25`, push `origin main`).
 - **Hotfix crash accordion Bát Cực** (commit `98f2008`): Radix Select v2.2.5 **throw Error** khi render `<SelectItem value="">` → mở accordion "Kết hợp Bát Cực Linh Số" crash trang. Đã đổi thành `value="tat-ca"` + map `v === "tat-ca" → null`. Verify: build XANH, deploy Ready, JS bundle live chứa `tat-ca`.
 - **Spin SEO trang `/sim-than-tai`** theo flow simthanglong.vn (commit `3cb7117`): viết lại nội dung đầy đủ — giải mã ý nghĩa 39/79, công thức 3 yếu tố chọn sim (đuôi số/đầu số/thân số), bảng so sánh 39 vs 79, hướng dẫn chọn theo ngân sách 3 cấp, tránh 3 sai lầm phổ biến, xu hướng 2026 kết hợp taxi. Thêm section "Mọi người cũng tìm kiếm", FAQ mở rộng 4→6 câu. Deploy OK, verify các section có trên live.
+- **Fix highlight `*suffix` bị tách chấm** (commit `4ca8e80`): tìm `*6879` trước hiển thị `0703.756.879` (cụm bị tách `6.879`) → nay reformat thành `070.375.6879` tô vàng `.6879`. Sửa `src/lib/highlightUtils.ts` (nhánh `*suffix` trong `createHighlightedNumber` + helper `groupDigitsInThrees`). Thêm test `src/test/highlight-suffix.test.ts` (3 case). ⚠️ Bẫy: `next build` type-check cả test file, React 19 `ReactElement` props mặc định là `unknown` → phải khai `ReactElement<{className?; children?}>`. Lần đầu deploy lỗi vì thiếu cái này.
 
 ## 2. CÒN LẠI / việc làm tiếp
 
