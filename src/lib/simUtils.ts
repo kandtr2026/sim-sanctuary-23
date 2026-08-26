@@ -340,15 +340,15 @@ export const formatBirthDateDisplay = (rawDigits: string): string | null => {
  * Parser NỚI + linh hoạt cho hiển thị card (không đổi `parseBirthDate` — bộ lọc
  * chặt "Năm sinh" vẫn dùng parser nghiêm để loại số ảo).
  *
- * Hỗ trợ mọi cách chia ngày/tháng/năm trên phần đuôi 4–8 chữ số:
+ * Hỗ trợ các cách chia ngày/tháng/năm trên phần đuôi 5–8 chữ số:
  *
  *   - DDMMYY    (2-2-2)  0903.20.01.98 → 20/01/1998
- *   - DDMMYYYY  (2-2-4)  0903202000    → 20/03/2000
+ *   - DDMMYYYY  (2-2-4)  0903.20.03.2000 → 20/03/2000
  *   - DDMYY     (2-1-2)  0909.20.2.13  → 20/02/2013
  *   - DDMYYYY   (2-1-4)  0909.20.2.2000 → 20/02/2000
- *   - DMYYYY    (1-2-4)  0909.9.02.2000 → 09/02/2000
- *   - D.M.YYYY  (1-1-4)  0908.8.9.2001  → 08/09/2001
- *   - … (không giới hạn: thử mọi tổ hợp dLen∈{1,2}, mLen∈{1,2}, yLen∈{2,4})
+ *   - DMYYYY    (1-1-4)  0908.8.9.2001  → 08/09/2001
+ *
+ * KHÔNG chấp nhận dạng ngày 1 số + tháng 2 số (1-2): 0909.9.02.2000 → loại.
  *
  * Ngày phải tồn tại thật trong lịch (31.11, 29.02 không nhuận đều bị loại).
  * Ưu tiên năm 4 chữ số trước (rõ ràng nhất), rồi tới 2 chữ số. Trả về
@@ -375,18 +375,15 @@ export function tryParseBirthDateLenient(
 
   const is4DigitYear = (y: number): boolean => y >= 1950 && y <= 2035;
 
-  // Mọi tổ hợp [dLen, mLen, yLen] khả thi trên SIM 10 số (prefix mạng 3 số →
-  // ngày sinh tối đa 7 số cuối). Ưu tiên năm 4 chữ số trước (rõ nhất), trong
-  // đó DDMM đầy đủ trước; rồi tới năm 2 chữ số. Không có [1,1,2]/tailLen 4-8
-  // vì quá mơ hồ (dễ false positive với số thường).
+  // Các tổ hợp [dLen, mLen, yLen] được chấp nhận. KHÔNG có dạng ngày 1 số +
+  // tháng 2 số (1-2): 0909.9.02.2000 không hợp lệ. Chỉ giữ:
+  //   DDMMYY(2-2-2), DMYYYY(1-1-4), DDMYY(2-1-2), DDMYYYY(2-1-4), DDMMYYYY(2-2-4)
   const combos: [number, number, number][] = [
     [2, 2, 4], // DDMMYYYY (2-2-4)
     [2, 1, 4], // DDMYYYY (2-1-4)
-    [1, 2, 4], // DMYYYY (1-2-4)
-    [1, 1, 4], // D.M.YYYY (1-1-4)
+    [1, 1, 4], // DMYYYY (1-1-4)
     [2, 2, 2], // DDMMYY (2-2-2)
     [2, 1, 2], // DDMYY (2-1-2)
-    [1, 2, 2], // DMMYY (1-2-2)
   ];
 
   for (const [dLen, mLen, yLen] of combos) {
