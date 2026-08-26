@@ -69,8 +69,14 @@ export async function main(env = process.env) {
   const content = await generateContent(topic, cfg);
   console.log(`[blog-bot] Nội dung ~${content.words} từ. meta_title (${content.meta_title.length} ký tự), meta_description (${content.meta_description.length} ký tự).`);
 
-  // Mặc định: NHÁP (published=false). Chỉ tự đăng khi BOT_AUTO_PUBLISH=true.
-  const autoPublish = cfg.BOT_AUTO_PUBLISH === 'true' || cfg.BOT_AUTO_PUBLISH === '1';
+  // Mặc định: TỰ ĐĂNG (published=true) — OpenCode.md v3.
+// Chỉ tạo nháp khi BOT_DRAFT=true (hoặc BOT_AUTO_PUBLISH=false).
+  const draftOnly =
+    cfg.BOT_DRAFT === 'true' ||
+    cfg.BOT_DRAFT === '1' ||
+    cfg.BOT_AUTO_PUBLISH === 'false' ||
+    cfg.BOT_AUTO_PUBLISH === '0';
+  const autoPublish = !draftOnly;
 
   const post = {
     slug: topic.slug,

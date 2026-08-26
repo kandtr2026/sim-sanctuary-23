@@ -2,8 +2,9 @@ name: Blog Bot - Daily Draft
 
 on:
   schedule:
-    # 01:00 UTC = 08:00 giờ Việt Nam.
+    # 01:00 UTC = 08:00 giờ Việt Nam, 13:00 UTC = 20:00 giờ Việt Nam.
     - cron: '0 1 * * *'
+    - cron: '0 13 * * *'
   workflow_dispatch:
 
 permissions:
@@ -21,7 +22,7 @@ jobs:
       LLM_PROVIDER: ${{ secrets.LLM_PROVIDER }}
       LLM_MODEL: ${{ secrets.LLM_MODEL }}
       LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
-      # Mặc định: chỉ tạo NHÁP (published=false). Đặt secret "true" để tự đăng.
+      # Mặc định: TỰ ĐĂNG (published=true) theo OpenCode.md v3. Đặt secret "false" hoặc dùng BOT_DRAFT=true để chỉ tạo nháp.
       BOT_AUTO_PUBLISH: ${{ secrets.BOT_AUTO_PUBLISH }}
       # LLM mặc định = DeepSeek (deepseek-chat). Chỉ cần set LLM_API_KEY.
       # Đổi model: LLM_PROVIDER/LLM_MODEL (vd openai/gpt-4o-mini, anthropic/claude-sonnet-4-5, groq/...).
