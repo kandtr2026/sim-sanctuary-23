@@ -188,6 +188,16 @@ function ShopeeAdminContent() {
   };
 
   // ── Hành động ──
+  const openConfig = () => {
+    setConfigForm((prev) => ({
+      ...prev,
+      partnerId: configForm.partnerId || (cred?.partnerId ?? ""),
+      shopId: configForm.shopId || (cred?.shopId ?? ""),
+      env: cred?.env ?? prev.env,
+    }));
+    setShowConfig((v) => !v);
+  };
+
   const handleSaveConfig = async () => {
     if (!token) return;
     setConfigSaving(true);
@@ -360,7 +370,7 @@ function ShopeeAdminContent() {
                 {cred?.authorized ? "Đã uỷ quyền" : "Chưa uỷ quyền"}
               </Badge>
               {!cred?.configured ? (
-                <Button size="sm" onClick={() => setShowConfig((v) => !v)}>
+                <Button size="sm" onClick={openConfig}>
                   <KeyRound className="h-4 w-4" /> Cấu hình
                 </Button>
               ) : !cred.authorized ? (
@@ -368,7 +378,7 @@ function ShopeeAdminContent() {
                   <ShieldCheck className="h-4 w-4" /> Uỷ quyền shop
                 </Button>
               ) : (
-                <Button size="sm" variant="outline" onClick={() => setShowConfig((v) => !v)}>
+                <Button size="sm" variant="outline" onClick={openConfig}>
                   <Settings className="h-4 w-4" /> Cấu hình lại
                 </Button>
               )}
@@ -406,6 +416,26 @@ function ShopeeAdminContent() {
                 />
                 <p className="text-xs text-muted-foreground">
                   Partner Key là bí mật — chỉ lưu mã hoá trong DB, không hiện lại.
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="env">Môi trường</Label>
+                <Select
+                  value={configForm.env}
+                  onValueChange={(v) => setConfigForm({ ...configForm, env: v })}
+                >
+                  <SelectTrigger id="env">
+                    <SelectValue placeholder="Chọn môi trường" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sandbox">Sandbox (kiểm thử)</SelectItem>
+                    <SelectItem value="live">Live (bán thật)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {configForm.env === "sandbox"
+                    ? "Dùng khi app còn \"Developing\" — chỉ đăng lên shop thử nghiệm."
+                    : "Dùng khi app đã được Shopee duyệt — đăng lên shop bán thật."}
                 </p>
               </div>
               <div className="flex items-end gap-2">
