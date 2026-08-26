@@ -8,6 +8,9 @@ const DESCRIPTION =
   "Hướng dẫn đặt mua SIM số đẹp Mobifone: quy trình 3 bước, giao SIM miễn phí toàn quốc, địa chỉ cửa hàng và thông tin tài khoản thanh toán chính thức.";
 const CANONICAL = "https://www.chonsomobifone.com/thanh-toan";
 
+const STORE_PLACE_ID = "ChIJV2BfBgAvdTERQ39odCHMHT0";
+const MAPS_DIRECTIONS_URL = `https://www.google.com/maps/dir/?api=1&destination=place_id:${STORE_PLACE_ID}`;
+
 export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
@@ -77,6 +80,14 @@ export default function ThanhToanPage() {
           <div className="mb-8">
             <h2 className="text-xl font-bold text-primary mb-4">2. Địa chỉ cửa hàng CHONSOMOBIFONE</h2>
             <p className="text-foreground/90">43A Đường số 9 Phường Tân Hưng TPHCM</p>
+            <a
+              href={MAPS_DIRECTIONS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-primary underline-offset-2 hover:underline"
+            >
+              Xem vị trí trên Google Maps →
+            </a>
             <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
               <p className="text-sm text-foreground/80">
                 <span className="font-semibold text-gold">Lưu ý:</span> Khách hàng cần chuẩn bị trước thông tin cá nhân (trên CCCD thẻ cứng) để được vào tên chính chủ sở hữu sim.

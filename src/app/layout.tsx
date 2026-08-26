@@ -18,6 +18,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 
 const SITE_NAME = "CHONSOMOBIFONE.COM";
 const BASE_URL = "https://www.chonsomobifone.com";
+// Google Maps Place ID của cửa hàng — trỏ hasMap về đúng vị trí trên Google Maps.
+const STORE_PLACE_ID = "ChIJV2BfBgAvdTERQ39odCHMHT0";
 const DEFAULT_TITLE = "CHONSOMOBIFONE.COM — Kho SIM số đẹp Mobifone uy tín";
 const DEFAULT_DESCRIPTION =
   "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh. Giao SIM toàn quốc, sang tên chính chủ. Hotline 0938.868.868.";
@@ -37,6 +39,7 @@ const STORE_JSON_LD = {
   telephone: "+84938868868",
   email: "hotro@chonsomobifone.com",
   priceRange: "$$$",
+  hasMap: `https://www.google.com/maps/place/?q=place_id:${STORE_PLACE_ID}`,
   address: {
     "@type": "PostalAddress",
     streetAddress: "43A Đường số 9, Phường Tân Hưng",
