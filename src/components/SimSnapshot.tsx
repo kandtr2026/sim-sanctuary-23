@@ -45,8 +45,8 @@ export const buildSimItemListJsonLd = (
       position: index + 1,
       item: {
         "@type": "Product",
-        name: `SIM ${sim.displayNumber}`,
-        description: `SIM số đẹp ${sim.displayNumber} — ${detectCarrier(sim.displayNumber)}. Giá niêm yết ${formatPrice(sim.price)}.`,
+        name: `SIM ${sim.formattedNumber}`,
+        description: `SIM số đẹp ${sim.formattedNumber} — ${detectCarrier(sim.formattedNumber)}. Giá niêm yết ${formatPrice(sim.price)}.`,
         ...(pageUrl ? { url: pageUrl } : {}),
         offers,
       },
@@ -99,10 +99,10 @@ const SimSnapshot = ({
               {sims.map((sim) => (
                 <tr key={sim.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
                   <td className="px-4 py-3 font-bold text-foreground tracking-wide whitespace-nowrap">
-                    {sim.displayNumber}
+                    {sim.formattedNumber}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
-                    {detectCarrier(sim.displayNumber)}
+                    {detectCarrier(sim.formattedNumber)}
                   </td>
                   <td className="px-4 py-3 text-right font-semibold text-primary whitespace-nowrap">
                     {formatPrice(sim.price)}

@@ -54,7 +54,10 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
   const birthDisplay = isBirthYear
     ? formatBirthDateDisplayLenient(sim.rawDigits) ?? formatSIMNumber(sim.rawDigits)
     : null;
-  const cardDisplay = birthDisplay || sim.displayNumber || sim.formattedNumber || sim.rawDigits;
+  // Menu quyết định format hiển thị: luôn ưu tiên formattedNumber (4.3.3 chuẩn,
+  // đồng nhất mọi nơi) thay vì displayNumber (dấu chấm tùy hứng từ sheet).
+  // Chỉ birthDisplay (SIM năm sinh) được giữ riêng vì nó hiển thị ngày sinh.
+  const cardDisplay = birthDisplay || sim.formattedNumber || sim.displayNumber || sim.rawDigits;
 
   const formatDiscountAmount = (amount: number): string => {
     if (amount >= 1000000) {

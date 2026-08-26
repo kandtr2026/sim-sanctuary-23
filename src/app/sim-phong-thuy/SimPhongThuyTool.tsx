@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select';
 import { Search, Copy, AlertCircle, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
-import { formatPrice } from '@/lib/simUtils';
+import { formatPrice, formatSIMNumber } from '@/lib/simUtils';
 
 // ===================== CSV URL (BẮT BUỘC DÙNG ĐÚNG) =====================
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y/export?format=csv&gid=139400129';
@@ -775,7 +775,7 @@ const SimPhongThuyTool = () => {
                         >
                           {/* Phone number - hiển thị đúng từ cột "SỐ THUÊ BAO" */}
                           <p className="font-mono text-xl md:text-2xl font-semibold" style={{ color: '#F7C55A' }}>
-                            {entry.item.phone}
+                            {formatSIMNumber(entry.item.digits)}
                           </p>
                           
                           {/* Price */}
@@ -826,7 +826,7 @@ const SimPhongThuyTool = () => {
                         >
                           {/* Phone number - hiển thị đúng từ cột "SỐ THUÊ BAO" */}
                           <p className="font-mono text-xl md:text-2xl font-semibold" style={{ color: '#F7C55A' }}>
-                            {entry.item.phone}
+                            {formatSIMNumber(entry.item.digits)}
                           </p>
                           
                           {/* Price */}
