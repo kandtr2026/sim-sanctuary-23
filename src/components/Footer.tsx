@@ -2,9 +2,11 @@ import { MapPin, Phone, Mail, Clock, Navigation } from "lucide-react";
 import Link from "next/link";
 
 // Google Maps Place ID của cửa hàng (43A Đường số 9, Tân Hưng, TPHCM) — dùng
-// chung cho embed + nút "Chỉ đường" để mọi contact trỏ đúng 1 vị trí.
+// cho nút "Chỉ đường" + schema. Embed iframe dùng pb string đầy đủ (Google
+// không nhận `q=place_id:` ở embed endpoint — sẽ hiện bản đồ toàn cầu).
 const STORE_PLACE_ID = "ChIJV2BfBgAvdTERQ39odCHMHT0";
-const MAPS_EMBED_URL = `https://maps.google.com/maps?q=place_id:${STORE_PLACE_ID}&t=&z=17&ie=UTF8&iwloc=&output=embed`;
+const MAPS_EMBED_URL =
+  "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d824.0450640691586!2d106.70810869335848!3d10.74673378940029!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f00065f6057%3A0x3d1dcc2174687f43!2zQ1RZIFZJ4buETiBUSMOUTkcgTkFNIEtIQU5H!5e0!3m2!1svi!2s!4v1769138059662!5m2!1svi!2s";
 const MAPS_DIRECTIONS_URL = `https://www.google.com/maps/dir/?api=1&destination=place_id:${STORE_PLACE_ID}`;
 
 // SIM category pages. SIM ĐỒNG GIÁ 229K, SIM TRẢ GÓP and ĐỊNH GIÁ SIM were removed
