@@ -409,32 +409,6 @@ const SimBrowser = ({
 
   return (
     <>
-      <div
-        className="sticky z-40 -mx-4 mb-4 border-b border-border bg-background/95 px-4 py-1.5 shadow-sm backdrop-blur lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none lg:backdrop-blur-none"
-        style={{ top: "var(--nav-height)" }}
-      >
-        <SearchBarAdvanced
-          value={filters.searchQuery}
-          onChange={(value) => updateFilter("searchQuery", value)}
-        />
-      </div>
-
-      <div className="lg:hidden mb-4 flex justify-between items-center">
-        <MobileFilterDrawer
-          filters={filters}
-          tagCounts={tagCounts}
-          prefixes={prefixes}
-          activeFilterCount={activeFilters.length}
-          onTogglePriceRange={togglePriceRange}
-          onToggleTag={toggleTag}
-          onToggleNetwork={toggleNetwork}
-          onToggleSuffix={toggleSuffix}
-          onUpdateFilter={updateFilter}
-          onReset={resetFilters}
-        />
-        <SortDropdown value={filters.sortBy} onChange={(value) => updateFilter("sortBy", value)} />
-      </div>
-
       <div className="flex gap-4 lg:gap-6">
         <aside className="hidden lg:block w-[160px] flex-shrink-0">
           <AdvancedFilterSidebar
@@ -451,8 +425,31 @@ const SimBrowser = ({
 
         <section className="flex-1 min-w-0">
           <div className="bg-card rounded-2xl shadow-card border border-border/50 p-3 md:p-6 mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-4 mb-4">
-              <div className="hidden lg:block">
+            {/* Toolbar: search (left) + sort (right), aligned with the two side
+                columns. On mobile they stack: search on top, sort below. */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
+              <div className="flex items-center gap-2 lg:flex-1 lg:min-w-0">
+                <MobileFilterDrawer
+                  filters={filters}
+                  tagCounts={tagCounts}
+                  prefixes={prefixes}
+                  activeFilterCount={activeFilters.length}
+                  onTogglePriceRange={togglePriceRange}
+                  onToggleTag={toggleTag}
+                  onToggleNetwork={toggleNetwork}
+                  onToggleSuffix={toggleSuffix}
+                  onUpdateFilter={updateFilter}
+                  onReset={resetFilters}
+                />
+                <div className="flex-1 lg:min-w-0">
+                  <SearchBarAdvanced
+                    compact
+                    value={filters.searchQuery}
+                    onChange={(value) => updateFilter("searchQuery", value)}
+                  />
+                </div>
+              </div>
+              <div className="lg:flex-shrink-0">
                 <SortDropdown value={filters.sortBy} onChange={(value) => updateFilter("sortBy", value)} />
               </div>
             </div>

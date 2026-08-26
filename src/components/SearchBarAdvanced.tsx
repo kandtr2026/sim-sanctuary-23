@@ -5,6 +5,7 @@ interface SearchBarAdvancedProps {
   value: string;
   onChange: (value: string) => void;
   debounceMs?: number;
+  compact?: boolean;
 }
 
 // Sanitize input: only allow digits 0-9 and wildcard *
@@ -12,7 +13,7 @@ const sanitizeInput = (value: string): string => {
   return value.replace(/[^0-9*]/g, '');
 };
 
-const SearchBarAdvanced = ({ value, onChange, debounceMs = 300 }: SearchBarAdvancedProps) => {
+const SearchBarAdvanced = ({ value, onChange, debounceMs = 300, compact = false }: SearchBarAdvancedProps) => {
   const [inputValue, setInputValue] = useState(value);
 
   // Sync with external value
@@ -53,7 +54,13 @@ const SearchBarAdvanced = ({ value, onChange, debounceMs = 300 }: SearchBarAdvan
   return (
     <div className="relative">
       <div className="relative">
-        <Search className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 w-6 h-6 md:w-8 md:h-8 text-muted-foreground" />
+        <Search
+          className={
+            compact
+              ? "absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-muted-foreground"
+              : "absolute left-4 md:left-6 top-1/2 -translate-y-1/2 w-6 h-6 md:w-8 md:h-8 text-muted-foreground"
+          }
+        />
         <input
           type="tel"
           inputMode="tel"
@@ -63,9 +70,19 @@ const SearchBarAdvanced = ({ value, onChange, debounceMs = 300 }: SearchBarAdvan
           onPaste={handlePaste}
           autoComplete="off"
           placeholder="Nhập số cần tìm... (VD: 0903*, *8888)"
-          className="w-full pl-12 md:pl-16 pr-20 py-2.5 md:py-6 rounded-2xl border border-border/60 bg-card text-lg md:text-2xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
+          className={
+            compact
+              ? "w-full pl-9 md:pl-11 pr-12 py-2 md:py-2.5 rounded-xl border border-border/60 bg-card text-sm md:text-base focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
+              : "w-full pl-12 md:pl-16 pr-20 py-2.5 md:py-6 rounded-2xl border border-border/60 bg-card text-lg md:text-2xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
+          }
         />
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+        <div
+          className={
+            compact
+              ? "absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2"
+              : "absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2"
+          }
+        >
           {inputValue && (
             <button
               onClick={handleClear}
