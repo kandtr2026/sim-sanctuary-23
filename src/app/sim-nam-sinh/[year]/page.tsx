@@ -108,9 +108,6 @@ export default async function SimNamSinhPage({ params }: Props) {
   // generateStaticParams + sitemap). Lấy tới 12 số thật để render server-side.
   const snapshotSims = await getCategorySnapshot({ birthYear: year }, 12);
   const birthTotal = await countBirthYearSims(year);
-  const otherYears = (await getInStockBirthYears())
-    .filter((y) => y !== year)
-    .slice(0, 12);
 
   const faqItems = [
     {
@@ -187,26 +184,6 @@ export default async function SimNamSinhPage({ params }: Props) {
         </section>
 
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
-          {/* Intro — nội dung RIÊNG theo năm (can chi + mệnh) */}
-          <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
-            <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
-              <span className="h-8 w-1 rounded-full bg-primary" />
-              Sim năm sinh {year} là gì?
-            </h2>
-            <div className="space-y-4 leading-relaxed text-muted-foreground">
-              <p>
-                Sim năm sinh {year} là dòng sim có <strong className="text-foreground">số {year} ở các số cuối</strong> —
-                gắn với năm sinh. Năm {year} là năm <strong className="text-foreground">{info.canChi}</strong>, cầm
-                tinh con {info.conGiap}; theo quan niệm phong thủy dân gian thuộc mệnh{" "}
-                <strong className="text-foreground">{info.menh}</strong>.
-              </p>
-              <p>
-                Nhiều người chọn sim gắn với năm sinh của mình hoặc người thân vì dễ nhớ và mang ý nghĩa cá nhân. Đây là
-                lựa chọn theo sở thích và niềm tin tham khảo, không phải khẳng định tuyệt đối về may rủi.
-              </p>
-            </div>
-          </section>
-
           {/* Grid sim thật — snapshot server-side, không cần fetch client */}
           <BirthYearSimGrid year={year} sims={snapshotSims} totalCount={birthTotal} />
 
@@ -240,28 +217,6 @@ export default async function SimNamSinhPage({ params }: Props) {
 
           <LeadMagnetCta />
 
-          {/* Phong thủy — trình bày như niềm tin dân gian */}
-          <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
-            <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
-              <span className="h-8 w-1 rounded-full bg-primary" />
-              Chọn sim hợp tuổi {year} theo phong thủy
-            </h2>
-            <div className="space-y-4 leading-relaxed text-muted-foreground">
-              <p>
-                Theo quan niệm phong thủy dân gian, người sinh năm {year} (tuổi {info.conGiap}, mệnh {info.menh}) thường
-                được cho là hợp với những con số mình yêu thích và dễ nhớ. Đây là niềm tin để tham khảo, không phải lời
-                khẳng định về tài lộc hay vận may.
-              </p>
-              <p>
-                Nếu bạn muốn lọc sim theo mệnh Kim, Mộc, Thủy, Hỏa, Thổ, hãy thử{" "}
-                <a href="/sim-phong-thuy-hop-menh" className="font-medium text-primary underline-offset-2 hover:underline">
-                  công cụ Sim phong thủy hợp mệnh
-                </a>{" "}
-                để xem gợi ý chi tiết hơn.
-              </p>
-            </div>
-          </section>
-
           <CustomerProof />
           <TrustCommitments />
 
@@ -285,54 +240,6 @@ export default async function SimNamSinhPage({ params }: Props) {
                 </AccordionItem>
               ))}
             </Accordion>
-          </section>
-
-          {/* Cross-links */}
-          <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
-            <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
-              <span className="h-8 w-1 rounded-full bg-primary" />
-              Xem thêm
-            </h2>
-            {otherYears.length > 0 && (
-              <>
-                <h3 className="mb-2 text-lg font-bold text-foreground">Sim năm sinh các năm khác</h3>
-                <ul className="mb-6 flex flex-wrap gap-3 text-sm">
-                  {otherYears.map((y) => (
-                    <li key={y}>
-                      <a
-                        href={`/sim-nam-sinh/${y}`}
-                        className="font-medium text-primary underline-offset-2 hover:underline"
-                      >
-                        Sim năm sinh {y}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-            <h3 className="mb-2 text-lg font-bold text-foreground">Dòng sim nổi bật</h3>
-            <ul className="flex flex-wrap gap-3 text-sm">
-              <li>
-                <a href="/sim-than-tai" className="font-medium text-primary underline-offset-2 hover:underline">
-                  Sim thần tài
-                </a>
-              </li>
-              <li>
-                <a href="/sim-loc-phat" className="font-medium text-primary underline-offset-2 hover:underline">
-                  Sim lộc phát
-                </a>
-              </li>
-              <li>
-                <a href="/sim-phong-thuy-hop-menh" className="font-medium text-primary underline-offset-2 hover:underline">
-                  Sim phong thủy hợp mệnh
-                </a>
-              </li>
-              <li>
-                <a href="/mua-sim-tu-quy" className="font-medium text-primary underline-offset-2 hover:underline">
-                  Sim tứ quý
-                </a>
-              </li>
-            </ul>
           </section>
         </div>
       </main>
