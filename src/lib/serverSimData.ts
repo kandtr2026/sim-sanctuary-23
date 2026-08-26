@@ -271,7 +271,8 @@ const simMatchesBirthYear = (s: NormalizedSIM, year: string): boolean =>
  *     dmyyyy (…05081987, …581987, …5081987, …0581987)
  *
  * ZONE 2 (rank 1) — chỉ tháng-năm hoặc năm:
- *     mmyyyy (…081987, …81987), yyyy (…1987), yy (…87)
+ *     mmyyyy (…081987, …81987), yyyy (…1987)
+ * KHÔNG nhận yy riêng (…87) hay mmyy (…0887) — quá rộng, không đặc trưng.
  *
  * KHÔNG nhận các thứ tự khác (mdyy, ymd, ydm) hay "năm lẫn trong 6 số cuối".
  */
@@ -298,14 +299,13 @@ const rankBirthDateMatch = (
   }
   for (const p of zone1) if (digits.endsWith(p)) return 0;
 
-  // ZONE 2: tháng-năm hoặc năm
+  // ZONE 2: tháng-năm (mmyyyy) hoặc năm (yyyy). Không gồm yy riêng hay mmyy —
+  // quá rộng (mọi sim đuôi 87/0887 đều trúng, không đặc trưng ngày sinh).
   const zone2 = new Set<string>();
   for (const mm of [m1, m2]) {
-    zone2.add(mm + yy);
     zone2.add(mm + year);
   }
   zone2.add(year);
-  zone2.add(yy);
   for (const p of zone2) if (digits.endsWith(p)) return 1;
 
   return -1;
@@ -314,7 +314,7 @@ const rankBirthDateMatch = (
 /**
  * Lọc sim khớp ngày sinh của khách (YYYY + DD + MM), chia 2 zone:
  *   ZONE 1 (trước): ngày-tháng-năm đầy đủ dmyy / dmyyyy (…050887, …5887, …581987)
- *   ZONE 2 (fallback): tháng-năm mmyyyy / mmyy, hoặc năm (…081987, …1987, …87)
+ *   ZONE 2 (fallback): tháng-năm mmyyyy hoặc năm (…081987, …1987)
  * Trả về top `limit`.
  */
 export const getBirthDateSims = async (
