@@ -16,13 +16,6 @@ const Header = () => {
           </Link>
         </div>
 
-        {/* Tagline */}
-        <div className="text-center hidden lg:block">
-          <p className="text-sm md:text-base font-medium text-header-foreground/90">
-            Kho SIM số đẹp – Giá chuẩn – Giao SIM toàn quốc
-          </p>
-        </div>
-
         {/* Contact */}
         <div className="flex items-center gap-4">
   <a
