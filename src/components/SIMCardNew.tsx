@@ -1,10 +1,11 @@
 "use client";
 
-import Link from 'next/link';
+import { useState } from "react";
 import type { NormalizedSIM, PromotionalData, QuyType } from '@/lib/simUtils';
 import { matchesQuyType, formatPrice, formatBirthDateDisplayLenient, formatSIMNumber } from '@/lib/simUtils';
 import { cn } from '@/lib/utils';
 import { createHighlightedNumber, createQuyHighlightedNumber } from '@/lib/highlightUtils';
+import BuyNowDialog from '@/components/BuyNowDialog';
 
 // Fallback only — mirrors NETWORK_PREFIXES in @/lib/simUtils, which deliberately
 // covers just Mobifone / Vinaphone / Gmobile. Keep the two lists in sync.
@@ -25,6 +26,7 @@ interface SIMCardNewProps {
 }
 
 const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNewProps) => {
+  const [buyNowOpen, setBuyNowOpen] = useState(false);
   // Build rawNumber from ALL possible sources
   const rawNumber = (() => {
     const sources = [sim.rawDigits, sim.displayNumber, sim.formattedNumber];
@@ -40,8 +42,6 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
   // fall back to prefix detection so the badge still renders instead of
   // silently disappearing.
   const carrier = sim.network && sim.network !== 'Khác' ? sim.network : detectCarrier(rawNumber);
-
-  const checkoutHref = `/mua-ngay/${encodeURIComponent(sim.id)}`;
 
   // SIM năm sinh hiển thị theo ngày sinh thay vì dãy số rối từ sheet
   // (VD 0934.092.029 → 0934.1.9.1991, 0909.922.000 → 0909.9.2.2000).
@@ -203,10 +203,11 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
           )}
         </div>
 
-        <Link
-          href={checkoutHref}
+        <button
+          type="button"
+          onClick={() => setBuyNowOpen(true)}
           aria-label={`Đặt mua SIM ${cardDisplay} — ${formatPrice(sim.price)}`}
-          className="sim-number-auto mb-1.5 block transition-all whitespace-nowrap overflow-hidden text-ellipsis group-hover:[text-shadow:0_0_12px_hsl(var(--gold)_/_0.4)]"
+          className="sim-number-auto mb-1.5 block w-full cursor-pointer text-left transition-all whitespace-nowrap overflow-hidden text-ellipsis group-hover:[text-shadow:0_0_12px_hsl(var(--gold)_/_0.4)]"
         >
           {searchQuery?.trim()
             ? createHighlightedNumber(
@@ -216,7 +217,19 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
               )
             : formatWithHighlight(cardDisplay)
           }
-        </Link>
+        </button>
+
+        <BuyNowDialog
+          open={buyNowOpen}
+          onOpenChange={setBuyNowOpen}
+          sim={{
+            id: sim.id,
+            displayNumber: cardDisplay,
+            rawDigits: rawNumber,
+            price: sim.price,
+            network: carrier || undefined,
+          }}
+        />
 
         {/* Price above, actions below — NOT side by side. On mobile the card's inner
             width is only 128px while the nowrap price alone needs 84px, so a horizontal
