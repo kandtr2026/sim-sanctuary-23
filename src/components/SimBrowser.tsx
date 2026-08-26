@@ -329,7 +329,6 @@ const SimBrowser = ({
   });
 
   const tagCounts = facetsQuery.data?.facets?.tagCounts ?? {};
-  const prefixes = facetsQuery.data?.facets?.prefixes ?? { prefix3: [], prefix4: [] };
   const networkCounts = facetsQuery.data?.facets?.networkCounts ?? {};
   const priceCounts = facetsQuery.data?.facets?.priceCounts ?? [];
   const catalogueTotal = facetsQuery.data?.total ?? 0;
@@ -426,13 +425,11 @@ const SimBrowser = ({
           <AdvancedFilterSidebar
             filters={filters}
             tagCounts={tagCounts}
-            prefixes={prefixes}
             networkCounts={networkCounts}
             priceCounts={priceCounts}
             onTogglePriceRange={togglePriceRange}
             onToggleTag={toggleTag}
             onToggleNetwork={toggleNetwork}
-            onToggleSuffix={toggleSuffix}
             onUpdateFilter={updateFilter}
           />
         </aside>
@@ -446,14 +443,12 @@ const SimBrowser = ({
                 <MobileFilterDrawer
                   filters={filters}
                   tagCounts={tagCounts}
-                  prefixes={prefixes}
                   networkCounts={networkCounts}
                   priceCounts={priceCounts}
                   activeFilterCount={activeFilters.length}
                   onTogglePriceRange={togglePriceRange}
                   onToggleTag={toggleTag}
                   onToggleNetwork={toggleNetwork}
-                  onToggleSuffix={toggleSuffix}
                   onUpdateFilter={updateFilter}
                   onReset={resetFilters}
                 />

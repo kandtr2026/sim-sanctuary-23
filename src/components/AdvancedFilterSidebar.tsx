@@ -1,24 +1,16 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { 
-  PRICE_RANGES, 
-  QUICK_SUFFIXES,
-  type QuyType
-} from '@/lib/simUtils';
+import { PRICE_RANGES, type QuyType } from '@/lib/simUtils';
 import type { FilterState } from '@/hooks/useSimData';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 
 interface AdvancedFilterSidebarProps {
   filters: FilterState;
   tagCounts: Record<string, number>;
-  prefixes: { prefix3: string[]; prefix4: string[] };
   networkCounts: Record<string, number>;
   priceCounts: number[];
   onTogglePriceRange: (index: number) => void;
   onToggleTag: (tag: string) => void;
   onToggleNetwork: (network: string) => void;
-  onToggleSuffix: (suffix: string) => void;
   onUpdateFilter: <K extends keyof FilterState>(key: K, value: FilterState[K]) => void;
 }
 
@@ -57,13 +49,11 @@ const FilterSection = ({
 const AdvancedFilterSidebar = ({
   filters,
   tagCounts,
-  prefixes,
   networkCounts,
   priceCounts,
   onTogglePriceRange,
   onToggleTag,
   onToggleNetwork,
-  onToggleSuffix,
   onUpdateFilter
 }: AdvancedFilterSidebarProps) => {
   // NOTE: filters.customPriceMin / customPriceMax are fully supported by
@@ -211,70 +201,6 @@ const AdvancedFilterSidebar = ({
           ))}
         </div>
         
-      </FilterSection>
-
-      {/* Prefix Filter */}
-      <FilterSection title="Lọc theo đầu số" defaultOpen={false}>
-        <div className="space-y-1.5">
-          <div>
-            <Label className="text-[9px] text-muted-foreground mb-1 block">Đầu 3 số</Label>
-            <div className="flex flex-wrap gap-0.5">
-              {prefixes.prefix3.slice(0, 12).map(prefix => (
-                <button
-                  key={prefix}
-                  onClick={() => {
-                    const current = filters.selectedPrefixes3;
-                    onUpdateFilter(
-                      'selectedPrefixes3',
-                      current.includes(prefix)
-                        ? current.filter(p => p !== prefix)
-                        : [...current, prefix]
-                    );
-                  }}
-                  className={`px-1 py-0.5 text-[9px] rounded border ${
-                    filters.selectedPrefixes3.includes(prefix)
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'border-border hover:border-primary'
-                  }`}
-                >
-                  {prefix}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </FilterSection>
-
-      {/* Suffix Filter */}
-      <FilterSection title="Lọc theo đuôi" defaultOpen={false}>
-        <div className="space-y-1.5">
-          <div className="flex flex-wrap gap-0.5">
-            {QUICK_SUFFIXES.map(suffix => (
-              <button
-                key={suffix}
-                onClick={() => onToggleSuffix(suffix)}
-                className={`px-1 py-0.5 text-[9px] rounded border ${
-                  filters.selectedSuffixes.includes(suffix)
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'border-border hover:border-primary'
-                }`}
-              >
-                {suffix}
-              </button>
-            ))}
-          </div>
-          
-          <div>
-            <Label className="text-[9px] text-muted-foreground mb-0.5 block">Đuôi tùy chỉnh</Label>
-            <Input
-              type="text"
-              placeholder="Nhập số đuôi (vd: 1234)"
-              value={filters.customSuffix}
-              onChange={(e) => onUpdateFilter('customSuffix', e.target.value.replace(/\D/g, ''))}
-              className="text-[10px] h-6 px-1.5"
-            />
-          </div>
-        </div>
       </FilterSection>
     </aside>
   );

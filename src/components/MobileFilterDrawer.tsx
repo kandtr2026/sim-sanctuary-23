@@ -7,14 +7,12 @@ import type { FilterState } from '@/hooks/useSimData';
 interface MobileFilterDrawerProps {
   filters: FilterState;
   tagCounts: Record<string, number>;
-  prefixes: { prefix3: string[]; prefix4: string[] };
   networkCounts: Record<string, number>;
   priceCounts: number[];
   activeFilterCount: number;
   onTogglePriceRange: (index: number) => void;
   onToggleTag: (tag: string) => void;
   onToggleNetwork: (network: string) => void;
-  onToggleSuffix: (suffix: string) => void;
   onUpdateFilter: <K extends keyof FilterState>(key: K, value: FilterState[K]) => void;
   onReset: () => void;
 }
@@ -22,14 +20,12 @@ interface MobileFilterDrawerProps {
 const MobileFilterDrawer = ({
   filters,
   tagCounts,
-  prefixes,
   networkCounts,
   priceCounts,
   activeFilterCount,
   onTogglePriceRange,
   onToggleTag,
   onToggleNetwork,
-  onToggleSuffix,
   onUpdateFilter,
   onReset
 }: MobileFilterDrawerProps) => {
@@ -83,13 +79,11 @@ const MobileFilterDrawer = ({
           <AdvancedFilterSidebar
             filters={filters}
             tagCounts={tagCounts}
-            prefixes={prefixes}
             networkCounts={networkCounts}
             priceCounts={priceCounts}
             onTogglePriceRange={onTogglePriceRange}
             onToggleTag={onToggleTag}
             onToggleNetwork={onToggleNetwork}
-            onToggleSuffix={onToggleSuffix}
             onUpdateFilter={onUpdateFilter}
           />
         </div>
