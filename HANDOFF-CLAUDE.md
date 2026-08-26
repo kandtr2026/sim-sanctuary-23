@@ -4,6 +4,9 @@ _Cập nhật: 2026-08-26. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone 
 
 ## 1. ĐÃ XONG phiên này
 
+- **Câu tìm đi theo URL `?q=`** (commit `d45c047`): `SimBrowser` seed `searchQuery` từ `?q=` (nhận cả `?search=` cũ) trong effect, rồi `replaceState` ghi lại — F5/gửi link cho khách không mất câu tìm nữa, xoá ô tìm thì URL sạch lại. `layout.tsx` trả lại `SearchAction` trỏ `/?q={search_term_string}`. **Đừng kỳ vọng SEO**: Google bỏ hiển thị sitelinks searchbox từ 21/11/2024, markup chỉ để khai báo đúng khả năng cho crawler/agent.
+- **Tứ quý hiện liền cụm ở mọi nơi** (commit `9722cc1`): bảng "tứ quý nổi bật" đã chữa tay trước đó nhưng lưới card ngay dưới vẫn `0778.67|0.000` và không tô vàng — vì trang không truyền `quyFilter` xuống `SIMCardNew`, và nhánh Tứ quý của `createQuyHighlightedNumber` cố tình giữ 4-3-3. Giờ cả hai đi qua `planSimDisplay` → `077.867.0000`. Ngũ quý/Lục quý giữ cách chấm riêng đã verify (`0.77777.9086`).
+
 - **RULE HIỂN THỊ SỐ DÙNG CHUNG** (`src/lib/simDisplay.ts` — MỚI): khách tìm `*6879` thì mọi lưới SIM phải hiện `.6879` liền một cụm. Trước đây mỗi trang tự `split('.')` nên chỉ chữa được từng ca (`0703.75|6.879`, `090.282.4.|879`).
   - `planSimDisplay(rawDigits, query, preferredDisplay)` → `{ display, hl }`. Suy ra **cụm neo** đúng theo luật lọc của `simFilter.ts` (`*S` đuôi, `P*` đầu, `P*S` hai đầu, gõ trần = đuôi nếu số kết thúc bằng nó, không thì contains). Cách chấm sẵn có mà KHÔNG cắt cụm neo thì giữ nguyên (nhờ vậy dạng ngày sinh `0909.9.2.2000` và `*879` → `0703.756.879` vẫn y cũ); bị cắt mới chấm lại bằng cụm 3–4 số, cụm 4 xếp trước.
   - `highlightUtils.ts` gọn còn dựng span (bỏ `parseSearchQuery`/`findHighlightRanges`/wildcard branch cũ). Test: `src/test/sim-display.test.ts` (23 ca).
@@ -34,8 +37,6 @@ _Cập nhật: 2026-08-26. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone 
 - **Xem chi tiết SIM phong thủy** — trang `/sim-phong-thuy?so=...` chưa có.
 - **Lịch âm/dương toggle** — form nhập giờ sinh hiện chỉ âm lịch, cần thêm toggle.
 - **WIP phiên khác (chưa commit)**: `src/lib/serverSimData.ts`.
-- **`MuaSimTuQuyTool.tsx` còn tự chấm 3-3-4 bằng tay** (commit `3278bec`) — nên chuyển sang `planSimDisplay` để chỉ còn một nguồn luật.
-- **`?search=` trên URL không được đọc lại khi tải trang**: `SimBrowser` ghi `?search=*6879` vào URL nhưng lúc mount chỉ đọc hash (`#ns=`/`#price=`), nên link chia sẻ/F5 mất câu tìm → khách thấy list chưa lọc, chưa chấm theo đuôi. Sửa cùng lúc với việc nối lại `SearchAction` sitelinks.
 - **`/mua-sim-gia-re` có 1 lỗi hydrate React #418** (bản build local; prod hiện sạch). Card SIM ở trang này KHÔNG render phía server (SSR ra 0 card, chỉ skeleton) nên không phải do rule hiển thị — nghi số liệu build-time (`stockLabel`/snapshot) lệch với data client fetch. Cần soi riêng.
 
 ## 3. Bẫy phải biết
