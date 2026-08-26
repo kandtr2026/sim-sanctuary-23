@@ -10,10 +10,12 @@ _Cập nhật: 2026-08-26. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone 
 - **Nâng cấp UI `SimHopTuoiTool.tsx`**: form CCCD (12 số), accordion "Kết hợp Bát Cực Linh Số" (NL chủ đạo select, NL phải có toggle, NL loại trừ toggle), panel "Hóa giải CCCD" hiển thị năng lượng hung + đề xuất hóa giải + chi tiết từng cặp, SIM card hiển thị nlChuDao badge + 3 năng lượng nổi bật × count.
 - Đã build OK, deploy lên production (commit `2648f25`, push `origin main`).
 - **Hotfix crash accordion Bát Cực** (commit `98f2008`): Radix Select v2.2.5 **throw Error** khi render `<SelectItem value="">` → mở accordion "Kết hợp Bát Cực Linh Số" crash trang. Đã đổi thành `value="tat-ca"` + map `v === "tat-ca" → null`. Verify: build XANH, deploy Ready, JS bundle live chứa `tat-ca`.
+- **Spin SEO trang `/sim-than-tai`** theo flow simthanglong.vn (commit `3cb7117`): viết lại nội dung đầy đủ — giải mã ý nghĩa 39/79, công thức 3 yếu tố chọn sim (đuôi số/đầu số/thân số), bảng so sánh 39 vs 79, hướng dẫn chọn theo ngân sách 3 cấp, tránh 3 sai lầm phổ biến, xu hướng 2026 kết hợp taxi. Thêm section "Mọi người cũng tìm kiếm", FAQ mở rộng 4→6 câu. Deploy OK, verify các section có trên live.
 
 ## 2. CÒN LẠI / việc làm tiếp
 
 - **Mục tiêu chọn sim** (Tài lộc / Công danh / Tình cảm / Học hành) — chưa có trong bộ lọc. Cần thêm vào API + UI.
+- **Quick filter chips + lọc nâng cao cho CategorySimGrid** (simthanglong có: chip đầu số/giá, lọc loại trừ số, sắp xếp) — CategorySimGrid là component dùng chung nhiều trang, cần làm cẩn thận không ảnh hưởng trang khác.
 - **Hào động** — engine Kinh Dịch hiện chỉ tính quẻ từ 4 số cuối (mod 80), chưa tính hào động. Cần thêm bảng 64 quẻ Kinh Dịch + hào động để hiển thị "Hào động" trên card SIM.
 - **"Vì sao hợp tuổi"** luận giải tự động — chưa có. Có thể sinh từ điểm ngũ hành + âm dương + quẻ dịch.
 - **"Tốt cho việc" tags** — chưa có. Có thể map từ quẻ dịch (mỗi quẻ ứng với 1 số lĩnh vực).
