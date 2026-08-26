@@ -63,12 +63,27 @@ const findKey = (keys: string[], pattern: string): string | undefined => {
   return keys.find(k => norm(k).includes(pattern));
 };
 
-// Mask phone: chỉ ẩn 2 số ở vị trí 7 và 8 -> 079951**59
+// Mask phone: chỉ ẩn 2 số ở vị trí 7 và 8, thêm số 0 đầu, định dạng 4.3.3
+// 0799977799 -> 0799.977.**99
 const masked = (digits: string): string => {
-  if (digits.length >= 8) return `${digits.slice(0, 6)}**${digits.slice(8)}`;
-  if (digits.length >= 6) return `${digits.slice(0, 4)}****${digits.slice(-2)}`;
-  if (digits.length >= 4) return `${digits.slice(0, 2)}****${digits.slice(-1)}`;
-  return digits;
+  let d = digits;
+  if (d.length === 9) d = `0${d}`;
+
+  if (d.length >= 8) {
+    // Định dạng 4.3.3 trước, rồi ẩn 2 số đầu nhóm cuối
+    const p1 = d.slice(0, 4);       // 0799
+    const p2 = d.slice(4, 7);       // 977
+    const p3 = d.slice(8);          // 99 (bỏ 2 số 7,8)
+    return `${p1}.${p2}.**${p3}`;
+  }
+  return d;
+};
+
+// Find key that equals pattern exactly first (e.g. "sothuebao"), else fallback
+const findKeyExact = (keys: string[], pattern: string): string | undefined => {
+  const exact = keys.find(k => norm(k) === pattern);
+  if (exact) return exact;
+  return findKey(keys, pattern);
 };
 
 // Format NgayBan to dd/MM/yyyy (Vietnamese format)
@@ -169,9 +184,9 @@ const RightSidebar = () => {
         const soldKeys = Object.keys(soldRows[0] ?? {});
 
         // Find matching keys using normalized comparison
-        // Sheet1: simIdKey = contains "simid", msisdnKey = contains "sothuebao"
+        // Sheet1: simIdKey = contains "simid", msisdnKey = ưu tiên "sothuebao" (có số 0 đầu)
         const simIdKey = findKey(sheet1Keys, "simid");
-        const msisdnKey = findKey(sheet1Keys, "sothuebao");
+        const msisdnKey = findKeyExact(sheet1Keys, "sothuebao");
 
         // SIM_SOLD: soldSimIdKey = contains "sothuebao" (this column contains SimID values like SIM036...)
         const soldSimIdKey = findKey(soldKeys, "sothuebao");
