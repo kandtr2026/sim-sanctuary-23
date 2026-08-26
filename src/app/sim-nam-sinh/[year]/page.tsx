@@ -189,10 +189,16 @@ export default async function SimNamSinhPage({ params, searchParams }: Props) {
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a
+                href="/sim-nam-sinh"
+                className="flex items-center justify-center gap-2 rounded-lg border border-primary-foreground/25 bg-primary-foreground/10 px-7 py-2.5 font-semibold text-primary-foreground transition-all duration-200 hover:bg-primary-foreground/20"
+              >
+                ← Tìm số khác
+              </a>
+              <a
                 href="#kho-sim"
                 className="flex items-center justify-center gap-2 rounded-lg bg-gold px-7 py-2.5 font-bold text-header-bg shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:bg-gold-light hover:shadow-xl"
               >
-                <Star className="h-4 w-4" /> Xem kho sim năm sinh {year}
+                <Star className="h-4 w-4" /> Xem kho sim
               </a>
               <a
                 href={ZALO_URL}
