@@ -141,6 +141,13 @@ const mapRawIndexToDisplay = (rawIndex: number, displayNumber: string): number =
   return displayNumber.length;
 };
 
+/** Gom một dãy chữ số thành nhóm 3 từ trái sang: "070375" → "070.375". */
+const groupDigitsInThrees = (digits: string): string => {
+  const out: string[] = [];
+  for (let i = 0; i < digits.length; i += 3) out.push(digits.slice(i, i + 3));
+  return out.join('.');
+};
+
 /**
  * Create highlighted spans for display number based on rawDigits highlight ranges
  */
@@ -188,7 +195,16 @@ export const createHighlightedNumber = (
     } else if (isStart && suffixDigits) {
       // *suffix
       if (candidateDigits.endsWith(suffixDigits)) {
-        for (let i = len - suffixDigits.length; i < len; i++) hlSet.add(i);
+        // Reformats to keep the matched suffix as one contiguous group at the
+        // end so customers see the ending they searched for at a glance:
+        //   tìm *6879 → 0703.756.879 (bị tách 6.879) → 070.375.6879 (.6879 vàng)
+        const suffixLen = suffixDigits.length;
+        const prefixRaw = candidateDigits.slice(0, len - suffixLen);
+        const groupedPrefix = groupDigitsInThrees(prefixRaw);
+        const display = groupedPrefix ? `${groupedPrefix}.${suffixDigits}` : suffixDigits;
+        const hlSet = new Set<number>();
+        for (let i = len - suffixLen; i < len; i++) hlSet.add(i);
+        return buildSpansFromHlSet(display, hlSet);
       }
     }
 
