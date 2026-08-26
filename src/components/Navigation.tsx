@@ -4,15 +4,15 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 
-// Kept to 6 items: browse numbers, phong thủy, category pages, giá rẻ, read.
-// "THANH TOÁN" removed from nav (giá trị SEO thấp, chuyển xuống Footer —
-// footer đã có). Slots nhường cho SIM THẦN TÀI và SIM TỨ QUÝ là các category
-// tiền, có traffic tìm kiếm cao. SIM GIÁ RẺ đưa lên kế bên Tứ quý & Tin tức.
+// Kept to 7 items: browse numbers, phong thủy, category pages, năm sinh, giá
+// rẻ, read. "THANH TOÁN" removed from nav (giá trị SEO thấp, chuyển xuống
+// Footer — footer đã có). SIM NĂM SINH đứng sau SIM TỨ QUÝ, trước SIM GIÁ RẺ.
 const menuItems = [
   { label: "SIM SỐ", href: "/" },
   { label: "SIM PHONG THỦY", href: "/sim-phong-thuy" },
   { label: "SIM THẦN TÀI", href: "/sim-than-tai" },
   { label: "SIM TỨ QUÝ", href: "/mua-sim-tu-quy" },
+  { label: "SIM NĂM SINH", href: "/sim-nam-sinh" },
   { label: "SIM GIÁ RẺ", href: "/mua-sim-gia-re" },
   { label: "TIN TỨC", href: "/tin-tuc" },
 ];
