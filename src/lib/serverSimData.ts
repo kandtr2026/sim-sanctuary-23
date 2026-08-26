@@ -211,7 +211,8 @@ const parseAndNormalize = (csvText: string): NormalizedSIM[] => {
 // Ưu tiên hơn CSV: không tải 5.5MB mỗi lần build/request. Chỉ đọc status khác
 // 'sold'/'reserved'/'ẩn' (đã lọc sẵn ở sync). Cần 1 + N request phân trang.
 const SUPABASE_REST = `${SUPABASE_URL}/rest/v1`;
-const SUPABASE_SIMS_PAGE = 2000;
+// PostgREST trên Supabase cap 1000 rows/response → phân trang bằng limit+offset.
+const SUPABASE_SIMS_PAGE = 1000;
 
 interface SimsDbRow {
   id: string;
@@ -258,13 +259,13 @@ const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
       apikey: SUPABASE_PUBLISHABLE_KEY,
       Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
     };
-    // Lấy toàn bộ id hợp lệ (status != sold) theo trang. PostgREST giới hạn
-    // 1000 rows mặc định → dùng header Range để lấy tối đa mỗi lần.
+    // Lấy toàn bộ id hợp lệ (status != sold) theo trang 1000. PostgREST cap
+    // 1000 rows/response (Range header bị bỏ qua) → dùng limit+offset.
     const ids: string[] = [];
     for (let offset = 0; ; offset += SUPABASE_SIMS_PAGE) {
       const res = await fetch(
-        `${SUPABASE_REST}/sims?select=id&status=neq.sold&offset=${offset}`,
-        { headers: { ...authHeaders, Range: `${offset}-${offset + SUPABASE_SIMS_PAGE - 1}` } },
+        `${SUPABASE_REST}/sims?select=id&status=neq.sold&limit=${SUPABASE_SIMS_PAGE}&offset=${offset}`,
+        { headers: authHeaders },
       );
       if (!res.ok) return null;
       const page = (await res.json()) as { id: string }[];
@@ -278,7 +279,7 @@ const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
       const chunk = ids.slice(i, i + SUPABASE_SIMS_PAGE);
       const res = await fetch(
         `${SUPABASE_REST}/sims?select=id,raw_digits,display_number,original_price,final_price,effective_price,network,tags,beauty_score,is_vip&id=in.(${chunk.join(',')})`,
-        { headers: { ...authHeaders, Range: `0-${chunk.length - 1}` } },
+        { headers: authHeaders },
       );
       if (!res.ok) return null;
       const rows = (await res.json()) as SimsDbRow[];
