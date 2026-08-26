@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { 
   PRICE_RANGES, 
   QUICK_SUFFIXES,
@@ -90,11 +90,6 @@ const AdvancedFilterSidebar = ({
 
   return (
     <aside className="bg-card rounded-lg shadow-card border border-border overflow-hidden">
-      <div className="bg-primary/5 p-3 max-md:p-2 border-b border-border flex items-center gap-2">
-        <Filter className="w-5 h-5 max-md:w-4 max-md:h-4 text-primary" />
-        <span className="font-bold text-white max-md:text-xs" style={{ fontSize: 'clamp(14px, 1.2vw, 18px)' }}>BỘ LỌC TÌM KIẾM</span>
-      </div>
-
       {/* Price Filter */}
       <FilterSection title="SIM theo giá">
         <div className="space-y-1 max-md:space-y-0.5">
