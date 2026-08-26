@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { PRICE_RANGES } from "@/lib/simUtils";
 import type { NormalizedSIM, QuyType } from "@/lib/simUtils";
 
-const ITEMS_PER_PAGE = 40;
+const ITEMS_PER_PAGE = 100;
 
 // ── Port from useSimData: relax order + neutral helpers (thuần, không đọc browser) ──
 const RELAX_ORDER: (keyof FilterState)[] = [
