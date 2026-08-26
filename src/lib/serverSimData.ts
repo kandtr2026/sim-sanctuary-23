@@ -265,10 +265,10 @@ const simMatchesBirthYear = (s: NormalizedSIM, year: string): boolean =>
  * Rank a SIM by how well it matches a customer's birth date (YYYY + DD + MM).
  * Higher priority first. Returns -1 when the SIM doesn't match at all.
  *
- * ZONE 1 (rank 0) — đầy đủ ngày-tháng-năm, theo thứ tự d-m-y, mỗi phần ngày/
- *   tháng có thể 1 hoặc 2 số:
- *     dmyy   (…050887, …5887, …50887, …05887)
- *     dmyyyy (…05081987, …581987, …5081987, …0581987)
+ * ZONE 1 (rank 0) — đầy đủ ngày-tháng-năm, theo thứ tự d-m-y. Ngày 1 số chỉ
+ *   được khi tháng cũng 1 số (bỏ tổ hợp d1+m2 — 40793/4071993 không chấp nhận):
+ *     dmyy   (…040793, …04793, …4793)
+ *     dmyyyy (…04071993, …0471993, …471993)
  *
  * ZONE 2 (rank 1) — chỉ tháng-năm hoặc năm:
  *     mmyyyy (…081987, …81987), yyyy (…1987)
@@ -289,14 +289,18 @@ const rankBirthDateMatch = (
   const m1 = month; // "8" hoặc "08"
   const m2 = month.padStart(2, "0");
 
-  // ZONE 1: ngày-tháng-năm đầy đủ (thứ tự d-m-y, ngày/tháng 1-2 số)
+  // ZONE 1: ngày-tháng-năm đầy đủ (thứ tự d-m-y). Chỉ nhận ngày 1 số khi tháng
+  // 1 số: d2+m2, d2+m1, d1+m1. Bỏ d1+m2 (40793/4071993 không chấp nhận).
   const zone1 = new Set<string>();
-  for (const dd of [d1, d2]) {
-    for (const mm of [m1, m2]) {
-      zone1.add(dd + mm + yy);
-      zone1.add(dd + mm + year);
-    }
-  }
+  const d1m1 = d1 + m1 + yy;
+  const d2m1 = d2 + m1 + yy;
+  const d2m2 = d2 + m2 + yy;
+  zone1.add(d1m1);
+  zone1.add(d2m1);
+  zone1.add(d2m2);
+  zone1.add(d1 + m1 + year);
+  zone1.add(d2 + m1 + year);
+  zone1.add(d2 + m2 + year);
   for (const p of zone1) if (digits.endsWith(p)) return 0;
 
   // ZONE 2: tháng-năm (mmyyyy) hoặc năm (yyyy). Không gồm yy riêng hay mmyy —
