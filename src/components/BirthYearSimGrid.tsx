@@ -12,9 +12,10 @@ const buildBirthDateDisplay = (
   month: string,
 ): string | null => {
   const yy = year.slice(-2);
-  const d1 = day;
+  // day/month có thể là "8"/"08" → d1/m1 là số KHÔNG pad (bỏ 0 đầu), d2/m2 pad 2.
+  const d1 = String(Number(day));
   const d2 = day.padStart(2, "0");
-  const m1 = month;
+  const m1 = String(Number(month));
   const m2 = month.padStart(2, "0");
 
   // Zone 1: d-m-y đầy đủ, ưu tiên 2-2 → 2-1 → 1-1
