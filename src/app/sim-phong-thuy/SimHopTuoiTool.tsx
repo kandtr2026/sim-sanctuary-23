@@ -405,14 +405,14 @@ const SimHopTuoiTool = () => {
                     Năng lượng chủ đạo của SIM
                   </Label>
                   <Select
-                    value={nlChuDao ?? ""}
-                    onValueChange={(v) => setNlChuDao(v === "" ? null : (v as NangLuong))}
+                    value={nlChuDao ?? "tat-ca"}
+                    onValueChange={(v) => setNlChuDao(v === "tat-ca" ? null : (v as NangLuong))}
                   >
                     <SelectTrigger className="h-12 rounded-xl text-base bg-black/40 border-white/10 text-white focus:border-[#D9B778]">
                       <SelectValue placeholder="Tùy chọn" />
                     </SelectTrigger>
                     <SelectContent className="bg-[#1B1618] border-white/10 text-white max-h-72">
-                      <SelectItem value="" className="text-white text-base">
+                      <SelectItem value="tat-ca" className="text-white text-base">
                         Tùy chọn
                       </SelectItem>
                       {NANG_LUONG_LIST.map((nl) => (
