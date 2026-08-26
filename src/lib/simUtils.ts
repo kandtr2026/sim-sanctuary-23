@@ -337,46 +337,93 @@ export const formatBirthDateDisplay = (rawDigits: string): string | null => {
 };
 
 /**
- * Parser NỚI hơn cho hiển thị card (không đổi `parseBirthDate` — bộ lọc chặt
- * "Năm sinh" vẫn dùng parser nghiêm để loại số ảo). Thêm 1 pattern nữa:
+ * Parser NỚI + linh hoạt cho hiển thị card (không đổi `parseBirthDate` — bộ lọc
+ * chặt "Năm sinh" vẫn dùng parser nghiêm để loại số ảo).
  *
- *   DD.M.YY (2-1-2) trên 5 số cuối — vd `20213` → 20/2/13, `090920213` → 0909.20.2.13
+ * Hỗ trợ mọi cách chia ngày/tháng/năm trên phần đuôi 4–8 chữ số:
  *
- * Trả về `{ d, m, y, display, tailLen }` (tailLen 6 nếu theo parser nghiêm, 5 nếu
- * DD.M.YY) để caller cắt đúng phần prefix.
+ *   - DDMMYY    (2-2-2)  0903.20.01.98 → 20/01/1998
+ *   - DDMMYYYY  (2-2-4)  0903202000    → 20/03/2000
+ *   - DDMYY     (2-1-2)  0909.20.2.13  → 20/02/2013
+ *   - DDMYYYY   (2-1-4)  0909.20.2.2000 → 20/02/2000
+ *   - DMYYYY    (1-2-4)  0909.9.02.2000 → 09/02/2000
+ *   - D.M.YYYY  (1-1-4)  0908.8.9.2001  → 08/09/2001
+ *   - … (không giới hạn: thử mọi tổ hợp dLen∈{1,2}, mLen∈{1,2}, yLen∈{2,4})
+ *
+ * Ngày phải tồn tại thật trong lịch (31.11, 29.02 không nhuận đều bị loại).
+ * Ưu tiên năm 4 chữ số trước (rõ ràng nhất), rồi tới 2 chữ số. Trả về
+ * `display` CHUẨN dạng `dd.mm.yyyy` (2 chữ số ngày/tháng, 4 chữ số năm) để
+ * hiển thị đồng nhất mọi nơi — web tự xử lý, không theo dấu chấm sheet.
  */
 export function tryParseBirthDateLenient(
   rawDigits: string,
-): { d: number; m: number; y: number; display: string; tailLen: 5 | 6 } | null {
+): { d: number; m: number; y: number; display: string; tailLen: number } | null {
   const digits = String(rawDigits ?? '').replace(/\D/g, '');
+  if (digits.length < 4) return null;
 
-  // 1) Các pattern nghiêm (DDMMYY + D.M.YYYY) trên 6 số cuối.
-  const strict = parseBirthDate(digits);
-  if (strict) return { ...strict, tailLen: 6 };
+  const tryDate = (d: number, m: number, y: number): boolean => {
+    if (d < 1 || m < 1 || m > 12) return false;
+    const maxDay = NGAY_TRONG_THANG[m - 1] + (m === 2 && laNamNhuan(y) ? 1 : 0);
+    return d <= maxDay;
+  };
 
-  // 2) DD.M.YY — 5 số cuối: 2 + 1 + 2.
-  const tail5 = digits.slice(-5);
-  if (tail5.length === 5) {
-    const dd = Number(tail5.slice(0, 2));
-    const m = Number(tail5[2]);
-    const yy = Number(tail5.slice(3, 5));
-    const yFull = yy <= 29 ? 2000 + yy : yy >= 50 ? 1900 + yy : null;
-    const tryDate = (d: number, mm: number, y2: number): boolean => {
-      if (d < 1 || mm < 1 || mm > 12) return false;
-      const maxDay = NGAY_TRONG_THANG[mm - 1] + (mm === 2 && laNamNhuan(y2) ? 1 : 0);
-      return d <= maxDay;
-    };
-    if (yFull !== null && tryDate(dd, m, yFull)) {
-      return { d: dd, m, y: yFull, display: `${dd}.${m}.${yy}`, tailLen: 5 };
+  const pad2 = (n: number): string => String(n).padStart(2, '0');
+
+  // Năm 2 chữ số → năm đầy đủ: 00–29 → 2000s, 50–99 → 1900s; 30–49 mơ hồ bỏ.
+  const expand2DigitYear = (yy: number): number | null =>
+    yy <= 29 ? 2000 + yy : yy >= 50 ? 1900 + yy : null;
+
+  const is4DigitYear = (y: number): boolean => y >= 1950 && y <= 2035;
+
+  // Mọi tổ hợp [dLen, mLen, yLen] khả thi trên SIM 10 số (prefix mạng 3 số →
+  // ngày sinh tối đa 7 số cuối). Ưu tiên năm 4 chữ số trước (rõ nhất), trong
+  // đó DDMM đầy đủ trước; rồi tới năm 2 chữ số. Không có [1,1,2]/tailLen 4-8
+  // vì quá mơ hồ (dễ false positive với số thường).
+  const combos: [number, number, number][] = [
+    [2, 2, 4], // DDMMYYYY (2-2-4)
+    [2, 1, 4], // DDMYYYY (2-1-4)
+    [1, 2, 4], // DMYYYY (1-2-4)
+    [1, 1, 4], // D.M.YYYY (1-1-4)
+    [2, 2, 2], // DDMMYY (2-2-2)
+    [2, 1, 2], // DDMYY (2-1-2)
+    [1, 2, 2], // DMMYY (1-2-2)
+  ];
+
+  for (const [dLen, mLen, yLen] of combos) {
+    const tailLen = dLen + mLen + yLen;
+    if (tailLen > digits.length) continue;
+
+    // Phần prefix còn lại phải là 3–4 số (đầu mạng VN: 090, 0909…) — nếu tailLen
+    // nhỏ (5) mà số có 10 chữ số thì prefix thành 5 số, không phải SIM năm sinh.
+    const prefixLen = digits.length - tailLen;
+    if (prefixLen < 3 || prefixLen > 4) continue;
+
+    const tail = digits.slice(-tailLen);
+
+    const d = Number(tail.slice(0, dLen));
+    const m = Number(tail.slice(dLen, dLen + mLen));
+    const yStr = tail.slice(dLen + mLen);
+
+    let y: number | null = null;
+    if (yLen === 4) {
+      const yFull = Number(yStr);
+      if (is4DigitYear(yFull)) y = yFull;
+    } else {
+      y = expand2DigitYear(Number(yStr));
     }
+    if (y === null) continue;
+    if (!tryDate(d, m, y)) continue;
+
+    return { d, m, y, display: `${pad2(d)}.${pad2(m)}.${y}`, tailLen };
   }
 
   return null;
 }
 
 /**
- * Format số sim năm sinh cho card — dùng parser nới: prefix + ngày sinh có dấu
- * chấm. Không đọc được ngày → null để caller giữ format 4-3-3.
+ * Format số sim năm sinh cho card — parser linh hoạt: prefix + ngày sinh chuẩn
+ * `dd.mm.yyyy`. 0909922000 (sinh 09/02/2000) → "0909.09.02.2000".
+ * Không đọc được ngày → null để caller giữ format 4-3-3.
  */
 export const formatBirthDateDisplayLenient = (rawDigits: string): string | null => {
   const digits = String(rawDigits ?? '').replace(/\D/g, '');
