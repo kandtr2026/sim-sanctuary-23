@@ -266,7 +266,9 @@ const simMatchesBirthYear = (s: NormalizedSIM, year: string): boolean =>
  * Higher priority first. Returns -1 when the SIM doesn't match at all.
  *
  *  - 0 (ưu tiên nhất): đuôi đúng 4 số năm (…1987) HOẶC đuôi 2 số năm (…87)
- *  - 1: 6 số cuối mã hoá ngày sinh theo yymmdd / ddmmyy (tháng/ngày 1 hoặc 2 số)
+ *  - 1: đuôi mã hoá ngày sinh theo nhiều thứ tự, mỗi phần (ngày/tháng) 1–2 số:
+ *        dmyy (…5787), ddmmyy (…050787), mdyy (…7587), yymmdd (…870705),
+ *        ymd (…8775), v.v.
  *  - 2: 4 số năm xuất hiện trong 6 số cuối (fallback như cũ)
  */
 const rankBirthDateMatch = (
@@ -279,21 +281,37 @@ const rankBirthDateMatch = (
   const yy = year.slice(-2);
   const d1 = day; // "5" hoặc "05"
   const d2 = day.padStart(2, "0");
-  const m1 = month; // "5" hoặc "05"
+  const m1 = month; // "7" hoặc "07"
   const m2 = month.padStart(2, "0");
 
   // Option 1: đuôi năm (4 số hoặc 2 số cuối)
   if (digits.endsWith(year)) return 0;
   if (digits.endsWith(yy)) return 0;
 
-  // Option 2: 6 số cuối = yymmdd hoặc ddmmyy (tháng/ngày 1 hoặc 2 số)
-  const tail6 = digits.slice(-6);
-  const yymmddVariants = [yy + m1 + d1, yy + m2 + d1, yy + m1 + d2, yy + m2 + d2];
-  const ddmmyyVariants = [d1 + m1 + yy, d2 + m1 + yy, d1 + m2 + yy, d2 + m2 + yy];
-  if (yymmddVariants.includes(tail6) || ddmmyyVariants.includes(tail6)) return 1;
+  // Option 2: đuôi mã hoá ngày sinh — mọi thứ tự ngày/tháng/năm, mỗi phần 1-2 số.
+  // 05.07.1987 → 5787 (d m yy), 7587 (m d yy), 8775 (y m d), 050787, 870705…
+  const parts = [d1, d2, m1, m2];
+  const patterns = new Set<string>();
+  const dSet = [d1, d2];
+  const mSet = [m1, m2];
+  // d m yy / m d yy (4-6 số)
+  for (const dd of dSet) for (const mm of mSet) {
+    patterns.add(dd + mm + yy);
+    patterns.add(mm + dd + yy);
+  }
+  // y m d / y d m
+  for (const dd of dSet) for (const mm of mSet) {
+    patterns.add(yy + mm + dd);
+    patterns.add(yy + dd + mm);
+  }
+  // d m y (ngày-tháng-năm đủ 2 số → 8 số hiếm, bỏ); y m d đủ 2 số cũng hiếm
+
+  for (const p of patterns) {
+    if (digits.endsWith(p)) return 1;
+  }
 
   // Fallback: năm xuất hiện trong 6 số cuối
-  if (tail6.includes(year)) return 2;
+  if (digits.slice(-6).includes(year)) return 2;
 
   return -1;
 };

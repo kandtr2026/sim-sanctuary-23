@@ -12,6 +12,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { buildBreadcrumb, BASE_URL } from "@/lib/seo";
+import type { NormalizedSIM } from "@/lib/simUtils";
 import {
   getCategorySnapshot,
   getBirthDateSims,
@@ -115,8 +116,21 @@ export default async function SimNamSinhPage({ params, searchParams }: Props) {
     ? await getBirthDateSims(year, String(Number(sp.d)), String(Number(sp.m)), 12)
     : null;
 
-  const snapshotSims = birthResult ? birthResult.sims : await getCategorySnapshot({ birthYear: year }, 12);
-  const birthTotal = birthResult ? birthResult.total : await countBirthYearSims(year);
+  let snapshotSims: NormalizedSIM[];
+  let birthTotal: number;
+  let fallbackSims: NormalizedSIM[] | undefined;
+
+  if (birthResult) {
+    snapshotSims = birthResult.sims;
+    birthTotal = birthResult.total;
+    // Nếu không khớp ngày sinh nào → đề xuất số khác (sim đẹp bất kỳ)
+    if (birthResult.total === 0) {
+      fallbackSims = await getCategorySnapshot({}, 8);
+    }
+  } else {
+    snapshotSims = await getCategorySnapshot({ birthYear: year }, 12);
+    birthTotal = await countBirthYearSims(year);
+  }
 
   const faqItems = [
     {
@@ -200,6 +214,7 @@ export default async function SimNamSinhPage({ params, searchParams }: Props) {
             totalCount={birthTotal}
             day={hasBirthDate ? sp.d : undefined}
             month={hasBirthDate ? sp.m : undefined}
+            fallbackSims={fallbackSims}
           />
 
           {/* Cố ý KHÔNG dùng client grid (CategorySimGrid) ở trang năm sinh: bộ
