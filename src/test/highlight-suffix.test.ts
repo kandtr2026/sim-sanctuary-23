@@ -1,7 +1,10 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
+import type { ReactElement } from "react";
 import { createHighlightedNumber } from "@/lib/highlightUtils";
 
-describe("createHighlightedNumber — suffix wildcard reformat", () => {
+type HlSpan = ReactElement<{ className?: string; children?: string }>;
+
+describe("createHighlightedNumber â€” suffix wildcard reformat", () => {
   it("reformats *6879 so 6879 is a contiguous group at the end", () => {
     const displayNumber = "0703.756.879";
     const rawDigits = "0703756879";
@@ -11,7 +14,7 @@ describe("createHighlightedNumber — suffix wildcard reformat", () => {
     expect(result.length).toBeGreaterThanOrEqual(2);
 
     // The last span should contain "6879" with font-extrabold text-gold class
-    const lastSpan = result[result.length - 1] as React.ReactElement;
+    const lastSpan = result[result.length - 1] as HlSpan;
     expect(lastSpan.props.className).toContain("text-gold");
     expect(lastSpan.props.children).toBe("6879");
   });
@@ -21,7 +24,7 @@ describe("createHighlightedNumber — suffix wildcard reformat", () => {
     const rawDigits = "0703756879";
     const result = createHighlightedNumber(displayNumber, rawDigits, "*79");
 
-    const lastSpan = result[result.length - 1] as React.ReactElement;
+    const lastSpan = result[result.length - 1] as HlSpan;
     expect(lastSpan.props.className).toContain("text-gold");
     expect(lastSpan.props.children).toBe("79");
   });
@@ -31,7 +34,7 @@ describe("createHighlightedNumber — suffix wildcard reformat", () => {
     const rawDigits = "0703756879";
     const result = createHighlightedNumber(displayNumber, rawDigits, "*8888");
 
-    // No match → returns [displayNumber] as-is
+    // No match â†’ returns [displayNumber] as-is
     expect(result.length).toBe(1);
     expect(result[0]).toBe(displayNumber);
   });
