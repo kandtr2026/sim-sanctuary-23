@@ -310,38 +310,6 @@ export default async function SimThanTaiPage() {
             matchSuffixes={["39", "79"]}
           />
 
-          {/* ── 8. Mọi người cũng tìm kiếm ──────────────────────────────── */}
-          <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
-            <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
-              <span className="h-8 w-1 rounded-full bg-primary" />
-              Mọi người cũng tìm kiếm
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { label: "Sim Thần Tài đuôi 39", note: "39" },
-                { label: "Sim Thần Tài đuôi 79", note: "79" },
-                { label: "Sim Thần Tài đuôi 3979", note: "3979" },
-                { label: "Sim Thần Tài đuôi 3939", note: "3939" },
-                { label: "Sim Thần Tài đuôi 7979", note: "7979" },
-                { label: "Sim Thần Tài Mobifone", note: "090" },
-                { label: "Sim Thần Tài giá rẻ", note: "sim-than-tai-gia-re" },
-              ].map((link) => (
-                <a
-                  key={link.label}
-                  href={`#kho-sim`}
-                  className="rounded-full border border-border bg-secondary/50 px-4 py-1.5 text-sm text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary"
-                >
-                  {link.label}
-                </a>
-              ))}
-            </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Bấm vào kho sim bên trên, gõ <strong className="text-foreground">39</strong>,{" "}
-              <strong className="text-foreground">79</strong> hoặc <strong className="text-foreground">3979</strong>{" "}
-              vào ô tìm để lọc nhanh đuôi thần tài bạn muốn.
-            </p>
-          </section>
-
           <LeadMagnetCta />
           <CustomerProof />
           <TrustCommitments />
