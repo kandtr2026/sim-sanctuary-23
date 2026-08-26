@@ -33,6 +33,16 @@ function AdminDashboardContent() {
   // keep in sync.
   const { allSims, isLoading: simsLoading, isFetching, forceReload, tagCounts, prefixes } = useSimData();
 
+  // Server-side stats: total SIM + inventory value (authoritative ~49k, không
+  // bị fallback cache 14k của useSimData). Fetch 1 lần, cache 5 phút.
+  const [serverStats, setServerStats] = useState<{ total: number; totalValue: number } | null>(null);
+  useEffect(() => {
+    fetch("/api/admin/stats")
+      .then((r) => { if (r.ok) return r.json(); return null; })
+      .then((d) => { if (d) setServerStats(d); })
+      .catch(() => {});
+  }, []);
+
   const [posts, setPosts] = useState<PostRow[]>([]);
   const [postsLoading, setPostsLoading] = useState(true);
 
@@ -62,8 +72,9 @@ function AdminDashboardContent() {
   }, []);
 
   const stats = useMemo(() => {
-    const total = allSims.length;
-    const inventoryValue = allSims.reduce((sum, sim) => sum + (sim.price || 0), 0);
+    // Ưu tiên số liệu server (đủ ~49k) — nếu chưa tải xong dùng allSims tạm.
+    const total = serverStats?.total ?? allSims.length;
+    const inventoryValue = serverStats?.totalValue ?? allSims.reduce((sum, sim) => sum + (sim.price || 0), 0);
     const discountedCount = allSims.filter((sim) => {
       const promo = getPromotionalData(sim.id);
       return promo?.finalPrice && promo.originalPrice > 0 && promo.finalPrice < promo.originalPrice;
@@ -76,7 +87,7 @@ function AdminDashboardContent() {
       vipCount: allSims.filter((sim) => sim.isVIP).length,
       discountedCount,
     };
-  }, [allSims]);
+  }, [allSims, serverStats]);
 
   const networkCounts = useMemo(() => {
     const counts: Record<string, number> = {};
