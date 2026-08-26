@@ -351,9 +351,9 @@ export const formatBirthDateDisplay = (rawDigits: string): string | null => {
  * KHÔNG chấp nhận dạng ngày 1 số + tháng 2 số (1-2): 0909.9.02.2000 → loại.
  *
  * Ngày phải tồn tại thật trong lịch (31.11, 29.02 không nhuận đều bị loại).
- * Ưu tiên năm 4 chữ số trước (rõ ràng nhất), rồi tới 2 chữ số. Trả về
- * `display` CHUẨN dạng `dd.mm.yyyy` (2 chữ số ngày/tháng, 4 chữ số năm) để
- * hiển thị đồng nhất mọi nơi — web tự xử lý, không theo dấu chấm sheet.
+ * Ưu tiên năm 4 chữ số trước (rõ ràng nhất), rồi tới 2 chữ số. `display` giữ
+ * ĐÚNG số chữ số gốc (không pad thêm 0, không mở rộng năm 2→4 số) để tổng số
+ * chữ số hiển thị = đúng số thật của SIM (không thể có số 12 chữ số).
  */
 export function tryParseBirthDateLenient(
   rawDigits: string,
@@ -367,9 +367,6 @@ export function tryParseBirthDateLenient(
     return d <= maxDay;
   };
 
-  const pad2 = (n: number): string => String(n).padStart(2, '0');
-
-  // Năm 2 chữ số → năm đầy đủ: 00–29 → 2000s, 50–99 → 1900s; 30–49 mơ hồ bỏ.
   const expand2DigitYear = (yy: number): number | null =>
     yy <= 29 ? 2000 + yy : yy >= 50 ? 1900 + yy : null;
 
@@ -411,15 +408,23 @@ export function tryParseBirthDateLenient(
     if (y === null) continue;
     if (!tryDate(d, m, y)) continue;
 
-    return { d, m, y, display: `${pad2(d)}.${pad2(m)}.${y}`, tailLen };
+    // display giữ ĐÚNG số chữ số gốc (dLen.mLen.yLen) — không pad thêm 0, không
+    // mở rộng năm 2 số → tổng số chữ số hiển thị = đúng số thật của SIM (10).
+    return {
+      d,
+      m,
+      y,
+      display: `${tail.slice(0, dLen)}.${tail.slice(dLen, dLen + mLen)}.${yStr}`,
+      tailLen,
+    };
   }
 
   return null;
 }
 
 /**
- * Format số sim năm sinh cho card — parser linh hoạt: prefix + ngày sinh chuẩn
- * `dd.mm.yyyy`. 0909922000 (sinh 09/02/2000) → "0909.09.02.2000".
+ * Format số sim năm sinh cho card — parser linh hoạt: prefix + ngày sinh giữ
+ * đúng số chữ số gốc. 0909922000 (sinh 09/02/2000) → "0909.9.2.2000".
  * Không đọc được ngày → null để caller giữ format 4-3-3.
  */
 export const formatBirthDateDisplayLenient = (rawDigits: string): string | null => {

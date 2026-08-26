@@ -66,9 +66,9 @@ describe('tryParseBirthDateLenient — parser linh hoạt nhiều định dạng
     expect(tryParseBirthDateLenient('0909922000')).toMatchObject({ d: 9, m: 2, y: 2000 });
   });
 
-  it('display chuẩn dd.mm.yyyy: 0909922000 → 09.02.2000', () => {
+  it('display giữ đúng số chữ số: 0909922000 → 9.2.2000', () => {
     const r = tryParseBirthDateLenient('0909922000');
-    expect(r?.display).toBe('09.02.2000');
+    expect(r?.display).toBe('9.2.2000');
   });
 
   it('31.11 không tồn tại → null', () => {
@@ -88,17 +88,17 @@ describe('tryParseBirthDateLenient — parser linh hoạt nhiều định dạng
   });
 });
 
-describe('formatBirthDateDisplayLenient — hiển thị chuẩn dd.mm.yyyy', () => {
-  it('0909922000 → 0909.09.02.2000', () => {
-    expect(formatBirthDateDisplayLenient('0909922000')).toBe('0909.09.02.2000');
+describe('formatBirthDateDisplayLenient — giữ đúng số chữ số', () => {
+  it('0909922000 → 0909.9.2.2000', () => {
+    expect(formatBirthDateDisplayLenient('0909922000')).toBe('0909.9.2.2000');
   });
 
-  it('090920213 → 0909.20.02.2013', () => {
-    expect(formatBirthDateDisplayLenient('090920213')).toBe('0909.20.02.2013');
+  it('090920213 → 0909.20.2.13', () => {
+    expect(formatBirthDateDisplayLenient('090920213')).toBe('0909.20.2.13');
   });
 
-  it('0938882026 → 0938.08.08.2026', () => {
-    expect(formatBirthDateDisplayLenient('0938882026')).toBe('0938.08.08.2026');
+  it('0938882026 → 0938.8.8.2026', () => {
+    expect(formatBirthDateDisplayLenient('0938882026')).toBe('0938.8.8.2026');
   });
 
   it('0776002002 (không thành ngày) → null', () => {
