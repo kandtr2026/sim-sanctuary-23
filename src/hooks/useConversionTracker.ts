@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getPagePath, classifySource } from "@/lib/trackingUtils";
 import { getAttribution } from "@/lib/attribution";
+import { GADS_CONV_SEND_TO } from "@/lib/gadsTracking";
 
 /**
  * Global conversion-click tracker.
@@ -67,6 +68,14 @@ export function useConversionTracker() {
         page_path: path,
         ...attr,
       });
+      // Google Ads conversion (A3): khi chủ shop đã cấp AW-… + label (set env),
+      // mỗi lead Zalo/gọi bắn thêm event conversion để Ads đấu thầu theo chuyển đổi.
+      if (GADS_CONV_SEND_TO) {
+        window.gtag?.("event", "conversion", {
+          send_to: GADS_CONV_SEND_TO,
+          method: type,
+        });
+      }
       // Đồng bộ với generate_lead: bắn Lead về Facebook Pixel (guard — có thể bị chặn).
       window.fbq?.("track", "Lead", { content_name: type });
 

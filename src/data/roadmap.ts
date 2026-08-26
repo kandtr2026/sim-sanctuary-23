@@ -47,7 +47,7 @@ export const ROADMAP: RoadmapPhase[] = [
     tasks: [
       { id: "A1", title: "Chuẩn hoá event generate_lead + GA4 property mới", status: "done", priority: "P0", kpi: "100% CTA bắn 1 event; lead GA4 khớp conversion_clicks", updated: "2026-08-24" },
       { id: "A2", title: "Bắt UTM/gclid/fbclid vào lead + lượt xem", status: "done", priority: "P0", kpi: "Mỗi lead có nguồn + campaign; dashboard lọc theo utm_campaign", updated: "2026-08-24" },
-      { id: "A3", title: "Nối GA4 → Google Ads + conversion action Zalo/gọi", status: "todo", priority: "P0", kpi: "Ads nhận chuyển đổi 'lead' → đấu thầu theo chuyển đổi", next: "CHẶN: chủ shop cấp AW-… + label Zalo" },
+      { id: "A3", title: "Nối GA4 → Google Ads + conversion action Zalo/gọi", status: "doing", priority: "P0", kpi: "Ads nhận chuyển đổi 'lead' → đấu thầu theo chuyển đổi", next: "Code sẵn (inert): chủ shop cấp AW-… + label Zalo, set NEXT_PUBLIC_GADS_AW_ID + NEXT_PUBLIC_GADS_CONV_LABEL trong Vercel rồi redeploy", updated: "2026-08-26" },
       { id: "A4", title: "Kích hoạt Facebook Pixel (set NEXT_PUBLIC_FB_PIXEL_ID)", status: "todo", priority: "P1", kpi: "Pixel Helper xanh; có event Lead khi bấm Zalo", next: "Pixel đang inert — set env ở Vercel rồi redeploy" },
       { id: "A5", title: "Search Console: verify + nộp sitemap + đọc query thật", status: "doing", priority: "P1", kpi: "100+ URL indexed; có bảng query thay suy đoán từ khoá" },
       { id: "A6", title: "Sổ chốt đơn thủ công (lead → đơn)", status: "todo", priority: "P0", kpi: "Ghép SĐT/Zalo + utm_campaign với 'đã bán' → tính CPL & CPA", next: "Web KHÔNG có bảng đơn — đây là mắt xích đo doanh số duy nhất (việc vận hành)" },
