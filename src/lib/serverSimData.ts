@@ -13,11 +13,12 @@
  * in client-side deps (react-query, sonner, localStorage).
  */
 
-import { normalizeSIM, estimatePriceByTags } from "@/lib/simUtils";
+import { normalizeSIM, estimatePriceByTags, formatSIMNumber, detectSimTags, detectNetwork } from "@/lib/simUtils";
 import type { NormalizedSIM } from "@/lib/simUtils";
 import {
-  EDGE_FUNCTIONS_URL,
+  SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY,
+  EDGE_FUNCTIONS_URL,
 } from "@/integrations/supabase/config";
 
 // ── Module-level cache ──────────────────────────────────────────────────────
@@ -206,18 +207,110 @@ const parseAndNormalize = (csvText: string): NormalizedSIM[] => {
 
 // ── Public API ──────────────────────────────────────────────────────────────
 
+// ── Supabase source: đọc kho SIM từ bảng `sims` (đồng bộ bởi sync-sims) ──────
+// Ưu tiên hơn CSV: không tải 5.5MB mỗi lần build/request. Chỉ đọc status khác
+// 'sold'/'reserved'/'ẩn' (đã lọc sẵn ở sync). Cần 1 + N request phân trang.
+const SUPABASE_REST = `${SUPABASE_URL}/rest/v1`;
+const SUPABASE_SIMS_PAGE = 2000;
+
+interface SimsDbRow {
+  id: string;
+  raw_digits: string;
+  display_number: string;
+  original_price: number;
+  final_price: number | null;
+  effective_price: number;
+  network: string | null;
+  tags: string[];
+  beauty_score: number;
+  is_vip: boolean;
+}
+
+const simsDbRowToNormalized = (r: SimsDbRow): NormalizedSIM => {
+  const rawDigits = r.raw_digits;
+  const tags = r.tags ?? detectSimTags(rawDigits);
+  const price = r.effective_price || r.final_price || r.original_price || 0;
+  return {
+    id: r.id,
+    rawDigits,
+    displayNumber: r.display_number || rawDigits,
+    formattedNumber: formatSIMNumber(rawDigits),
+    price,
+    prefix3: rawDigits.slice(0, 3),
+    prefix4: rawDigits.slice(0, 4),
+    last2: rawDigits.slice(-2),
+    last3: rawDigits.slice(-3),
+    last4: rawDigits.slice(-4),
+    last5: rawDigits.slice(-5),
+    last6: rawDigits.slice(-6),
+    digitCounts: rawDigits.split('').map(Number).reduce((acc, d) => { acc[d]++; return acc; }, [0,0,0,0,0,0,0,0,0,0]),
+    sumDigits: rawDigits.split('').reduce((s, d) => s + Number(d), 0),
+    tags,
+    isVIP: r.is_vip,
+    network: (r.network || detectNetwork(rawDigits)) as NormalizedSIM['network'],
+    beautyScore: r.beauty_score,
+  };
+};
+
+const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
+  try {
+    const authHeaders = {
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+    };
+    // Lấy toàn bộ id hợp lệ (status != sold) theo trang 5000
+    const ids: string[] = [];
+    for (let offset = 0; ; offset += 5000) {
+      const res = await fetch(
+        `${SUPABASE_REST}/sims?select=id&status=neq.sold&limit=5000&offset=${offset}`,
+        { headers: authHeaders },
+      );
+      if (!res.ok) return null;
+      const page = (await res.json()) as { id: string }[];
+      ids.push(...page.map((x) => x.id));
+      if (page.length < 5000) break;
+    }
+    if (ids.length === 0) return null;
+
+    const sims: NormalizedSIM[] = [];
+    for (let i = 0; i < ids.length; i += SUPABASE_SIMS_PAGE) {
+      const chunk = ids.slice(i, i + SUPABASE_SIMS_PAGE);
+      const res = await fetch(
+        `${SUPABASE_REST}/sims?select=id,raw_digits,display_number,original_price,final_price,effective_price,network,tags,beauty_score,is_vip&id=in.(${chunk.join(',')})`,
+        { headers: authHeaders },
+      );
+      if (!res.ok) return null;
+      const rows = (await res.json()) as SimsDbRow[];
+      for (const r of rows) sims.push(simsDbRowToNormalized(r));
+    }
+    return sims;
+  } catch (e) {
+    console.warn('[serverSimData] Supabase read failed, falling back to CSV:', e);
+    return null;
+  }
+};
+
 /**
  * Fetch the full SIM catalogue on the server (build or request time).
  * Cached at the module level so multiple pages within the same build worker
  * share one fetch. Returns [] on failure (never throws).
+ *
+ * Ưu tiên đọc từ Supabase (bảng `sims` — đồng bộ hàng ngày bởi sync-sims, không
+ * tải 5.5MB CSV). Nếu Supabase chưa có dữ liệu/lỗi → fallback về CSV như cũ.
  */
 export const getServerSims = async (): Promise<NormalizedSIM[]> => {
   if (cachedResult) return cachedResult;
   if (cachedPromise) return cachedPromise;
 
   cachedPromise = (async () => {
-    // One retry: the first build fetch can hit a cold edge function or a slow
-    // first connection; the second attempt almost always succeeds.
+    // 1) Thử Supabase trước — nhẹ, nhanh, luôn tươi theo sync
+    const fromDb = await fetchSimsFromDb();
+    if (fromDb && fromDb.length > 0) {
+      cachedResult = fromDb;
+      console.log(`[serverSimData] loaded ${fromDb.length} SIMs from Supabase`);
+      return fromDb;
+    }
+    // 2) Fallback: CSV qua edge function
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const csv = await fetchCsv();
