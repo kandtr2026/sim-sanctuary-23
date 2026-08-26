@@ -16,6 +16,7 @@ import type { NormalizedSIM } from "@/lib/simUtils";
 import {
   getCategorySnapshot,
   getBirthDateSims,
+  getBirthDateFallbackSims,
   getInStockBirthYears,
   countBirthYearSims,
   isPlausibleBirthYear,
@@ -123,9 +124,8 @@ export default async function SimNamSinhPage({ params, searchParams }: Props) {
   if (birthResult) {
     snapshotSims = birthResult.sims;
     birthTotal = birthResult.total;
-    // Nếu không khớp ngày sinh nào → đề xuất số khác (sim đẹp bất kỳ)
     if (birthResult.total === 0) {
-      fallbackSims = await getCategorySnapshot({}, 8);
+      fallbackSims = await getBirthDateFallbackSims(year, sp.m!, 8);
     }
   } else {
     snapshotSims = await getCategorySnapshot({ birthYear: year }, 12);

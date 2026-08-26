@@ -350,6 +350,56 @@ export const getBirthDateSims = async (
 };
 
 /**
+ * Gợi ý sim khi KHÔNG có sim khớp ngày sinh (fallback theo 2 round):
+ *   ROUND 1: sim có đuôi yyyy (…1989) hoặc mmyy (…1289 = tháng 12 + năm 89)
+ *   ROUND 2 (nếu round 1 không đủ): sim đẹp bất kỳ (giá rẻ → đẹp)
+ * Trả về top `limit`.
+ */
+export const getBirthDateFallbackSims = async (
+  year: string,
+  month: string,
+  limit = 8,
+): Promise<NormalizedSIM[]> => {
+  const all = await getServerSims();
+  if (all.length === 0) return [];
+
+  const yy = year.slice(-2);
+  const m1 = String(Number(month)); // "12" hoặc "1"
+  const m2 = month.padStart(2, "0");
+
+  // Round 1: đuôi yyyy hoặc mmyy
+  const round1: NormalizedSIM[] = [];
+  const seen = new Set<string>();
+  for (const s of all) {
+    if (s.price <= 0) continue;
+    const d = getDigits(s);
+    const ok =
+      d.endsWith(year) ||
+      d.endsWith(m1 + yy) ||
+      d.endsWith(m2 + yy);
+    if (ok) {
+      seen.add(s.id);
+      round1.push(s);
+    }
+  }
+  round1.sort((a, b) => a.price - b.price || b.beautyScore - a.beautyScore);
+  const picked = round1.slice(0, limit);
+
+  // Round 2: nếu chưa đủ, lấp bằng sim đẹp giá rẻ còn lại
+  if (picked.length < limit) {
+    const others = all
+      .filter((s) => s.price > 0 && !seen.has(s.id))
+      .sort((a, b) => a.price - b.price || b.beautyScore - a.beautyScore);
+    for (const s of others) {
+      if (picked.length >= limit) break;
+      picked.push(s);
+    }
+  }
+
+  return picked;
+};
+
+/**
  * Filter the full catalogue by category criteria, sort by price ascending, and
  * return the top `limit` SIMs. Pure function — does not fetch.
  */
