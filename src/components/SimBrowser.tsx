@@ -3,7 +3,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import SearchBarAdvanced from "@/components/SearchBarAdvanced";
-import QuickPickChips from "@/components/QuickPickChips";
 import AdvancedFilterSidebar from "@/components/AdvancedFilterSidebar";
 import SIMCardNew from "@/components/SIMCardNew";
 import RightSidebar from "@/components/RightSidebar";
@@ -419,13 +418,6 @@ const SimBrowser = ({
           onChange={(value) => updateFilter("searchQuery", value)}
         />
       </div>
-
-      <QuickPickChips
-        filters={filters}
-        onTogglePriceRange={togglePriceRange}
-        onToggleTag={toggleTag}
-        onUpdateFilter={updateFilter}
-      />
 
       <div className="lg:hidden mb-4 flex justify-between items-center">
         <MobileFilterDrawer
