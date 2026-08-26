@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { getServerSims } from "@/lib/serverSimData";
 import { filterSims, paginateSims, type SimFilterCriteria } from "@/lib/simFilter";
-import { countTags, getUniquePrefixes } from "@/lib/simUtils";
+import { countTags, getUniquePrefixes, PRICE_RANGES } from "@/lib/simUtils";
 import type { QuyType, SortOption } from "@/lib/simUtils";
 
 // Cache tầng route để đỡ cold-start; chính thực ra `getServerSims` đã cache CSV
@@ -77,15 +77,37 @@ export async function GET(req: NextRequest) {
   const filtered = filterSims(sims, criteria);
   const items = paginateSims(filtered, limit, offset);
 
-  const body: { items: typeof items; total: number; facets?: { tagCounts: Record<string, number>; prefixes: { prefix3: string[]; prefix4: string[] } } } = {
+  const body: {
+    items: typeof items;
+    total: number;
+    facets?: {
+      tagCounts: Record<string, number>;
+      prefixes: { prefix3: string[]; prefix4: string[] };
+      networkCounts: Record<string, number>;
+      priceCounts: number[];
+    };
+  } = {
     items,
     total: filtered.length,
   };
 
   if (includeFacets) {
+    // Đếm số lượng SIM cho từng mạng (để sidebar hiển thị trong ngoặc)
+    const networkCounts: Record<string, number> = {};
+    // Đếm số lượng SIM theo từng khoảng giá (index khớp PRICE_RANGES)
+    const priceCounts: number[] = PRICE_RANGES.map(() => 0);
+
+    sims.forEach((s) => {
+      networkCounts[s.network] = (networkCounts[s.network] ?? 0) + 1;
+      const idx = PRICE_RANGES.findIndex((r) => s.price >= r.min && s.price <= r.max);
+      if (idx !== -1) priceCounts[idx]++;
+    });
+
     body.facets = {
       tagCounts: countTags(sims),
       prefixes: getUniquePrefixes(sims),
+      networkCounts,
+      priceCounts,
     };
   }
 

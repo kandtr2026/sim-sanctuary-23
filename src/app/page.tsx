@@ -5,7 +5,7 @@ import { buildSimItemListJsonLd } from "@/components/SimSnapshot";
 import { faqData } from "@/data/faqData";
 import { getServerSims } from "@/lib/serverSimData";
 import { filterSims } from "@/lib/simFilter";
-import { countTags, getUniquePrefixes } from "@/lib/simUtils";
+import { countTags, getUniquePrefixes, PRICE_RANGES } from "@/lib/simUtils";
 import { DAU_SO_PREFIXES } from "@/lib/simTaxonomy";
 
 const TITLE = "Kho SIM số đẹp Mobifone giá rẻ, chính chủ – CHONSOMOBIFONE.COM";
@@ -70,10 +70,21 @@ export default async function HomePage() {
   const catalogue = filterSims(sims, {});
   const initialData = catalogue.slice(0, 40);
   const initialTotal = catalogue.length;
-  const initialFacets = {
-    tagCounts: countTags(sims),
-    prefixes: getUniquePrefixes(sims),
-  };
+  const initialFacets = (() => {
+    const networkCounts: Record<string, number> = {};
+    const priceCounts: number[] = PRICE_RANGES.map(() => 0);
+    sims.forEach((s) => {
+      networkCounts[s.network] = (networkCounts[s.network] ?? 0) + 1;
+      const idx = PRICE_RANGES.findIndex((r) => s.price >= r.min && s.price <= r.max);
+      if (idx !== -1) priceCounts[idx]++;
+    });
+    return {
+      tagCounts: countTags(sims),
+      prefixes: getUniquePrefixes(sims),
+      networkCounts,
+      priceCounts,
+    };
+  })();
 
   // ItemList schema for the featured SIMs. These are the first cards the grid
   // paints (initialData), so the schema matches what a visitor actually sees.

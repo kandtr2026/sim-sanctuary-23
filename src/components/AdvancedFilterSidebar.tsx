@@ -13,6 +13,8 @@ interface AdvancedFilterSidebarProps {
   filters: FilterState;
   tagCounts: Record<string, number>;
   prefixes: { prefix3: string[]; prefix4: string[] };
+  networkCounts: Record<string, number>;
+  priceCounts: number[];
   onTogglePriceRange: (index: number) => void;
   onToggleTag: (tag: string) => void;
   onToggleNetwork: (network: string) => void;
@@ -56,6 +58,8 @@ const AdvancedFilterSidebar = ({
   filters,
   tagCounts,
   prefixes,
+  networkCounts,
+  priceCounts,
   onTogglePriceRange,
   onToggleTag,
   onToggleNetwork,
@@ -88,6 +92,10 @@ const AdvancedFilterSidebar = ({
     onUpdateFilter('quyPosition', null);
   };
 
+  // Format count để hiển thị trong ngoặc: (1.234)
+  const fmtCount = (n: number | undefined): string =>
+    n !== undefined && n > 0 ? ` (${n.toLocaleString('vi-VN')})` : '';
+
   return (
     <aside className="bg-card rounded-lg shadow-card border border-border overflow-hidden">
       {/* Price Filter */}
@@ -104,6 +112,7 @@ const AdvancedFilterSidebar = ({
                 }`}
               >
                 {displayLabel}
+                <span className="opacity-70">{fmtCount(priceCounts[index])}</span>
               </button>
             );
           })}
@@ -126,6 +135,7 @@ const AdvancedFilterSidebar = ({
                   className={`filter-btn-sm ${isSelected ? 'active' : ''}`}
                 >
                   {quyType}
+                  <span className="opacity-70">{fmtCount(tagCounts[quyType])}</span>
                 </button>
               );
             })}
@@ -140,6 +150,7 @@ const AdvancedFilterSidebar = ({
                 className={`filter-btn-sm ${filters.selectedTags.includes(tag) ? 'active' : ''}`}
               >
                 {tag}
+                <span className="opacity-70">{fmtCount(tagCounts[tag])}</span>
               </button>
             ))}
           </div>
@@ -156,6 +167,7 @@ const AdvancedFilterSidebar = ({
               className={`filter-btn-sm ${filters.selectedTags.includes(tag) ? 'active' : ''}`}
             >
               {tag}
+              <span className="opacity-70">{fmtCount(tagCounts[tag])}</span>
             </button>
           ))}
         </div>
@@ -171,6 +183,7 @@ const AdvancedFilterSidebar = ({
               className={`filter-btn-sm ${filters.selectedTags.includes(tag) ? 'active' : ''}`}
             >
               {tag}
+              <span className="opacity-70">{fmtCount(tagCounts[tag])}</span>
             </button>
           ))}
         </div>
@@ -193,6 +206,7 @@ const AdvancedFilterSidebar = ({
               }`}
             >
               {network}
+              <span className="opacity-70">{fmtCount(networkCounts[network])}</span>
             </button>
           ))}
         </div>

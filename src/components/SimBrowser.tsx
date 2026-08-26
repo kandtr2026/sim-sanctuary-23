@@ -62,7 +62,12 @@ const SimBrowser = ({
   /** 40 SIM đầu trang render sẵn ở build (SSG) — bỏ skeleton ở lần load đầu. */
   initialData?: NormalizedSIM[];
   initialTotal?: number;
-  initialFacets?: { tagCounts: Record<string, number>; prefixes: { prefix3: string[]; prefix4: string[] } };
+  initialFacets?: {
+    tagCounts: Record<string, number>;
+    prefixes: { prefix3: string[]; prefix4: string[] };
+    networkCounts: Record<string, number>;
+    priceCounts: number[];
+  };
 }) => {
   const [filters, setFilters] = useState<FilterState>(defaultFilterState);
   const [limit, setLimit] = useState(ITEMS_PER_PAGE);
@@ -299,11 +304,16 @@ const SimBrowser = ({
     setHashProcessed(true);
   }, [hashProcessed, updateFilter, togglePriceRange, toggleTag]);
 
-  // ── Facets (tagCounts / prefixes cho sidebar) — 1 lần, cache lâu ──────────
+  // ── Facets (tagCounts / prefixes / networkCounts / priceCounts cho sidebar) ─
   const facetsQuery = useQuery<{
     items: NormalizedSIM[];
     total: number;
-    facets?: { tagCounts: Record<string, number>; prefixes: { prefix3: string[]; prefix4: string[] } };
+    facets?: {
+      tagCounts: Record<string, number>;
+      prefixes: { prefix3: string[]; prefix4: string[] };
+      networkCounts: Record<string, number>;
+      priceCounts: number[];
+    };
   }>({
     queryKey: ["sims-facets"],
     queryFn: async () => {
@@ -320,6 +330,8 @@ const SimBrowser = ({
 
   const tagCounts = facetsQuery.data?.facets?.tagCounts ?? {};
   const prefixes = facetsQuery.data?.facets?.prefixes ?? { prefix3: [], prefix4: [] };
+  const networkCounts = facetsQuery.data?.facets?.networkCounts ?? {};
+  const priceCounts = facetsQuery.data?.facets?.priceCounts ?? [];
   const catalogueTotal = facetsQuery.data?.total ?? 0;
 
   // ── Main query: toàn bộ filter state + trang (server lọc full 49k) ────────
@@ -415,6 +427,8 @@ const SimBrowser = ({
             filters={filters}
             tagCounts={tagCounts}
             prefixes={prefixes}
+            networkCounts={networkCounts}
+            priceCounts={priceCounts}
             onTogglePriceRange={togglePriceRange}
             onToggleTag={toggleTag}
             onToggleNetwork={toggleNetwork}
@@ -433,6 +447,8 @@ const SimBrowser = ({
                   filters={filters}
                   tagCounts={tagCounts}
                   prefixes={prefixes}
+                  networkCounts={networkCounts}
+                  priceCounts={priceCounts}
                   activeFilterCount={activeFilters.length}
                   onTogglePriceRange={togglePriceRange}
                   onToggleTag={toggleTag}
