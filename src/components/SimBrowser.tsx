@@ -454,6 +454,13 @@ const SimBrowser = ({
               </div>
             </div>
 
+            {/* Search guide */}
+            <div className="mb-4 space-y-1 text-xs leading-relaxed text-muted-foreground">
+              <p>Tìm sim có số 6789 bạn hãy gõ <code className="rounded bg-muted px-1">6789</code></p>
+              <p>Tìm sim có đầu 090 đuôi 6666 hãy gõ <code className="rounded bg-muted px-1">090*6666</code></p>
+              <p>Tìm sim bắt đầu bằng 0909 đuôi bất kỳ, hãy gõ: <code className="rounded bg-muted px-1">0909*</code></p>
+            </div>
+
             <ActiveFilterChips
               chips={activeFilters}
               resultCount={total}
