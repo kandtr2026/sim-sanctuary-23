@@ -143,7 +143,7 @@ const CategorySimGrid = ({
       )}
 
       {isLoading ? (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="animate-pulse space-y-3 rounded-xl border border-border bg-card p-4">
               <div className="h-4 w-16 rounded bg-muted" />
@@ -154,7 +154,7 @@ const CategorySimGrid = ({
           ))}
         </div>
       ) : displaySims.length > 0 ? (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
           {displaySims.map((sim) => (
             <SIMCardNew key={sim.id} sim={sim} quyFilter={quyFilter} />
           ))}

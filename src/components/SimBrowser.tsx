@@ -491,7 +491,7 @@ const SimBrowser = ({
 
             {!isLoading && !error && displayedSIMs.length > 0 && (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 md:gap-3 mt-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-2.5 md:gap-3 mt-4">
                   {displayedSIMs.map((sim) => (
                     <div key={sim.id} className="min-w-0">
                       <SIMCardNew
