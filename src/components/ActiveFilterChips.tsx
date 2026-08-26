@@ -32,7 +32,13 @@ const ActiveFilterChips = ({ chips, resultCount, onResetAll, hideResultCount = f
           <strong className="text-primary">{resultCount.toLocaleString()}</strong> kết quả
         </span>
       )}
-      
+
+      {hideResultCount && chips.length > 0 && (
+        <span className="text-sm text-muted-foreground whitespace-nowrap">
+          Có <strong className="text-primary">{resultCount.toLocaleString()}</strong> số trong kho số.
+        </span>
+      )}
+
       <div className="flex flex-wrap gap-2 flex-1">
         {chips.map(chip => (
           <button
