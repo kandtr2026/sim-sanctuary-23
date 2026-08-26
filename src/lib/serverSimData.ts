@@ -258,17 +258,18 @@ const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
       apikey: SUPABASE_PUBLISHABLE_KEY,
       Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
     };
-    // Lấy toàn bộ id hợp lệ (status != sold) theo trang 5000
+    // Lấy toàn bộ id hợp lệ (status != sold) theo trang. PostgREST giới hạn
+    // 1000 rows mặc định → dùng header Range để lấy tối đa mỗi lần.
     const ids: string[] = [];
-    for (let offset = 0; ; offset += 5000) {
+    for (let offset = 0; ; offset += SUPABASE_SIMS_PAGE) {
       const res = await fetch(
-        `${SUPABASE_REST}/sims?select=id&status=neq.sold&limit=5000&offset=${offset}`,
-        { headers: authHeaders },
+        `${SUPABASE_REST}/sims?select=id&status=neq.sold&offset=${offset}`,
+        { headers: { ...authHeaders, Range: `${offset}-${offset + SUPABASE_SIMS_PAGE - 1}` } },
       );
       if (!res.ok) return null;
       const page = (await res.json()) as { id: string }[];
       ids.push(...page.map((x) => x.id));
-      if (page.length < 5000) break;
+      if (page.length < SUPABASE_SIMS_PAGE) break;
     }
     if (ids.length === 0) return null;
 
@@ -277,7 +278,7 @@ const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
       const chunk = ids.slice(i, i + SUPABASE_SIMS_PAGE);
       const res = await fetch(
         `${SUPABASE_REST}/sims?select=id,raw_digits,display_number,original_price,final_price,effective_price,network,tags,beauty_score,is_vip&id=in.(${chunk.join(',')})`,
-        { headers: authHeaders },
+        { headers: { ...authHeaders, Range: `0-${chunk.length - 1}` } },
       );
       if (!res.ok) return null;
       const rows = (await res.json()) as SimsDbRow[];
