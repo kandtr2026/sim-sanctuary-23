@@ -9,6 +9,7 @@ _Cập nhật: 2026-08-26. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone 
 - **Nâng cấp API `/api/sim-hop-tuoi`**: nhận params `cccd`, `nlChuDao`, `nlPhaiCo`, `nlLoaiTru`; trả về `batCuc` object với phân tích CCCD + filter active.
 - **Nâng cấp UI `SimHopTuoiTool.tsx`**: form CCCD (12 số), accordion "Kết hợp Bát Cực Linh Số" (NL chủ đạo select, NL phải có toggle, NL loại trừ toggle), panel "Hóa giải CCCD" hiển thị năng lượng hung + đề xuất hóa giải + chi tiết từng cặp, SIM card hiển thị nlChuDao badge + 3 năng lượng nổi bật × count.
 - Đã build OK, deploy lên production (commit `2648f25`, push `origin main`).
+- **Hotfix crash accordion Bát Cực** (commit `98f2008`): Radix Select v2.2.5 **throw Error** khi render `<SelectItem value="">` → mở accordion "Kết hợp Bát Cực Linh Số" crash trang. Đã đổi thành `value="tat-ca"` + map `v === "tat-ca" → null`. Verify: build XANH, deploy Ready, JS bundle live chứa `tat-ca`.
 
 ## 2. CÒN LẠI / việc làm tiếp
 
