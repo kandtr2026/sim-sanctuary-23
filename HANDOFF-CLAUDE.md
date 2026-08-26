@@ -38,6 +38,7 @@ _Cập nhật: 2026-08-26. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone 
 - **Lịch âm/dương toggle** — form nhập giờ sinh hiện chỉ âm lịch, cần thêm toggle.
 - **WIP phiên khác (chưa commit)**: `src/lib/serverSimData.ts`.
 - **`/mua-sim-gia-re` có 1 lỗi hydrate React #418** (bản build local; prod hiện sạch). Card SIM ở trang này KHÔNG render phía server (SSR ra 0 card, chỉ skeleton) nên không phải do rule hiển thị — nghi số liệu build-time (`stockLabel`/snapshot) lệch với data client fetch. Cần soi riêng.
+- **Vào bằng link `?q=` thì ~2–3s đầu khách thấy danh sách CHƯA lọc** (SSR `initialData` hiện trước, `keepPreviousData` giữ nó trong lúc query đã seed đang bay). Muốn sạch: khi có seed thì bỏ qua `initialData` / bật skeleton tới khi fetch đầu tiên về.
 
 ## 3. Bẫy phải biết
 
