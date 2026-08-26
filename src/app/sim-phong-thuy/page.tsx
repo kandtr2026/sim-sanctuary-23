@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Sparkles } from "lucide-react";
 import SimPhongThuyTool from "./SimPhongThuyTool";
-import ZaloChatCard from "@/components/ZaloChatCard";
 import {
   Accordion,
   AccordionContent,
@@ -75,12 +74,11 @@ const faqJsonLd = {
   })),
 };
 
-// Card style classes - Ruby red gradient with radial highlight and golden glow border
-const cardBaseClass = "relative rounded-2xl p-6 md:p-8";
+// Panel: charcoal ấm trung tính + viền hairline (khớp couture của SimPhongThuyTool).
+const cardBaseClass = "relative rounded-2xl p-6 md:p-9";
 const cardStyle: React.CSSProperties = {
-  background: 'radial-gradient(ellipse at 50% 30%, rgba(180, 40, 50, 0.5) 0%, transparent 60%), linear-gradient(135deg, #5a0a0e 0%, #8b1a1a 40%, #6d1515 70%, #4a0d0d 100%)',
-  border: '1px solid rgba(245, 194, 107, 0.45)',
-  boxShadow: '0 0 25px rgba(245, 194, 107, 0.25), inset 0 1px 0 rgba(245, 194, 107, 0.1)',
+  background: '#161214',
+  border: '1px solid rgba(255,255,255,0.08)',
 };
 
 export default function SimPhongThuyPage() {
@@ -90,13 +88,13 @@ export default function SimPhongThuyPage() {
         <div className="flex-1 container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             {/* Hero Section */}
-            <div className="text-center mb-8">
-              <h1 className="text-2xl md:text-3xl font-bold mb-3 flex items-center justify-center gap-2" style={{ color: '#F7C55A', textShadow: '0 0 12px rgba(247, 197, 90, 0.6)' }}>
-                <Sparkles className="w-7 h-7" style={{ color: '#F7C55A' }} />
-                Bói 4 Số Đuôi / 6 Số Đuôi SIM
+            <div className="text-center mb-10 md:mb-12">
+              <h1 className="mb-3 flex items-center justify-center gap-2.5 font-bold leading-tight text-[clamp(28px,5vw,44px)]" style={{ color: '#F5F5F5', letterSpacing: '-0.02em' }}>
+                <Sparkles className="w-7 h-7 shrink-0" style={{ color: '#D9B778' }} />
+                <span>Xem SIM Hợp Mệnh <span style={{ color: '#D9B778' }}>Theo Phong Thủy</span></span>
               </h1>
-              <p style={{ color: 'rgba(237, 237, 237, 0.65)' }} className="text-sm md:text-base">
-                Tra cứu ý nghĩa số đuôi SIM theo 80 quẻ Kinh Dịch
+              <p style={{ color: 'rgba(237, 237, 237, 0.7)' }} className="mx-auto max-w-xl text-sm md:text-base leading-relaxed">
+                Tra cứu ý nghĩa số đuôi theo 80 quẻ Kinh Dịch — luận cát hung, chọn số hợp mệnh, hợp tuổi.
               </p>
             </div>
 
@@ -108,17 +106,15 @@ export default function SimPhongThuyPage() {
               <SimPhongThuyTool />
             </Suspense>
 
-            {/* Zalo Contact */}
-            <div className="my-8 max-w-sm mx-auto">
-              <ZaloChatCard />
-            </div>
-
             {/* FAQ Section */}
             <div className={cardBaseClass} style={cardStyle}>
-              <h2 className="text-lg font-semibold mb-5" style={{ color: '#F7C55A', textShadow: '0 0 8px rgba(247, 197, 90, 0.4)' }}>Câu hỏi thường gặp</h2>
+              <h2 className="text-[22px] md:text-2xl font-semibold mb-6 flex items-center gap-3" style={{ color: '#F5F5F5', letterSpacing: '-0.01em' }}>
+                <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: '#D9B778' }} />
+                Câu hỏi thường gặp
+              </h2>
               <Accordion type="single" collapsible className="w-full">
                 {faqData.map((faq, index) => (
-                  <AccordionItem key={index} value={`faq-${index}`} style={{ borderColor: 'rgba(245, 194, 107, 0.2)' }}>
+                  <AccordionItem key={index} value={`faq-${index}`} style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
                     <AccordionTrigger className="text-left hover:no-underline" style={{ color: '#EDEDED' }}>
                       {faq.question}
                     </AccordionTrigger>
@@ -134,13 +130,12 @@ export default function SimPhongThuyPage() {
             <div
               className="rounded-xl p-5 text-center mt-8"
               style={{
-                background: 'rgba(255, 255, 255, 0.06)',
-                backdropFilter: 'blur(6px)',
-                border: '1px solid rgba(245, 194, 107, 0.25)'
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)'
               }}
             >
               <p className="text-sm" style={{ color: 'rgba(237, 237, 237, 0.8)' }}>
-                <strong style={{ color: '#F7C55A' }}>Lưu ý:</strong> Kết quả bói số đuôi SIM dựa trên 80 quẻ Kinh Dịch, chỉ mang tính chất tham khảo và giải trí.
+                <strong style={{ color: '#D9B778' }}>Lưu ý:</strong> Kết quả tra cứu số đuôi SIM dựa trên 80 quẻ Kinh Dịch, chỉ mang tính chất tham khảo.
                 Việc lựa chọn SIM nên kết hợp nhiều yếu tố phong thủy khác như ngũ hành, bát tự, tổng số nút...
               </p>
             </div>

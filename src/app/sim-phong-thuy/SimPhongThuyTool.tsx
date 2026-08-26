@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { EDGE_FUNCTIONS_URL } from '@/integrations/supabase/config';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Copy, AlertCircle, Sparkles } from 'lucide-react';
+import { Search, Copy, AlertCircle, Sparkles, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPrice, formatSIMNumber } from '@/lib/simUtils';
 
@@ -125,21 +125,24 @@ const HEXAGRAMS: Record<number, Hexagram> = {
   80: { index: 80, title: "Số phận cao nhất, sẽ được thành công", short: "Số phận cao nhất, sẽ được thành công", level: "Đại cát" },
 };
 
-// Level badge colors - Vibrant with glow
+// Level badge — restrained pill system (no neon glow). Champagne marks the top
+// tier ("Đại cát"), neutral translucent surfaces carry the middle tiers, and a
+// muted red *tint* (not a saturated fill) signals the inauspicious ones. Keeps
+// the whole result calm so the CTA stays the loudest thing on the page.
 const getLevelBadgeClass = (level: HexagramLevel): string => {
   switch (level) {
     case 'Đại cát':
-      return 'bg-[#2ecc71] text-white border-[#2ecc71]/60 shadow-[0_0_12px_rgba(46,204,113,0.5)]';
+      return 'bg-[#D4AF6E] text-[#1A1512] border-transparent';
     case 'Cát':
-      return 'bg-[#27ae60] text-white border-[#27ae60]/60 shadow-[0_0_12px_rgba(39,174,96,0.5)]';
+      return 'bg-white/[0.12] text-[#EDEDED] border-white/10';
     case 'Bình thường':
-      return 'bg-[#f4b400] text-black border-[#f4b400]/60 shadow-[0_0_12px_rgba(244,180,0,0.5)]';
+      return 'bg-white/[0.06] text-[rgba(237,237,237,0.75)] border-white/10';
     case 'Hung':
-      return 'bg-[#ff4d4f] text-white border-[#ff4d4f]/60 shadow-[0_0_12px_rgba(255,77,79,0.5)]';
+      return 'bg-[rgba(192,57,43,0.16)] text-[#E8A79F] border-[rgba(192,57,43,0.4)]';
     case 'Đại hung':
-      return 'bg-[#ff4d4f] text-white border-[#ff4d4f]/60 shadow-[0_0_12px_rgba(255,77,79,0.6)]';
+      return 'bg-[rgba(192,57,43,0.28)] text-[#F0B7AF] border-[rgba(192,57,43,0.55)]';
     default:
-      return 'bg-muted text-muted-foreground';
+      return 'bg-white/[0.06] text-[rgba(237,237,237,0.75)] border-white/10';
   }
 };
 
@@ -381,12 +384,31 @@ const fetchInventory = async (): Promise<InventoryItem[]> => {
   return inventory;
 };
 
-// Card style classes - Ruby red gradient with radial highlight and golden glow border
-const cardBaseClass = "relative rounded-2xl p-6 md:p-8";
-const cardStyle = {
-  background: 'radial-gradient(ellipse at 50% 30%, rgba(180, 40, 50, 0.5) 0%, transparent 60%), linear-gradient(135deg, #5a0a0e 0%, #8b1a1a 40%, #6d1515 70%, #4a0d0d 100%)',
-  border: '1px solid rgba(245, 194, 107, 0.45)',
-  boxShadow: '0 0 25px rgba(245, 194, 107, 0.25), inset 0 1px 0 rgba(245, 194, 107, 0.1)',
+// ===================== COUTURE STYLE TOKENS (cục bộ cho /sim-phong-thuy) =====================
+// Bề mặt trung tính (charcoal ấm gần đen) chiếm ~90% trang; đỏ + champagne chỉ
+// dành cho chi tiết nhỏ (CTA, badge, marker) để CTA luôn nổi bật nhất. Không
+// đụng token global — mọi thứ ở đây chỉ tô cục bộ trang này.
+const CHAMPAGNE = '#D9B778';
+const HAIRLINE = 'rgba(255,255,255,0.08)';
+
+// Panel mặc định: charcoal ấm, viền hairline, không glow.
+const panelBase = 'relative rounded-2xl p-6 md:p-9';
+const panelNeutralStyle: React.CSSProperties = {
+  background: '#161214',
+  border: `1px solid ${HAIRLINE}`,
+};
+// Panel hero (ô nhập) — bề mặt DUY NHẤT được nhấn: viền champagne + glow nhẹ.
+const panelHeroStyle: React.CSSProperties = {
+  background: 'linear-gradient(180deg, #1B1517 0%, #151113 100%)',
+  border: '1px solid rgba(217,183,120,0.30)',
+  boxShadow:
+    '0 24px 60px -34px rgba(217,183,120,0.30), inset 0 1px 0 rgba(255,255,255,0.05)',
+};
+// MỘT màu CTA duy nhất (họ đỏ, không cam). Hover sáng lên qua class .spt-cta.
+const ctaStyle: React.CSSProperties = {
+  background: 'linear-gradient(180deg, #C0392B 0%, #9E2A20 100%)',
+  boxShadow: '0 10px 24px -12px rgba(192,57,43,0.65)',
+  borderRadius: '12px',
 };
 
 // Fisher-Yates shuffle helper
@@ -421,6 +443,14 @@ const SimPhongThuyTool = () => {
   const [suffixLength, setSuffixLength] = useState<'4' | '6'>('4');
   const [result, setResult] = useState<{ suffix: string; que: number; hexagram: Hexagram } | null>(null);
   const [error, setError] = useState('');
+  const [isLooking, setIsLooking] = useState(false);
+
+  // Auto-scroll (P0-1): sau khi tra cứu, cuộn tới panel kết quả để trên mobile
+  // người dùng không tưởng "bấm không ăn". Chỉ cuộn khi do người dùng chủ động
+  // (submit / đổi độ dài), KHÔNG cuộn khi deep-link ?sim= tự nạp lúc mount.
+  const resultRef = useRef<HTMLDivElement | null>(null);
+  const scrollPendingRef = useRef(false);
+  const lookTimerRef = useRef<number | null>(null);
 
   // State for real inventory from Google Sheet
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
@@ -466,44 +496,82 @@ const SimPhongThuyTool = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const performLookup = (input: string, len: '4' | '6') => {
+  const performLookup = (input: string, len: '4' | '6', scrollToResult = false) => {
     setError('');
-    
+
     // Extract digits only
     const digits = input.replace(/\D/g, '');
     const requiredLen = parseInt(len);
-    
+
     if (digits.length < requiredLen) {
       setError(`Vui lòng nhập ít nhất ${requiredLen} số để tra cứu ${requiredLen} số cuối.`);
       setResult(null);
       return;
     }
-    
+
     // Get suffix
     const suffix = digits.slice(-requiredLen);
     const n = parseInt(suffix, 10);
     let que = n % 80;
     if (que === 0) que = 80;
-    
+
     const hexagram = HEXAGRAMS[que];
     if (!hexagram) {
       setError('Không tìm thấy quẻ tương ứng.');
       setResult(null);
       return;
     }
-    
+
+    if (scrollToResult) scrollPendingRef.current = true;
     setResult({ suffix, que, hexagram });
-    
+
     // Trigger new random suggestions
     setSuggestionSeed(Date.now());
-    
+
     // Update URL
     router.replace(`/sim-phong-thuy?sim=${suffix}&len=${len}`);
   };
 
+  // Cuộn tới kết quả sau khi nó đã render (P0-1). Tôn trọng prefers-reduced-motion.
+  useEffect(() => {
+    if (!result || !scrollPendingRef.current) return;
+    scrollPendingRef.current = false;
+    const el = resultRef.current;
+    if (!el) return;
+    const reduce =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    });
+  }, [result]);
+
+  // Dọn timer "Đang tra cứu…" nếu component unmount giữa chừng.
+  useEffect(() => () => {
+    if (lookTimerRef.current) window.clearTimeout(lookTimerRef.current);
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    performLookup(inputValue, suffixLength);
+    if (isLooking) return;
+    // Phản hồi tức thì ~150ms rồi mới luận số → nút có trạng thái "Đang tra cứu…".
+    setIsLooking(true);
+    if (lookTimerRef.current) window.clearTimeout(lookTimerRef.current);
+    lookTimerRef.current = window.setTimeout(() => {
+      performLookup(inputValue, suffixLength, true);
+      setIsLooking(false);
+    }, 150);
+  };
+
+  // P1-2: đổi độ dài tra cứu thì tự chạy lại lookup nếu input đã đủ số (không
+  // bắt bấm "Tra cứu" lần nữa). Gợi ý SIM cũng tự đổi theo suffixLength qua memo.
+  const handleLengthChange = (v: '4' | '6') => {
+    setSuffixLength(v);
+    const digits = inputValue.replace(/\D/g, '');
+    if (digits.length >= parseInt(v)) {
+      performLookup(inputValue, v, true);
+    }
   };
 
   const handleCopyLink = () => {
@@ -582,43 +650,60 @@ const SimPhongThuyTool = () => {
 
   return (
     <>
-          {/* Card 1: Input Form */}
-          <div className={cardBaseClass} style={cardStyle}>
-            <h2 className="text-lg md:text-xl font-semibold mb-6 flex items-center gap-2" style={{ color: '#EDEDED' }}>
-              <Search className="w-5 h-5" style={{ color: '#F7C55A' }} />
-              Nhập số cần tra cứu
-            </h2>
+          <style>{`
+            @keyframes spt-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+            @keyframes spt-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+            .spt-rise { animation: spt-rise 300ms cubic-bezier(0.16,1,0.3,1) both; }
+            .spt-card { transition: transform 200ms cubic-bezier(0.4,0,0.2,1), border-color 200ms cubic-bezier(0.4,0,0.2,1), box-shadow 200ms cubic-bezier(0.4,0,0.2,1); }
+            @media (hover: hover) { .spt-card:hover { transform: translateY(-2px); border-color: rgba(217,183,120,0.35); box-shadow: 0 16px 38px -20px rgba(0,0,0,0.8); } }
+            .spt-cta { transition: transform 180ms cubic-bezier(0.4,0,0.2,1), filter 180ms cubic-bezier(0.4,0,0.2,1); }
+            @media (hover: hover) { .spt-cta:hover { filter: brightness(1.08); } }
+            .spt-cta:active { transform: scale(0.98); }
+            .spt-skel { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.09) 37%, rgba(255,255,255,0.04) 63%); background-size: 200% 100%; animation: spt-shimmer 1200ms ease-in-out infinite; }
+          `}</style>
+
+          {/* Panel 1 (HERO): ô nhập — bề mặt DUY NHẤT được viền champagne + glow nhẹ */}
+          <div className={panelBase} style={panelHeroStyle}>
+            <div className="flex items-center gap-3 mb-6">
+              <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: CHAMPAGNE }} />
+              <h2 className="text-[22px] md:text-2xl font-semibold flex items-center gap-2" style={{ color: '#F5F5F5', letterSpacing: '-0.01em' }}>
+                <Search className="w-5 h-5" style={{ color: CHAMPAGNE }} />
+                Nhập số cần tra cứu
+              </h2>
+            </div>
             
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                 {/* Input */}
                 <div className="md:col-span-2 space-y-2">
-                  <Label htmlFor="phone" style={{ color: '#EDEDED' }} className="text-sm">
+                  <Label htmlFor="phone" style={{ color: 'rgba(237,237,237,0.8)' }} className="text-sm">
                     Số điện thoại hoặc số đuôi
                   </Label>
                   <Input
                     id="phone"
                     type="text"
-                    placeholder="VD: 0909.123.456 hoặc 3456"
+                    inputMode="tel"
+                    autoComplete="off"
+                    placeholder="VD: 0912 345 678"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    className="bg-black/50 border-[rgba(245,194,107,0.3)] text-white placeholder:text-gray-500 focus:border-[#F7C55A] focus:ring-[#F7C55A]/30 h-14 md:h-16 text-2xl md:text-3xl"
+                    className="h-14 md:h-16 rounded-xl text-lg md:text-2xl font-medium tracking-wide bg-black/40 border-white/10 text-white placeholder:text-white/30 focus-visible:border-[#D9B778] focus-visible:ring-2 focus-visible:ring-[#D9B778]/30"
                   />
                   <p style={{ color: 'rgba(237, 237, 237, 0.5)' }} className="text-xs">
-                    Có thể nhập 4 số, 6 số, hoặc số điện thoại đầy đủ (có thể có dấu chấm/khoảng trắng)
+                    Nhập 4 số, 6 số hoặc cả số điện thoại — có thể kèm dấu chấm/khoảng trắng.
                   </p>
                 </div>
 
                 {/* Suffix Length */}
                 <div className="space-y-2">
-                  <Label style={{ color: '#EDEDED' }} className="text-sm">Độ dài tra cứu</Label>
-                  <Select value={suffixLength} onValueChange={(v) => setSuffixLength(v as '4' | '6')}>
-                    <SelectTrigger className="bg-black/50 border-[rgba(245,194,107,0.3)] text-white focus:border-[#F7C55A] focus:ring-[#F7C55A]/30 h-14 md:h-16 text-lg md:text-xl">
+                  <Label style={{ color: 'rgba(237,237,237,0.8)' }} className="text-sm">Độ dài tra cứu</Label>
+                  <Select value={suffixLength} onValueChange={(v) => handleLengthChange(v as '4' | '6')}>
+                    <SelectTrigger className="h-14 md:h-16 rounded-xl text-base md:text-lg bg-black/40 border-white/10 text-white focus:border-[#D9B778] focus:ring-2 focus:ring-[#D9B778]/30">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-neutral-900 border-[rgba(245,194,107,0.3)]">
-                      <SelectItem value="4" className="text-white hover:bg-neutral-800 text-lg md:text-xl">4 số cuối</SelectItem>
-                      <SelectItem value="6" className="text-white hover:bg-neutral-800 text-lg md:text-xl">6 số cuối</SelectItem>
+                    <SelectContent className="bg-[#1B1618] border-white/10 text-white">
+                      <SelectItem value="4" className="text-white text-base md:text-lg">4 số cuối</SelectItem>
+                      <SelectItem value="6" className="text-white text-base md:text-lg">6 số cuối</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -626,47 +711,61 @@ const SimPhongThuyTool = () => {
 
               {/* Error */}
               {error && (
-                <div className="flex items-center gap-2 text-red-300 text-sm bg-red-950/50 border border-red-400/50 rounded-lg p-3">
+                <div role="alert" className="flex items-center gap-2 text-sm rounded-xl p-3" style={{ color: '#E8A79F', background: 'rgba(192,57,43,0.12)', border: '1px solid rgba(192,57,43,0.4)' }}>
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   {error}
                 </div>
               )}
 
-              {/* Submit */}
-              <Button 
-                type="submit" 
-                className="w-full md:w-auto text-white border-0"
-                style={{ 
-                  background: 'linear-gradient(135deg, #ff3b3b, #ff7a18)', 
-                  boxShadow: '0 6px 20px rgba(255, 90, 50, 0.45)' 
-                }}
+              {/* Submit — MỘT màu CTA duy nhất (đỏ), có trạng thái "Đang tra cứu…" */}
+              <Button
+                type="submit"
+                size="lg"
+                disabled={isLooking}
+                aria-busy={isLooking}
+                className="spt-cta w-full md:w-auto text-white border-0 text-base font-semibold"
+                style={ctaStyle}
               >
-                <Search className="w-4 h-4 mr-2" />
-                Tra cứu
+                {isLooking ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Đang tra cứu…
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-4 h-4 mr-2" />
+                    Tra cứu
+                  </>
+                )}
               </Button>
             </form>
           </div>
 
-          {/* Card 2: Result Section */}
+          {/* Panel 2: Kết quả — bề mặt trung tính, entrance + ref để auto-scroll (P0-1) */}
           {result && (
-            <div className={`${cardBaseClass} mt-6 md:mt-8`} style={cardStyle}>
-              {/* Header with Copy Link */}
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2" style={{ color: '#EDEDED' }}>
-                  <Sparkles className="w-5 h-5" style={{ color: '#F7C55A' }} />
-                  Kết quả tra cứu
-                </h2>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+            <div
+              ref={resultRef}
+              key={`${result.suffix}-${result.que}`}
+              className={`${panelBase} spt-rise mt-10 md:mt-16`}
+              style={{ ...panelNeutralStyle, scrollMarginTop: 'calc(var(--nav-height, 65px) + 16px)' }}
+            >
+              {/* Header + Copy link */}
+              <div className="flex items-center justify-between gap-3 mb-6">
+                <div className="flex items-center gap-3">
+                  <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: CHAMPAGNE }} />
+                  <h2 className="text-[22px] md:text-2xl font-semibold flex items-center gap-2" style={{ color: '#F5F5F5', letterSpacing: '-0.01em' }}>
+                    <Sparkles className="w-5 h-5" style={{ color: CHAMPAGNE }} />
+                    Kết quả tra cứu
+                  </h2>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={handleCopyLink}
-                  className="bg-black/40 hover:bg-black/60 text-white"
-                  style={{ 
-                    border: '1px solid rgba(245, 194, 107, 0.45)',
-                    boxShadow: '0 0 10px rgba(245, 194, 107, 0.2)'
-                  }}
+                  className="shrink-0 bg-white/5 hover:bg-white/10 text-[#EDEDED]"
+                  style={{ border: '1px solid rgba(255,255,255,0.12)', borderRadius: '9999px' }}
                 >
-                  <Copy className="w-4 h-4 mr-2" style={{ color: '#F7C55A' }} />
+                  <Copy className="w-4 h-4 mr-2" style={{ color: CHAMPAGNE }} />
                   Copy link
                 </Button>
               </div>
@@ -683,7 +782,7 @@ const SimPhongThuyTool = () => {
                     }}
                   >
                     <p className="text-xs md:text-sm mb-2" style={{ color: 'rgba(237, 237, 237, 0.65)' }}>Số cuối tra cứu</p>
-                    <p className="text-4xl md:text-6xl font-bold tracking-wider" style={{ color: '#F7C55A' }}>{result.suffix}</p>
+                    <p className="text-4xl md:text-6xl font-bold tracking-wider" style={{ color: '#D9B778' }}>{result.suffix}</p>
                   </div>
 
                   {/* Que Number */}
@@ -725,29 +824,37 @@ const SimPhongThuyTool = () => {
           )}
 
           {/* Gợi ý SIM Đại cát / Cát - Real SIMs from inventory */}
-          <div className={`${cardBaseClass} mt-6 md:mt-8`} style={cardStyle}>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
-              <h2 className="text-lg font-semibold" style={{ color: '#F7C55A', textShadow: '0 0 8px rgba(247, 197, 90, 0.4)' }}>
-                Gợi ý SIM Đại cát / Cát (theo {suffixLength} số đuôi)
-              </h2>
+          {/* Gợi ý SIM Đại cát / Cát — bề mặt trung tính (fix couture) */}
+          <div className={`${panelBase} mt-10 md:mt-16`} style={panelNeutralStyle}>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+              <div className="flex items-center gap-3">
+                <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: CHAMPAGNE }} />
+                <h2 className="text-[22px] md:text-2xl font-semibold" style={{ color: '#F5F5F5', letterSpacing: '-0.01em' }}>
+                  Gợi ý SIM Đại cát / Cát (theo {suffixLength} số đuôi)
+                </h2>
+              </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setSuggestionSeed(Date.now())}
-                className="bg-black/40 hover:bg-black/60 text-white"
-                style={{ 
-                  border: '1px solid rgba(245, 194, 107, 0.45)',
-                  boxShadow: '0 0 10px rgba(245, 194, 107, 0.2)'
-                }}
+                className="spt-cta shrink-0 bg-white/5 hover:bg-white/10 text-[#EDEDED]"
+                style={{ border: '1px solid rgba(255,255,255,0.12)', borderRadius: '9999px' }}
               >
-                <Sparkles className="w-4 h-4 mr-2" style={{ color: '#F7C55A' }} />
+                <Sparkles className="w-4 h-4 mr-2" style={{ color: CHAMPAGNE }} />
                 Làm mới gợi ý
               </Button>
             </div>
             
             {!inventoryLoaded ? (
-              <div className="text-center py-8">
-                <p style={{ color: 'rgba(237, 237, 237, 0.7)' }}>Đang tải kho SIM...</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="rounded-xl p-5 flex flex-col gap-3" style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${HAIRLINE}` }}>
+                    <div className="spt-skel h-6 w-2/3 rounded" />
+                    <div className="spt-skel h-5 w-1/2 rounded" />
+                    <div className="spt-skel h-6 w-20 rounded-full" />
+                    <div className="spt-skel h-10 w-full rounded-lg mt-2" />
+                  </div>
+                ))}
               </div>
             ) : luckySuggestions.luckyGreat.length === 0 && luckySuggestions.luckyGood.length === 0 ? (
               <div className="text-center py-8">
@@ -758,8 +865,8 @@ const SimPhongThuyTool = () => {
                 {/* Section Đại cát */}
                 {luckySuggestions.luckyGreat.length > 0 && (
                   <div>
-                    <h3 className="text-base font-semibold mb-3 flex items-center gap-2" style={{ color: '#2ecc71' }}>
-                      <span className="inline-block w-3 h-3 rounded-full bg-[#2ecc71]"></span>
+                    <h3 className="text-base font-semibold mb-3 flex items-center gap-2" style={{ color: CHAMPAGNE }}>
+                      <span aria-hidden className="inline-block w-2 h-2 rounded-full" style={{ background: CHAMPAGNE }} />
                       Đại cát ({luckySuggestions.luckyGreat.length})
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -770,11 +877,11 @@ const SimPhongThuyTool = () => {
                           style={{ 
                             background: 'rgba(255, 255, 255, 0.06)', 
                             backdropFilter: 'blur(6px)',
-                            border: '1px solid rgba(46, 204, 113, 0.35)'
+                            border: '1px solid rgba(255,255,255,0.08)'
                           }}
                         >
                           {/* Phone number - hiển thị đúng từ cột "SỐ THUÊ BAO" */}
-                          <p className="font-mono text-xl md:text-2xl font-semibold" style={{ color: '#F7C55A' }}>
+                          <p className="font-mono text-xl md:text-2xl font-semibold" style={{ color: '#D9B778' }}>
                             {formatSIMNumber(entry.item.digits)}
                           </p>
                           
@@ -793,8 +900,8 @@ const SimPhongThuyTool = () => {
                             size="lg"
                             className="mt-2 text-white border-0 text-base md:text-lg py-3"
                             style={{ 
-                              background: 'linear-gradient(135deg, #ff3b3b, #ff7a18)', 
-                              boxShadow: '0 4px 12px rgba(255, 90, 50, 0.35)' 
+                              background: 'linear-gradient(180deg, #C0392B 0%, #9E2A20 100%)', 
+                              boxShadow: '0 10px 24px -12px rgba(192,57,43,0.65)' 
                             }}
                             onClick={() => handleBuyNow(entry.item)}
                           >
@@ -809,8 +916,8 @@ const SimPhongThuyTool = () => {
                 {/* Section Cát */}
                 {luckySuggestions.luckyGood.length > 0 && (
                   <div>
-                    <h3 className="text-base font-semibold mb-3 flex items-center gap-2" style={{ color: '#27ae60' }}>
-                      <span className="inline-block w-3 h-3 rounded-full bg-[#27ae60]"></span>
+                    <h3 className="text-base font-semibold mb-3 flex items-center gap-2" style={{ color: 'rgba(237,237,237,0.75)' }}>
+                      <span aria-hidden className="inline-block w-2 h-2 rounded-full" style={{ background: 'rgba(255,255,255,0.3)' }} />
                       Cát ({luckySuggestions.luckyGood.length})
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -821,11 +928,11 @@ const SimPhongThuyTool = () => {
                           style={{ 
                             background: 'rgba(255, 255, 255, 0.06)', 
                             backdropFilter: 'blur(6px)',
-                            border: '1px solid rgba(39, 174, 96, 0.35)'
+                            border: '1px solid rgba(255,255,255,0.08)'
                           }}
                         >
                           {/* Phone number - hiển thị đúng từ cột "SỐ THUÊ BAO" */}
-                          <p className="font-mono text-xl md:text-2xl font-semibold" style={{ color: '#F7C55A' }}>
+                          <p className="font-mono text-xl md:text-2xl font-semibold" style={{ color: '#D9B778' }}>
                             {formatSIMNumber(entry.item.digits)}
                           </p>
                           
@@ -844,8 +951,8 @@ const SimPhongThuyTool = () => {
                             size="lg"
                             className="mt-2 text-white border-0 text-base md:text-lg py-3"
                             style={{ 
-                              background: 'linear-gradient(135deg, #ff3b3b, #ff7a18)', 
-                              boxShadow: '0 4px 12px rgba(255, 90, 50, 0.35)' 
+                              background: 'linear-gradient(180deg, #C0392B 0%, #9E2A20 100%)', 
+                              boxShadow: '0 10px 24px -12px rgba(192,57,43,0.65)' 
                             }}
                             onClick={() => handleBuyNow(entry.item)}
                           >
