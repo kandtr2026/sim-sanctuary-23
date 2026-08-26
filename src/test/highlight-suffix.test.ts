@@ -1,8 +1,18 @@
 ﻿import { describe, it, expect } from "vitest";
 import type { ReactElement } from "react";
-import { createHighlightedNumber, createQuyHighlightedNumber } from "@/lib/highlightUtils";
+import { createHighlightedNumber, createQuyHighlightedNumber, quyDisplayNumber } from "@/lib/highlightUtils";
 
 type HlSpan = ReactElement<{ className?: string; children?: string }>;
+
+describe("quyDisplayNumber — aria-label/popup đọc đúng cái mắt thấy", () => {
+  it("tứ quý trả về chuỗi phẳng đã chấm lại", () => {
+    expect(quyDisplayNumber("0778.670.000", "0778670000", "Tứ quý")).toBe("077.867.0000");
+  });
+
+  it("ngũ quý giữ cách chấm riêng của nó", () => {
+    expect(quyDisplayNumber("0777.779.086", "0777779086", "Ngũ quý")).toBe("0.77777.9086");
+  });
+});
 
 describe("createQuyHighlightedNumber — tứ quý liền cụm", () => {
   it("gom 4 số đuôi thành một cụm thay vì để 4-3-3 cắt", () => {

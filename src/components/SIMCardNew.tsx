@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { NormalizedSIM, PromotionalData, QuyType } from '@/lib/simUtils';
 import { matchesQuyType, formatPrice, formatBirthDateDisplayLenient, formatSIMNumber } from '@/lib/simUtils';
 import { cn } from '@/lib/utils';
-import { createHighlightedNumber, createQuyHighlightedNumber } from '@/lib/highlightUtils';
+import { createHighlightedNumber, createQuyHighlightedNumber, quyDisplayNumber } from '@/lib/highlightUtils';
 import { planSimDisplay } from '@/lib/simDisplay';
 import BuyNowDialog from '@/components/BuyNowDialog';
 
@@ -73,10 +73,14 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '', birthDateDi
 
   // Đang có câu tìm: cách chấm phải theo rule chung ở `simDisplay` — cụm khách
   // tìm (`*6879`) hiện liền một cụm, không bị dấu chấm của sheet/ngày sinh cắt.
-  // Dùng lại cho aria-label và popup đặt mua để khách thấy đúng một dạng số.
+  // Lưới quý (tứ/ngũ/lục) cũng chấm lại quanh cụm quý. Dùng lại cho aria-label
+  // và popup đặt mua để khách thấy đúng một dạng số.
+  const activeQuy = quyFilter && matchesQuyType(sim.rawDigits, quyFilter) ? quyFilter : null;
   const searchDisplay = searchQuery?.trim()
     ? planSimDisplay(sim.rawDigits || rawNumber, searchQuery, cardDisplay).display
-    : cardDisplay;
+    : activeQuy
+      ? quyDisplayNumber(cardDisplay, sim.rawDigits, activeQuy)
+      : cardDisplay;
 
   const formatDiscountAmount = (amount: number): string => {
     if (amount >= 1000000) {

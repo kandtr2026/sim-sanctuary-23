@@ -186,3 +186,21 @@ export const createQuyHighlightedNumber = (
   result.push(React.createElement('span', { key: 'suf', className: 'opacity-80' }, suffix));
   return result;
 };
+
+/**
+ * Dạng số mà lưới quý ĐANG hiển thị, dưới dạng chuỗi phẳng.
+ * Rút ra từ chính node của `createQuyHighlightedNumber` để aria-label và popup
+ * đặt mua đọc đúng cái mắt khách thấy (`077.867.0000`), không phải bản 4-3-3 cũ.
+ */
+export const quyDisplayNumber = (
+  displayNumber: string,
+  rawDigits: string,
+  quyType: QuyType
+): string =>
+  createQuyHighlightedNumber(displayNumber, rawDigits, quyType)
+    .map((node) => {
+      if (typeof node === 'string') return node;
+      if (React.isValidElement<{ children?: string }>(node)) return node.props.children ?? '';
+      return '';
+    })
+    .join('');
