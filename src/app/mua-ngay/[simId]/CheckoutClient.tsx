@@ -94,7 +94,7 @@ const validateField = (field: keyof FieldErrors, value: string): string | undefi
     case 'address': {
       const v = value.trim();
       if (!v) return 'Vui lòng nhập địa chỉ';
-      if (v.length < 20) return 'Địa chỉ phải từ 20 ký tự trở lên';
+      if (v.length < 10) return 'Địa chỉ phải từ 10 ký tự trở lên';
       if (v.length > 50) return 'Địa chỉ không quá 50 ký tự';
       return undefined;
     }
