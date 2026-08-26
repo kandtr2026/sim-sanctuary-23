@@ -1,10 +1,7 @@
 "use client";
 
-import { useState } from 'react';
-import { Phone } from 'lucide-react';
 import Link from 'next/link';
 import type { NormalizedSIM, PromotionalData, QuyType } from '@/lib/simUtils';
-import QuickContactPopup from '@/components/QuickContactPopup';
 import { matchesQuyType, formatPrice, formatBirthDateDisplayLenient, formatSIMNumber } from '@/lib/simUtils';
 import { cn } from '@/lib/utils';
 import { createHighlightedNumber, createQuyHighlightedNumber } from '@/lib/highlightUtils';
@@ -28,7 +25,6 @@ interface SIMCardNewProps {
 }
 
 const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNewProps) => {
-  const [contactOpen, setContactOpen] = useState(false);
   // Build rawNumber from ALL possible sources
   const rawNumber = (() => {
     const sources = [sim.rawDigits, sim.displayNumber, sim.formattedNumber];
@@ -250,41 +246,8 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
               {formatPrice(sim.price)}
             </span>
           </div>
-          {/* Primary: straight to the order form. Secondary: Zalo/call for buyers who
-              want to talk first. Grid rather than flex: the CTA's width comes from the
-              track (1fr), not from its own flex properties, so .btn-cta-sm — which is
-              @apply-generated inside @layer components — cannot collapse it to padding
-              width the way it did with flex-1. Phone button is auto-width, CTA takes
-              the rest, and the label can never be clipped. */}
-          <div className="mt-1.5 grid grid-cols-[auto_1fr] items-stretch gap-1">
-            <button
-              type="button"
-              onClick={() => setContactOpen(true)}
-              aria-label={`Gọi hoặc chat Zalo về SIM ${cardDisplay}`}
-              title="Gọi / Chat Zalo"
-              className="flex items-center justify-center rounded border border-primary/40 bg-primary/10 px-1.5 text-primary transition-colors hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <Phone style={{ width: 'clamp(10px, 2vw, 14px)', height: 'clamp(10px, 2vw, 14px)' }} />
-            </button>
-            <Link
-              href={checkoutHref}
-              aria-label={`Đặt ngay SIM ${cardDisplay}`}
-              className="btn-cta-sm flex min-w-0 items-center justify-center whitespace-nowrap text-center"
-              style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
-            >
-              ĐẶT NGAY
-            </Link>
-          </div>
         </div>
       </div>
-
-      <QuickContactPopup
-        open={contactOpen}
-        onOpenChange={setContactOpen}
-        simNumber={cardDisplay}
-        simPrice={formatPrice(sim.price)}
-        simNetwork={carrier}
-      />
     </>
   );
 };

@@ -393,7 +393,7 @@
     background: hsl(var(--card-elevated));
     border: 1px solid hsl(0 0% 100% / 0.06);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
-    min-height: 140px; /* Consistent card height */
+    min-height: 104px; /* Consistent card height */
   }
 
   .sim-card-compact:hover {
@@ -406,7 +406,7 @@
   /* Mobile refinements — must come AFTER the base rule to win the cascade */
   @media (max-width: 768px) {
     .sim-card-compact {
-      min-height: 152px;
+      min-height: 112px;
       padding: 12px;
       border-radius: 12px;
     }
