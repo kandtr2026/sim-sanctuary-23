@@ -94,7 +94,7 @@ export default async function HomePage() {
           SIM Mobifone số đẹp — <span className="text-gold">nhận SIM rồi mới trả tiền</span>
         </h1>
         <p className="mb-3 text-sm text-muted-foreground md:text-base">
-          Tứ quý · phong thủy · thần tài lộc phát. Giá niêm yết công khai, sang tên chính chủ, giao tận tay nội thành HCM.
+          Sim Tứ quý - Tam hoa - Sim Phong thủy - Thần tài - Lộc phát. Vào tên chính chủ, giao hàng tận nơi toàn quốc.
         </p>
 
         {/* Client island: search + filters + SIM grid (SSG initialData + server fetch
