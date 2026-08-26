@@ -50,9 +50,13 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
   // phụ thuộc dấu chấm tuỳ hứng của sheet (090.9922.000, 093.888.2026).
   // Không đọc được ngày (chỉ trùng đuôi năm) thì dùng format 4-3-3 đồng nhất.
   const yearSearchActive = /(19[89]\d|20[0-2]\d)/.test(searchQuery);
-  const isBirthYear = sim.tags.includes('Năm sinh') || yearSearchActive;
+  // SIM năm sinh THẬT: parse được ngày sinh hợp lệ (web tự xử lý, không tin
+  // dấu chấm sheet) → hiện chip "Năm sinh" + hiển thị dạng ngày sinh.
+  const parsedBirthDisplay = formatBirthDateDisplayLenient(sim.rawDigits);
+  const isRealBirthSim = parsedBirthDisplay !== null;
+  const isBirthYear = isRealBirthSim || sim.tags.includes('Năm sinh') || yearSearchActive;
   const birthDisplay = isBirthYear
-    ? formatBirthDateDisplayLenient(sim.rawDigits) ?? formatSIMNumber(sim.rawDigits)
+    ? parsedBirthDisplay ?? formatSIMNumber(sim.rawDigits)
     : null;
   // Menu quyết định format hiển thị: luôn ưu tiên formattedNumber (4.3.3 chuẩn,
   // đồng nhất mọi nơi) thay vì displayNumber (dấu chấm tùy hứng từ sheet).
@@ -194,6 +198,14 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '' }: SIMCardNe
               style={badgeFontSize}
             >
               ⭐ Số đẹp
+            </span>
+          )}
+          {isRealBirthSim && (
+            <span
+              className={cn(badgeBase, 'bg-emerald-500/20 text-emerald-400 border border-emerald-400/30')}
+              style={badgeFontSize}
+            >
+              🎂 Năm sinh
             </span>
           )}
           {quyBadgeText && (
