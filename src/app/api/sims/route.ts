@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { getServerSims } from "@/lib/serverSimData";
+import { getServerSims, querySimsFromDb, type DbQueryCriteria } from "@/lib/serverSimData";
 import { filterSims, paginateSims, type SimFilterCriteria } from "@/lib/simFilter";
 import { countTags, getUniquePrefixes, PRICE_RANGES } from "@/lib/simUtils";
 import type { QuyType, SortOption } from "@/lib/simUtils";
@@ -72,6 +72,40 @@ export async function GET(req: NextRequest) {
   const limit = clampInt(searchParams.get("limit"), 30, 1, MAX_LIMIT);
   const offset = clampInt(searchParams.get("offset"), 0, 0, Number.MAX_SAFE_INTEGER);
   const includeFacets = searchParams.get("includeFacets") === "1";
+
+  // ── Fast path: push filter xuống PostgREST (1 request, không crawl 49k) ──
+  // Chỉ dùng khi criteria "đẩy xuống" được: facets cần toàn bộ kho (giữ path cũ),
+  // tags/quyType/birthDateOnly/lastDigits/matchAll phải tính trong JS → path cũ.
+  const dbCriteria: DbQueryCriteria = {
+    search: criteria.search,
+    prefixes: criteria.prefixes,
+    suffixes: criteria.suffixes,
+    networks: criteria.networks,
+    priceRanges: criteria.priceRanges,
+    customPriceMin: criteria.customPriceMin,
+    customPriceMax: criteria.customPriceMax,
+    vipFilter: criteria.vipFilter,
+    sortBy: criteria.sortBy,
+    mobifoneFirst: criteria.mobifoneFirst,
+  };
+  const canPushToDb =
+    !includeFacets &&
+    !criteria.quyType &&
+    !criteria.birthDateOnly &&
+    !criteria.lastDigits?.length &&
+    !criteria.matchAll &&
+    !criteria.tags?.length;
+
+  if (canPushToDb) {
+    const fromDb = await querySimsFromDb(dbCriteria, limit, offset);
+    if (fromDb) {
+      return Response.json({ items: fromDb.items, total: fromDb.total }, {
+        headers: {
+          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+        },
+      });
+    }
+  }
 
   const sims = await getServerSims();
   const filtered = filterSims(sims, criteria);

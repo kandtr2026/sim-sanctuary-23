@@ -214,6 +214,8 @@ const SUPABASE_REST = `${SUPABASE_URL}/rest/v1`;
 // PostgREST trên Supabase cap 1000 rows/response → phân trang bằng limit+offset.
 const SUPABASE_SIMS_PAGE = 1000;
 
+const SIMS_SELECT = 'id,raw_digits,display_number,original_price,final_price,effective_price,network,tags,beauty_score,is_vip';
+
 interface SimsDbRow {
   id: string;
   raw_digits: string;
@@ -273,32 +275,47 @@ const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
       apikey: SUPABASE_PUBLISHABLE_KEY,
       Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
     };
-    // Lấy toàn bộ id hợp lệ (status != sold) theo trang 1000. PostgREST cap
+    // Lấy toàn bộ sim hợp lệ (status != sold) theo trang 1000. PostgREST cap
     // 1000 rows/response (Range header bị bỏ qua) → dùng limit+offset.
-    const ids: string[] = [];
-    for (let offset = 0; ; offset += SUPABASE_SIMS_PAGE) {
-      const res = await fetchWithTimeout(
-        `${SUPABASE_REST}/sims?select=id&status=neq.sold&limit=${SUPABASE_SIMS_PAGE}&offset=${offset}`,
-        { headers: authHeaders },
-        FETCH_TIMEOUT_MS,
-      );
-      if (!res.ok) return null;
-      const page = (await res.json()) as { id: string }[];
-      ids.push(...page.map((x) => x.id));
-      if (page.length < SUPABASE_SIMS_PAGE) break;
-    }
-    if (ids.length === 0) return null;
+    // Chạy song song thay vì tuần tự để không kéo 50 request nối tiếp (~20s):
+    // lấy count trước, rồi bắn toàn bộ trang cùng lúc với độ đồng thời giới hạn.
+    const countRes = await fetchWithTimeout(
+      `${SUPABASE_REST}/sims?select=id&status=neq.sold&limit=0`,
+      { headers: { ...authHeaders, Prefer: 'count=exact' } },
+      FETCH_TIMEOUT_MS,
+    );
+    if (!countRes.ok) return null;
+    const cr = countRes.headers.get('content-range') || '';
+    const totalMatch = cr.match(/\/(\d+)$/);
+    if (!totalMatch) return null;
+    const total = Number(totalMatch[1]);
+    if (!Number.isFinite(total) || total <= 0) return null;
+
+    const pageCount = Math.ceil(total / SUPABASE_SIMS_PAGE);
+
+    // ── Chạy song song có giới hạn (12 luồng) ──
+    const results: (SimsDbRow[] | null)[] = new Array(pageCount).fill(null);
+    let next = 0;
+    const workers = Array.from({ length: Math.min(12, pageCount) }, async () => {
+      while (next < pageCount) {
+        const pageIdx = next++;
+        const res = await fetchWithTimeout(
+          `${SUPABASE_REST}/sims?select=${SIMS_SELECT}&status=neq.sold&limit=${SUPABASE_SIMS_PAGE}&offset=${pageIdx * SUPABASE_SIMS_PAGE}`,
+          { headers: authHeaders },
+          FETCH_TIMEOUT_MS,
+        );
+        if (!res.ok) {
+          results[pageIdx] = null;
+          continue;
+        }
+        results[pageIdx] = (await res.json()) as SimsDbRow[];
+      }
+    });
+    await Promise.all(workers);
 
     const sims: NormalizedSIM[] = [];
-    for (let i = 0; i < ids.length; i += SUPABASE_SIMS_PAGE) {
-      const chunk = ids.slice(i, i + SUPABASE_SIMS_PAGE);
-      const res = await fetchWithTimeout(
-        `${SUPABASE_REST}/sims?select=id,raw_digits,display_number,original_price,final_price,effective_price,network,tags,beauty_score,is_vip&id=in.(${chunk.join(',')})`,
-        { headers: authHeaders },
-        FETCH_TIMEOUT_MS,
-      );
-      if (!res.ok) return null;
-      const rows = (await res.json()) as SimsDbRow[];
+    for (const rows of results) {
+      if (!rows) return null;
       for (const r of rows) sims.push(simsDbRowToNormalized(r));
     }
     return sims;
@@ -307,6 +324,182 @@ const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
     return null;
   }
 };
+
+export interface DbQueryCriteria {
+  search?: string;
+  prefixes?: string[];
+  suffixes?: string[];
+  networks?: string[];
+  priceRanges?: number[];
+  customPriceMin?: number | null;
+  customPriceMax?: number | null;
+  vipFilter?: 'all' | 'only' | 'hide';
+  sortBy?: string;
+  mobifoneFirst?: boolean;
+}
+
+/**
+ * Query Supabase/PostgREST directly with filter criteria (NOT the full crawl).
+ * Uses `like`, `eq`, `in`, `gte`/`lte` operators so PostgREST returns only
+ * matching rows — single request, ~100-300ms even on cold start.
+ *
+ * Returns null when criteria can't be pushed (quyType, birthDateOnly, tags)
+ * — the caller falls back to in-memory filterSims(getServerSims()).
+ */
+export async function querySimsFromDb(
+  criteria: DbQueryCriteria,
+  limit: number,
+  offset: number,
+): Promise<{ items: NormalizedSIM[]; total: number } | null> {
+  const authHeaders = {
+    apikey: SUPABASE_PUBLISHABLE_KEY,
+    Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+  };
+
+  const and: string[] = [];
+  and.push('effective_price=gt.0');
+
+  // ── Search (RULE A/B/C) ───────────────────────────────────────────────
+  const search = (criteria.search ?? '').trim().replace(/[^0-9*]/g, '');
+  const digitsOnly = search.replace(/\*/g, '');
+
+  if (search.length > 0 && digitsOnly.length > 0) {
+    if (digitsOnly.length === 10 && !search.includes('*')) {
+      and.push(`raw_digits=eq.${digitsOnly}`);
+    } else if (search.includes('*')) {
+      const startsWithStar = search.startsWith('*');
+      const endsWithStar = search.endsWith('*');
+      const parts = search.split('*').filter(Boolean);
+
+      if (endsWithStar && !startsWithStar && parts.length >= 1) {
+        and.push(`raw_digits=like.${parts[0]}*`);
+      } else if (startsWithStar && !endsWithStar && parts.length >= 1) {
+        and.push(`raw_digits=like.*${parts[parts.length - 1]}`);
+      } else if (!startsWithStar && !endsWithStar && parts.length === 2) {
+        and.push(`raw_digits=like.${parts[0]}*${parts[1]}`);
+      } else {
+        and.push(`raw_digits=like.*${digitsOnly}*`);
+      }
+    } else {
+      and.push(`raw_digits=like.*${digitsOnly}*`);
+    }
+  }
+
+  // ── Prefixes ──────────────────────────────────────────────────────────
+  if (criteria.prefixes?.length) {
+    if (criteria.prefixes.length === 1) {
+      and.push(`raw_digits=like.${criteria.prefixes[0]}*`);
+    } else {
+      and.push(`or=(${criteria.prefixes.map((p) => `raw_digits=like.${p}*`).join(',')})`);
+    }
+  }
+
+  // ── Suffixes ──────────────────────────────────────────────────────────
+  if (criteria.suffixes?.length) {
+    if (criteria.suffixes.length === 1) {
+      and.push(`raw_digits=like.*${criteria.suffixes[0]}`);
+    } else {
+      and.push(`or=(${criteria.suffixes.map((s) => `raw_digits=like.*${s}`).join(',')})`);
+    }
+  }
+
+  // ── Networks ──────────────────────────────────────────────────────────
+  if (criteria.networks?.length) {
+    if (criteria.networks.length === 1) {
+      and.push(`network=eq.${criteria.networks[0]}`);
+    } else {
+      and.push(`network=in.(${criteria.networks.join(',')})`);
+    }
+  }
+
+  // ── Price ranges ──────────────────────────────────────────────────────
+  const PRICE_RANGES = [
+    { min: 0, max: 999999 },
+    { min: 1000000, max: 2999999 },
+    { min: 3000000, max: 4999999 },
+    { min: 5000000, max: 9999999 },
+    { min: 10000000, max: 49999999 },
+    { min: 50000000, max: 99999999 },
+    { min: 100000000, max: 199999999 },
+    { min: 200000000, max: 999999999 },
+  ];
+  if (criteria.priceRanges?.length) {
+    const terms = criteria.priceRanges
+      .map((idx) => {
+        const r = PRICE_RANGES[idx];
+        if (!r) return '';
+        return `and(effective_price=gte.${r.min},effective_price=lte.${r.max})`;
+      })
+      .filter(Boolean);
+    if (terms.length === 1) {
+      // Single range → two AND terms added separately
+      const r = PRICE_RANGES[criteria.priceRanges[0]!];
+      if (r) {
+        and.push(`effective_price=gte.${r.min}`);
+        and.push(`effective_price=lte.${r.max}`);
+      }
+    } else {
+      and.push(`or=(${terms.join(',')})`);
+    }
+  }
+
+  if (criteria.customPriceMin != null) and.push(`effective_price=gte.${criteria.customPriceMin}`);
+  if (criteria.customPriceMax != null) and.push(`effective_price=lte.${criteria.customPriceMax}`);
+
+  // ── VIP filter ──────────────────────────────────────────────────────────
+  if (criteria.vipFilter === 'only') {
+    and.push('is_vip=is.true');
+  } else if (criteria.vipFilter === 'hide') {
+    and.push('is_vip=is.false');
+  }
+
+  // ── Build query ────────────────────────────────────────────────────────
+  const params = new URLSearchParams();
+  params.set('select', SIMS_SELECT);
+
+  // status != sold (sync marks sold sims)
+  and.push('status=neq.sold');
+
+  // The AND clauses appear as simple query params (PostgREST conjoints them)
+  for (const clause of and) {
+    const eqIdx = clause.indexOf('=');
+    if (eqIdx === -1) continue;
+    const key = clause.slice(0, eqIdx);
+    const val = clause.slice(eqIdx + 1);
+    params.append(key, val);
+  }
+
+  // ── Sort ────────────────────────────────────────────────────────────────
+  const s = criteria.sortBy;
+  if (s === 'price_asc') params.set('order', 'effective_price.asc');
+  else if (s === 'price_desc') params.set('order', 'effective_price.desc');
+  else if (s === 'beauty') params.set('order', 'beauty_score.desc');
+  else if (s === 'suffix_beauty') params.set('order', 'last4.asc,beauty_score.desc');
+  else params.set('order', 'effective_price.asc,beauty_score.desc');
+
+  params.set('limit', String(limit));
+  params.set('offset', String(offset));
+
+  const url = `${SUPABASE_REST}/sims?${params.toString()}`;
+
+  try {
+    const res = await fetchWithTimeout(url, {
+      headers: { ...authHeaders, Prefer: 'count=exact', Range: `${offset}-${offset + limit - 1}` },
+    }, FETCH_TIMEOUT_MS);
+    if (!res.ok) return null;
+
+    const rows = (await res.json()) as SimsDbRow[];
+    const cr = res.headers.get('content-range') || '';
+    const totalMatch = cr.match(/\/(\d+)$/);
+    const total = totalMatch ? Number(totalMatch[1]) : rows.length;
+
+    const items = rows.map(simsDbRowToNormalized);
+    return { items, total };
+  } catch (e) {
+    console.warn('[serverSimData] querySimsFromDb failed:', e);
+    return null;
+  }
+}
 
 /**
  * Fetch the full SIM catalogue on the server (build or request time).
