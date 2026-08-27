@@ -14,6 +14,38 @@
  * article should target (main ones first).
  */
 
+/**
+ * Slug đã có trang viết cứng trong repo (`src/app/tin-tuc/<slug>/page.tsx`).
+ *
+ * Bot KHÔNG được dùng lại các slug này. Không phải vì sợ trùng khoá — Next luôn
+ * ưu tiên route tĩnh nên bài bot ghi vào DB sẽ không bao giờ hiện ra — mà vì đó
+ * là một lượt chạy bot ném đi, cộng thêm một hàng rác trong `blog_posts`.
+ *
+ * Danh sách này phải khớp với `TIN_TUC_ARTICLES` trong
+ * `src/content/tinTucArticles.ts`. Thêm bài viết cứng mới thì thêm slug vào đây.
+ */
+export const RESERVED_SLUGS = [
+  // 6 bài cũ
+  'y-nghia-sim-so-dep',
+  'so-tong-dai-cac-nha-mang',
+  'y-nghia-cac-con-so-1-9',
+  'cach-xem-sim-phong-thuy-hop-tuoi',
+  'cach-tranh-mat-tien-oan-khi-mua-sim-so-dep',
+  'cac-dau-so-mang-mobifone-moi-nhat',
+  // Loạt bài trụ cột 27/08/2026
+  'bat-cuc-linh-so-la-gi',
+  '80-que-kinh-dich-trong-sim',
+  'sim-hop-menh-ngu-hanh',
+  'cach-tinh-diem-sim-phong-thuy',
+  'y-nghia-2-so-cuoi-dien-thoai',
+  'gia-sim-so-dep-mobifone',
+  'mua-sim-so-dep-o-dau-uy-tin',
+  'kiem-tra-so-dien-thoai-mobifone',
+  'kiem-tra-sim-chinh-chu-mobifone',
+  'sim-bi-khoa-mobifone',
+  'chuyen-mang-giu-so-sang-mobifone',
+];
+
 const CAN = ['Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ', 'Canh', 'Tân', 'Nhâm', 'Quý'];
 const CHI = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
 
@@ -289,13 +321,6 @@ export const TOPIC_BANK = [
     category: 'Kiến thức mua sim',
     internalLink: '/mua-sim-gia-re',
     keywords: ['sim tứ quý', 'tứ quý thật', 'tứ quý giữa', 'tứ quý lệch', 'cách phân biệt sim tứ quý'],
-  },
-  {
-    slug: 'cach-kiem-tra-sim-mobifone-chinh-chu',
-    title: 'Cách kiểm tra sim Mobifone chính chủ trước khi mua, tránh mua phải sim lỗi',
-    category: 'Kiến thức mua sim',
-    internalLink: '/mua-sim-gia-re',
-    keywords: ['kiểm tra sim chính chủ', 'sim Mobifone chính chủ', 'mua sim số đẹp an toàn'],
   },
   {
     slug: 'nen-mua-sim-tra-gop-hay-tra-thang',

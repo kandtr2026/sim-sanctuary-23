@@ -16,7 +16,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { SupabaseBotClient } from './supabase.mjs';
 import { generateContent } from './generate.mjs';
-import { TOPIC_BANK, nextYearTopic } from './topics.mjs';
+import { TOPIC_BANK, nextYearTopic, RESERVED_SLUGS } from './topics.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(here, '..', '..');
@@ -43,7 +43,9 @@ function requireEnv(env, key) {
 }
 
 function pickTopic(existingSlugs) {
-  const used = new Set(existingSlugs);
+  // Loại cả slug đã có trong DB và slug đã có trang viết cứng trong repo —
+  // route tĩnh luôn thắng [slug] nên viết trùng là ném đi cả lượt chạy.
+  const used = new Set([...existingSlugs, ...RESERVED_SLUGS]);
   const candidate = TOPIC_BANK.find((t) => !used.has(t.slug)) || nextYearTopic(used);
   return { topic: candidate, used };
 }

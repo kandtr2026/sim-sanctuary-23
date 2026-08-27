@@ -1,81 +1,148 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { buildBreadcrumb } from "@/lib/seo";
+import { CalendarDays } from "lucide-react";
+import { BASE_URL, buildBreadcrumb } from "@/lib/seo";
 import { getPublishedPosts } from "@/lib/blogPosts";
+import {
+  TIN_TUC_ARTICLES,
+  coverForCategory,
+  type ArticleCover,
+} from "@/content/tinTucArticles";
 
-const articles = [
-  { title: "Ý NGHĨA SỐ ĐIỆN THOẠI - Sim số như thế nào là sim đẹp?", href: "/tin-tuc/y-nghia-sim-so-dep" },
-  { title: "SỐ TỔNG ĐÀI CÁC NHÀ MẠNG MỚI NHẤT - Mobifone / Gmobile / Vina / Viettel", href: "/tin-tuc/so-tong-dai-cac-nha-mang" },
-  { title: "Ý NGHĨA CÁC CON SỐ TỪ 1 - 9 CÓ THỂ BẠN CHƯA BIẾT", href: "/tin-tuc/y-nghia-cac-con-so-1-9" },
-  { title: "CÁCH XEM SIM PHONG THUỶ HỢP TUỔI", href: "/tin-tuc/cach-xem-sim-phong-thuy-hop-tuoi" },
-  { title: "CÁCH TRÁNH MẤT TIỀN OAN KHI MUA SIM SỐ ĐẸP", href: "/tin-tuc/cach-tranh-mat-tien-oan-khi-mua-sim-so-dep" },
-  { title: "CÁC ĐẦU SỐ MẠNG MOBIFONE MỚI NHẤT - Danh sách đầy đủ & ý nghĩa", href: "/tin-tuc/cac-dau-so-mang-mobifone-moi-nhat" },
-];
-
-// Without this, Next.js prerenders this page once at build time and serves
-// that static HTML forever — a post published through /admin/posts would
-// never show up here without a full redeploy. Revalidating every 60s lets a
-// newly published post appear on its next visit shortly after publishing.
+// Bài đăng qua /admin/posts hoặc bot nằm trong Supabase, nên trang này KHÔNG
+// được đóng băng lúc build: revalidate 60s để bài mới xuất hiện mà không cần
+// deploy lại.
 export const revalidate = 60;
 
+const TITLE = "Tin Tức SIM Số Đẹp – Kiến Thức Phong Thuỷ & Hướng Dẫn MobiFone";
+const DESCRIPTION =
+  "Kiến thức chọn SIM số đẹp: bảng tra ngũ hành, Bát Cực Linh Số, 80 quẻ Kinh Dịch, ý nghĩa đuôi số, giá SIM theo dòng và hướng dẫn thủ tục MobiFone.";
+
 export const metadata: Metadata = {
-  title: {
-    absolute: "Tin Tức SIM Số Đẹp – Kiến Thức Phong Thủy & Mua Bán SIM",
-  },
-  description:
-    "Tin tức và kiến thức về SIM số đẹp: ý nghĩa các con số, xem SIM phong thủy hợp tuổi, cách tránh mất tiền oan khi mua SIM.",
-  alternates: {
-    canonical: "https://www.chonsomobifone.com/tin-tuc",
-  },
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
+  alternates: { canonical: `${BASE_URL}/tin-tuc` },
   openGraph: {
     type: "website",
-    title: "Tin Tức SIM Số Đẹp – CHONSOMOBIFONE.COM",
-    description: "Kiến thức SIM số đẹp và phong thủy.",
-    url: "https://www.chonsomobifone.com/tin-tuc",
+    title: TITLE,
+    description: DESCRIPTION,
+    url: `${BASE_URL}/tin-tuc`,
     images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
   },
 };
 
+interface ListedArticle {
+  slug: string;
+  title: string;
+  excerpt: string;
+  category: string;
+  cover: ArticleCover;
+  date: string;
+}
+
+const DATE_FORMAT = new Intl.DateTimeFormat("vi-VN", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  timeZone: "Asia/Ho_Chi_Minh",
+});
+
 export default async function TinTucPage() {
-  // Posts created through /admin/posts (see tin-tuc/[slug]/page.tsx). Fetched
-  // at request time rather than baked into `articles` above so a newly
-  // published post shows up here without a code deploy — the entire point of
-  // the admin panel.
-  const dynamicPosts = await getPublishedPosts();
-  const allArticles = [
-    ...dynamicPosts.map((p) => ({ title: p.title, href: `/tin-tuc/${p.slug}` })),
-    ...articles,
-  ];
+  // Bài viết cứng trong repo (sổ đăng ký) + bài trong Supabase. Slug trùng thì
+  // bản trong repo thắng, vì route tĩnh /tin-tuc/<slug> luôn được Next ưu tiên
+  // hơn [slug] — nếu không lọc, danh sách sẽ hiện hai thẻ cho cùng một URL.
+  const fileArticles: ListedArticle[] = TIN_TUC_ARTICLES.map((a) => ({
+    slug: a.slug,
+    title: a.title,
+    excerpt: a.excerpt ?? a.description,
+    category: a.category,
+    cover: a.cover ?? coverForCategory(a.category),
+    date: a.dateModified,
+  }));
+
+  const fileSlugs = new Set(fileArticles.map((a) => a.slug));
+  const dbPosts = await getPublishedPosts();
+  const dbArticles: ListedArticle[] = dbPosts
+    .filter((p) => p.slug && !fileSlugs.has(p.slug))
+    .map((p) => ({
+      slug: p.slug,
+      title: p.title,
+      excerpt: p.meta_description ?? "",
+      category: p.category ?? "Ý nghĩa sim",
+      cover: p.cover_image_url
+        ? { src: p.cover_image_url, alt: p.title, width: 1200, height: 675 }
+        : coverForCategory(p.category),
+      date: p.created_at,
+    }));
+
+  const articles = [...fileArticles, ...dbArticles].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
+
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Tin tức & kiến thức SIM số đẹp",
+    itemListElement: articles.map((article, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${BASE_URL}/tin-tuc/${article.slug}`,
+      name: article.title,
+    })),
+  };
 
   return (
     <>
       <main className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-primary mb-8">
-          Tin Tức
+        <h1 className="text-2xl font-bold text-primary md:text-3xl">
+          Tin tức &amp; kiến thức SIM số đẹp
         </h1>
+        <p className="mt-3 max-w-3xl leading-relaxed text-body">
+          Toàn bộ kiến thức cần khi chọn một dãy số: bảng tra ngũ hành và Bát Cực Linh Số, cách tính
+          quẻ Kinh Dịch, ý nghĩa từng đuôi số, khoảng giá theo từng dòng SIM, cùng các hướng dẫn thủ
+          tục MobiFone thường gặp. Bài nào có bảng tra thì bảng được dựng từ chính dữ liệu mà công cụ
+          trên site đang dùng, nên bài viết và kết quả bạn thấy khi tra cứu luôn khớp nhau.
+        </p>
 
-        <div className="space-y-4">
-          {allArticles.map((article, index) => (
-            article.href ? (
-              <Link
-                key={index}
-                href={article.href}
-                className="block p-4 bg-card rounded-lg border border-border hover:border-primary transition-colors cursor-pointer"
-              >
-                <h2 className="text-base md:text-lg font-medium text-foreground">
-                  {index + 1}. {article.title}
-                </h2>
+        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {articles.map((article) => (
+            <article
+              key={article.slug}
+              className="group overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-gold"
+            >
+              <Link href={`/tin-tuc/${article.slug}`} className="block">
+                {/* Ảnh đã nén WebP sẵn trong /public (hoặc URL do admin nhập) —
+                    cố ý dùng <img> thay next/image để không tốn quota tối ưu ảnh. */}
+                <img
+                  src={article.cover.src}
+                  alt={article.cover.alt}
+                  width={article.cover.width}
+                  height={article.cover.height}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-[16/9] w-full object-cover"
+                />
+                <div className="p-4">
+                  <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                    <span className="rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 font-medium text-gold">
+                      {article.category}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-muted-foreground">
+                      <CalendarDays aria-hidden className="h-3.5 w-3.5" />
+                      {DATE_FORMAT.format(new Date(article.date))}
+                    </span>
+                  </div>
+                  <h2 className="text-base font-semibold leading-snug text-foreground group-hover:text-gold md:text-lg">
+                    {article.title}
+                  </h2>
+                  {article.excerpt ? (
+                    <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                      {article.excerpt}
+                    </p>
+                  ) : null}
+                </div>
               </Link>
-            ) : (
-              <div
-                key={index}
-                className="p-4 bg-card rounded-lg border border-border"
-              >
-                <h2 className="text-base md:text-lg font-medium text-foreground">
-                  {index + 1}. {article.title}
-                </h2>
-              </div>
-            )
+            </article>
           ))}
         </div>
       </main>
@@ -90,6 +157,10 @@ export default async function TinTucPage() {
             ]),
           ),
         }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
       />
     </>
   );

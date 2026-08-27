@@ -17,13 +17,23 @@ export interface BlogPost {
 export interface BlogPostSummary {
   title: string;
   slug: string;
+  meta_description: string | null;
+  category: string | null;
+  cover_image_url: string | null;
+  created_at: string;
 }
 
-/** Published posts, newest first — powers the /tin-tuc listing. */
+/**
+ * Published posts, newest first — powers the /tin-tuc listing.
+ *
+ * Lấy thêm meta_description / category / cover_image_url / created_at để trang
+ * danh sách vẽ được thẻ bài đầy đủ (ảnh + chuyên mục + tóm tắt) giống các bài
+ * viết cứng trong repo, thay vì chỉ một dòng tiêu đề trơ.
+ */
 export async function getPublishedPosts(): Promise<BlogPostSummary[]> {
   const { data, error } = await supabase
     .from('blog_posts')
-    .select('title, slug')
+    .select('title, slug, meta_description, category, cover_image_url, created_at')
     .eq('published', true)
     .order('created_at', { ascending: false });
 

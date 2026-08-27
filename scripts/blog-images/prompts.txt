@@ -1,0 +1,17 @@
+# Danh sách ảnh bìa bài /tin-tuc — định dạng: slug|mô tả ảnh (tiếng Anh, không chữ trong ảnh)
+# Phần phong cách chung (đen–đỏ–vàng, không watermark) do gen-covers.sh tự thêm.
+kiem-tra-so-dien-thoai-mobifone|A hand holding a modern black smartphone with a completely blank dark screen, close-up three-quarter view, dark desk below, soft red silk bokeh in the far background
+kiem-tra-sim-chinh-chu-mobifone|Macro shot of an ejected SIM tray beside a single gold-contact nano SIM chip on a dark slate surface, tiny eject pin resting nearby
+chuyen-mang-giu-so-sang-mobifone|Two identical black smartphones lying side by side on a dark stone surface, one lit with warm gold light and one in shadow, a soft streak of golden light arcing between them
+sim-bi-khoa-mobifone|A small polished brass padlock resting on the back of a black smartphone, dark moody surface, single warm key light
+bat-cuc-linh-so-la-gi|Eight small glowing golden spheres floating in a circle above a dark lacquered wooden table, thin curls of incense smoke, deep crimson shadows
+80-que-kinh-dich-trong-sim|Antique bamboo divination sticks scattered beside a small bronze feng shui compass on black silk, candlelight from the left
+sim-hop-menh-ngu-hanh|Overhead flat lay of five natural elements on black slate: a small brass bowl of water, a polished jade stone, a tiny green bonsai sprig, a lit candle, and a mound of dark earth, evenly spaced
+cach-tinh-diem-sim-phong-thuy|Close-up of a golden abacus with dark wooden frame on a black desk, warm gold rim light, blurred red silk behind
+gia-sim-so-dep-mobifone|Neat stacks of gold coins beside a face-down black smartphone on dark marble, luxury financial editorial still life
+mua-sim-so-dep-o-dau-uy-tin|A black smartphone presented on a dark red velvet tray at a boutique counter, warm spotlight from above, elegant gift-shop mood
+cat-y-nghia-sim|A luxurious gold-plated SIM card resting on deep red silk fabric, macro, ornate engraved surface
+cat-phong-thuy|A bronze feng shui compass on dark red silk with incense smoke drifting across the frame
+cat-kien-thuc-mua-sim|A leather notebook, a fountain pen and a black smartphone arranged on a dark desk, warm reading lamp light
+cat-dau-so|Five nano SIM cards fanned out like playing cards on a black surface, gold contacts catching the light
+y-nghia-2-so-cuoi-dien-thoai|Two antique gold Vietnamese coins with square center holes resting side by side on deep crimson silk, macro detail, warm directional light

@@ -34,3 +34,7 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Ảnh/video thô do bộ gen media trả về. Chỉ bản đã nén trong public/blog mới
+# được commit (xem scripts/blog-images/optimize.mjs).
+generated-media/

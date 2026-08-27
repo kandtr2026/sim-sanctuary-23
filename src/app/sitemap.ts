@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { getPublishedPosts } from "@/lib/blogPosts";
 import { getInStockBirthYears } from "@/lib/serverSimData";
 import { DAU_SO_PREFIXES, LOAI_KEYS } from "@/lib/simTaxonomy";
+import { TIN_TUC_ARTICLES } from "@/content/tinTucArticles";
 
 // Sitemap now reads live data (published blog posts + in-stock birth-year
 // clusters) in addition to the fixed static/taxonomy routes. It therefore runs
@@ -38,14 +39,9 @@ const ROUTES: StaticRoute[] = [
   { path: "/sim-tra-gop", changeFrequency: "monthly", priority: 0.7 },
   { path: "/thanh-toan", changeFrequency: "monthly", priority: 0.5 },
   { path: "/tin-tuc", changeFrequency: "weekly", priority: 0.6, dynamic: true },
-  // Static (file-based) articles under src/app/tin-tuc/*. DB-backed posts are
-  // appended dynamically below via getPublishedPosts() and de-duped against these.
-  { path: "/tin-tuc/y-nghia-sim-so-dep", changeFrequency: "monthly", priority: 0.5 },
-  { path: "/tin-tuc/so-tong-dai-cac-nha-mang", changeFrequency: "monthly", priority: 0.5 },
-  { path: "/tin-tuc/y-nghia-cac-con-so-1-9", changeFrequency: "monthly", priority: 0.5 },
-  { path: "/tin-tuc/cach-xem-sim-phong-thuy-hop-tuoi", changeFrequency: "monthly", priority: 0.5 },
-  { path: "/tin-tuc/cach-tranh-mat-tien-oan-khi-mua-sim-so-dep", changeFrequency: "monthly", priority: 0.5 },
-  { path: "/tin-tuc/cac-dau-so-mang-mobifone-moi-nhat", changeFrequency: "monthly", priority: 0.5 },
+  // Bài /tin-tuc/* viết cứng trong repo được sinh từ sổ đăng ký
+  // `src/content/tinTucArticles.ts` (xem `fileArticleEntries` bên dưới), không
+  // liệt kê tay ở đây nữa — trước đây thêm bài mới rất dễ quên cập nhật sitemap.
   { path: "/chinh-sach-bao-mat", changeFrequency: "yearly", priority: 0.3 },
   { path: "/dieu-khoan-su-dung", changeFrequency: "yearly", priority: 0.3 },
   { path: "/chinh-sach-giao-hang", changeFrequency: "yearly", priority: 0.3 },
@@ -84,11 +80,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   );
 
+  // Bài viết cứng trong repo — lastModified lấy đúng ngày cập nhật đã khai
+  // trong sổ đăng ký, nên sitemap không "ping" lại toàn bộ bài mỗi lần deploy.
+  const fileArticleEntries = TIN_TUC_ARTICLES.map((article) => ({
+    url: `${BASE_URL}/tin-tuc/${article.slug}`,
+    lastModified: article.dateModified,
+    changeFrequency: "monthly" as const,
+    priority: article.legacy ? 0.5 : 0.6,
+  }));
+
   // Dynamic DB-backed blog posts, de-duped against the static file-based
   // /tin-tuc/* articles already listed in ROUTES.
-  const existingTinTuc = new Set(
-    ROUTES.filter((r) => r.path.startsWith("/tin-tuc/")).map((r) => r.path),
-  );
+  const existingTinTuc = new Set<string>([
+    ...ROUTES.filter((r) => r.path.startsWith("/tin-tuc/")).map((r) => r.path),
+    ...TIN_TUC_ARTICLES.map((a) => `/tin-tuc/${a.slug}`),
+  ]);
   const posts = await getPublishedPosts();
   const blogEntries = posts
     .filter((p) => p.slug && !existingTinTuc.has(`/tin-tuc/${p.slug}`))
@@ -113,6 +119,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...staticEntries,
     ...dauSoEntries,
     ...comboEntries,
+    ...fileArticleEntries,
     ...blogEntries,
     ...namSinhEntries,
   ];
