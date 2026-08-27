@@ -4,6 +4,12 @@ _Cập nhật: 2026-08-26. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone 
 
 ## 1. ĐÃ XONG phiên này
 
+- **PERF: load list số nhanh hẳn — push filter xuống PostgREST + crawl song song** (commit `60d8103`):
+  - `/api/sims` có **fast path**: criteria đẩy xuống được (search/prefix/suffix/network/price/vip/sort) → **1 request PostgREST** dùng `like`/`eq`/`in`/`gte`/`lte` + `Prefer: count=exact` + `Range` lấy `total` luôn trong `Content-Range`. KHÔNG còn crawl toàn bộ 49k mỗi lần tìm. Cold `search=888` đo: **~1.4s** (trước đơ vài chục giây).
+  - Facets/tags/quyType/birthDateOnly/matchAll giữ path cũ (`getServerSims` + `filterSims`).
+  - `fetchSimsFromDb` chạy **song song 12 luồng** (đếm count trước bằng `count=exact`, rồi bắn toàn bộ trang cùng lúc) thay vì 98 request tuần tự → facets cold ~0.6s. Bỏ luôn loop 2 pha id→detail, đọc thẳng `SIMS_SELECT` mỗi trang.
+  - Chỗ sửa: `src/lib/serverSimData.ts` (thêm `querySimsFromDb` + `DbQueryCriteria` + crawl song song), `src/app/api/sims/route.ts` (thêm fast path `canPushToDb`).
+  - ⚠️ Verify: build XANH, `tsc --noEmit` pass, cold test prod `search=888` 1.38s / facets 0.62s / list 100 0.82s.
 - **Format quý-aware dùng chung + áp toàn site** (commit `ef38030`): thêm `formatSimQuyAware` trong `src/lib/simDisplay.ts` (tứ quý → 3-3-4 `093.368.6666`, ngược lại 4-3-3). Áp cho: `SIMCardNew` (cardDisplay), `CheckoutClient` (/mua-ngay: số thuê bao + popup xác nhận + title tab), `cheapSimSheet.formatCheapNumber` (kho giá rẻ), `SimHopTuoiTool`, `simValuation.formatPhoneDisplay` (định giá), `SimSnapshot`. `highlightUtils.createQuyHighlightedNumber` dùng longest-run để lục quý không bị cắt 5+1 khi filter ngũ quý. Test `sim-display.test.ts` 7 case.
 - **Hotfix build treo vô hạn** (commit `210ddf4`): `fetchSimsFromDb` (đọc bảng `sims` Supabase từ migration) KHÔNG có timeout → Supabase chậm thì static generation treo 4–9 phút rồi Error. Thêm `fetchWithTimeout` (15s, dùng `FETCH_TIMEOUT_MS`) cho cả 2 loop phân trang, fail-fast về CSV. ⚠️ Nếu build treo >3m nữa: soi Supabase bảng `sims` + edge function `sync-sims`.
 - **Câu tìm đi theo URL `?q=`** (commit `d45c047`): `SimBrowser` seed `searchQuery` từ `?q=` (nhận cả `?search=` cũ) trong effect, rồi `replaceState` ghi lại — F5/gửi link cho khách không mất câu tìm nữa, xoá ô tìm thì URL sạch lại. `layout.tsx` trả lại `SearchAction` trỏ `/?q={search_term_string}`. **Đừng kỳ vọng SEO**: Google bỏ hiển thị sitelinks searchbox từ 21/11/2024, markup chỉ để khai báo đúng khả năng cho crawler/agent.
@@ -38,7 +44,7 @@ _Cập nhật: 2026-08-26. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone 
 - **So sánh 2 SIM** — cần thêm khay so sánh + trang so sánh.
 - **Xem chi tiết SIM phong thủy** — trang `/sim-phong-thuy?so=...` chưa có.
 - **Lịch âm/dương toggle** — form nhập giờ sinh hiện chỉ âm lịch, cần thêm toggle.
-- **WIP phiên khác (chưa commit)**: `src/lib/serverSimData.ts`.
+- **WIP phiên khác (chưa commit)**: `src/lib/serverSimData.ts` (đã merge — `60d8103`). Các file còn WIP: `src/app/globals.css`, `src/lib/blogPosts.ts`, `src/app/tin-tuc/...`, `src/app/sitemap.ts`, blog scripts, blog content.
 - **`/mua-sim-gia-re` có 1 lỗi hydrate React #418** (bản build local; prod hiện sạch). Card SIM ở trang này KHÔNG render phía server (SSR ra 0 card, chỉ skeleton) nên không phải do rule hiển thị — nghi số liệu build-time (`stockLabel`/snapshot) lệch với data client fetch. Cần soi riêng.
 - **Vào bằng link `?q=` thì ~2–3s đầu khách thấy danh sách CHƯA lọc** (SSR `initialData` hiện trước, `keepPreviousData` giữ nó trong lúc query đã seed đang bay). Muốn sạch: khi có seed thì bỏ qua `initialData` / bật skeleton tới khi fetch đầu tiên về.
 
