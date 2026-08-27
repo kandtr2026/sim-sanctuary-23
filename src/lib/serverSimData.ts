@@ -229,7 +229,13 @@ interface SimsDbRow {
 
 const simsDbRowToNormalized = (r: SimsDbRow): NormalizedSIM => {
   const rawDigits = r.raw_digits;
-  const tags = r.tags ?? detectSimTags(rawDigits);
+  // Bảng `sims` trên Supabase hiện lưu `tags` là MẢNG RỖNG cho mọi hàng (job
+  // sync chưa ghi tag). `r.tags ?? detect()` không bắt được mảng rỗng, nên trước
+  // đây mọi SIM đọc từ DB đều không có tag — kéo theo `getCategorySnapshot({tags})`
+  // trả về rỗng và bảng "tứ quý nổi bật" + ItemList/Product schema của
+  // /mua-sim-tu-quy, /sim-ngu-quy biến mất khỏi HTML mà không ai thấy lỗi.
+  // Coi mảng rỗng là "chưa có tag" và tự suy ra bằng detector dùng chung.
+  const tags = r.tags && r.tags.length > 0 ? r.tags : detectSimTags(rawDigits);
   const price = r.effective_price || r.final_price || r.original_price || 0;
   return {
     id: r.id,
@@ -253,6 +259,14 @@ const simsDbRowToNormalized = (r: SimsDbRow): NormalizedSIM => {
   };
 };
 
+const fetchWithTimeout = (url: string, opts: RequestInit, ms: number): Promise<Response> => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`fetch timeout after ${ms}ms`)), ms);
+  });
+  return Promise.race([fetch(url, opts), timeout]).finally(() => { if (timer) clearTimeout(timer); }) as Promise<Response>;
+};
+
 const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
   try {
     const authHeaders = {
@@ -263,9 +277,10 @@ const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
     // 1000 rows/response (Range header bị bỏ qua) → dùng limit+offset.
     const ids: string[] = [];
     for (let offset = 0; ; offset += SUPABASE_SIMS_PAGE) {
-      const res = await fetch(
+      const res = await fetchWithTimeout(
         `${SUPABASE_REST}/sims?select=id&status=neq.sold&limit=${SUPABASE_SIMS_PAGE}&offset=${offset}`,
         { headers: authHeaders },
+        FETCH_TIMEOUT_MS,
       );
       if (!res.ok) return null;
       const page = (await res.json()) as { id: string }[];
@@ -277,9 +292,10 @@ const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
     const sims: NormalizedSIM[] = [];
     for (let i = 0; i < ids.length; i += SUPABASE_SIMS_PAGE) {
       const chunk = ids.slice(i, i + SUPABASE_SIMS_PAGE);
-      const res = await fetch(
+      const res = await fetchWithTimeout(
         `${SUPABASE_REST}/sims?select=id,raw_digits,display_number,original_price,final_price,effective_price,network,tags,beauty_score,is_vip&id=in.(${chunk.join(',')})`,
         { headers: authHeaders },
+        FETCH_TIMEOUT_MS,
       );
       if (!res.ok) return null;
       const rows = (await res.json()) as SimsDbRow[];
