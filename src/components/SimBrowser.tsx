@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import SearchBarAdvanced from "@/components/SearchBarAdvanced";
 import AdvancedFilterSidebar from "@/components/AdvancedFilterSidebar";
 import SIMCardNew from "@/components/SIMCardNew";
@@ -70,16 +70,10 @@ const SimBrowser = ({
   };
 }) => {
   const [filters, setFilters] = useState<FilterState>(defaultFilterState);
-  const [limit, setLimit] = useState(ITEMS_PER_PAGE);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [hashProcessed, setHashProcessed] = useState(false);
   const [urlQuerySeeded, setUrlQuerySeeded] = useState(false);
   const queryClient = useQueryClient();
-
-  // Reset phân trang mỗi khi filter đổi (giữ hành vi "xem thêm" như cũ).
-  useEffect(() => {
-    setLimit(ITEMS_PER_PAGE);
-  }, [filters]);
 
   // ── Filter handlers (port từ useSimData — chỉ là setState cục bộ) ─────────
   const updateFilter = useCallback(<K extends keyof FilterState>(key: K, value: FilterState[K]) => {
@@ -364,15 +358,25 @@ const SimBrowser = ({
   const priceCounts = facetsQuery.data?.facets?.priceCounts ?? [];
   const catalogueTotal = facetsQuery.data?.total ?? 0;
 
-  // ── Main query: toàn bộ filter state + trang (server lọc full 49k) ────────
-  const queryKey = ["sims", filters, limit] as const;
+  // ── Main query: offset pagination (mỗi trang 100, append, không re-fetch list cũ) ──
+  const queryKey = ["sims", filters] as const;
 
-  const { data, isLoading, isFetching, error, refetch } = useQuery<{
+  const {
+    data,
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<{
     items: NormalizedSIM[];
     total: number;
   }>({
     queryKey,
-    queryFn: async () => {
+    queryFn: async ({ pageParam }) => {
+      const offset = pageParam as number;
       const params = new URLSearchParams();
       if (filters.searchQuery.trim()) params.set("search", filters.searchQuery);
       if (filters.priceRanges.length) params.set("priceRanges", filters.priceRanges.join(","));
@@ -391,17 +395,21 @@ const SimBrowser = ({
       if (filters.quyType) params.set("quyType", filters.quyType);
       // "Năm sinh" lọc chặt: chỉ sim đọc được ngày sinh thật, hết số đuôi-năm ảo.
       if (filters.selectedTags.includes("Năm sinh")) params.set("birthDateOnly", "1");
-      params.set("limit", String(limit));
+      params.set("limit", String(ITEMS_PER_PAGE));
+      params.set("offset", String(offset));
 
       const res = await fetch(`/api/sims?${params.toString()}`);
       if (!res.ok) throw new Error(`/api/sims HTTP ${res.status}`);
       return res.json();
     },
-    // initialData từ SSR → lần load đầu hiện SIM ngay (không skeleton); giữ data
-    // cũ trong lúc đổi filter (keepPreviousData) để không nháy skeleton.
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((acc, p) => acc + p.items.length, 0);
+      return lastPage.total > loaded ? loaded : undefined;
+    },
+    initialPageParam: 0,
     initialData:
       initialData && initialData.length > 0
-        ? { items: initialData, total: initialTotal ?? initialData.length }
+        ? { pages: [{ items: initialData, total: initialTotal ?? initialData.length }], pageParams: [0] }
         : undefined,
     placeholderData: keepPreviousData,
   });
@@ -412,14 +420,14 @@ const SimBrowser = ({
     toast.info("Đang tải lại dữ liệu...");
   }, [queryClient]);
 
-  const displayedSIMs = data?.items ?? [];
-  const total = data?.total ?? 0;
-  const hasMoreItems = !!data && total > displayedSIMs.length;
+  const displayedSIMs = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
+  const total = data?.pages[0]?.total ?? 0;
+  const hasMoreItems = hasNextPage ?? false;
   const remainingCount = Math.max(0, total - displayedSIMs.length);
 
   const handleLoadMore = useCallback(() => {
-    setLimit((prev) => prev + ITEMS_PER_PAGE);
-  }, []);
+    if (!isFetchingNextPage) fetchNextPage();
+  }, [fetchNextPage, isFetchingNextPage]);
 
   // ── Quý badge cho card (server lọc theo quyType; badge suy từ filter state) ─
   const isQuadOn = filters.quyType === "Tứ quý" || filters.selectedTags.includes("Tứ quý");
@@ -548,9 +556,21 @@ const SimBrowser = ({
 
                 {hasMoreItems && (
                   <div className="mt-6 text-center">
-                    <button onClick={handleLoadMore} className="btn-cta inline-flex items-center gap-2 px-8 py-3 text-base">
-                      <ChevronDown className="w-5 h-5" />
-                      <span>Xem thêm {Math.min(remainingCount, ITEMS_PER_PAGE)} SIM</span>
+                    <button
+                      onClick={handleLoadMore}
+                      disabled={isFetchingNextPage}
+                      className="btn-cta inline-flex items-center gap-2 px-8 py-3 text-base disabled:opacity-70 disabled:cursor-wait"
+                    >
+                      {isFetchingNextPage ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5" />
+                      )}
+                      <span>
+                        {isFetchingNextPage
+                          ? "Đang tải..."
+                          : `Xem thêm ${Math.min(remainingCount, ITEMS_PER_PAGE)} SIM`}
+                      </span>
                     </button>
                     <p className="text-sm text-muted-foreground mt-2">Còn {remainingCount.toLocaleString()} SIM khác</p>
                   </div>
