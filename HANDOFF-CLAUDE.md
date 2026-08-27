@@ -4,6 +4,7 @@ _Cập nhật: 2026-08-26. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone 
 
 ## 1. ĐÃ XONG phiên này
 
+- **Fix "Xem thêm" giật + sai số liệu — offset pagination** (commit `858112d`): trước đây `SimBrowser` "Xem thêm" tăng `limit` (100→200→300) → đổi `queryKey` → **re-fetch toàn bộ list từ đầu** mỗi lần bấm (giật), và route `MAX_LIMIT=200` clamp → bấm lần 2 không thêm gì nhưng vẫn hiện "Còn N SIM khác" (sai). Đổi sang **`useInfiniteQuery` + offset**: mỗi bấm fetch đúng trang kế `limit=100&offset=100` rồi append qua `data.pages.flatMap`, nút hiện spinner "Đang tải...", `remainingCount` tính từ `total - displayedSIMs.length` chuẩn. `getNextPageParam` = tổng đã load nếu < total. Verify API: `search=*888&offset=0/100` → total=449, 100 items/trang, không overlap. Build XANH, deploy Ready.
 - **PERF: load list số nhanh hẳn — push filter xuống PostgREST + crawl song song** (commit `60d8103`):
   - `/api/sims` có **fast path**: criteria đẩy xuống được (search/prefix/suffix/network/price/vip/sort) → **1 request PostgREST** dùng `like`/`eq`/`in`/`gte`/`lte` + `Prefer: count=exact` + `Range` lấy `total` luôn trong `Content-Range`. KHÔNG còn crawl toàn bộ 49k mỗi lần tìm. Cold `search=888` đo: **~1.4s** (trước đơ vài chục giây).
   - Facets/tags/quyType/birthDateOnly/matchAll giữ path cũ (`getServerSims` + `filterSims`).
