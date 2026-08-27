@@ -152,3 +152,72 @@ bài tĩnh trong `src/app/tin-tuc/y-nghia-sim-so-dep/page.tsx`.
 
 Test bằng cách chạy job 1 lần thủ công, xác nhận có bài mới xuất hiện trong `/admin/dashboard`
 với trạng thái "Nháp" (không phải "Đã đăng"), rồi mới bật lịch chạy tự động hàng ngày.
+
+---
+
+# PHẦN 2 — Báo cáo doanh thu/đơn hàng TikTok Shop trong /admin/dashboard
+
+> Ghi bởi Claude. Task độc lập với PHẦN 1 (bot blog) ở trên — không liên quan, không dùng chung
+> code/secret. Ngày ghi: 2026-08-26.
+
+## 1. Mục tiêu
+
+Chủ shop bán sim vừa qua website riêng (chonsomobifone.com) vừa qua **TikTok Shop** (shop "Viễn
+thông Nam Khang HCM"). Muốn xem đơn hàng/doanh thu TikTok Shop **chung 1 chỗ** với dashboard admin
+hiện có (`/admin/dashboard`), không phải mở riêng app TikTok Shop Seller để xem.
+
+## 2. Đã có sẵn
+
+- **App TikTok Shop Partner Center đã tồn tại và đã được shop ủy quyền từ trước** (app tên
+  `VTSG_API_enabled`, App ID `7659798356922926869`, shop "Viễn thông Nam Khang HCM", ủy quyền từ
+  11/07/2026 — xem `partner.tiktokshop.com/service/gather?service_id=7659798356922926869`).
+- **App Key** và **App Secret** của app đó nằm trong `.env.tiktok-shop` ở gốc repo (đã có sẵn,
+  **không commit** — nằm trong `.gitignore` qua pattern `.env.*`).
+- **CHƯA có** `access_token`/`refresh_token` cho shop — lần ủy quyền trước đó không được lưu lại ở
+  đâu mà ta truy cập được, nên cần chạy lại luồng OAuth để lấy token mới (xem mục 3).
+
+## 3. Việc cần làm
+
+### 3a. Lấy access_token/refresh_token cho shop (một lần, thủ công có hỗ trợ)
+
+TikTok Shop dùng OAuth: cần link ủy quyền để chủ shop bấm xác nhận lại (dù đã ủy quyền trước đó,
+vẫn cần thao tác này để **lấy được token thực tế**, vì Partner Center không hiển thị lại token cũ).
+
+1. Dựng URL ủy quyền dạng:
+   `https://services.tiktokshop.com/open/authorize?service_id=7659798356922926869` (service_id
+   chính là App ID ở trên) — xem tài liệu chính thức
+   [Authorization overview](https://partner.tiktokshop.com/docv2/page/authorization-overview-202407)
+   để lấy đúng format URL hiện tại (có thể đã đổi khác).
+2. Đưa URL cho chủ shop (qua Claude/chat) để họ mở và xác nhận ủy quyền (họ đăng nhập bằng tài
+   khoản TikTok Shop của shop "Viễn thông Nam Khang HCM").
+3. Sau khi xác nhận, TikTok redirect về kèm `?code=...` — code này cần đổi lấy access_token bằng
+   API `GET /api/v2/token/get` (ký request bằng HMAC-SHA256 với App Key + App Secret, xem tài liệu
+   Partner Center → "Bộ dụng cụ phát triển" / Authentication guide).
+4. Lưu `access_token`, `refresh_token`, `shop_cipher`/`shop_id` nhận được vào `.env.tiktok-shop`
+   (thêm dòng mới, KHÔNG commit) — access_token TikTok Shop thường hết hạn sau vài giờ/ngày,
+   refresh_token dùng để tự làm mới, cần code xử lý refresh tự động trong job (mục 3b).
+
+### 3b. Lấy đơn hàng + hiển thị trong dashboard
+
+5. Dùng Order API (`GET /api/v2/order/get_order_list` hoặc phiên bản mới hơn theo tài liệu hiện
+   tại — kiểm tra version mới nhất, API TikTok hay đổi version) để lấy danh sách đơn hàng của shop
+   theo khoảng thời gian, tính tổng doanh thu/số đơn.
+6. Tạo 1 API route trong Next.js (VD `src/app/api/tiktok-shop/summary/route.ts`) gọi TikTok Order
+   API server-side (giữ App Secret/token phía server, KHÔNG expose ra client) và trả về JSON tổng
+   hợp (tổng đơn, tổng doanh thu, đơn theo ngày...).
+7. Thêm 1 section mới trong `/admin/dashboard` (component riêng, ví dụ
+   `src/components/admin/TikTokShopSection.tsx`, đặt cạnh `CampaignPerformanceSection` đã có) gọi
+   route ở bước 6, hiển thị số liệu tương tự phong cách các section admin khác đã có (StatCard,
+   BarList...).
+8. Nếu cần lưu lịch sử để vẽ biểu đồ theo thời gian (không chỉ xem trạng thái tức thời), cân nhắc
+   thêm 1 bảng Supabase mới (project `ADMIN_SUPABASE_URL`, cùng project với `blog_posts`) để lưu
+   snapshot đơn hàng theo ngày — chỉ làm nếu Order API không hỗ trợ truy vấn lịch sử xa đủ dùng.
+
+## 4. Ràng buộc
+
+- App Secret và access_token/refresh_token **không bao giờ** lộ ra client-side (không dùng
+  `NEXT_PUBLIC_` prefix, chỉ dùng trong API route chạy server).
+- Không tự ý tạo app TikTok Shop mới — dùng đúng app `VTSG_API_enabled` đã có sẵn và đã được ủy
+  quyền, tránh vượt giới hạn "tối đa 10 ứng dụng" mà Partner Center đã cảnh báo.
+- Đây là dữ liệu tài chính thật (doanh thu) — validate kỹ trước khi hiển thị, không hiển thị số
+  liệu sai lệch nếu API trả lỗi (hiện trạng thái lỗi rõ ràng thay vì số 0 gây hiểu lầm).
