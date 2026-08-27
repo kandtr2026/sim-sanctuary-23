@@ -1,5 +1,6 @@
 import { EDGE_FUNCTIONS_URL, SUPABASE_PUBLISHABLE_KEY } from '@/integrations/supabase/config';
 import { detectNetwork } from '@/lib/simUtils';
+import { formatSimQuyAware } from '@/lib/simDisplay';
 
 /**
  * The 229.000đ promo warehouse.
@@ -106,11 +107,9 @@ export const parseCheapPrice = (raw: string): number => {
 export const padLeadingZero = (digits: string): string =>
   digits.length === 9 ? `0${digits}` : digits;
 
-/** 0901942752 → 0901.942.752 */
+/** 0901942752 → 0901.942.752. Tứ quý (4 số cuối giống) → 3-3-4: 093.368.6666. */
 export const formatCheapNumber = (digits: string): string =>
-  digits.length === 10
-    ? `${digits.slice(0, 4)}.${digits.slice(4, 7)}.${digits.slice(7)}`
-    : digits;
+  formatSimQuyAware(digits);
 
 export interface CheapSim {
   /** Real sheet SimID (SIMKM…), not a row index. Stable across sheet edits. */

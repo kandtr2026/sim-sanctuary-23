@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Phone } from "lucide-react";
 import type { NormalizedSIM } from "@/lib/simUtils";
 import { formatPrice } from "@/lib/simUtils";
+import { formatSimQuyAware } from "@/lib/simDisplay";
 
 const ZALO_URL = "https://zalo.me/0933356666";
 
@@ -99,7 +100,7 @@ const SimSnapshot = ({
               {sims.map((sim) => (
                 <tr key={sim.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
                   <td className="px-4 py-3 font-bold text-foreground tracking-wide whitespace-nowrap">
-                    {sim.formattedNumber}
+                    {formatSimQuyAware(sim.rawDigits || sim.formattedNumber)}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
                     {detectCarrier(sim.formattedNumber)}

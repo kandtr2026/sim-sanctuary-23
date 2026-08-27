@@ -5,6 +5,7 @@
 // ==============================
 
 import { getCalibrationData } from './simInventorySheet';
+import { formatSimQuyAware } from './simDisplay';
 
 /**
  * Chuẩn hóa số điện thoại - loại bỏ mọi ký tự không phải số
@@ -549,12 +550,13 @@ export function valuateSim(phone: string): ValuationOutput {
 }
 
 /**
- * Format số SIM hiển thị (thêm dấu chấm)
+ * Format số SIM hiển thị (thêm dấu chấm). Tứ quý (4 số cuối giống) → 3-3-4
+ * (093.368.6666) để cụm quý liền nhau, tránh 0933.686.666 cắt mất cụm.
  */
 export function formatPhoneDisplay(phone: string): string {
   const digits = normalizePhone(phone);
   if (digits.length === 10) {
-    return `${digits.slice(0, 4)}.${digits.slice(4, 7)}.${digits.slice(7)}`;
+    return formatSimQuyAware(digits);
   }
   if (digits.length === 11) {
     return `${digits.slice(0, 4)}.${digits.slice(4, 7)}.${digits.slice(7)}`;

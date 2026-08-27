@@ -69,7 +69,16 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '', birthDateDi
   // đồng nhất mọi nơi) thay vì displayNumber (dấu chấm tùy hứng từ sheet).
   // Chỉ birthDisplay (SIM năm sinh) được giữ riêng vì nó hiển thị ngày sinh.
   // birthDateDisplay (từ BirthYearSimGrid) override tất cả khi khớp ngày sinh.
-  const cardDisplay = birthDateDisplay ?? (birthDisplay || sim.formattedNumber || sim.displayNumber || sim.rawDigits);
+  // Tứ quý (4 số cuối giống nhau): format 3.3.4 để cụm quý liền nhau — VD
+  // 093.368.6666 thay vì 0933.686.666 (bị cắt 6.666).
+  const rawForDisplay = sim.rawDigits || (sim.displayNumber || sim.formattedNumber || "").replace(/\D/g, "");
+  const isTuQuy = rawForDisplay.length === 10 && /^(\d)\1{3}$/.test(rawForDisplay.slice(-4));
+  const tuQuyDisplay = isTuQuy
+    ? `${rawForDisplay.slice(0, 3)}.${rawForDisplay.slice(3, 6)}.${rawForDisplay.slice(6)}`
+    : null;
+  const cardDisplay =
+    birthDateDisplay ??
+    (birthDisplay || tuQuyDisplay || sim.formattedNumber || sim.displayNumber || sim.rawDigits);
 
   // Đang có câu tìm: cách chấm phải theo rule chung ở `simDisplay` — cụm khách
   // tìm (`*6879`) hiện liền một cụm, không bị dấu chấm của sheet/ngày sinh cắt.

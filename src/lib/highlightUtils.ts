@@ -162,21 +162,29 @@ export const createQuyHighlightedNumber = (
     return buildSpansFromHlSet(plan.display, blocksToDigitSet(plan.hl), 'font-extrabold text-gold');
   }
 
-  // Ngũ quý / Lục quý: tìm cụm run chữ số giống nhau liền nhau ở BẤT KỲ ĐÂU
-  const sameBlockRegex = new RegExp(`^(\\d)\\1{${run - 1}}$`);
-  for (let i = 0; i <= digits.length - run; i++) {
-    if (sameBlockRegex.test(digits.slice(i, i + run))) {
-      start = i;
-      break;
+  // Ngũ quý / Lục quý: tìm cụm chữ số giống nhau LIỀN NHAU DÀI NHẤT ở bất kỳ đâu.
+  // Dùng run THẬT của số (không phải run của filter): một sim Lục quý (6 số) vẫn
+  // khớp filter Ngũ quý — nếu cắt theo run=5 sẽ thành 5+1 (0.77777.79086) sai.
+  const longestRun = (d: string): { start: number; len: number } | null => {
+    let best: { start: number; len: number } | null = null;
+    let i = 0;
+    while (i < d.length) {
+      let j = i;
+      while (j < d.length && d[j] === d[i]) j++;
+      if (!best || j - i > best.len) best = { start: i, len: j - i };
+      i = j;
     }
-  }
-  if (start === -1) return [displayNumber];
+    return best;
+  };
+  const found = longestRun(digits);
+  if (!found || found.len < run) return [displayNumber];
+  start = found.start;
+  const block = digits.slice(start, start + found.len);
 
   // Reformat thành prefix.quýblock.suffix — dấu chấm tách cụm quý ra
   // để mắt nhìn thấy ngay dạng đẹp (ví dụ 0.77777.9086).
   const prefix = digits.slice(0, start);
-  const block = digits.slice(start, start + run);
-  const suffix = digits.slice(start + run);
+  const suffix = digits.slice(start + found.len);
 
   const result: React.ReactNode[] = [];
   result.push(React.createElement('span', { key: 'pre', className: 'opacity-80' }, prefix));

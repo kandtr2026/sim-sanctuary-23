@@ -63,6 +63,19 @@ export const groupDigitsPretty = (digits: string): string[] => {
 /** Chuẩn hoá câu tìm về đúng bộ ký tự mà ô tìm cho phép: chữ số và `*`. */
 const cleanQuery = (query: string): string => (query || '').replace(/[^0-9*]/g, '');
 
+/**
+ * Format số SIM quý-aware: nếu 4 số cuối giống nhau (tứ quý ở đuôi) → 3-3-4
+ * (093.368.6666) để cụm quý liền nhau; ngược lại giữ 4-3-3 chuẩn. Dùng chung
+ * cho checkout, kho giá rẻ, phong thủy, định giá — tránh mỗi nơi tự chấm.
+ */
+export const formatSimQuyAware = (rawDigits: string): string => {
+  const digits = (rawDigits || '').replace(/\D/g, '');
+  if (digits.length === 10 && /^(\d)\1{3}$/.test(digits.slice(-4))) {
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  }
+  return groupDigitsPretty(digits).join('.');
+};
+
 const sortMerge = (blocks: DigitBlock[]): DigitBlock[] => {
   const sorted = blocks.filter((b) => b.end > b.start).sort((a, b) => a.start - b.start);
   const out: DigitBlock[] = [];

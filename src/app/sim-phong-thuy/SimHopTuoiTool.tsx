@@ -27,6 +27,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { formatPrice } from "@/lib/simUtils";
+import { formatSimQuyAware } from "@/lib/simDisplay";
 import type { HopTuoiProfile, ScoredSim } from "@/lib/simHopTuoi";
 import {
   NANG_LUONG_LIST,
@@ -717,7 +718,7 @@ const SimHopTuoiTool = () => {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="font-mono text-lg md:text-xl font-semibold truncate" style={{ color: "#D9B778" }}>
-                        {sim.formattedNumber}
+                        {formatSimQuyAware(sim.digits)}
                       </p>
                       <p className="text-base md:text-lg font-medium text-white mt-0.5">{formatPrice(sim.price)}</p>
                     </div>

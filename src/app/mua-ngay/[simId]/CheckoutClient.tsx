@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { normalizeSIM, parsePrice, formatPrice, type NormalizedSIM } from '@/lib/simUtils';
 import { getPromotionalData } from '@/hooks/useSimData';
 import { CHEAP_KHO, fetchCheapSimById, isCheapSimId, type CheapSim } from '@/lib/cheapSimSheet';
+import { formatSimQuyAware } from '@/lib/simDisplay';
 import {
   Dialog,
   DialogContent,
@@ -376,15 +377,20 @@ const CheckoutClient = () => {
     return simWithTags.originalPriceVnd;
   }, [simWithTags]);
 
+  // Số thuê bao hiển thị: ưu tiên format quý-aware (tứ quý → 3-3-4) để cụm quý
+  // không bị dấu chấm cắt (093.368.6666 thay vì 0933.686.666).
+  const checkoutDisplay = simWithTags
+    ? formatSimQuyAware(simWithTags.rawDigits || simWithTags.displayNumber || '')
+    : '';
+
   // Mirror the real subscriber number into the tab title once the SIM resolves
   // (same pattern as not-found.tsx). The server title keeps the raw simId and the
   // route is noindex, so this is purely cosmetic for the user reading the tab.
   useEffect(() => {
-    if (simWithTags) {
-      const number = simWithTags.displayNumber || simWithTags.formattedNumber || simWithTags.rawDigits;
-      if (number) document.title = `Đặt mua SIM ${number} | CHONSOMOBIFONE`;
+    if (simWithTags && checkoutDisplay) {
+      document.title = `Đặt mua SIM ${checkoutDisplay} | CHONSOMOBIFONE`;
     }
-  }, [simWithTags]);
+  }, [simWithTags, checkoutDisplay]);
 
   const handleInputChange = (field: keyof CheckoutFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -536,7 +542,7 @@ const CheckoutClient = () => {
             <h2 className="text-center text-sm font-semibold text-gold tracking-widest mb-4">THÔNG TIN SIM</h2>
 
             <div className="text-center text-3xl md:text-4xl font-bold text-primary tracking-wider">
-              {simWithTags.displayNumber || simWithTags.formattedNumber || simWithTags.rawDigits?.replace(/(\d{4})(\d{3})(\d{3})/, '$1.$2.$3') || simWithTags.simId}
+              {checkoutDisplay || simWithTags.simId}
             </div>
 
             <div className="text-center mt-2 mb-5">
@@ -685,7 +691,7 @@ const CheckoutClient = () => {
 
               <span className="text-muted-foreground">Số thuê bao:</span>
               <span className="font-semibold text-primary">
-                {simWithTags.displayNumber || simWithTags.formattedNumber}
+                {checkoutDisplay || simWithTags.simId}
               </span>
 
               <span className="text-muted-foreground">Giá tiền:</span>
