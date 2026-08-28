@@ -346,7 +346,7 @@ const CheckoutClient = () => {
       try {
         const response = await invokeEdgeFunction(
           `fetch-sim-by-id?simId=${encodeURIComponent(simId)}`,
-          { method: 'GET', signal },
+          { method: 'GET', signal, throwOnHttpError: false },
         );
         // 404 là câu trả lời DỨT KHOÁT (không tồn tại / đã bán / đã ẩn) — không
         // phải sự cố, nên không được rơi xuống CSV. Rơi xuống CSV vừa tải 5,5 MB

@@ -18,7 +18,19 @@ import { EDGE_FUNCTIONS_URL, SUPABASE_PUBLISHABLE_KEY } from './config';
  */
 export const invokeEdgeFunction = async (
   name: string,
-  init?: { method?: string; body?: string; headers?: Record<string, string>; signal?: AbortSignal },
+  init?: {
+    method?: string;
+    body?: string;
+    headers?: Record<string, string>;
+    signal?: AbortSignal;
+    /**
+     * Mặc định mọi phản hồi non-2xx đều ném lỗi. Đặt `false` khi phía gọi cần tự
+     * phân biệt mã lỗi — ví dụ checkout coi 404 của `fetch-sim-by-id` (SIM không
+     * tồn tại / đã bán / đã ẩn) là câu trả lời dứt khoát, chứ không phải sự cố
+     * cần tải lại 5,5 MB CSV dự phòng.
+     */
+    throwOnHttpError?: boolean;
+  },
 ): Promise<Response> => {
   const response = await fetch(`${EDGE_FUNCTIONS_URL}/${name}`, {
     method: init?.method ?? 'POST',
@@ -31,7 +43,7 @@ export const invokeEdgeFunction = async (
     signal: init?.signal,
   });
 
-  if (!response.ok) {
+  if (!response.ok && init?.throwOnHttpError !== false) {
     throw new Error(`Edge function "${name}" failed: HTTP ${response.status} ${response.statusText}`);
   }
 
