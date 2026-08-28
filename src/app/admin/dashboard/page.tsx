@@ -11,6 +11,7 @@ import { StatCard } from "@/components/admin/StatCard";
 import { PageVisitsSection } from "@/components/admin/PageVisitsSection";
 import { ConversionsSection } from "@/components/admin/ConversionsSection";
 import { CampaignPerformanceSection } from "@/components/admin/CampaignPerformanceSection";
+import { TikTokShopSection } from "@/components/admin/TikTokShopSection";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { getLastUpdateInfo, getPromotionalData, useSimData } from "@/hooks/useSimData";
 import { formatPrice, PRICE_RANGES } from "@/lib/simUtils";
@@ -331,6 +332,8 @@ function AdminDashboardContent() {
         <ConversionsSection />
 
         <CampaignPerformanceSection />
+
+        <TikTokShopSection />
 
         <PostsTable posts={posts} loading={postsLoading} onDelete={(post) => void handleDeletePost(post)} />
       </main>
