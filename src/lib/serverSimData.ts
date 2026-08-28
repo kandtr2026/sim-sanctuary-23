@@ -216,6 +216,20 @@ const SUPABASE_SIMS_PAGE = 1000;
 
 const SIMS_SELECT = 'id,raw_digits,display_number,original_price,final_price,effective_price,network,tags,beauty_score,is_vip';
 
+/**
+ * Điều kiện "được phép bán" khi đọc bảng `sims`.
+ *
+ * Trước đây cả ba chỗ đọc DB đều dùng `status=neq.sold`, nhưng `sync-sims` ghi
+ * bốn giá trị: available | sold | reserved | ẩn (xem sync-sims/index.ts:189).
+ * `neq.sold` vì thế vẫn cho SIM `reserved` và `ẩn` lên lưới, lên schema và đặt
+ * mua được — 302 hàng `ẩn` là số shop đã cố ý ẩn. Nhánh CSV cũ
+ * (`parseAndNormalize`) loại đủ cả ba, nên đây là chỗ nhánh DB đi lệch.
+ *
+ * Chốt theo hướng fail-closed: chỉ `available` mới bán. Thêm một giá trị status
+ * mới trong tương lai sẽ bị loại theo mặc định thay vì âm thầm bán ra.
+ */
+const SELLABLE_STATUS = 'status=eq.available';
+
 interface SimsDbRow {
   id: string;
   raw_digits: string;
@@ -280,7 +294,7 @@ const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
     // Chạy song song thay vì tuần tự để không kéo 50 request nối tiếp (~20s):
     // lấy count trước, rồi bắn toàn bộ trang cùng lúc với độ đồng thời giới hạn.
     const countRes = await fetchWithTimeout(
-      `${SUPABASE_REST}/sims?select=id&status=neq.sold&limit=0`,
+      `${SUPABASE_REST}/sims?select=id&${SELLABLE_STATUS}&limit=0`,
       { headers: { ...authHeaders, Prefer: 'count=exact' } },
       FETCH_TIMEOUT_MS,
     );
@@ -300,7 +314,7 @@ const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
       while (next < pageCount) {
         const pageIdx = next++;
         const res = await fetchWithTimeout(
-          `${SUPABASE_REST}/sims?select=${SIMS_SELECT}&status=neq.sold&limit=${SUPABASE_SIMS_PAGE}&offset=${pageIdx * SUPABASE_SIMS_PAGE}`,
+          `${SUPABASE_REST}/sims?select=${SIMS_SELECT}&${SELLABLE_STATUS}&limit=${SUPABASE_SIMS_PAGE}&offset=${pageIdx * SUPABASE_SIMS_PAGE}`,
           { headers: authHeaders },
           FETCH_TIMEOUT_MS,
         );
@@ -458,7 +472,7 @@ export async function querySimsFromDb(
   params.set('select', SIMS_SELECT);
 
   // status != sold (sync marks sold sims)
-  and.push('status=neq.sold');
+  and.push(SELLABLE_STATUS);
 
   // The AND clauses appear as simple query params (PostgREST conjoints them)
   for (const clause of and) {

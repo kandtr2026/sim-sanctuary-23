@@ -184,6 +184,13 @@ const parseCSVAndFindSim = (csvText: string, targetSimId: string): CheckoutSimDa
     const rowSimId = simIdIdx >= 0 ? values[simIdIdx]?.trim() : '';
 
     if (rowSimId === targetSimId) {
+      // `TRẠNG THÁI = ẨN` là số shop đã chủ động rút khỏi kho bán. Nhánh CSV này
+      // trước đây vẫn trả về hàng đó nên trang đặt hàng hiện đủ form; nay loại
+      // ngay tại đây cho khớp guard của `fetch-sim-by-id`. (SIM đã bán thì
+      // `fetch-sim-data` đã lọc theo tab SIM_SOLD trước khi CSV tới đây.)
+      const rowTrangThai = trangThaiIdx >= 0 ? (values[trangThaiIdx] || '').trim() : '';
+      if (rowTrangThai.toUpperCase() === 'ẨN') return null;
+
       const displayNumber = displayIdx >= 0 ? (values[displayIdx] || '').trim() : '';
       const rawNumber = rawIdx >= 0 ? (values[rawIdx] || '').trim() : '';
       const rawDigits = rawNumber.replace(/\D/g, '') || displayNumber.replace(/\D/g, '');
@@ -341,6 +348,10 @@ const CheckoutClient = () => {
           `fetch-sim-by-id?simId=${encodeURIComponent(simId)}`,
           { method: 'GET', signal },
         );
+        // 404 là câu trả lời DỨT KHOÁT (không tồn tại / đã bán / đã ẩn) — không
+        // phải sự cố, nên không được rơi xuống CSV. Rơi xuống CSV vừa tải 5,5 MB
+        // vô ích, vừa có nguy cơ bán lại đúng số mà edge function vừa từ chối.
+        if (response.status === 404) return null;
         if (!response.ok) throw new Error(`fetch-sim-by-id failed: HTTP ${response.status}`);
         const data = (await response.json()) as FetchSimByIdResponse;
         if (!data || !data.simId) return null;
@@ -497,19 +508,31 @@ const CheckoutClient = () => {
     );
   }
 
-  // Not found
+  // Not found — cũng là trạng thái cho SIM đã bán hoặc đã ẩn khỏi kho, nên chữ
+  // phải mở đường tiếp cho khách thay vì chỉ báo lỗi kèm mã nội bộ.
   if (error || !simWithTags) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center max-w-md">
-          <h1 className="text-xl font-bold text-foreground mb-2">Không tìm thấy SIM</h1>
+          <h1 className="text-xl font-bold text-foreground mb-2">Số này hiện không còn nhận đặt</h1>
           <p className="text-muted-foreground mb-4">
-            SIM với mã "{simId}" không tồn tại hoặc đã hết hàng.
+            Số Quý khách chọn vừa có người đặt hoặc đã được rút khỏi kho. Đội ngũ tư vấn có thể giúp
+            Quý khách tìm số tương đương về đuôi số và tầm giá.
           </p>
-          <Button onClick={() => router.push('/')} className="gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            Quay lại danh sách
-          </Button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5">
+            <Button onClick={() => router.push('/')} className="gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Xem số khác trong kho
+            </Button>
+            <a
+              href="https://zalo.me/0933356666"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center rounded-lg border border-border px-5 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary/50"
+            >
+              Nhắn Zalo tìm số tương đương
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -758,7 +781,7 @@ const CheckoutClient = () => {
                 since DialogTitle's leading-none tracking-tight would otherwise
                 win the twMerge. */}
             <DialogTitle className="text-lg font-semibold text-foreground leading-relaxed tracking-normal">
-              Cảm ơn bạn đã đặt hàng thành công tại CHONSOMOBIFONE.COM
+              CHONSOMOBIFONE.COM đã nhận đơn hàng của Quý khách. Nhân viên giao dịch sẽ gọi lại xác nhận trong ít phút.
             </DialogTitle>
           </div>
         </DialogContent>
