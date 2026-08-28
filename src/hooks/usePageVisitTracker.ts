@@ -28,34 +28,58 @@ export function usePageVisitTracker() {
   const lastLoggedRef = useRef<{ path: string; at: number } | null>(null);
 
   useEffect(() => {
-    // First-touch UTM/gclid capture — runs on first mount and is a no-op after
-    // (sessionStorage guard), so later internal navigations keep the original.
-    captureAttribution();
+    // Admin panel is the owner's own tooling, not customer traffic. Skipping it
+    // keeps "Trang khách đã xem" clean of the owner's own /admin visits.
+    if (pathname.startsWith("/admin")) return;
 
-    const path = getPagePath(pathname, searchParams.toString());
-    const now = Date.now();
+    let cancelled = false;
 
-    const last = lastLoggedRef.current;
-    if (last && last.path === path && now - last.at < THROTTLE_MS) return;
+    void (async () => {
+      // A logged-in owner browsing their own public site must not be counted as
+      // a customer visit either — their testing would flood the dashboard the
+      // same way their /admin visits did.
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (cancelled) return;
+        if (data.session) return; // signed in (owner / admin) → not a customer
+      } catch {
+        // Session check is best-effort; fall through to tracking on failure.
+      }
 
-    lastLoggedRef.current = { path, at: now };
+      // First-touch UTM/gclid capture — runs on first mount and is a no-op after
+      // (sessionStorage guard), so later internal navigations keep the original.
+      captureAttribution();
 
-    const { referrer, source } = classifySource(document.referrer);
+      const path = getPagePath(pathname, searchParams.toString());
+      const now = Date.now();
 
-    const payload = {
-      path,
-      referrer,
-      source,
-      user_agent: navigator.userAgent,
-      ...getAttribution(),
+      const last = lastLoggedRef.current;
+      if (last && last.path === path && now - last.at < THROTTLE_MS) return;
+
+      lastLoggedRef.current = { path, at: now };
+
+      const { referrer, source } = classifySource(document.referrer);
+
+      const payload = {
+        path,
+        referrer,
+        source,
+        user_agent: navigator.userAgent,
+        ...getAttribution(),
+      };
+
+      if (cancelled) return;
+      await supabase
+        .from("page_visits")
+        .insert(payload)
+        .then(({ error }) => {
+          // Quietly ignore failures (RLS, network, anonymous insert blocked...)
+          if (error) console.debug("[page_visit] not logged:", error.message);
+        });
+    })();
+
+    return () => {
+      cancelled = true;
     };
-
-    supabase
-      .from("page_visits")
-      .insert(payload)
-      .then(({ error }) => {
-        // Quietly ignore failures (RLS, network, anonymous insert blocked...)
-        if (error) console.debug("[page_visit] not logged:", error.message);
-      });
   }, [pathname, searchParams]);
 }

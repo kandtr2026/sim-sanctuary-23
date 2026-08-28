@@ -46,7 +46,21 @@ export function useConversionTracker() {
   const lastLoggedRef = useRef<{ type: ConversionType; at: number } | null>(null);
 
   useEffect(() => {
+    // Signed-in owner (admin) testing the public site must not be counted as a
+    // lead. Resolved once on mount; the value is stable for the page session.
+    let isOwner = false;
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        isOwner = Boolean(data.session);
+      })
+      .catch(() => {});
+
     const onClick = (e: Event) => {
+      // Skip tracking before the owner check resolves (default false) so real
+      // visitor clicks are never missed; a false positive from the owner is
+      // rarer and self-inflicted.
+      if (isOwner) return;
       const type = classifyClick(e.target);
       if (!type) return;
 
