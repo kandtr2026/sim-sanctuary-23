@@ -18,7 +18,7 @@ const ZALO_URL = "https://zalo.me/0933356666";
 
 const TITLE = "SIM Phong Thủy Hợp Mệnh | Chọn Số Hợp Mệnh Kim, Mộc, Thủy, Hỏa, Thổ";
 const DESCRIPTION =
-  "Kho sim phong thủy hợp mệnh Mobifone: chọn sim theo mệnh Kim, Mộc, Thủy, Hỏa, Thổ. Giá niêm yết công khai, sang tên chính chủ, nhận SIM rồi mới trả tiền.";
+  "Kho sim phong thủy hợp mệnh Mobifone: chọn số theo mệnh Kim, Mộc, Thủy, Hỏa, Thổ. Giá niêm yết công khai, sang tên chính chủ, nhận SIM rồi mới trả tiền.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-phong-thuy-hop-menh";
 
 export const metadata: Metadata = {
@@ -37,15 +37,15 @@ export const metadata: Metadata = {
 const faqItems = [
   {
     q: "Sim phong thủy hợp mệnh là gì?",
-    a: "Sim phong thủy hợp mệnh là sim số đẹp được chọn dựa trên ngũ hành của chủ sở hữu — mỗi mệnh Kim, Mộc, Thủy, Hỏa, Thổ hợp với một số may mắn nhất định. Chọn số điện thoại hợp mệnh được tin là mang lại may mắn và thuận lợi trong cuộc sống.",
+    a: "Sim phong thủy hợp mệnh là sim số đẹp được chọn dựa trên ngũ hành của người dùng — mỗi mệnh Kim, Mộc, Thủy, Hỏa, Thổ hợp với một số may mắn nhất định. Theo quan niệm dân gian, số điện thoại hợp mệnh được tin là mang lại may mắn và thuận lợi trong cuộc sống.",
   },
   {
-    q: "Tôi không biết mệnh của mình thì làm sao?",
-    a: "Bạn có thể tra cứu nhanh qua năm sinh. Mệnh được xác định theo thiên can – địa chi của năm sinh âm lịch. Nếu chưa chắc chắn, hãy dùng công cụ xem sim phong thủy tại /sim-phong-thuy hoặc liên hệ tư vấn để được hỗ trợ.",
+    q: "Cách xác định mệnh theo năm sinh?",
+    a: "Mệnh được xác định theo thiên can – địa chi của năm sinh âm lịch, nên chỉ cần năm sinh là tra được. Nếu chưa chắc chắn, Quý khách dùng công cụ xem sim phong thủy tại /sim-phong-thuy hoặc liên hệ đội ngũ tư vấn để được hỗ trợ.",
   },
   {
     q: "Có thể mua sim phong thủy trả góp không?",
-    a: "Có. Bạn có thể tham khảo thêm thông tin về hình thức mua sim trả góp tại /sim-tra-gop.",
+    a: "Có. Quý khách xem thêm thông tin về hình thức mua sim trả góp tại /sim-tra-gop.",
   },
   {
     q: "Giao sim phong thủy mất bao lâu?",
@@ -91,7 +91,8 @@ export default async function SimPhongThuyHopMenhPage() {
               SIM Phong Thủy Hợp Mệnh — <span className="text-gold">chọn số theo mệnh Kim, Mộc, Thủy, Hỏa, Thổ</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Chọn sim có số cuối hợp mệnh. Giá niêm yết công khai, sang tên chính chủ, giao tận nơi nội thành HCM.
+              Quý khách chọn mệnh, chúng tôi lọc sẵn những số có đuôi tương sinh. Giá niêm yết công khai,
+              sang tên chính chủ, giao tận nơi nội thành HCM.
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a
@@ -138,11 +139,12 @@ export default async function SimPhongThuyHopMenhPage() {
               </table>
             </div>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              (Số may mắn dựa trên quan hệ tương sinh trong ngũ hành: số hành tương sinh được ưu tiên. Đây là tham khảo
-              — để xem phong thủy chi tiết hơn theo tuổi, hãy dùng công cụ{" "}
+              Số may mắn ở bảng trên dựa trên quan hệ tương sinh của ngũ hành: hành tương sinh với bản mệnh được ưu
+              tiên. Đây là quan niệm dân gian nên chỉ mang tính tham khảo. Muốn xem chi tiết hơn theo tuổi, Quý khách
+              dùng công cụ{" "}
               <a href="/sim-phong-thuy" className="font-medium text-primary underline-offset-2 hover:underline">
                 xem sim phong thủy
-              </a>.)
+              </a>.
             </p>
           </section>
 
@@ -157,8 +159,9 @@ export default async function SimPhongThuyHopMenhPage() {
               Mua sim phong thủy hợp mệnh ở đâu uy tín?
             </h2>
             <p className="leading-relaxed text-muted-foreground">
-              Tại CHONSOMOBIFONE.COM, mọi số đều niêm yết giá công khai, hỗ trợ sang tên chính chủ và giao SIM tận nơi
-              — nhận SIM rồi mới trả tiền. Bạn chọn số trước, so giá trước, rồi mới quyết định.
+              Mua số hợp mệnh nên bắt đầu từ sự minh bạch. Mỗi số trong kho CHONSOMOBIFONE.COM đều niêm yết giá công
+              khai, kèm bộ lọc theo mệnh để Quý khách tự đối chiếu trước khi cần tới tư vấn. Chúng tôi hỗ trợ sang tên
+              chính chủ và giao SIM tận nơi; Quý khách kiểm tra đúng số đã chọn rồi mới thanh toán.
             </p>
           </section>
 

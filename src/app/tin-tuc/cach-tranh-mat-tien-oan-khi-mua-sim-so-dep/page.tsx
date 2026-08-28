@@ -32,7 +32,7 @@ export default function TinTucBai5Page() {
 
           <div className="space-y-4 text-body">
             <p>
-              Thị trường sim số đẹp luôn sôi động với những giao dịch từ vài triệu đến hàng tỷ đồng. Tuy nhiên, đây cũng là mảnh đất màu mỡ cho các đối tượng lừa đảo. Để sở hữu được một số thuê bao ưng ý mà không bị "tiền mất tật mang", bạn cần lưu ý những quy tắc vàng dưới đây.
+              Một giao dịch sim số đẹp có thể từ vài triệu đến hàng tỷ đồng, phần lớn lại diễn ra từ xa và chỉ dựa vào lòng tin. Năm nguyên tắc dưới đây giúp Quý khách chủ động kiểm tra trước khi chuyển tiền, thay vì trông vào thiện chí của người bán.
             </p>
 
             <h2 className="text-xl md:text-2xl font-bold text-primary mt-8 mb-4">
@@ -40,11 +40,11 @@ export default function TinTucBai5Page() {
             </h2>
 
             <p>
-              Đây là cái bẫy phổ biến nhất. Kẻ xấu thường yêu cầu bạn chuyển khoản toàn bộ số tiền với lý do "giữ số" hoặc "làm thủ tục nhanh".
+              Đây là tình huống dễ mất tiền nhất. Bên bán thường đề nghị chuyển khoản toàn bộ với lý do &ldquo;giữ số&rdquo; hoặc &ldquo;làm thủ tục nhanh&rdquo;, rồi im lặng sau khi nhận tiền.
             </p>
 
             <p>
-              <strong>Lời khuyên:</strong> Chỉ nên đặt cọc một khoản nhỏ (không quá 10-20%) nếu mua từ xa. Tốt nhất là thực hiện giao dịch trực tiếp tại điểm giao dịch của nhà mạng.
+              <strong>Nên làm:</strong> Chỉ đặt cọc một khoản nhỏ, khoảng 10-20%, khi mua từ xa. An tâm nhất là giao dịch trực tiếp tại điểm giao dịch của nhà mạng và trả phần còn lại sau khi hồ sơ sang tên hoàn tất.
             </p>
 
             <h2 className="text-xl md:text-2xl font-bold text-primary mt-8 mb-4">
@@ -52,24 +52,25 @@ export default function TinTucBai5Page() {
             </h2>
 
             <p>
-              Trước khi xuống tiền, hãy thử gọi vào số máy đó:
+              Trước khi chuyển tiền, hãy thử gọi vào chính số đó:
             </p>
 
             <ul className="list-disc pl-6 space-y-2">
-              <li>Nếu đổ chuông: Hãy yêu cầu người bán chứng minh họ là chủ sở hữu (bằng cách gọi lại cho bạn từ chính số đó).</li>
-              <li>Nếu báo số không tồn tại: Có thể sim đã bị thu hồi về kho số, hãy cẩn trọng với các lời hứa "đấu nối lại".</li>
+              <li>Nếu đổ chuông: đề nghị bên bán gọi lại từ chính số đang rao để xác nhận họ đang giữ SIM.</li>
+              <li>Nếu báo số không tồn tại: số có thể đã bị thu hồi về kho của nhà mạng. Hãy cẩn trọng với lời hứa &ldquo;đấu nối lại&rdquo;.</li>
+              <li>Nếu chỉ nhận được ảnh chụp màn hình thay vì cuộc gọi thật: đó là dấu hiệu nên dừng lại.</li>
             </ul>
 
             <h2 className="text-xl md:text-2xl font-bold text-primary mt-8 mb-4">
-              3. Cảnh giác với Sim số đẹp giá "rẻ bất ngờ"
+              3. Cảnh giác với Sim số đẹp giá &ldquo;rẻ bất ngờ&rdquo;
             </h2>
 
             <p>
-              Một số sim Tứ Quý hay Lộc Phát có giá thị trường 50 triệu nhưng lại được rao bán chỉ 5-10 triệu với lý do "cần tiền gấp".
+              Một số Tứ Quý hay Lộc Phát có giá thị trường 50 triệu nhưng được rao 5-10 triệu kèm lý do &ldquo;cần tiền gấp&rdquo;. Mức lệch quá lớn thường đi cùng sim đang tranh chấp, sim còn nợ cam kết hoặc sim không tồn tại.
             </p>
 
             <p>
-              <strong>Sự thật:</strong> Đa phần đây là sim tranh chấp, sim đang trả góp hoặc sim ảo. Hãy khảo sát giá ở ít nhất 3 website uy tín để nắm được mức giá chung trước khi quyết định.
+              <strong>Nên làm:</strong> Khảo giá ở ít nhất 3 website có niêm yết công khai để nắm khoảng giá chung của dòng số đó. Khi đã biết mặt bằng giá, Quý khách sẽ nhận ra ngay lời chào bán bất thường.
             </p>
 
             <h2 className="text-xl md:text-2xl font-bold text-primary mt-8 mb-4">
@@ -77,7 +78,7 @@ export default function TinTucBai5Page() {
             </h2>
 
             <p>
-              Sau khi nhận sim, việc đầu tiên cần làm là soạn tin nhắn:
+              Vừa nhận sim, việc đầu tiên là soạn tin nhắn:
             </p>
 
             <p className="font-semibold bg-muted p-3 rounded-md">
@@ -85,11 +86,11 @@ export default function TinTucBai5Page() {
             </p>
 
             <p>
-              Hệ thống sẽ trả về tên chủ sở hữu, ngày sinh, số CMND/CCCD.
+              Hệ thống trả về tên chủ sở hữu, ngày sinh, số CMND/CCCD đang đứng tên số đó.
             </p>
 
             <p>
-              Nếu thông tin trả về không phải của bạn, hãy yêu cầu người bán hỗ trợ sang tên ngay lập tức tại cửa hàng nhà mạng.
+              Thông tin trả về không phải của Quý khách nghĩa là số chưa thật sự thuộc về Quý khách. Hãy đề nghị bên bán hỗ trợ sang tên ngay tại cửa hàng nhà mạng, trước khi tất toán phần tiền còn lại.
             </p>
 
             <h2 className="text-xl md:text-2xl font-bold text-primary mt-8 mb-4">
@@ -97,15 +98,15 @@ export default function TinTucBai5Page() {
             </h2>
 
             <p>
-              Luôn giữ lại ảnh chụp tin nhắn, hóa đơn chuyển khoản hoặc hợp đồng mua bán tay. Đây là bằng chứng duy nhất giúp bạn đòi lại quyền lợi nếu xảy ra tranh chấp hoặc khiếu nại về sau.
+              Hãy giữ lại ảnh chụp tin nhắn, biên lai chuyển khoản và hợp đồng mua bán tay. Đây là căn cứ giúp Quý khách bảo vệ quyền lợi nếu về sau phát sinh tranh chấp hoặc cần khiếu nại.
             </p>
 
             <p>
-              Để tránh rủi ro, hãy ưu tiên mua tại kho sim uy tín có{" "}
+              Cách an tâm nhất vẫn là chọn nơi bán niêm yết giá công khai và cam kết sang tên chính chủ. Mời Quý khách tham khảo{" "}
               <Link href="/mua-sim-gia-re" className="text-gold hover:underline font-semibold">
-                sim số đẹp giá tốt, minh bạch giá
-              </Link>
-              , niêm yết công khai và hỗ trợ sang tên chính chủ.
+                kho sim số đẹp giá tốt, minh bạch giá
+              </Link>{" "}
+              của CHONSOMOBIFONE.COM.
             </p>
           </div>
         </article>

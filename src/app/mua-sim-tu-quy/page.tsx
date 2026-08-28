@@ -14,7 +14,7 @@ const ZALO_URL = 'https://zalo.me/0933356666';
 
 const TITLE = "Mua Sim Tứ Quý Giá Tốt | Kho Sim Tứ Quý Đẹp Toàn Quốc";
 const DESCRIPTION =
-  "Kho sim tứ quý đẹp giá tốt từ CHONSOMOBIFONE.COM. Hàng nghìn sim 1111, 6666, 8888, 9999 cập nhật mỗi ngày. Mua sim tứ quý uy tín, giao dịch an toàn.";
+  "Kho sim tứ quý 1111, 6666, 8888, 9999 của CHONSOMOBIFONE.COM, giá niêm yết công khai. Quý khách chọn số, nhận sim rồi mới trả tiền, sang tên chính chủ.";
 const CANONICAL = "https://www.chonsomobifone.com/mua-sim-tu-quy";
 
 // ISR: match the 5-minute cache window Back uses for the live SIM catalogue, so
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     title: TITLE,
-    description: "Kho sim tứ quý đẹp giá tốt. Hàng nghìn sim 1111, 6666, 8888, 9999 cập nhật mỗi ngày.",
+    description: "Kho sim tứ quý 1111, 6666, 8888, 9999 cập nhật mỗi ngày, giá của từng số hiện sẵn trên kho.",
     url: CANONICAL,
     images: [
       {
@@ -41,12 +41,12 @@ export const metadata: Metadata = {
 };
 
 const faqItems = [
-{ q: 'Sim tứ quý giá bao nhiêu?', a: 'Giá sim tứ quý dao động từ vài trăm nghìn đến hàng trăm triệu đồng, tùy thuộc vào số quý (1111, 8888, 9999...), đầu số và nhà mạng. Sim tứ quý 8 và tứ quý 9 thường có giá cao nhất do ý nghĩa phong thủy đặc biệt.' },
-{ q: 'Mua sim tứ quý ở đâu uy tín?', a: 'CHONSOMOBIFONE.COM là địa chỉ uy tín để mua sim tứ quý với kho số lớn, giá minh bạch, hỗ trợ sang tên chính chủ và giao sim toàn quốc. Mọi giao dịch đều an toàn, có hóa đơn đầy đủ.' },
-{ q: 'Sim tứ quý có sang tên được không?', a: 'Có. Tất cả sim tứ quý tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ miễn phí. Bạn chỉ cần mang CMND/CCCD đến cửa hàng nhà mạng gần nhất hoặc sử dụng ứng dụng My Mobifone.' },
-{ q: 'Sim tứ quý nhà mạng nào tốt nhất?', a: 'Mỗi nhà mạng đều có ưu điểm riêng. Mobifone nổi bật với chất lượng cuộc gọi và data 4G/5G. Viettel có vùng phủ sóng rộng. Vinaphone phù hợp người dùng truyền thống. Quan trọng nhất là chọn số hợp phong thủy với bạn.' },
-{ q: 'Sim tứ quý có hợp phong thủy không?', a: 'Sim tứ quý mang ý nghĩa phong thủy rất mạnh vì sự lặp lại 4 lần tạo nên năng lượng tập trung. Mỗi con số có ý nghĩa riêng: 1111 (khởi đầu), 6666 (lộc lá), 8888 (phát tài), 9999 (quyền lực). Bạn nên chọn số phù hợp với mệnh và tuổi.' },
-{ q: 'Giao sim tứ quý mất bao lâu?', a: 'Nội thành TP.HCM và Hà Nội: 30 phút – 2 tiếng. Các tỉnh thành khác: 1–2 ngày làm việc qua chuyển phát nhanh. Thanh toán COD khi nhận hàng hoặc chuyển khoản trước.' }];
+{ q: 'Sim tứ quý giá bao nhiêu?', a: 'Giá sim tứ quý trải rộng từ vài trăm nghìn đến hàng trăm triệu đồng, tùy số quý (1111, 8888, 9999...), đầu số và nhà mạng. Tứ quý 8 và tứ quý 9 thường nằm ở nhóm giá cao nhất do ý nghĩa phong thủy đặc biệt. Từng số trong kho đều có giá niêm yết công khai để Quý khách so sánh trước khi đặt.' },
+{ q: 'Mua sim tứ quý ở đâu uy tín?', a: 'CHONSOMOBIFONE.COM có kho tứ quý lớn, giá niêm yết công khai, hỗ trợ sang tên chính chủ và giao sim toàn quốc. Quý khách nhận sim, kiểm tra đúng số rồi mới trả tiền. Mọi giao dịch đều có hóa đơn đầy đủ.' },
+{ q: 'Sim tứ quý có sang tên được không?', a: 'Được. Toàn bộ sim tứ quý tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ miễn phí. Quý khách mang CMND/CCCD đến cửa hàng nhà mạng gần nhất, hoặc đăng ký ngay trên ứng dụng My Mobifone.' },
+{ q: 'Sim tứ quý nhà mạng nào tốt nhất?', a: 'Mỗi nhà mạng mạnh ở một điểm. Mobifone nổi bật về chất lượng cuộc gọi và data 4G/5G. Viettel có vùng phủ sóng rộng. Vinaphone ổn định với người dùng lâu năm. Quan trọng hơn cả vẫn là chọn dãy số hợp mệnh và hợp tuổi của Quý khách.' },
+{ q: 'Sim tứ quý có hợp phong thủy không?', a: 'Một chữ số lặp lại bốn lần tạo nên nguồn năng lượng tập trung, nên tứ quý được xem là dòng sim đậm ý nghĩa phong thủy. Mỗi số một hàm ý: 1111 khởi đầu, 6666 lộc lá, 8888 phát tài, 9999 quyền lực. Đội ngũ tư vấn có thể đối chiếu mệnh và tuổi cùng Quý khách trước khi chốt số.' },
+{ q: 'Giao sim tứ quý mất bao lâu?', a: 'Nội thành TP.HCM và Hà Nội: 30 phút – 2 tiếng. Các tỉnh thành khác: 1–2 ngày làm việc qua chuyển phát nhanh. Quý khách thanh toán COD khi nhận sim, hoặc chuyển khoản trước nếu thuận tiện hơn.' }];
 
 const faqJsonLd = {
   '@context': 'https://schema.org',
@@ -62,47 +62,47 @@ const tuQuyTypes = [
 {
   num: '1',
   title: 'Sim Tứ Quý 1 (1111)',
-  content: 'Sim tứ quý 1 mang ý nghĩa của sự khởi đầu mới, tiên phong và độc lập. Trong phong thủy, số 1 tượng trưng cho nguyên khí, sự sáng tạo và ý chí mạnh mẽ. Người sở hữu sim tứ quý 1 thường là người có tố chất lãnh đạo, thích đi đầu và không ngại thử thách. Đối tượng phù hợp nhất là doanh nhân khởi nghiệp, nhà quản lý hoặc những ai muốn bắt đầu một chương mới trong cuộc sống. Mua sim tứ quý 1 là lựa chọn thông minh cho người muốn khẳng định bản thân và xây dựng thương hiệu cá nhân từ con số may mắn.'
+  content: 'Người mới khởi nghiệp thường tìm về số 1: nguyên khí, đi trước, tự quyết. Bốn số 1 liền nhau đọc lên gọn và dứt khoát, người nghe ghi nhớ ngay lần đầu. Tứ quý 1 phù hợp với chủ doanh nghiệp trẻ, nhà quản lý, hoặc Quý khách đang mở một chương mới và muốn số điện thoại nói hộ điều đó.'
 },
 {
   num: '2',
   title: 'Sim Tứ Quý 2 (2222)',
-  content: 'Sim tứ quý 2 đại diện cho sự cân bằng, hài hòa và hợp tác. Số 2 trong phong thủy tượng trưng cho âm dương giao hòa, mối quan hệ bền vững và sự đồng thuận. Người dùng sim tứ quý 2 thường gặp thuận lợi trong các mối quan hệ đối tác, hôn nhân và kinh doanh cần sự hợp tác. Đặc biệt phù hợp với người làm việc nhóm, nhà ngoại giao, hoặc những ai coi trọng tình cảm gia đình. Mua sim tứ quý 2 giúp thu hút năng lượng hòa hợp và mang lại sự ổn định trong cuộc sống.'
+  content: 'Dãy 2222 đọc lên nghe đều và êm, đối tác nhớ được số ngay từ cuộc gọi đầu — điều rất có giá với người làm môi giới, đối ngoại hay kinh doanh theo mạng lưới. Số 2 trong phong thủy là âm dương giao hòa: quan hệ bền, hợp tác thuận. Tứ quý 2 cũng là chọn lựa của Quý khách coi trọng gia đình và muốn một số dùng lâu, không phải đổi.'
 },
 {
   num: '3',
   title: 'Sim Tứ Quý 3 (3333)',
-  content: 'Sim tứ quý 3 biểu tượng cho tài lộc, thịnh vượng và sự phát triển bền vững. Số 3 gắn liền với tam tài (Thiên – Địa – Nhân), mang ý nghĩa viên mãn trong cả sự nghiệp lẫn cuộc sống. Người sở hữu sim tứ quý 3 thường gặp may mắn trong tài chính, kinh doanh phát đạt và được quý nhân phù trợ. Đối tượng lý tưởng là thương nhân, nhà đầu tư hoặc người muốn cải thiện vận tài lộc. Mua sim tứ quý 3 là cách đầu tư khôn ngoan cho vận may dài hạn.'
+  content: 'Tam tài — Thiên, Địa, Nhân — là gốc của con số 3, hàm ý viên mãn trong cả nghề nghiệp lẫn đời sống. Lặp bốn lần, hàm ý đó nghiêng về tài lộc và sự đi lên bền vững. Thương nhân, nhà đầu tư và người muốn cải thiện vận tài chính hay chọn dòng này. Mức giá của tứ quý 3 cũng dễ tiếp cận hơn tứ quý 8 hay 9.'
 },
 {
   num: '4',
   title: 'Sim Tứ Quý 4 (4444)',
-  content: 'Sim tứ quý 4 mang ý nghĩa của sự ổn định, vững chắc và nền tảng bền vững. Dù nhiều người e ngại số 4, nhưng trong phong thủy, tứ tượng trưng cho bốn phương, bốn mùa – biểu hiện của sự toàn vẹn và kiên cố. Sim tứ quý 4 thường có giá mềm hơn nhưng mang giá trị thực tế cao, phù hợp với người coi trọng sự bền bỉ và kiên trì. Đối tượng phù hợp là kỹ sư, nhà xây dựng, hoặc người làm nghề cần sự chính xác. Mua sim tứ quý 4 là lựa chọn thực dụng và đáng cân nhắc.'
+  content: 'Trong nhóm tứ quý, đây thường là dòng có giá mềm hơn cả, vì nhiều người còn e dè con số 4. Nhưng tứ tượng trưng cho bốn phương, bốn mùa: đủ và kiên cố. Với kỹ sư, nhà thầu, người làm nghề cần độ chính xác, một dãy 4444 vừa dễ đọc trên hợp đồng và bản vẽ, vừa không chiếm nhiều ngân sách. Thực dụng, và đáng cân nhắc.'
 },
 {
   num: '5',
   title: 'Sim Tứ Quý 5 (5555)',
-  content: 'Sim tứ quý 5 tượng trưng cho sự sinh sôi, phát triển và biến đổi tích cực. Số 5 đứng giữa thập phân, mang ý nghĩa trung tâm, cân bằng giữa các yếu tố. Trong ngũ hành, số 5 liên quan đến hành Thổ – nền tảng của mọi sự phát triển. Người dùng sim tứ quý 5 thường linh hoạt, sáng tạo và có khả năng thích nghi cao. Phù hợp với doanh nhân đa ngành, người làm truyền thông hoặc freelancer. Mua sim tứ quý 5 giúp kích hoạt năng lượng sáng tạo và mở rộng cơ hội.'
+  content: 'Người làm truyền thông, freelancer, doanh nhân chạy nhiều mảng cùng lúc thường hợp con số 5: linh hoạt, thích nghi nhanh, không đứng một chỗ. Số 5 nằm giữa dãy thập phân và thuộc hành Thổ — nền của mọi sự phát triển, nên hàm ý là sinh sôi và mở rộng. Giá tứ quý 5 vẫn còn mềm so với các dòng 6, 8, 9, đủ để Quý khách sở hữu một dãy đẹp mà không phải cân đo lâu.'
 },
 {
   num: '6',
   title: 'Sim Tứ Quý 6 (6666)',
-  content: 'Sim tứ quý 6 là biểu tượng của lộc lá, thuận lợi và may mắn trong mọi việc. Số 6 trong văn hóa Á Đông được xem là "lục lộc" – phú quý, bình an. Sim tứ quý 6 là một trong những số được săn đón nhiều nhất vì mang lại cảm giác thịnh vượng và hanh thông. Đối tượng phù hợp rộng: từ doanh nhân, nhân viên văn phòng đến người kinh doanh tự do. Mua sim tứ quý 6 là cách đầu tư vào vận lộc cá nhân, vừa đẹp vừa mang ý nghĩa tích cực.'
+  content: 'Tứ quý 6 thuộc nhóm được hỏi nhiều nhất trong kho. Lục lộc trong văn hóa Á Đông là phú quý và bình an, nên dãy 6666 được lòng gần như mọi nhóm khách: doanh nhân, nhân viên văn phòng, người buôn bán tự do. Số này còn dễ đọc qua điện thoại, ít khi bị nghe sai. Cần một dãy vừa đẹp vừa mang nghĩa tích cực, Quý khách nên xem tứ quý 6 trước.'
 },
 {
   num: '7',
   title: 'Sim Tứ Quý 7 (7777)',
-  content: 'Sim tứ quý 7 đại diện cho sức mạnh, quyết đoán và thành công. Số 7 được coi là con số may mắn trong nhiều nền văn hóa trên thế giới, tượng trưng cho sự hoàn thiện và chiến thắng. Người sở hữu sim tứ quý 7 thường toát lên phong thái tự tin, có sức ảnh hưởng mạnh mẽ. Đặc biệt phù hợp với người làm lãnh đạo, luật sư, bác sĩ hoặc những ngành nghề đòi hỏi uy tín. Mua sim tứ quý 7 không chỉ là chọn số đẹp mà còn là đầu tư vào hình ảnh cá nhân.'
+  content: 'Đặt trên danh thiếp hay bảng hiệu, dãy 7777 tạo cảm giác chắc chắn — lý do nhiều luật sư, bác sĩ và người làm lãnh đạo chọn dòng này làm số liên hệ chính. Số 7 được coi là con số may ở nhiều nền văn hóa, gắn với sự hoàn thiện và chiến thắng. Tứ quý 7 là một khoản đầu tư cho hình ảnh cá nhân, bên cạnh dãy số đẹp để dùng mỗi ngày.'
 },
 {
   num: '8',
   title: 'Sim Tứ Quý 8 (8888)',
-  content: 'Sim tứ quý 8 là ông vua trong các sim số đẹp, mang ý nghĩa "phát" – phát tài, phát đạt, phát triển. Số 8 là con số được yêu thích nhất trong phong thủy Á Đông, tượng trưng cho sự giàu có và thịnh vượng vô tận. Sim tứ quý 8 luôn nằm trong top tìm kiếm và có giá trị tăng theo thời gian. Phù hợp với doanh nhân, nhà đầu tư, người kinh doanh muốn thu hút tài lộc. Mua sim tứ quý 8 là quyết định đầu tư giá trị, vừa sử dụng vừa có thể tăng giá.'
+  content: 'Tứ quý 8 nằm ở nhóm giá cao nhất, cạnh tứ quý 9, và cũng là dòng được tìm nhiều nhất. Số 8 đọc gần với chữ phát — phát tài, phát đạt, phát triển — nên được yêu thích bậc nhất trong phong thủy Á Đông. Doanh nhân và nhà đầu tư thường xem 8888 như một tài sản: dùng hằng ngày, đồng thời giữ giá trị theo thời gian. Mỗi số chỉ có duy nhất một sim, nên Quý khách gặp số hợp thì nên liên hệ sớm.'
 },
 {
   num: '9',
   title: 'Sim Tứ Quý 9 (9999)',
-  content: 'Sim tứ quý 9 tượng trưng cho đỉnh cao, quyền lực và sự trường tồn. Số 9 là con số lớn nhất trong hàng đơn vị, mang ý nghĩa cửu trùng – vĩnh cửu, bất diệt. Người sở hữu sim tứ quý 9 thường có tham vọng lớn, muốn đạt đến đỉnh cao sự nghiệp và được xã hội tôn trọng. Đối tượng phù hợp: CEO, chính trị gia, người có vị thế xã hội cao. Mua sim tứ quý 9 không chỉ khẳng định đẳng cấp mà còn mang lại năng lượng mạnh mẽ cho chủ nhân.'
+  content: 'CEO, người giữ vị thế xã hội, những ai đã có tên trong ngành thường tìm đến 9999. Số 9 lớn nhất trong hàng đơn vị, mang nghĩa cửu trùng: bền lâu, không dứt. Cùng với tứ quý 8, đây là dòng thuộc nhóm giá cao nhất trong kho. Một dãy 9999 nói thay Quý khách khá nhiều, trước cả khi cuộc gọi bắt đầu.'
 }];
 
 const fengShuiTable = [
@@ -117,12 +117,12 @@ const fengShuiTable = [
 { sim: '9999', meaning: 'Quyền lực, đỉnh cao, trường tồn' }];
 
 const benefits = [
-{ icon: Star, text: 'Kho sim tứ quý lớn nhất' },
-{ icon: Shield, text: 'Giao dịch an toàn, bảo mật' },
+{ icon: Star, text: 'Kho sim tứ quý cập nhật mỗi ngày' },
+{ icon: Shield, text: 'Giao dịch minh bạch, thông tin bảo mật' },
 { icon: CheckCircle, text: 'Sang tên chính chủ miễn phí' },
-{ icon: DollarSign, text: 'Giá cạnh tranh, minh bạch' },
-{ icon: Truck, text: 'Giao sim toàn quốc nhanh chóng' },
-{ icon: Users, text: 'Hỗ trợ tư vấn 24/7' }];
+{ icon: DollarSign, text: 'Giá niêm yết công khai từng số' },
+{ icon: Truck, text: 'Giao sim toàn quốc, nhận sim rồi trả tiền' },
+{ icon: Users, text: 'Đội ngũ tư vấn trực 24/7' }];
 
 export default async function MuaSimTuQuyPage() {
   const snapshotSims = await getCategorySnapshot({ tags: ["Tứ quý"] }, 8);
@@ -153,7 +153,7 @@ export default async function MuaSimTuQuyPage() {
 
             {/* Description */}
             <p className="text-primary-foreground/80 text-sm md:text-base leading-relaxed max-w-xl mx-auto mb-4">
-              Kho sim tứ quý đẹp với hàng nghìn số từ CHONSOMOBIFONE.COM. Giao dịch an toàn, hỗ trợ sang tên chính chủ và giao sim toàn quốc.
+              Hàng nghìn dãy tứ quý, giá của từng số hiện sẵn trên kho. Quý khách kiểm tra đúng số rồi mới trả tiền, có hỗ trợ sang tên chính chủ và giao sim toàn quốc.
             </p>
 
             {/* CTA buttons */}
@@ -178,13 +178,13 @@ export default async function MuaSimTuQuyPage() {
             </h2>
             <div className="text-muted-foreground leading-relaxed space-y-4">
               <p>
-                Sim tứ quý là loại sim số đẹp có 4 chữ số giống nhau liên tiếp trong dãy số điện thoại, ví dụ như 1111, 6666, 8888 hay 9999. Đây là một trong những dòng sim được săn đón nhiều nhất trên thị trường nhờ tính thẩm mỹ cao, dễ nhớ và mang ý nghĩa phong thủy sâu sắc.
+                Sim tứ quý là sim số đẹp có 4 chữ số giống nhau liên tiếp trong dãy số điện thoại, ví dụ 1111, 6666, 8888 hay 9999. Đây là một trong những dòng được săn đón nhiều nhất trên thị trường: nhìn gọn mắt, đọc lên dễ nhớ, và mang ý nghĩa phong thủy rõ ràng.
               </p>
               <p>
-                Vì sao nhiều người tìm <strong>mua sim tứ quý</strong>? Trước hết, sim tứ quý tạo ấn tượng mạnh mẽ ngay từ lần đầu tiên. Bốn con số lặp lại liên tiếp không chỉ dễ nhớ mà còn thể hiện đẳng cấp và phong cách của người sở hữu. Trong kinh doanh, một số điện thoại đẹp giúp tăng độ tin cậy và chuyên nghiệp khi giao dịch với đối tác, khách hàng.
+                Bốn chữ số giống nhau khiến dãy số đứng lại trong đầu người nghe ngay lần đầu. Đó là lý do thực tế nhất khiến khách hàng tìm <strong>mua sim tứ quý</strong>: đối tác đọc lại được số mà không cần ghi, khách hàng gọi lại đúng số mà không phải tra danh bạ. Trong kinh doanh, một số liên hệ dễ nhớ giúp cuộc trao đổi bắt đầu thuận lợi hơn.
               </p>
               <p>
-                Về phong thủy, mỗi con số mang một nguồn năng lượng riêng. Khi 4 con số giống nhau kết hợp, năng lượng đó được khuếch đại gấp bội, tạo nên sức mạnh phong thủy đặc biệt. Người Việt tin rằng chọn sim phù hợp với mệnh và tuổi sẽ mang lại vận may, tài lộc và sự thuận lợi trong mọi việc. Ngoài ra, sim tứ quý còn là tài sản có giá trị tăng theo thời gian, vừa sử dụng hàng ngày vừa có thể đầu tư sinh lời.
+                Người Việt chọn số theo mệnh và theo tuổi, và tứ quý được xem là dạng đậm nghĩa nhất — một chữ số lặp bốn lần thì hàm ý của nó cũng được nhân lên. 1111 là khởi đầu, 6666 là lộc, 8888 là phát tài, 9999 là quyền lực. Bên cạnh giá trị sử dụng hằng ngày, nhiều khách hàng còn giữ sim tứ quý như một tài sản có thể lên giá theo thời gian.
               </p>
             </div>
           </section>
@@ -239,19 +239,19 @@ export default async function MuaSimTuQuyPage() {
             </h2>
             <div className="text-muted-foreground leading-relaxed space-y-4">
               <p>
-                Khi <strong>mua sim tứ quý</strong>, điều quan trọng nhất là chọn đúng số phù hợp với nhu cầu và ngân sách. Dưới đây là một số tiêu chí giúp bạn đưa ra quyết định:
+                Bốn tiêu chí dưới đây giúp Quý khách rút ngắn đường tìm số khi <strong>mua sim tứ quý</strong>: ngân sách, phong thủy, nhà mạng và đầu số.
               </p>
               <p>
-                <strong>Chọn theo tài chính:</strong> Sim tứ quý có nhiều mức giá từ vài trăm nghìn (tứ quý 4) đến hàng trăm triệu (tứ quý 8, 9). Hãy xác định ngân sách trước để thu hẹp lựa chọn. Sim tứ quý 4, 5 thường có giá mềm nhưng vẫn rất đẹp và ý nghĩa.
+                <strong>Chọn theo ngân sách:</strong> Tứ quý có nhiều bậc giá, từ vài trăm nghìn (tứ quý 4) đến hàng trăm triệu (tứ quý 8, 9). Ấn định mức chi trước rồi mới xem số, danh sách sẽ ngắn lại đáng kể. Tứ quý 4 và 5 giá mềm hơn nhưng dãy số vẫn đẹp và vẫn đủ nghĩa.
               </p>
               <p>
-                <strong>Chọn theo phong thủy:</strong> Xem xét mệnh ngũ hành của bạn (Kim, Mộc, Thủy, Hỏa, Thổ) và chọn con số tương sinh. Ví dụ, người mệnh Thủy nên chọn số 1 (hành Thủy) hoặc số 6 (hành Kim sinh Thủy).
+                <strong>Chọn theo phong thủy:</strong> Đối chiếu mệnh ngũ hành của Quý khách (Kim, Mộc, Thủy, Hỏa, Thổ) rồi tìm con số tương sinh. Người mệnh Thủy có thể chọn số 1 (hành Thủy) hoặc số 6 (hành Kim sinh Thủy).
               </p>
               <p>
-                <strong>Chọn theo nhà mạng:</strong> Mỗi nhà mạng có chất lượng dịch vụ và vùng phủ sóng khác nhau. Mobifone mạnh về data 4G/5G, Viettel phủ sóng rộng nhất, Vinaphone ổn định cho người dùng lâu năm.
+                <strong>Chọn theo nhà mạng:</strong> Mỗi nhà mạng mạnh ở một điểm. Mobifone mạnh về data 4G/5G, Viettel phủ sóng rộng nhất, Vinaphone ổn định với người dùng lâu năm.
               </p>
               <p>
-                <strong>Chọn theo đầu số:</strong> Đầu số cũng ảnh hưởng đến giá và tính thẩm mỹ. Các đầu số 09x thường đắt hơn 07x, 08x. Hãy cân nhắc tổng thể cả dãy số để có sự kết hợp hài hòa nhất.
+                <strong>Chọn theo đầu số:</strong> Đầu số ảnh hưởng tới cả giá và độ thuận miệng của dãy số. Các đầu số 09x thường đắt hơn 07x, 08x. Quý khách nên đọc to trọn dãy số một lần trước khi quyết, để nghe cả câu chứ không chỉ nghe bốn số cuối.
               </p>
             </div>
           </section>
@@ -314,10 +314,10 @@ export default async function MuaSimTuQuyPage() {
               </div>
             </div>
             <h2 className="text-2xl md:text-3xl font-bold mb-3">
-              Sở Hữu Ngay Sim Tứ Quý Đẹp Cho Bạn
+              Tìm Dãy Tứ Quý Của Quý Khách
             </h2>
             <p className="text-primary-foreground/80 mb-6 max-w-lg mx-auto">
-              Hàng nghìn sim tứ quý đẹp đang chờ bạn. Liên hệ ngay để được tư vấn chọn số hợp phong thủy và nhận giá tốt nhất.
+              Kho tứ quý mở sẵn để Quý khách so số và so giá. Cần thêm một người cùng cân nhắc theo mệnh và tuổi, đội ngũ tư vấn đang trực Zalo và điện thoại.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               <a href="#kho-sim-tu-quy" className="bg-gold text-header-bg font-bold px-6 py-3 rounded-lg hover:bg-gold/90 transition flex items-center gap-2">

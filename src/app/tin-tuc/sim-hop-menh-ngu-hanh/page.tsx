@@ -49,7 +49,7 @@ const faq: FaqItem[] = [
     a: "Theo Hà Đồ: số 0 và 1 thuộc Thủy; số 2, 5, 8 thuộc Thổ; số 3, 4 thuộc Mộc; số 6, 7 thuộc Kim; số 9 thuộc Hỏa. Cần lưu ý còn một hệ quy số khác cũng đang được dùng rộng rãi, xếp cặp liền nhau 1–2 Mộc, 3–4 Hỏa, 5–6 Thổ, 7–8 Kim, 9–0 Thủy. Hai hệ chỉ trùng nhau ở số 0, 5 và 7, nên hãy chọn một hệ và dùng nhất quán, đừng trộn lẫn.",
   },
   {
-    q: "Làm sao biết mình mệnh gì?",
+    q: "Làm sao biết mệnh ngũ hành theo năm sinh?",
     a: "Mệnh (ngũ hành nạp âm) tính từ năm sinh âm lịch theo bảng 60 hoa giáp. Ví dụ người sinh năm 1990 là Canh Ngọ, nạp âm Lộ Bàng Thổ, tức mệnh Thổ. Bảng tra năm sinh 1960–2010 có ngay trong bài. Lưu ý người sinh đầu năm dương lịch (trước Tết) thì tính theo năm âm lịch trước đó.",
   },
   {
@@ -58,7 +58,7 @@ const faq: FaqItem[] = [
   },
   {
     q: "Có phải cứ tránh hết số khắc mệnh là tốt nhất?",
-    a: "Không. Một dãy 10 số hầu như luôn chứa vài số không thuận, và việc cố tránh sạch thường khiến bạn bỏ qua những số dễ nhớ, dễ đọc. Cách làm thực tế là ưu tiên bốn số cuối cho nhóm tương sinh và đồng hành, còn phần đầu dãy thì linh động.",
+    a: "Không. Một dãy 10 số hầu như luôn chứa vài số không thuận, và việc cố tránh sạch thường khiến Quý khách bỏ qua những số dễ nhớ, dễ đọc. Cách làm thực tế là ưu tiên bốn số cuối cho nhóm tương sinh và đồng hành, còn phần đầu dãy thì linh động.",
   },
   {
     q: "Ngũ hành hay Bát Cực Linh Số quan trọng hơn?",
@@ -82,10 +82,10 @@ export default function SimHopMenhNguHanhPage() {
       ]}
       lead={
         <p>
-          Chọn SIM hợp mệnh thực chất chỉ gồm hai việc: biết mình mệnh gì, và biết con số nào
-          thuộc hành nào. Phần còn lại là ghép đúng nhóm tương sinh, tránh nhóm tương khắc. Bài
-          này có sẵn bảng tra năm sinh 1960–2010, bảng ngũ hành của từng con số, và nguyên tắc
-          chọn số cho từng mệnh.
+          Hai dữ kiện là đủ để chọn SIM hợp mệnh: mệnh của người dùng số, và hành của từng con số.
+          Phần còn lại chỉ là ghép đúng nhóm tương sinh và tránh nhóm tương khắc. Bài này có sẵn
+          bảng tra năm sinh 1960–2010, bảng ngũ hành của từng con số, và nguyên tắc chọn số cho từng
+          mệnh.
         </p>
       }
     >
@@ -96,8 +96,8 @@ export default function SimHopMenhNguHanhPage() {
             <strong>3–4 Mộc</strong>, <strong>6–7 Kim</strong>, <strong>9 Hỏa</strong>.
           </>,
           <>
-            Nguyên tắc: ưu tiên số thuộc hành <strong>sinh ra mệnh</strong> mình, kế đến là số{" "}
-            <strong>đồng hành</strong>, hạn chế số thuộc hành <strong>khắc mệnh</strong>.
+            Nguyên tắc: ưu tiên số thuộc hành <strong>sinh ra mệnh</strong> của Quý khách, kế đến là
+            số <strong>đồng hành</strong>, hạn chế số thuộc hành <strong>khắc mệnh</strong>.
           </>,
           <>
             Chỉ cần siết chặt ở <strong>bốn số cuối</strong> — phần được đọc và nhớ nhiều nhất;
@@ -140,9 +140,9 @@ export default function SimHopMenhNguHanhPage() {
 
       <h2 id="hai-bang-quy-so">Hai bảng quy số khác nhau — biết để không rối</h2>
       <p>
-        Đây là chi tiết hầu như không trang nào nói rõ, và là nguyên nhân khiến bạn tra hai nơi ra
-        hai kết quả trái ngược: <strong>tồn tại hai cách quy số về ngũ hành</strong> đang được dùng
-        song song ở Việt Nam.
+        Đây là chi tiết hầu như không trang nào nói rõ, và là nguyên nhân khiến cùng một dãy số tra ở
+        hai nơi lại ra hai kết quả trái ngược: <strong>tồn tại hai cách quy số về ngũ hành</strong>{" "}
+        đang được dùng song song ở Việt Nam.
       </p>
 
       <DataTable
@@ -181,12 +181,12 @@ export default function SimHopMenhNguHanhPage() {
         Trong ngũ hành có hai vòng quan hệ. Vòng tương sinh: Kim sinh Thủy, Thủy sinh Mộc, Mộc
         sinh Hỏa, Hỏa sinh Thổ, Thổ sinh Kim. Vòng tương khắc: Kim khắc Mộc, Mộc khắc Thổ, Thổ
         khắc Thủy, Thủy khắc Hỏa, Hỏa khắc Kim. Khi chọn số, điều được quan tâm là{" "}
-        <strong>hành của con số tác động lên mệnh mình như thế nào</strong> — chứ không phải chiều
+        <strong>hành của con số tác động lên mệnh của người dùng số</strong> — chứ không phải chiều
         ngược lại.
       </p>
 
       <DataTable
-        head={["Mệnh của bạn", "Số nên ưu tiên (hành sinh mệnh)", "Số đồng hành", "Số nên hạn chế (khắc mệnh)"]}
+        head={["Mệnh", "Số nên ưu tiên (hành sinh mệnh)", "Số đồng hành", "Số nên hạn chế (khắc mệnh)"]}
         rows={MENH_RULES.map((r) => [
           `Mệnh ${r.menh}`,
           `${DIGITS_BY_HANH[r.hanhSinh]} (${r.hanhSinh})`,
@@ -198,7 +198,7 @@ export default function SimHopMenhNguHanhPage() {
 
       <p>
         Nhiều bảng tra trên mạng chỉ chia hai cột &ldquo;số tốt&rdquo; và &ldquo;số xấu&rdquo;.
-        Thực tế còn một trường hợp thứ ba ít được nói: <strong>mệnh mình khắc hành của số</strong>
+        Thực tế còn một trường hợp thứ ba ít được nói: <strong>mệnh khắc hành của số</strong>
         {" "}(ví dụ người mệnh Kim gặp số Mộc). Trường hợp này thường được xem là nhẹ hơn hẳn so
         với việc số khắc lại mệnh, vì người vẫn ở thế chủ động. Cách chấm điểm trong công cụ trên
         site cũng phản ánh đúng thứ tự đó: số sinh mệnh được cộng nhiều nhất, số đồng hành cộng
@@ -218,15 +218,15 @@ export default function SimHopMenhNguHanhPage() {
       />
 
       <Note tone="warn" title="Người sinh đầu năm cần lưu ý">
-        Bảng trên tính theo năm âm lịch. Nếu bạn sinh trong khoảng tháng 1 đến trước Tết Nguyên
-        đán, năm âm lịch của bạn là năm liền trước năm dương lịch ghi trên giấy tờ, nên mệnh cũng
-        đổi theo. Trường hợp này nên tra theo ngày sinh âm lịch để chắc.
+        Bảng trên tính theo năm âm lịch. Người sinh trong khoảng tháng 1 đến trước Tết Nguyên đán có
+        năm âm lịch là năm liền trước năm dương lịch ghi trên giấy tờ, nên mệnh cũng đổi theo.
+        Trường hợp này nên tra theo ngày sinh âm lịch để chắc.
       </Note>
 
       <h2 id="ap-dung">Áp dụng vào một dãy SIM cụ thể</h2>
       <p>
-        Giả sử bạn mệnh Thổ. Theo bảng trên, số nên ưu tiên là 9 (Hỏa sinh Thổ), số đồng hành là
-        2, 5, 8, và số nên hạn chế là 3, 4 (Mộc khắc Thổ). Khi soi một dãy số:
+        Giả sử Quý khách mệnh Thổ. Theo bảng trên, số nên ưu tiên là 9 (Hỏa sinh Thổ), số đồng hành
+        là 2, 5, 8, và số nên hạn chế là 3, 4 (Mộc khắc Thổ). Khi soi một dãy số:
       </p>
       <ol>
         <li>
@@ -242,7 +242,7 @@ export default function SimHopMenhNguHanhPage() {
           kém hữu dụng hơn một số hơi lệch mệnh mà khách gọi lại nhớ ngay.
         </li>
         <li>
-          <strong>Xem thêm các lớp khác</strong> nếu bạn muốn kỹ:{" "}
+          <strong>Xem thêm các lớp khác</strong> nếu muốn xét kỹ:{" "}
           <Link href="/tin-tuc/bat-cuc-linh-so-la-gi">Bát Cực Linh Số</Link> cho quan hệ từng cặp
           số, và <Link href="/tin-tuc/80-que-kinh-dich-trong-sim">quẻ Kinh Dịch</Link> cho bốn số
           cuối.
@@ -254,7 +254,7 @@ export default function SimHopMenhNguHanhPage() {
         filter={{ lastDigits: ["9"] }}
         limit={8}
         moreHref="/sim-phong-thuy-hop-menh"
-        moreLabel="Lọc SIM theo mệnh của bạn"
+        moreLabel="Lọc SIM theo từng mệnh"
         note="Bảng minh hoạ cho mệnh Thổ. Đổi sang mệnh khác thì đổi nhóm số cuối theo bảng ở mục trên, hoặc dùng công cụ lọc theo mệnh."
       />
 
@@ -265,8 +265,8 @@ export default function SimHopMenhNguHanhPage() {
           âm của năm sinh mới ra Kim – Mộc – Thủy – Hỏa – Thổ.
         </li>
         <li>
-          <strong>Chỉ nhìn một con số cuối.</strong> Cả dãy đều được đọc khi người khác lưu số,
-          nên tỉ lệ toàn dãy vẫn có ý nghĩa, không chỉ riêng chữ số cuối cùng.
+          <strong>Chỉ nhìn một con số cuối.</strong> Cả dãy đều được đọc khi người khác lưu số, nên
+          tỉ lệ toàn dãy vẫn có ý nghĩa — chữ số cuối cùng chỉ là một phần trong đó.
         </li>
         <li>
           <strong>Ép cả gia đình theo một mệnh.</strong> Vợ, chồng, con thường khác mệnh nhau. SIM
@@ -276,7 +276,7 @@ export default function SimHopMenhNguHanhPage() {
 
       <h2 id="chon-nhanh">Cách chọn nhanh trong kho số thật</h2>
       <p>
-        Sau khi biết mệnh, việc còn lại là tìm số còn hàng khớp nhóm số của mình. Ba đường đi
+        Sau khi biết mệnh, việc còn lại là tìm số còn hàng khớp nhóm số của mệnh đó. Ba đường đi
         nhanh nhất trên site:
       </p>
       <ul>
@@ -286,11 +286,11 @@ export default function SimHopMenhNguHanhPage() {
         </li>
         <li>
           <Link href="/sim-phong-thuy">Tìm SIM hợp tuổi</Link> — nhập năm sinh, giờ sinh, giới
-          tính để hệ thống chấm điểm tổng hợp cả năm lớp thay bạn.
+          tính để hệ thống chấm điểm tổng hợp cả năm lớp.
         </li>
         <li>
-          <Link href="/mua-sim-gia-re">Kho SIM MobiFone</Link> — nếu bạn muốn tự tìm theo đuôi số
-          hoặc theo ngân sách trước, rồi mới soi mệnh sau.
+          <Link href="/mua-sim-gia-re">Kho SIM MobiFone</Link> — dành cho Quý khách muốn tự tìm theo
+          đuôi số hoặc theo ngân sách trước, rồi mới soi mệnh sau.
         </li>
       </ul>
       <p>

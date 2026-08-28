@@ -178,7 +178,7 @@ const MuaSimTuQuyTool = () => {
             </table>
           </div>
         ) : (
-          <div className="text-center py-8 text-muted-foreground">Chưa có sim tứ quý nổi bật. Vui lòng quay lại sau.</div>
+          <div className="text-center py-8 text-muted-foreground">Kho sim tứ quý nổi bật đang được cập nhật. Vui lòng quay lại sau ít phút.</div>
         )}
       </section>
 
@@ -222,9 +222,9 @@ const MuaSimTuQuyTool = () => {
           <div className="text-center py-8 text-muted-foreground">
             {hasActiveSearch
               ? activeSearch.startsWith("*")
-                ? "Không tìm thấy sim có đuôi số bạn đang tìm. Vui lòng thử số khác."
-                : "Không tìm thấy sim chứa chuỗi số bạn đang tìm. Vui lòng thử số khác."
-              : "Hiện chưa có sim tứ quý đuôi phù hợp trong kho."}
+                ? "Kho hiện chưa có sim nào mang đuôi số Quý khách vừa tìm. Vui lòng thử một đuôi khác."
+                : "Kho hiện chưa có sim nào chứa chuỗi số Quý khách vừa tìm. Vui lòng thử một chuỗi khác."
+              : "Kho tứ quý đang được cập nhật. Vui lòng quay lại sau ít phút."}
           </div>
         )}
         <div className="mt-6 text-center">

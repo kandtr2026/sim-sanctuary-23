@@ -31,10 +31,10 @@ export default function TinTucBai2Page() {
 
           <section className="mb-8">
             <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4">
-              1. Bạn đang sử dụng sim số thuộc nhà mạng nào?
+              1. Xác định sim của Quý khách thuộc nhà mạng nào
             </h2>
             <p className="text-body mb-4">
-              Đầu tiên để có thể liên hệ đúng với tổng đài hỗ trợ của nhà mạng cung cấp dịch vụ bạn phải biết mình đang sử dụng dịch vụ của nhà mạng nào. Sim số đẹp xin gửi đến bạn đầu số tương ứng của các nhà mang:
+              Muốn gọi đúng tổng đài, trước tiên cần biết số đang dùng thuộc nhà mạng nào. Dưới đây là các đầu số tương ứng của từng nhà mạng:
             </p>
             <ul className="list-disc list-inside space-y-2 text-body">
               <li>Viettel có các đầu số: 096, 097, 098, 032, 033, 034, 035, 036, 037, 038, 039.</li>
@@ -139,7 +139,7 @@ export default function TinTucBai2Page() {
 
             <div className="mb-6">
               <h3 className="text-lg md:text-xl font-semibold text-foreground mb-3">
-                Số tống đài Gmobile
+                Số tổng đài Gmobile
               </h3>
               <p className="text-body">
                 Số tổng đài 199 khi ở trong mạng Gmobile, 01998880199 khi đang chuyển vùng trong nước hay gọi từ mạng ngoài. Hỗ trợ khách hàng 24/7, giải đáp mọi thắc mắc về Gmobile và tư vấn sử dụng các sản phầm, dịch vụ do Gmobile cung cấp.

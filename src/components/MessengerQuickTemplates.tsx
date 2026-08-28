@@ -7,15 +7,15 @@ import { useToast } from '@/hooks/use-toast';
 const TEMPLATES = {
   PHONG_THUY: {
     label: 'Tư vấn sim phong thuỷ',
-    message: 'Chào shop, mình muốn tư vấn SIM phong thuỷ. Năm sinh: __/__/____, giới tính: __, mệnh (nếu biết): __, nhu cầu: (làm ăn/công việc/tình duyên) __, ngân sách: __ triệu.',
+    message: 'Chào shop, tôi cần tư vấn SIM phong thuỷ. Năm sinh: __/__/____, giới tính: __, mệnh (nếu biết): __, nhu cầu: (làm ăn/công việc/tình duyên) __, ngân sách: __ triệu.',
   },
   NGAN_SACH: {
     label: 'Sim theo ngân sách',
-    message: 'Chào shop, mình muốn tìm SIM theo ngân sách __ triệu. Mình thích đầu số: __, dạng số: (tam hoa/tứ quý/tiến/lặp) __, nhà mạng ưu tiên: __.',
+    message: 'Chào shop, tôi muốn tìm SIM theo ngân sách __ triệu. Đầu số tôi thích: __, dạng số: (tam hoa/tứ quý/tiến/lặp) __, nhà mạng ưu tiên: __.',
   },
   TRA_GOP: {
     label: 'Sim trả góp',
-    message: 'Chào shop, mình cần mua SIM trả góp. Mức giá SIM dự kiến: __, trả trước: __%, khu vực nhận SIM: __, mình cần thủ tục gì?',
+    message: 'Chào shop, tôi cần mua SIM trả góp. Mức giá SIM dự kiến: __, trả trước: __%, khu vực nhận SIM: __. Tôi cần chuẩn bị thủ tục gì?',
   },
 };
 
@@ -52,12 +52,12 @@ const MessengerQuickTemplates = () => {
       setCopiedKey(key);
       toast({
         title: 'Đã copy tin nhắn mẫu',
-        description: 'Bạn dán vào Messenger và bấm Gửi.',
+        description: 'Quý khách dán vào Messenger và bấm Gửi.',
       });
       setTimeout(() => setCopiedKey(null), 2000);
     } catch {
       toast({
-        title: 'Bạn hãy gửi tin nhắn này:',
+        title: 'Quý khách vui lòng gửi tin nhắn này:',
         description: message.length > 80 ? message.slice(0, 80) + '...' : message,
         duration: 8000,
       });

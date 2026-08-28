@@ -5,7 +5,7 @@ import { buildBreadcrumb } from "@/lib/seo";
 
 const TITLE = "Định Giá SIM Miễn Phí – Tra Giá SIM Số Đẹp Chính Xác";
 const DESCRIPTION =
-  "Công cụ định giá SIM số đẹp miễn phí: nhập số điện thoại để tra giá thị trường, gợi ý mức bán hợp lý cho SIM tứ quý, tam hoa, lộc phát.";
+  "Công cụ định giá SIM số đẹp miễn phí: Quý khách nhập số điện thoại để nhận mức giá tham khảo theo thị trường cho SIM tứ quý, tam hoa, lộc phát.";
 const CANONICAL = "https://www.chonsomobifone.com/dinh-gia-sim";
 
 export const metadata: Metadata = {
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     title: TITLE,
-    description: "Tra giá SIM số đẹp miễn phí, chính xác theo thị trường.",
+    description: "Tra mức giá tham khảo cho SIM số đẹp, miễn phí và theo giá thị trường.",
     url: CANONICAL,
     images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
   },
@@ -33,27 +33,27 @@ const faqData: DinhGiaFaqItem[] = [
   {
     question: 'Định giá này có chính xác tuyệt đối không?',
     answer:
-      'Công cụ định giá sử dụng thuật toán phân tích các yếu tố phổ biến như đầu số, dạng số, tính phong thủy... để đưa ra mức giá tham khảo. Giá thực tế có thể dao động tùy thuộc nhu cầu thị trường và người mua cụ thể. Để được định giá chính xác hơn, vui lòng liên hệ tư vấn viên.',
+      'Công cụ phân tích những yếu tố phổ biến của một dãy số — đầu số, dạng số, tính phong thủy — rồi đưa ra mức giá tham khảo. Giá thực tế còn dao động theo nhu cầu thị trường và theo từng người mua. Cần con số sát hơn, Quý khách vui lòng liên hệ đội ngũ tư vấn.',
   },
   {
     question: 'Những yếu tố nào ảnh hưởng lớn nhất đến giá SIM?',
     answer:
-      'Các yếu tố quan trọng bao gồm: Đuôi số (chiếm ~70% giá trị), dạng số (tứ quý, tam hoa, sảnh tiến...), đầu số/nhà mạng, tính dễ nhớ, và ý nghĩa phong thủy.',
+      'Đuôi số quyết định phần lớn giá trị, khoảng 70%. Kế đó là dạng số (tứ quý, tam hoa, sảnh tiến...), đầu số và nhà mạng, độ dễ nhớ của cả dãy, cùng ý nghĩa phong thủy.',
   },
   {
     question: 'Vì sao cùng một số SIM nhưng giá thị trường có thể khác nhau?',
     answer:
-      'Giá SIM phụ thuộc vào nhiều yếu tố chủ quan như: người bán, thời điểm, tình trạng cung cầu, kênh bán hàng, và đặc biệt là nhu cầu của người mua. Một số SIM có thể được định giá cao hơn nếu có ý nghĩa đặc biệt với người mua.',
+      'Giá SIM phụ thuộc nhiều yếu tố chủ quan: người bán, thời điểm, tình trạng cung cầu, kênh bán hàng và nhất là nhu cầu của người mua. Một dãy số mang ý nghĩa riêng với ai đó có thể được trả cao hơn hẳn mức trung bình.',
   },
   {
     question: 'SIM 10 số và 11 số khác nhau thế nào về giá trị?',
     answer:
-      'Hiện nay SIM 10 số là tiêu chuẩn phổ biến và thường được ưa chuộng hơn do dễ nhớ. SIM 11 số (đầu 01x cũ) đã chuyển về 10 số nên không còn phổ biến. Tuy nhiên, giá trị thực tế phụ thuộc vào dãy số đẹp chứ không chỉ số lượng chữ số.',
+      'SIM 10 số hiện là tiêu chuẩn phổ biến và được ưa chuộng hơn vì dễ nhớ. SIM 11 số (đầu 01x cũ) đã chuyển về 10 số nên không còn phổ biến. Giá trị thực tế nằm ở độ đẹp của dãy số, không nằm ở số lượng chữ số.',
   },
   {
     question: 'Tôi có thể mua hoặc bán SIM theo giá định giá này không?',
     answer:
-      'Đây chỉ là giá tham khảo. Nếu bạn muốn mua SIM, hãy tham khảo kho SIM của chúng tôi. Nếu bạn muốn bán SIM, vui lòng liên hệ tư vấn viên để được hỗ trợ định giá chính xác và tìm người mua phù hợp.',
+      'Đây là mức tham khảo, không phải giá cam kết mua lại. Quý khách muốn mua, vui lòng xem giá niêm yết trong kho SIM của chúng tôi. Quý khách muốn bán, đội ngũ tư vấn sẽ hỗ trợ định giá kỹ hơn và tìm người mua phù hợp.',
   },
 ];
 
@@ -93,7 +93,7 @@ export default function DinhGiaSimPage() {
                 Định giá SIM số đẹp
               </h1>
               <p className="text-primary-foreground/80 text-base md:text-lg max-w-xl mx-auto">
-                Nhận mức giá tham khảo nhanh chóng – chính xác – khách quan
+                Nhập số để nhận mức giá tham khảo — nhanh, khách quan, không mất phí
               </p>
             </div>
           </div>

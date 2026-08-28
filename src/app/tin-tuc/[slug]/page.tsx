@@ -158,13 +158,16 @@ export default async function BlogPostPage({
           />
 
           <div className="mt-10">
-            <LeadMagnetCta />
+            <LeadMagnetCta
+              title="Khoanh vùng số phù hợp trong ít phút"
+              subtitle="Đội ngũ tư vấn lọc theo tuổi, mệnh và ngân sách của Quý khách, rồi gửi danh sách số đang còn hàng qua Zalo."
+            />
           </div>
 
           {related.length ? (
             <section className="mt-10">
               <h2 className="mb-4 text-xl font-semibold text-foreground md:text-2xl">
-                Bài liên quan
+                Bài viết liên quan
               </h2>
               <div className="grid gap-3 sm:grid-cols-3">
                 {related.map((item) => (

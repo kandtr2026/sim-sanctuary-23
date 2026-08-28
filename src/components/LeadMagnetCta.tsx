@@ -15,7 +15,7 @@ interface LeadMagnetCtaProps {
 
 export default function LeadMagnetCta({
   title = "Chưa tìm được số ưng ý?",
-  subtitle = "Nhắn Zalo, tụi mình lọc số theo tuổi, mệnh & ngân sách của bạn trong 5 phút.",
+  subtitle = "Quý khách nhắn Zalo, đội ngũ tư vấn lọc số theo tuổi, mệnh và ngân sách trong 5 phút.",
 }: LeadMagnetCtaProps) {
   return (
     <section className="rounded-xl border border-border bg-gradient-to-b from-primary via-primary-dark to-primary p-6 text-primary-foreground shadow-card md:p-8">

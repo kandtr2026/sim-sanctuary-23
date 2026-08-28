@@ -48,7 +48,7 @@ const faq: FaqItem[] = [
   },
   {
     q: "Quẻ hung thì có phải bỏ số đó không?",
-    a: "Theo cách hiểu dân gian, quẻ chỉ là một trong nhiều lớp khi xem số, cùng với ngũ hành, âm dương, tổng nút và Bát Cực Linh Số. Trong bảng 80 quẻ có tới 26 quẻ thuộc nhóm hung hoặc đại hung, nên nếu chỉ dựa vào quẻ thì bạn sẽ loại bỏ khoảng một phần ba số trên thị trường, kể cả những số rất dễ nhớ.",
+    a: "Theo cách hiểu dân gian, quẻ chỉ là một trong nhiều lớp khi xem số, cùng với ngũ hành, âm dương, tổng nút và Bát Cực Linh Số. Trong bảng 80 quẻ có tới 26 quẻ thuộc nhóm hung hoặc đại hung. Chỉ dựa vào quẻ để sàng thì sẽ gạt đi khoảng một phần ba số trên thị trường, kể cả những số rất dễ nhớ.",
   },
   {
     q: "Số đuôi 0000 tra quẻ ra gì?",
@@ -56,7 +56,7 @@ const faq: FaqItem[] = [
   },
   {
     q: "Có công cụ tra quẻ tự động không?",
-    a: "Có. Công cụ tìm SIM hợp tuổi trên chonsomobifone.com đã tính sẵn quẻ cho toàn bộ kho số và cộng vào điểm tổng, nên bạn không cần tự chia tay từng số.",
+    a: "Có. Công cụ tìm SIM hợp tuổi trên chonsomobifone.com đã tính sẵn quẻ cho toàn bộ kho số và cộng vào điểm tổng, nên Quý khách không phải tự tính tay từng số.",
   },
 ];
 
@@ -72,10 +72,10 @@ export default function QueKinhDichPage() {
       ]}
       lead={
         <p>
-          &ldquo;Chia 80&rdquo; là phép xem SIM được nhắc nhiều nhất trong các nhóm chơi số: lấy
-          bốn số cuối chia cho 80, phần dư là số quẻ, rồi tra ý nghĩa. Cách tính chỉ mất mười
-          giây, nhưng chỗ dễ làm sai lại nằm ở những chi tiết ít ai nói rõ. Bài này có đủ cách
-          tính, ví dụ tính tay và bảng tra trọn 80 quẻ.
+          Bốn số cuối chia cho 80, phần dư là số quẻ, tra bảng ra lời quẻ. Đây là phép xem SIM được
+          nhắc nhiều nhất trong các nhóm chơi số, và cả phép tính chỉ mất mười giây. Chỗ dễ sai nằm
+          ở những chi tiết ít nơi nói rõ: chia hết thì tính quẻ nào, bảng đang tra có 80 mục hay 81
+          mục. Bài viết gồm đủ cách tính, ví dụ tính tay và bảng tra trọn 80 quẻ.
         </p>
       }
     >
@@ -137,8 +137,8 @@ export default function QueKinhDichPage() {
         80 mục, và đây là điểm gây nhầm lẫn phổ biến nhất. Bảng 80 quẻ là một biến thể lưu truyền
         trong dân gian, mỗi mục là một câu lời quẻ ngắn kèm mức cát – hung. Nó thuận tiện vì 80
         chia đẹp cho dải bốn chữ số, nhưng <strong>không tương ứng một-đối-một với 64 quẻ Chu
-        Dịch</strong>. Nếu bạn đọc một trang nói &ldquo;quẻ 63 Thuỷ Hoả Kỳ Tế&rdquo; thì đó là hệ
-        64 quẻ, không phải hệ đang bàn ở đây.
+        Dịch</strong>. Một trang nói &ldquo;quẻ 63 Thuỷ Hoả Kỳ Tế&rdquo; là đang dùng hệ 64 quẻ,
+        không phải hệ đang bàn ở đây.
       </p>
 
       <DataTable
@@ -153,8 +153,8 @@ export default function QueKinhDichPage() {
 
       <h2 id="chia-80-hay-81">Chia 80 hay chia 81? Ba hệ đang bị gọi lẫn tên</h2>
       <p>
-        Trên các diễn đàn, bạn sẽ gặp cả &ldquo;bói sim chia 80&rdquo; lẫn &ldquo;bói sim 4 số cuối
-        chia 81&rdquo;. Chúng không phải cùng một thứ bị nói sai — mà là ba hệ khác nhau:
+        Trên các diễn đàn xuất hiện cả &ldquo;bói sim chia 80&rdquo; lẫn &ldquo;bói sim 4 số cuối
+        chia 81&rdquo;. Đây không phải một thứ bị nói sai thành hai — mà là ba hệ khác nhau:
       </p>
 
       <DataTable
@@ -184,22 +184,22 @@ export default function QueKinhDichPage() {
 
       <p>
         Vì phần dư của phép chia 80 và phép chia 81 gần như luôn khác nhau, tra sai hệ sẽ ra một
-        lời quẻ hoàn toàn khác. Nếu bạn đọc một bảng tra ở nơi khác, hãy kiểm tra bảng đó có bao
-        nhiêu mục trước khi dùng: 80, 81 hay 64.
+        lời quẻ hoàn toàn khác. Với một bảng tra lấy từ nơi khác, hãy đếm số mục của bảng trước khi
+        dùng: 80, 81 hay 64.
       </p>
 
       <p>
-        Con số đáng chú ý: nhóm hung và đại hung chiếm khoảng một phần ba bảng. Điều đó có nghĩa
-        nếu chỉ dùng quẻ để sàng, bạn sẽ gạt đi rất nhiều số vốn dễ nhớ và có giá tốt. Người xem
-        có kinh nghiệm thường dùng quẻ như một lớp <em>xác nhận thêm</em>, sau khi đã lọc theo{" "}
+        Một con số nên nhớ: nhóm hung và đại hung chiếm khoảng một phần ba bảng. Chỉ dùng quẻ để
+        sàng thì sẽ gạt đi rất nhiều số vốn dễ nhớ và có giá tốt. Người xem có kinh nghiệm thường
+        dùng quẻ như một lớp <em>xác nhận thêm</em>, sau khi đã lọc theo{" "}
         <Link href="/tin-tuc/sim-hop-menh-ngu-hanh">ngũ hành bản mệnh</Link> và{" "}
         <Link href="/tin-tuc/bat-cuc-linh-so-la-gi">Bát Cực Linh Số</Link>.
       </p>
 
       <h2 id="que-dai-cat">Các quẻ đại cát</h2>
       <p>
-        Đây là {byLevel("Đại cát").length} quẻ được xếp mức cao nhất. Nếu bạn đang chọn giữa nhiều
-        số cùng tầm giá, ưu tiên số có đuôi rơi vào các quẻ này là cách sàng nhanh:
+        Đây là {byLevel("Đại cát").length} quẻ được xếp mức cao nhất. Khi đang chọn giữa nhiều số
+        cùng tầm giá, ưu tiên số có đuôi rơi vào các quẻ này là cách sàng nhanh:
       </p>
 
       <DataTable
@@ -221,15 +221,15 @@ export default function QueKinhDichPage() {
 
       <Note tone="info" title="Trình bày như một niềm tin dân gian">
         Bảng quẻ và các mức cát – hung ở đây là tri thức dân gian được lưu truyền, không phải kết
-        luận khoa học. Hãy dùng nó để chọn giữa những số đã cùng tầm giá và cùng độ dễ nhớ, chứ
-        không nên vì một lời quẻ mà trả thêm nhiều tiền, hoặc bỏ đi một số đang rất phù hợp với
-        công việc của mình.
+        luận khoa học. Hãy dùng nó để chọn giữa những số đã cùng tầm giá và cùng độ dễ nhớ. Một lời
+        quẻ không đáng để trả thêm nhiều tiền, cũng không đáng để bỏ đi một số đang rất phù hợp với
+        công việc của Quý khách.
       </Note>
 
       <h2 id="bang-tra-80">Bảng tra trọn 80 quẻ</h2>
       <p>
         Bảng dưới đây là bảng đầy đủ mà công cụ chấm điểm trên chonsomobifone.com đang dùng. Cột
-        &ldquo;Quẻ&rdquo; chính là phần dư bạn tính được ở bước hai.
+        &ldquo;Quẻ&rdquo; chính là phần dư tính được ở bước hai.
       </p>
 
       <DataTable
@@ -245,8 +245,8 @@ export default function QueKinhDichPage() {
           trước; đến khi còn vài số ngang nhau thì mới dùng quẻ để chọn.
         </li>
         <li>
-          <strong>Không đổi cách tính để lấy kết quả đẹp.</strong> Nếu bốn số cuối cho quẻ hung mà
-          bạn chuyển sang sáu số cuối chỉ để có quẻ cát, thì phép xem mất hết ý nghĩa.
+          <strong>Không đổi cách tính để lấy kết quả đẹp.</strong> Bốn số cuối cho quẻ hung, rồi
+          chuyển sang sáu số cuối chỉ để có quẻ cát — phép xem mất hết ý nghĩa.
         </li>
         <li>
           <strong>Ghi lại kết quả.</strong> Khi so nhiều số, hãy viết ra quẻ của từng số rồi mới
@@ -260,7 +260,7 @@ export default function QueKinhDichPage() {
       </ul>
 
       <p>
-        Nếu bạn muốn bỏ qua phần tính tay: mở{" "}
+        Muốn bỏ qua phần tính tay: mở{" "}
         <Link href="/sim-phong-thuy">công cụ tìm SIM hợp tuổi</Link>, nhập năm sinh và giờ sinh,
         hệ thống sẽ chấm cả quẻ lẫn bốn lớp còn lại trên toàn bộ{" "}
         <Link href="/mua-sim-gia-re">kho SIM MobiFone</Link> đang còn hàng và xếp số phù hợp nhất

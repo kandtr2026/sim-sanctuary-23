@@ -21,7 +21,7 @@ const ZALO_URL = "https://zalo.me/0933356666";
 
 const TITLE = "Sim Lộc Phát 68 86 | Kho Sim Lộc Phát Mobifone Đẹp";
 const DESCRIPTION =
-  "Kho sim lộc phát Mobifone đẹp: đuôi 68, 86, 6868, 6688. Giá niêm yết công khai, sang tên chính chủ, nhận SIM rồi mới trả tiền, giao nội thành HCM 30 phút – 2 giờ.";
+  "Sim lộc phát Mobifone đuôi 68, 86, 6868, 6688 cho Quý khách: giá niêm yết công khai, nhận SIM rồi mới thanh toán, sang tên chính chủ, giao tận nơi HCM.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-loc-phat";
 
 export const metadata: Metadata = {
@@ -40,19 +40,19 @@ export const metadata: Metadata = {
 const faqItems = [
   {
     q: "Sim lộc phát là gì? Đuôi 68 và 86 khác nhau ra sao?",
-    a: "Sim lộc phát là sim có hai số cuối là 68 (đọc là 'lộc phát') hoặc 86 (đọc là 'phát lộc'). Các cặp 6868, 6688 lặp lại liên tiếp càng được ưa chuộng. Với người kinh doanh, đuôi này gắn với kỳ vọng tài lộc sinh sôi, làm ăn phát đạt.",
+    a: "Đọc nhanh sẽ thấy: 68 nghe ra “lộc phát”, 86 nghe ra “phát lộc”. Hai đuôi cùng chỉ một ý — tài lộc sinh sôi, làm ăn phát đạt. Các đuôi lặp 6868, 6688, 8686 được ưa chuộng hơn vì dễ nhớ và nhấn ý nghĩa hai lần. Quý khách nên ưu tiên dãy đọc lên thấy trôi.",
   },
   {
     q: "Giá sim lộc phát bao nhiêu?",
-    a: "Giá sim lộc phát Mobifone dao động từ vài trăm nghìn đến hàng chục triệu đồng, tùy đầu số và độ đẹp của dãy. Giá niêm yết công khai trên kho, không phát sinh phí ẩn.",
+    a: "Từ vài trăm nghìn đến hàng chục triệu đồng, tùy đầu số và độ đẹp của dãy. Mỗi số có giá hiện sẵn trong kho, không phí ẩn, nên Quý khách so giá vài số rồi mới quyết.",
   },
   {
     q: "Mua sim lộc phát có sang tên chính chủ được không?",
-    a: "Được. Toàn bộ sim lộc phát tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Bạn nhận SIM trước, kiểm tra kỹ rồi mới trả tiền; hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.",
+    a: "Được. Mọi số lộc phát tại CHONSOMOBIFONE.COM đều sang tên chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới thanh toán; phần đăng ký chính chủ có đội ngũ hỗ trợ tại cửa hàng MobiFone hoặc trên ứng dụng My Mobifone.",
   },
   {
     q: "Giao sim lộc phát mất bao lâu?",
-    a: "Nội thành TP.HCM: 30 phút – 2 giờ làm việc. Các tỉnh thành khác: 1–3 ngày làm việc qua chuyển phát nhanh. Thanh toán COD khi nhận hàng hoặc chuyển khoản trước.",
+    a: "Nội thành TP.HCM, số về tay Quý khách trong 30 phút – 2 giờ làm việc. Các tỉnh thành khác đi chuyển phát nhanh, 1–3 ngày làm việc. Thanh toán COD lúc nhận hoặc chuyển khoản trước, tùy Quý khách chọn.",
   },
 ];
 
@@ -91,7 +91,7 @@ export default async function SimLocPhatPage() {
               Sim Lộc Phát Mobifone — <span className="text-gold">đuôi 68, 86, 6868</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Sim lộc phát (68) và phát lộc (86). Giá niêm yết công khai, sang tên chính chủ, giao tận nơi nội thành HCM.
+              Đọc thử trước khi chọn: 68 là lộc phát, 86 là phát lộc. Giá công khai từng số, sang tên chính chủ, giao nội thành HCM trong 30 phút – 2 giờ.
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a
@@ -120,23 +120,26 @@ export default async function SimLocPhatPage() {
             </h2>
             <div className="space-y-4 leading-relaxed text-muted-foreground">
               <p>
-                Sim lộc phát là dòng sim số đẹp có hai số cuối là 68 hoặc 86. Trong cách đọc nhanh, 68 gần với "lộc
-                phát" và 86 gần với "phát lộc" — cả hai đều quy về ý cầu tài lộc, thuận buồm xuôi gió trong làm ăn.
+                Đọc thành tiếng là thấy ngay: “sáu tám” nghe ra lộc phát, “tám sáu” nghe ra phát lộc. Mỗi lần Quý khách
+                xướng số cho đối tác, dãy số nói thay một lời chúc — và người nghe nhớ được ngay từ lần đầu. Đó là chỗ
+                đứng của đuôi 68 và 86 trong giới làm ăn. Về nghĩa, hai đuôi quy về cùng một mong muốn: tài lộc sinh sôi,
+                buôn bán thuận đường.
               </p>
               <p>
-                Các đuôi lặp như <strong className="text-foreground">6868</strong> (lộc phát lộc phát),{" "}
-                <strong className="text-foreground">6688</strong>, <strong className="text-foreground">8686</strong>{" "}
-                được săn đón hơn vì dễ nhớ và khuếch đại ý nghĩa. Giá thành phụ thuộc chủ yếu vào đầu số và độ đẹp
-                của dãy số.
+                Khác biệt nằm ở nhịp đọc và độ hiếm. Các đuôi lặp như <strong className="text-foreground">6868</strong>{" "}
+                (lộc phát lộc phát), <strong className="text-foreground">6688</strong>,{" "}
+                <strong className="text-foreground">8686</strong> vừa dễ nhớ vừa nhấn ý nghĩa hai lần nên được săn nhiều
+                hơn. Riêng giá thì do đầu số quyết định trước tiên, sau đó tới độ đẹp của dãy: cùng đuôi 68, số đầu 090 hay
+                093 nằm ở mặt bằng khác hẳn đầu 07x.
               </p>
             </div>
           </section>
 
           
           <CategorySimGrid
-            title="Kho Sim Lộc Phát Cập Nhật"
-            searchPlaceholder="Nhập số hoặc *68 / *86 để tìm đuôi lộc phát..."
-            emptyText="Hiện chưa có sim lộc phát đuôi phù hợp trong kho. Vui lòng thử lại sau."
+            title="Sim Lộc Phát Đuôi 68, 86 Mới Cập Nhật"
+            searchPlaceholder="Nhập số cần tìm, hoặc *68 / *86 để xem đuôi lộc phát"
+            emptyText="Chưa có số nào khớp yêu cầu này. Quý khách thử *68, *86 hoặc 6868, hoặc gọi 0938.868.868 để đội ngũ tư vấn lọc kho theo ngân sách."
             matchSuffixes={["68", "86"]}
           />
 
@@ -148,9 +151,9 @@ export default async function SimLocPhatPage() {
               Giá sim lộc phát bao nhiêu?
             </h2>
             <p className="leading-relaxed text-muted-foreground">
-              Sim lộc phát có giá từ vài trăm nghìn đến vài chục triệu đồng. Đuôi 6868, 6688, sim đầu 090/093, số dễ
-              nhớ thường đắt hơn. Mọi số đều niêm yết giá công khai ngay trên kho — bạn chọn số trước, so giá trước,
-              rồi mới đặt.
+              Sim lộc phát có giá từ vài trăm nghìn đến vài chục triệu đồng. Đuôi 6868, 6688, số đầu 090/093 và những dãy
+              dễ nhớ nằm ở nhóm cao hơn. Giá hiện sẵn cạnh từng số trong kho, nên Quý khách so được nhiều số cùng lúc rồi
+              mới quyết, không phải hỏi giá từng số một.
             </p>
           </section>
 
@@ -163,8 +166,8 @@ export default async function SimLocPhatPage() {
               Ai nên dùng sim lộc phát
             </h2>
             <p className="leading-relaxed text-muted-foreground">
-              Người kinh doanh, chủ cửa hàng, người mua xe, mua nhà thường chọn sim lộc phát với kỳ vọng cầu phát đạt.
-              Số cũng dễ đọc, dễ nhớ, tạo ấn tượng khi liên hệ với đối tác và khách hàng.
+              Chủ cửa hàng, người kinh doanh, người vừa mua xe hoặc mua nhà là nhóm chọn đuôi 68/86 nhiều nhất. Số đọc
+              qua điện thoại rất trôi, đối tác và khách hàng ghi lại một lần là xong.
             </p>
           </section>
 

@@ -41,13 +41,13 @@ const CHECKLIST: [string, string, string][] = [
   ],
   [
     "7. Số tài khoản nhận tiền có trùng tên người bán không?",
-    "Tên chủ tài khoản phải khớp với pháp nhân hoặc người đang giao dịch với bạn.",
+    "Tên chủ tài khoản phải khớp với pháp nhân hoặc người đang giao dịch.",
     "Chuyển vào tài khoản tên người thứ ba là chuyện gần như không thể đòi lại.",
   ],
   [
     "8. Có bị thúc \"chốt ngay kẻo mất số\" không?",
-    "Người bán đàng hoàng sẽ để bạn kiểm tra, so giá, hỏi lại.",
-    "Áp lực thời gian là công cụ quen thuộc để bạn bỏ qua bảy bước phía trên.",
+    "Người bán đàng hoàng để Quý khách kiểm tra, so giá, hỏi lại.",
+    "Áp lực thời gian là công cụ quen thuộc để người mua bỏ qua bảy bước phía trên.",
   ],
 ];
 
@@ -58,7 +58,7 @@ const RED_FLAGS: [string, string][] = [
   ],
   [
     "Đòi đặt cọc để \"giữ số\"",
-    "Đặt cọc trước khi được xem thông tin thuê bao là hình thức mất tiền phổ biến nhất. Nếu buộc phải cọc, hãy cọc phần nhỏ và có biên nhận ghi rõ điều kiện hoàn.",
+    "Đặt cọc trước khi được xem thông tin thuê bao là hình thức mất tiền phổ biến nhất. Nếu buộc phải cọc, hãy cọc phần nhỏ và giữ biên nhận ghi rõ điều kiện hoàn.",
   ],
   [
     "Không cho gọi thử vào số",
@@ -81,23 +81,23 @@ const faq: FaqItem[] = [
   },
   {
     q: "Mua SIM online có an toàn không?",
-    a: "An toàn nếu bạn giữ nguyên tắc nhận SIM và kiểm tra trước khi thanh toán. Rủi ro không nằm ở việc mua online mà nằm ở việc chuyển toàn bộ tiền trước khi thấy SIM.",
+    a: "An toàn khi giữ được một nguyên tắc: nhận SIM và kiểm tra trước khi thanh toán. Rủi ro không nằm ở việc mua online mà nằm ở việc chuyển toàn bộ tiền trước khi thấy SIM.",
   },
   {
     q: "Làm sao biết SIM có sang tên chính chủ được không?",
-    a: "Hỏi người bán SIM đang đứng tên ai và có kèm giấy tờ chuyển nhượng không. Sau khi nhận SIM, bạn có thể tự kiểm tra thông tin thuê bao rồi tiến hành cập nhật sang tên mình. Cách kiểm tra có trong bài hướng dẫn kiểm tra SIM chính chủ MobiFone trên site.",
+    a: "Hỏi người bán SIM đang đứng tên ai và có kèm giấy tờ chuyển nhượng không. Sau khi nhận SIM, Quý khách có thể tự kiểm tra thông tin thuê bao rồi tiến hành cập nhật sang tên chính chủ. Cách kiểm tra có trong bài hướng dẫn kiểm tra SIM chính chủ MobiFone trên site.",
   },
   {
     q: "Có nên đặt cọc giữ số không?",
-    a: "Chỉ nên khi bạn đã xác minh được người bán và số đó. Nếu vẫn phải cọc, hãy cọc phần nhỏ, có biên nhận ghi rõ điều kiện hoàn cọc, và chuyển vào tài khoản đúng tên người bán.",
+    a: "Chỉ nên khi đã xác minh được người bán và chính số đó. Nếu vẫn phải cọc, hãy cọc phần nhỏ, giữ biên nhận ghi rõ điều kiện hoàn cọc, và chuyển vào tài khoản đúng tên người bán.",
   },
   {
     q: "Nếu đã chuyển tiền mà không nhận được SIM thì làm gì?",
-    a: "Lưu toàn bộ tin nhắn, biên lai chuyển khoản, số tài khoản người nhận, rồi trình báo cơ quan công an nơi bạn cư trú. Đồng thời thông báo cho ngân hàng của bạn càng sớm càng tốt. Khả năng thu hồi phụ thuộc vào việc tiền đã bị rút chưa, nên thời gian là yếu tố quyết định.",
+    a: "Lưu toàn bộ tin nhắn, biên lai chuyển khoản, số tài khoản người nhận, rồi trình báo cơ quan công an nơi cư trú. Đồng thời thông báo cho ngân hàng càng sớm càng tốt. Khả năng thu hồi phụ thuộc vào việc tiền đã bị rút chưa, nên thời gian là yếu tố quyết định.",
   },
   {
     q: "SIM đã dùng rồi có mua được không?",
-    a: "Được, và phần lớn SIM số đẹp trên thị trường đều là SIM đã hoà mạng trước đó. Điều cần kiểm là SIM còn hoạt động, không nợ cước, không ràng buộc gói cam kết, và chuyển được quyền sử dụng sang tên bạn.",
+    a: "Được, và phần lớn SIM số đẹp trên thị trường đều là SIM đã hoà mạng trước đó. Điều cần kiểm là SIM còn hoạt động, không nợ cước, không ràng buộc gói cam kết, và chuyển được quyền sử dụng sang tên người mua.",
   },
 ];
 
@@ -113,10 +113,10 @@ export default function MuaSimOdauUyTinPage() {
       ]}
       lead={
         <p>
-          Nghề bán SIM số đẹp không có giấy phép riêng, không có cơ quan xếp hạng, nên câu hỏi
-          &ldquo;chỗ nào uy tín&rdquo; gần như không thể trả lời bằng một cái tên. Cách kiểm soát
-          rủi ro thực tế là chuyển câu hỏi thành một danh sách tám điều kiểm tra được — làm hết
-          tám bước thì phần lớn rủi ro tự biến mất.
+          Nghề bán SIM số đẹp không có giấy phép riêng, cũng không có cơ quan xếp hạng. Vì vậy một
+          cái tên — kể cả tên chúng tôi — không phải bằng chứng. Điều Quý khách kiểm chứng được là
+          cách người bán trả lời tám câu hỏi dưới đây. Trả lời rõ cả tám thì phần lớn rủi ro đã bị
+          loại bỏ trước khi tiền rời khỏi tài khoản.
         </p>
       }
     >
@@ -138,15 +138,16 @@ export default function MuaSimOdauUyTinPage() {
             dừng lại.
           </>,
           <>
-            Bị thúc &ldquo;chốt ngay kẻo mất số&rdquo; là chiêu để bạn bỏ qua các bước kiểm tra.
+            Bị thúc &ldquo;chốt ngay kẻo mất số&rdquo; là chiêu để người mua bỏ qua các bước kiểm
+            tra.
           </>,
         ]}
       />
 
       <h2 id="checklist">Tám điều cần kiểm tra trước khi trả tiền</h2>
       <p>
-        Danh sách này xếp theo thứ tự bạn nên hỏi trong một cuộc trao đổi thật, từ điều dễ kiểm tra
-        nhất đến điều cần quan sát thái độ người bán:
+        Danh sách xếp theo thứ tự nên hỏi trong một cuộc trao đổi thật, từ điều dễ kiểm tra nhất đến
+        điều cần quan sát thái độ người bán:
       </p>
 
       <DataTable
@@ -157,9 +158,9 @@ export default function MuaSimOdauUyTinPage() {
       />
 
       <Note tone="tip" title="Một mẹo lọc nhanh trong ba mươi giây">
-        Trước khi hỏi bất cứ điều gì, hãy thử gọi vào chính số SIM mà bạn muốn mua. Nếu số đổ chuông
-        thì ít nhất nó đang hoạt động và tồn tại. Nếu người bán từ chối cho bạn thử, phần lớn các
-        bước sau không cần làm nữa.
+        Trước khi hỏi bất cứ điều gì, hãy thử gọi vào chính số SIM muốn mua. Số đổ chuông thì ít nhất
+        nó đang tồn tại và đang hoạt động. Người bán từ chối cho gọi thử thì phần lớn các bước sau
+        không cần làm nữa.
       </Note>
 
       <h2 id="dau-hieu-canh-bao">Năm dấu hiệu nên dừng lại ngay</h2>
@@ -206,8 +207,8 @@ export default function MuaSimOdauUyTinPage() {
       <h2 id="quy-trinh-an-toan">Quy trình mua an toàn, năm bước</h2>
       <ol>
         <li>
-          <strong>Chốt ngân sách và dòng số trước.</strong> Biết mặt bằng giá của dòng mình nhắm để
-          không bị hét — xem{" "}
+          <strong>Chốt ngân sách và dòng số trước.</strong> Biết mặt bằng giá của dòng số đang nhắm
+          để không bị hét — xem{" "}
           <Link href="/tin-tuc/gia-sim-so-dep-mobifone">khoảng giá theo từng dòng số</Link>.
         </li>
         <li>
@@ -231,10 +232,10 @@ export default function MuaSimOdauUyTinPage() {
         </li>
       </ol>
 
-      <h2 id="tai-day">Cách chonsomobifone.com xử lý năm điểm trên</h2>
+      <h2 id="tai-day">CHONSOMOBIFONE.COM đối chiếu với checklist trên như thế nào</h2>
       <p>
-        Để bạn đối chiếu chứ không phải tin lời: đây là cam kết đang áp dụng cho mọi đơn tại kho
-        SIM MobiFone của chúng tôi.
+        Phần này để Quý khách đối chiếu, không phải để tin lời. Đây là cam kết đang áp dụng cho mọi
+        đơn tại kho SIM MobiFone của chúng tôi.
       </p>
 
       <div className="not-prose my-6">
@@ -243,14 +244,14 @@ export default function MuaSimOdauUyTinPage() {
 
       <p>
         Toàn bộ số trong <Link href="/mua-sim-gia-re">kho SIM MobiFone</Link> đều hiện giá ngay trên
-        số, không cần nhắn tin hỏi giá. Nếu bạn muốn đối chiếu mức giá cho một dãy số cụ thể trước
-        khi liên hệ, dùng <Link href="/dinh-gia-sim">công cụ định giá SIM</Link>.
+        số, không cần nhắn tin hỏi giá. Muốn đối chiếu mức giá cho một dãy số cụ thể trước khi liên
+        hệ, dùng <Link href="/dinh-gia-sim">công cụ định giá SIM</Link>.
       </p>
 
       <Note tone="info" title="Điều chúng tôi không cam kết">
         Không có nơi bán nào cam kết được rằng một dãy số sẽ mang lại tài lộc hay may mắn. Các nội
-        dung phong thuỷ trên site được trình bày như tri thức dân gian để bạn tham khảo khi chọn
-        giữa những số cùng tầm giá — không phải lời khuyên tài chính.
+        dung phong thuỷ trên site được trình bày như tri thức dân gian, để Quý khách tham khảo khi
+        chọn giữa những số cùng tầm giá — không phải lời khuyên tài chính.
       </Note>
     </ArticleShell>
   );

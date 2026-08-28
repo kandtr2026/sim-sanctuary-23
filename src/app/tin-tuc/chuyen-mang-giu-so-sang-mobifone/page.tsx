@@ -14,7 +14,7 @@ const CONDITIONS: [string, string][] = [
   ],
   [
     "Thông tin khai báo trùng khớp",
-    "Thông tin bạn khai ở nhà mạng chuyển đến phải khớp thông tin đang đăng ký ở nhà mạng chuyển đi. Đây là lý do bị từ chối phổ biến nhất.",
+    "Thông tin khai với nhà mạng chuyển đến phải khớp thông tin đang đăng ký tại nhà mạng chuyển đi. Đây là lý do bị từ chối phổ biến nhất.",
   ],
   [
     "Đã kích hoạt tối thiểu 90 ngày",
@@ -22,7 +22,7 @@ const CONDITIONS: [string, string][] = [
   ],
   [
     "Từ lần chuyển thứ hai: tối thiểu 60 ngày",
-    "Tính theo thời gian đã kích hoạt tại nhà mạng bạn đang dùng, không phải tổng thời gian dùng số.",
+    "Tính theo thời gian đã kích hoạt tại nhà mạng hiện tại, không phải tổng thời gian dùng số.",
   ],
   [
     "Trả sau: không nợ cước, cước trong kỳ dưới ngưỡng",
@@ -30,7 +30,7 @@ const CONDITIONS: [string, string][] = [
   ],
   [
     "Trả sau: không dùng chuyển vùng quốc tế 60 ngày trước",
-    "Nếu bạn vừa đi nước ngoài và có dùng roaming, cần chờ đủ 60 ngày.",
+    "Quý khách vừa ra nước ngoài và có phát sinh roaming thì chờ đủ 60 ngày rồi đăng ký.",
   ],
   [
     "Không đang trong thời gian cam kết",
@@ -76,7 +76,7 @@ const faq: FaqItem[] = [
   },
   {
     q: "Phí chuyển mạng giữ số là bao nhiêu?",
-    a: "Mức thường được nêu là khoảng 50.000 đến 60.000 đồng tuỳ loại thuê bao, gồm phí chuyển mạng và phí SIM mới. MobiFone không công bố con số này trên trang chính thức, nên hãy gọi 18001090 để xác nhận trước khi làm.",
+    a: "Mức thường được nêu là khoảng 50.000 đến 60.000 đồng tuỳ loại thuê bao, gồm phí chuyển mạng và phí SIM mới. MobiFone không công bố con số này trên trang chính thức, vì vậy nên gọi 18001090 để xác nhận trước khi đăng ký.",
   },
   {
     q: "Chuyển mạng giữ số mất bao lâu?",
@@ -88,7 +88,7 @@ const faq: FaqItem[] = [
   },
   {
     q: "Làm sao biết một số đang thuộc nhà mạng nào?",
-    a: "Sau khi chuyển mạng giữ số, đầu số không còn cho biết nhà mạng. Bạn có thể tra cứu trên cổng thông tin của Cục Viễn thông để biết số đó hiện thuộc nhà mạng nào.",
+    a: "Sau khi chuyển mạng giữ số, đầu số không còn cho biết nhà mạng. Quý khách tra cứu trên cổng thông tin của Cục Viễn thông để biết số đó hiện thuộc nhà mạng nào.",
   },
 ];
 
@@ -104,10 +104,10 @@ export default function ChuyenMangGiuSoPage() {
       ]}
       lead={
         <p>
-          Chuyển mạng giữ số cho phép bạn đổi sang MobiFone mà giữ nguyên dãy số đang dùng. Thủ tục
-          không khó, nhưng tỉ lệ bị từ chối khá cao vì phần lớn người đăng ký không kiểm tra trước
-          bảy điều kiện. Bài này liệt kê đủ điều kiện theo quy định hiện hành, các lý do bị từ chối
-          thường gặp và trình tự làm cho đúng ngay lần đầu.
+          Chuyển mạng giữ số là quyền của người dùng di động: đổi nhà mạng phục vụ sang MobiFone,
+          dãy số cũ giữ nguyên. Quyền đó đi kèm bảy điều kiện, và phần lớn hồ sơ bị từ chối chỉ vì
+          chưa soát hết bảy điều kiện ấy trước khi đăng ký. Dưới đây là toàn bộ điều kiện theo quy
+          định hiện hành, sáu lý do từ chối thường gặp, cùng trình tự để hoàn tất ngay lần đầu.
         </p>
       }
     >
@@ -139,8 +139,8 @@ export default function ChuyenMangGiuSoPage() {
       <h2 id="dieu-kien">Bảy điều kiện cần kiểm tra trước khi đăng ký</h2>
       <p>
         Quy định về chuyển mạng giữ số hiện nay theo Thông tư 09/2025/TT-BKHCN, hướng dẫn Nghị định
-        163/2024/NĐ-CP. Nếu bạn từng đọc hướng dẫn cũ theo Thông tư 35/2017, một số mốc thời gian đã
-        khác.
+        163/2024/NĐ-CP. Các bài hướng dẫn cũ dựa trên Thông tư 35/2017 vẫn còn lưu hành, và một số
+        mốc thời gian trong đó đã khác.
       </p>
 
       <DataTable
@@ -150,15 +150,15 @@ export default function ChuyenMangGiuSoPage() {
         boldFirstColumn={false}
       />
 
-      <Note tone="tip" title="Kiểm tra hai điều này trước, tiết kiệm cả buổi">
-        Trước khi đi đăng ký, hãy soạn <strong>TTTB</strong> gửi <strong>1414</strong> ở nhà mạng
-        hiện tại để xem chính xác thông tin đang đăng ký cho số của bạn, rồi đối chiếu với giấy tờ
-        bạn sẽ mang đi. Sai lệch thông tin là lý do từ chối phổ biến nhất, và nó luôn phát hiện được
-        trước bằng một tin nhắn miễn phí. Cách đọc kết quả có ở bài{" "}
+      <Note tone="tip" title="Một tin nhắn miễn phí tránh được lần đi lại thứ hai">
+        Trước khi đến quầy, soạn <strong>TTTB</strong> gửi <strong>1414</strong> tại nhà mạng hiện
+        tại để xem chính xác thông tin đang đăng ký cho số, rồi đối chiếu với giấy tờ sẽ mang theo.
+        Sai lệch thông tin là lý do từ chối phổ biến nhất, và luôn phát hiện được trước bằng một tin
+        nhắn miễn phí. Cách đọc kết quả có ở bài{" "}
         <Link href="/tin-tuc/kiem-tra-sim-chinh-chu-mobifone">kiểm tra SIM chính chủ</Link>.
       </Note>
 
-      <h2 id="trinh-tu">Trình tự làm, năm bước</h2>
+      <h2 id="trinh-tu">Trình tự thực hiện, năm bước</h2>
       <ol>
         <li>
           <strong>Chuẩn hoá thông tin ở nhà mạng cũ.</strong> Nếu tên hoặc số giấy tờ chưa đúng, cập
@@ -169,14 +169,14 @@ export default function ChuyenMangGiuSoPage() {
           kết thì tính trước phí huỷ, hoặc chờ hết cam kết.
         </li>
         <li>
-          <strong>Đăng ký với MobiFone</strong> qua app My MobiFone hoặc tại cửa hàng. Bạn sẽ nhận
-          SIM trắng của MobiFone để dùng sau khi chuyển xong.
+          <strong>Đăng ký với MobiFone</strong> qua app My MobiFone hoặc tại cửa hàng. Quý khách
+          nhận SIM trắng của MobiFone để dùng sau khi chuyển xong.
         </li>
         <li>
           <strong>Xác nhận yêu cầu chuyển mạng.</strong> Theo hướng dẫn được áp dụng nhiều năm nay,
-          sau khi nhận SIM trắng bạn cần soạn tin xác nhận yêu cầu chuyển mạng gửi đầu số 1441 trong
-          vòng 24 giờ. Bước này hiện không có trên trang chính thức của MobiFone, nên hãy làm theo
-          hướng dẫn cụ thể mà nhân viên đưa cho bạn lúc đăng ký.
+          sau khi nhận SIM trắng cần soạn tin xác nhận yêu cầu chuyển mạng gửi đầu số 1441 trong
+          vòng 24 giờ. Bước này hiện không có trên trang chính thức của MobiFone, vì vậy hãy làm
+          theo hướng dẫn cụ thể mà nhân viên cung cấp lúc đăng ký.
         </li>
         <li>
           <strong>Chờ xử lý và gắn SIM mới.</strong> Khi có thông báo thành công, gắn SIM MobiFone
@@ -186,8 +186,8 @@ export default function ChuyenMangGiuSoPage() {
 
       <h2 id="ly-do-tu-choi">Sáu lý do hồ sơ bị từ chối</h2>
       <p>
-        Theo quy định, nhà mạng chuyển đi phải thông báo lý do từ chối cho bạn. Dưới đây là các lý do
-        thường gặp nhất và cách xử lý từng trường hợp:
+        Theo quy định, nhà mạng chuyển đi phải thông báo lý do từ chối cho khách hàng. Dưới đây là
+        các lý do thường gặp nhất và cách xử lý từng trường hợp:
       </p>
 
       <DataTable
@@ -206,15 +206,15 @@ export default function ChuyenMangGiuSoPage() {
       <p>
         <strong>Chi phí:</strong> mức thường được nêu là khoảng 50.000 – 60.000 đồng tuỳ loại thuê
         bao, gồm phí chuyển mạng và phí SIM mới. Cần nói rõ: MobiFone không công bố con số này trên
-        trang chính thức và các nguồn bên ngoài không thống nhất cách tách khoản, nên hãy hỏi
-        18001090 hoặc nhân viên cửa hàng để có mức phí chính xác tại thời điểm bạn làm.
+        trang chính thức và các nguồn bên ngoài không thống nhất cách tách khoản. Vì vậy nên hỏi
+        18001090 hoặc nhân viên cửa hàng để có mức phí chính xác tại thời điểm đăng ký.
       </p>
 
       <Note tone="warn" title="Cam kết đi kèm số đẹp: đọc kỹ trước khi huỷ">
-        Với các gói cam kết được bán kèm số đẹp, việc huỷ cam kết trước hạn không chỉ tốn phí mà còn
-        có thể dẫn tới <strong>bị thu hồi số</strong>. Phí huỷ cam kết được tính theo giá gói cước
-        nhân với số tháng cam kết còn lại. Nếu số đang giữ có giá trị, hãy tính kỹ giữa việc chờ hết
-        cam kết và việc huỷ sớm.
+        Phí huỷ cam kết chỉ là một phần của câu chuyện. Với gói cam kết được bán kèm số đẹp, huỷ
+        trước hạn còn có thể dẫn tới <strong>bị thu hồi số</strong>. Phí huỷ được tính theo giá gói
+        cước nhân với số tháng cam kết còn lại. Số đang giữ có giá trị thì nên cân đo kỹ giữa việc
+        chờ hết cam kết và việc huỷ sớm.
       </Note>
 
       <h2 id="sau-khi-chuyen">Sau khi chuyển mạng, đầu số không còn nói lên nhà mạng</h2>
@@ -226,16 +226,16 @@ export default function ChuyenMangGiuSoPage() {
       </p>
       <p>
         Danh sách đầu số MobiFone đang phát hành — 070, 076, 077, 078, 079, 089, 090, 093 — vẫn hữu
-        ích khi bạn <em>mua số mới</em>, và có đầy đủ trong bài{" "}
+        ích khi <em>mua số mới</em>, và có đầy đủ trong bài{" "}
         <Link href="/tin-tuc/cac-dau-so-mang-mobifone-moi-nhat">các đầu số MobiFone mới nhất</Link>.
       </p>
 
-      <h2 id="hay-doi-so">Giữ số cũ hay đổi sang số dễ nhớ?</h2>
+      <h2 id="hay-doi-so">Khi nào nên giữ số cũ, khi nào nên chọn số mới</h2>
       <p>
-        Chuyển mạng giữ số hợp lý khi dãy số hiện tại đã gắn với khách hàng, danh thiếp, tài khoản
-        ngân hàng của bạn. Nhưng nếu lý do bạn muốn đổi sang MobiFone là chất lượng dịch vụ, và dãy
-        số hiện tại vốn khó nhớ, thì đây là dịp cân nhắc hướng khác: lấy một số MobiFone dễ nhớ và
-        chuyển dần liên hệ sang.
+        Giữ số hợp lý khi dãy số hiện tại đã gắn với khách hàng, danh thiếp và tài khoản ngân hàng.
+        Trường hợp còn lại cũng đáng cân nhắc: lý do đổi sang MobiFone là chất lượng dịch vụ, còn
+        dãy số đang dùng vốn khó nhớ. Lúc đó, lấy một số MobiFone dễ nhớ rồi chuyển dần liên hệ sang
+        là hướng chủ động hơn.
       </p>
       <ul>
         <li>

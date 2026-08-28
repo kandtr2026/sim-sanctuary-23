@@ -16,7 +16,7 @@ const CHECK_WAYS: [string, string, string][] = [
   [
     "Soạn TTTB_Số CCCD gửi 1414",
     "Liệt kê những số đang đứng tên giấy tờ đó",
-    "Miễn phí; dùng để phát hiện SIM lạ đứng tên mình",
+    "Miễn phí; dùng để phát hiện SIM lạ đứng tên Quý khách",
   ],
   [
     "App My MobiFone",
@@ -56,15 +56,15 @@ const TIMELINE: [string, string][] = [
 const faq: FaqItem[] = [
   {
     q: "Cách kiểm tra SIM MobiFone có chính chủ hay không?",
-    a: "Soạn tin nhắn với nội dung TTTB gửi 1414. Hệ thống trả về số thuê bao, họ tên và số giấy tờ đang đăng ký cho SIM đó. Nếu tên trả về không phải tên bạn thì SIM chưa đứng tên bạn. Tin nhắn này miễn phí.",
+    a: "Soạn tin nhắn với nội dung TTTB gửi 1414. Hệ thống trả về số thuê bao, họ tên và số giấy tờ đang đăng ký cho SIM đó. Nếu tên trả về không phải tên Quý khách thì SIM chưa đứng tên Quý khách. Tin nhắn này miễn phí.",
   },
   {
-    q: "Làm sao biết có SIM lạ nào đang đứng tên mình?",
-    a: "Soạn TTTB_Số CCCD gửi 1414 (có dấu gạch dưới, thay Số CCCD bằng số căn cước của bạn). Hệ thống liệt kê các thuê bao đang đăng ký bằng giấy tờ đó. Mỗi giấy tờ được đứng tên tối đa 3 thuê bao trả trước và 5 thuê bao trả sau với khách hàng cá nhân.",
+    q: "Làm sao biết có SIM lạ nào đang đứng tên Quý khách?",
+    a: "Soạn TTTB_Số CCCD gửi 1414 (có dấu gạch dưới, thay Số CCCD bằng số căn cước của Quý khách). Hệ thống liệt kê các thuê bao đang đăng ký bằng giấy tờ đó. Mỗi giấy tờ được đứng tên tối đa 3 thuê bao trả trước và 5 thuê bao trả sau với khách hàng cá nhân.",
   },
   {
     q: "Cập nhật thông tin chính chủ MobiFone tại nhà được không?",
-    a: "Được, qua app My MobiFone hoặc qua VNeID, và hoàn toàn miễn phí. Bạn cần CCCD gắn chip và chụp thêm ảnh chân dung để xác thực sinh trắc học. Tuy nhiên kênh trực tuyến không áp dụng cho các số đặc biệt như tam hoa, tứ quý, số lặp hay số dễ nhớ — những số này phải làm tại cửa hàng.",
+    a: "Được, qua app My MobiFone hoặc qua VNeID, và hoàn toàn miễn phí. Cần chuẩn bị CCCD gắn chip và chụp thêm ảnh chân dung để xác thực sinh trắc học. Tuy nhiên kênh trực tuyến không áp dụng cho các số đặc biệt như tam hoa, tứ quý, số lặp hay số dễ nhớ — những số này phải làm tại cửa hàng.",
   },
   {
     q: "Mua SIM số đẹp thì sang tên ở đâu, phí bao nhiêu?",
@@ -76,7 +76,7 @@ const faq: FaqItem[] = [
   },
   {
     q: "Đã đăng ký bằng CCCD gắn chip rồi có phải làm lại không?",
-    a: "Theo hướng dẫn của MobiFone, thuê bao đã đăng ký bằng VNeID mức 2 hoặc CCCD gắn chip thì không phải xác thực lại, trừ trường hợp thay đổi thiết bị đang dùng SIM. Cách chắc chắn nhất là soạn TTTB gửi 1414 để xem trạng thái hiện tại của mình.",
+    a: "Theo hướng dẫn của MobiFone, thuê bao đã đăng ký bằng VNeID mức 2 hoặc CCCD gắn chip thì không phải xác thực lại, trừ trường hợp thay đổi thiết bị đang dùng SIM. Cách chắc chắn nhất là soạn TTTB gửi 1414 để xem trạng thái hiện tại của thuê bao.",
   },
 ];
 
@@ -92,10 +92,9 @@ export default function KiemTraSimChinhChuPage() {
       ]}
       lead={
         <p>
-          SIM chính chủ không còn là chuyện thủ tục cho vui. Một SIM đứng tên người khác thì không
-          dùng được để xác thực ngân hàng, không lấy lại được khi mất, và nằm trong diện có thể bị
-          khoá theo quy định chuẩn hoá thông tin thuê bao. Việc kiểm tra chỉ mất ba mươi giây — và
-          nếu SIM của bạn là số đẹp, có một ngoại lệ quan trọng cần biết trước khi làm.
+          Một SIM đứng tên người khác thì không xác thực được ngân hàng, không lấy lại được khi mất,
+          và nằm trong diện phải chuẩn hoá thông tin thuê bao. Ba rủi ro đó biến mất sau một tin nhắn
+          ba mươi giây. Nếu là SIM số đẹp, có thêm một ngoại lệ Quý khách nên biết trước khi bắt đầu.
         </p>
       }
     >
@@ -107,7 +106,7 @@ export default function KiemTraSimChinhChuPage() {
           </>,
           <>
             Soạn <strong>TTTB_Số CCCD</strong> gửi <strong>1414</strong> để xem toàn bộ số đang đứng
-            tên giấy tờ của bạn.
+            tên giấy tờ của Quý khách.
           </>,
           <>
             Cập nhật thông tin làm được tại nhà qua <strong>app My MobiFone</strong> hoặc{" "}
@@ -154,15 +153,15 @@ export default function KiemTraSimChinhChuPage() {
 
       <p>
         Cách đầu tiên là cách nên dùng: nhắn <strong>TTTB</strong> tới <strong>1414</strong>, tin
-        không tính phí và trả lời trong vài giây. Nếu bạn vừa mua SIM số đẹp, hãy làm bước này{" "}
+        không tính phí và trả lời trong vài giây. Với SIM số đẹp vừa mua, hãy làm bước này{" "}
         <em>ngay khi nhận SIM, trước khi thanh toán</em> — tin trả về cho biết SIM đang đứng tên ai
         và có đúng như người bán nói hay không.
       </p>
 
       <Note tone="warn" title="Kết quả thế nào là chưa ổn">
-        Ba trường hợp cần xử lý: tên trả về không phải tên bạn; thông tin trả về là số chứng minh
-        nhân dân cũ 9 số trong khi bạn đã đổi sang căn cước gắn chip; hoặc hệ thống báo thuê bao
-        chưa hoàn thành xác thực. Cả ba đều dẫn tới cùng một việc phải làm ở mục dưới.
+        Ba trường hợp cần xử lý: tên trả về không phải tên Quý khách; thông tin trả về là số chứng
+        minh nhân dân cũ 9 số trong khi Quý khách đã đổi sang căn cước gắn chip; hoặc hệ thống báo
+        thuê bao chưa hoàn thành xác thực. Cả ba đều dẫn tới cùng một việc phải làm ở mục dưới.
       </Note>
 
       <h2 id="cach-cap-nhat">Cách cập nhật thông tin chính chủ</h2>
@@ -181,7 +180,7 @@ export default function KiemTraSimChinhChuPage() {
       </ol>
       <p>
         Giấy tờ cần có là căn cước công dân gắn chip; người nước ngoài dùng hộ chiếu. Nếu chọn kênh
-        VNeID, bạn cần đã cài và kích hoạt tài khoản VNeID trên điện thoại.
+        VNeID, tài khoản VNeID phải được cài và kích hoạt sẵn trên điện thoại.
       </p>
 
       <h2 id="ngoai-le-so-dep">Ngoại lệ dành riêng cho SIM số đẹp</h2>
@@ -193,7 +192,7 @@ export default function KiemTraSimChinhChuPage() {
       </p>
       <p>
         Lý do dễ hiểu: số giá trị cao là đích ngắm của chiếm đoạt số, nên nhà mạng đặt thêm một lớp
-        kiểm tra trực tiếp. Hệ quả thực tế với bạn:
+        kiểm tra trực tiếp. Hệ quả thực tế:
       </p>
       <ul>
         <li>
@@ -205,8 +204,8 @@ export default function KiemTraSimChinhChuPage() {
           thay vì chỉ nhận SIM rồi tự xoay.
         </li>
         <li>
-          Ngược lại, đây cũng là một lớp bảo vệ: người khác không thể chuyển số của bạn đi chỉ bằng
-          thao tác trực tuyến.
+          Ngược lại, đây cũng là một lớp bảo vệ: người khác không thể chuyển số của Quý khách đi chỉ
+          bằng thao tác trực tuyến.
         </li>
       </ul>
 
@@ -218,11 +217,11 @@ export default function KiemTraSimChinhChuPage() {
         caption="Các mốc trong đợt xác thực thông tin thuê bao năm 2026"
       />
 
-      <Note tone="warn" title="Nếu SIM của bạn đã bị khoá">
+      <Note tone="warn" title="Nếu SIM đã bị khoá">
         Mốc 15/8/2026 đã qua, nên nếu SIM đang không gọi ra được hoặc không nhận được cuộc gọi, rất
-        có thể nguyên nhân là chưa hoàn thành xác thực. Sau khi bạn hoàn tất xác thực trên app hoặc
-        tại cửa hàng, hệ thống mở khoá tự động. Các nguyên nhân bị khoá khác — hết hạn sử dụng, nợ
-        cước, khoá quyền nạp thẻ — được phân biệt trong bài{" "}
+        có thể nguyên nhân là chưa hoàn thành xác thực. Sau khi Quý khách hoàn tất xác thực trên app
+        hoặc tại cửa hàng, hệ thống mở khoá tự động. Các nguyên nhân bị khoá khác — hết hạn sử dụng,
+        nợ cước, khoá quyền nạp thẻ — được phân biệt trong bài{" "}
         <Link href="/tin-tuc/sim-bi-khoa-mobifone">
           SIM MobiFone bị khoá 1 chiều, 2 chiều
         </Link>
@@ -247,13 +246,13 @@ export default function KiemTraSimChinhChuPage() {
           mức phí cụ thể.
         </li>
         <li>
-          <strong>Nên làm ngay,</strong> đừng để dành. Số chưa sang tên là số bạn chưa thực sự nắm
-          quyền, dù đã trả tiền.
+          <strong>Nên làm ngay,</strong> đừng để dành. Số chưa sang tên là số Quý khách chưa thực sự
+          nắm quyền, dù đã trả tiền.
         </li>
       </ul>
       <p>
-        Nếu bạn đang cân nhắc mua và muốn biết cách chọn nơi bán chịu trách nhiệm tới bước sang tên,
-        xem <Link href="/tin-tuc/mua-sim-so-dep-o-dau-uy-tin">8 điều cần kiểm tra trước khi trả tiền</Link>.
+        Nếu Quý khách đang cân nhắc mua và muốn biết cách chọn nơi bán chịu trách nhiệm tới bước sang
+        tên, xem <Link href="/tin-tuc/mua-sim-so-dep-o-dau-uy-tin">8 điều cần kiểm tra trước khi trả tiền</Link>.
       </p>
 
       <h2 id="lua-dao">Cảnh giác với chiêu mạo danh nhà mạng</h2>

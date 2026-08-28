@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Star, Cake } from 'lucide-react';
 import type { NormalizedSIM, PromotionalData, QuyType } from '@/lib/simUtils';
 import { matchesQuyType, formatPrice, formatBirthDateDisplayLenient, formatSIMNumber } from '@/lib/simUtils';
 import { cn } from '@/lib/utils';
@@ -225,7 +226,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '', birthDateDi
               className={cn(badgeBase, 'bg-gold/20 text-gold-dark')}
               style={badgeFontSize}
             >
-              ⭐ Số đẹp
+              <Star className="mr-1 h-3 w-3 shrink-0" /> Số đẹp
             </span>
           )}
           {isRealBirthSim && (
@@ -233,7 +234,7 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '', birthDateDi
               className={cn(badgeBase, 'bg-emerald-500/20 text-emerald-400 border border-emerald-400/30')}
               style={badgeFontSize}
             >
-              🎂 Năm sinh
+              <Cake className="mr-1 h-3 w-3 shrink-0" /> Năm sinh
             </span>
           )}
           {quyBadgeText && (

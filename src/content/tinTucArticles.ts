@@ -65,7 +65,7 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
     description:
       "5 cách xem số điện thoại MobiFone của chính mình khi quên số: soạn TTTB gửi 1414, bấm *0#, gọi tổng đài 18001090, mở app My MobiFone hoặc gọi sang máy khác.",
     excerpt:
-      "Quên số của chính mình là chuyện thường khi vừa lắp SIM mới. Đây là 5 cách xem lại số MobiFone trong vòng một phút, kể cả khi tài khoản đã hết tiền.",
+      "SIM vừa lắp, SIM phụ ít dùng, đổi máy xong không nhớ số nào ở khe nào. Năm cách xem lại số MobiFone trong vòng một phút, dùng được cả khi tài khoản đã hết tiền.",
     category: "Hướng dẫn MobiFone",
     cover: {
       src: "/blog/kiem-tra-so-dien-thoai-mobifone.webp",
@@ -122,7 +122,7 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
     description:
       "Phân biệt khoá 1 chiều và 2 chiều trên SIM MobiFone, nguyên nhân thường gặp, mốc thời gian trước khi bị thu hồi số và cách mở lại từng trường hợp.",
     excerpt:
-      "Gọi ra không được nhưng vẫn nhận được cuộc gọi là khoá một chiều — và bạn còn một khoảng thời gian nhất định trước khi số bị thu hồi. Đây là các mốc cần nhớ.",
+      "Gọi ra không được nhưng vẫn nhận được cuộc gọi là khoá một chiều. Bài viết ghi rõ từng mốc thời gian trước khi số bị thu hồi, để Quý khách kịp xử lý.",
     category: "Hướng dẫn MobiFone",
     cover: {
       src: "/blog/sim-bi-khoa-mobifone.webp",
@@ -141,7 +141,7 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
     description:
       "Bát Cực Linh Số chia 64 cặp số thành 8 năng lượng: 4 cát (Sinh Khí, Thiên Y, Diên Niên, Phục Vị) và 4 hung. Bảng tra đầy đủ và cách tự soi dãy SIM.",
     excerpt:
-      "Cùng một dãy số, người xem theo ngũ hành và người xem theo Bát Cực Linh Số đọc ra hai câu chuyện khác nhau. Đây là bảng tra 64 cặp số và cách tự soi.",
+      "Bảng tra đủ 64 cặp số, kèm bốn bước tự soi một dãy SIM bằng giấy bút. Đọc xong, Quý khách tự thẩm định được dãy số trước khi nghe bất kỳ lời tư vấn nào.",
     category: "Phong thuỷ",
     cover: {
       src: "/blog/bat-cuc-linh-so-la-gi.webp",
@@ -179,7 +179,7 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
     description:
       "Bảng ngũ hành của từng con số 0–9 theo Hà Đồ, cách tra mệnh từ năm sinh và nguyên tắc chọn số tương sinh, tránh tương khắc cho từng mệnh.",
     excerpt:
-      "Mỗi con số mang một hành. Biết mệnh của mình rồi thì việc chọn số chỉ còn là ghép đúng nhóm tương sinh và tránh nhóm tương khắc.",
+      "Mỗi con số thuộc một hành. Tra mệnh theo năm sinh xong, việc chọn số gọn lại còn hai việc: ghép đúng nhóm tương sinh và tránh nhóm tương khắc.",
     category: "Phong thuỷ",
     cover: {
       src: "/blog/sim-hop-menh-ngu-hanh.webp",
@@ -198,7 +198,7 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
     description:
       "Điểm phong thuỷ của một SIM được cộng từ 5 trụ cột: ngũ hành bản mệnh, âm dương cung phi, tổng nút, quẻ Kinh Dịch và Bát Cực Linh Số. Cách tự tính tay.",
     excerpt:
-      "Cùng một số, mỗi trang chấm một điểm khác nhau vì mỗi nơi cân trọng số khác nhau. Đây là 5 trụ cột thường dùng và cách tự kiểm lại bằng tay.",
+      "Ngũ hành 40%, âm dương 20%, quẻ Kinh Dịch 20%, tổng nút 15%, cấu trúc 5%. Toàn bộ công thức được mở ra để Quý khách tự kiểm lại điểm của một số bằng giấy bút.",
     category: "Phong thuỷ",
     cover: {
       src: "/blog/cach-tinh-diem-sim-phong-thuy.webp",
@@ -217,7 +217,7 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
     description:
       "Bảng tra ý nghĩa 2 số cuối điện thoại đủ 100 cặp 00–99 theo ba hệ: đồng âm dân gian, năng lượng Bát Cực Linh Số và ngũ hành từng chữ số.",
     excerpt:
-      "68 là lộc phát, 39 là thần tài — nhưng còn 91 cặp còn lại? Đây là bảng tra đủ 100 cặp số cuối, đặt cạnh nhau ba cách đọc phổ biến nhất.",
+      "68 là lộc phát, 39 là thần tài. Bảng tra dưới đây đủ 100 cặp số cuối từ 00 đến 99, đặt cạnh nhau ba cách đọc phổ biến nhất để Quý khách đối chiếu.",
     category: "Ý nghĩa sim",
     cover: {
       src: "/blog/y-nghia-2-so-cuoi-dien-thoai.webp",
@@ -236,7 +236,7 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
     description:
       "Giá SIM số đẹp MobiFone theo dòng: tứ quý, ngũ quý, tam hoa, lộc phát, thần tài, đầu số cổ. Những yếu tố khiến hai số cùng dạng lệch giá nhau nhiều lần.",
     excerpt:
-      "Vì sao hai số cùng là tứ quý mà một số vài triệu, số kia vài trăm triệu? Bài này mổ xẻ các yếu tố định giá và khoảng giá tham khảo từng dòng.",
+      "Hai số cùng dạng tứ quý có thể lệch giá nhau vài chục lần. Bài viết mổ xẻ các yếu tố định giá và khoảng giá tham khảo từng dòng, giúp Quý khách chốt ngân sách.",
     category: "Kiến thức mua sim",
     cover: {
       src: "/blog/gia-sim-so-dep-mobifone.webp",

@@ -60,8 +60,8 @@ export default async function ArticleSimTable({
     <section className="my-7 rounded-xl border border-gold/30 bg-card p-4 md:p-5">
       <h3 className="!mt-0 mb-1 text-base font-semibold text-gold md:text-lg">{title}</h3>
       <p className="mb-3 text-xs text-muted-foreground">
-        Số thật đang còn trong kho, giá đã niêm yết — bảng lấy rải từ mức thấp nhất lên dần để bạn
-        thấy khoảng giá của dòng số này.
+        Số thật đang còn trong kho, giá đã niêm yết — bảng lấy rải từ mức thấp nhất lên dần để Quý
+        khách thấy khoảng giá của dòng số này.
       </p>
 
       <div className="overflow-x-auto rounded-lg border border-border">

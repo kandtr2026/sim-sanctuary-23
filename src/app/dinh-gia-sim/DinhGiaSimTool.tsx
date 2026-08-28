@@ -96,7 +96,7 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
     const validation = validatePhone(phone);
 
     if (!validation.valid) {
-      setError(validation.error || 'Số không hợp lệ');
+      setError(validation.error || 'Số điện thoại chưa hợp lệ. Quý khách vui lòng kiểm tra lại.');
       setState('error');
       return;
     }
@@ -180,7 +180,7 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
         carrier: carrier,
         price: 0,
         tags: tags,
-        message: 'Vui lòng liên hệ 0938.868.868 để biết thêm chi tiết . Cảm ơn !',
+        message: 'Số này hiện không có trong kho. Quý khách vui lòng liên hệ 0938.868.868 để được báo mức giá tham khảo.',
       });
       setState('success');
     }
@@ -258,7 +258,7 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
               </div>
 
               <p className="text-xl md:text-2xl font-bold text-primary-dark mb-2">
-                SIM {formatPhoneDisplay(result.phone)} được định giá:
+                Mức giá tham khảo cho SIM {formatPhoneDisplay(result.phone)}:
               </p>
 
               {result.found ? (
@@ -274,7 +274,7 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
                       className="text-xs bg-green-500/10 text-green-600 border-green-200"
                     >
                       <Info className="w-3 h-3 mr-1" />
-                      Giá chính xác từ kho SIM
+                      Giá niêm yết công khai trong kho
                     </Badge>
                   </div>
                 </>
@@ -291,7 +291,7 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
                       className="text-xs bg-orange-500/10 text-orange-600 border-orange-200"
                     >
                       <Info className="w-3 h-3 mr-1" />
-                      Số không có trong kho
+                      Số chưa có trong kho
                     </Badge>
                   </div>
                 </>
@@ -335,7 +335,7 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
                       </li>
                     ))
                   ) : (
-                    <li className="text-muted-foreground">Số SIM thường</li>
+                    <li className="text-muted-foreground">Dãy số phổ thông</li>
                   )}
                 </ul>
               </div>
@@ -361,7 +361,7 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
           {/* CTA Tư vấn */}
           <div className="bg-card rounded-xl shadow-card border border-border p-5 mb-6">
             <p className="text-center text-muted-foreground mb-4">
-              Bạn muốn chốt giá hoặc cần tư vấn kỹ hơn?
+              Quý khách cần một mức giá sát hơn cho dãy số này?
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <a
@@ -399,13 +399,13 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
 
             {similarState === 'empty' && (
               <div className="text-center py-8 text-muted-foreground">
-                <p>Chưa tìm được SIM phù hợp. Vui lòng liên hệ tư vấn.</p>
+                <p>Kho chưa có SIM tương tự dãy số này. Quý khách vui lòng liên hệ để được tư vấn thêm.</p>
               </div>
             )}
 
             {similarState === 'error' && (
               <div className="text-center py-8 text-muted-foreground">
-                <p>Không thể tải danh sách SIM tương tự.</p>
+                <p>Chưa tải được danh sách SIM tương tự. Quý khách vui lòng thử lại.</p>
               </div>
             )}
 

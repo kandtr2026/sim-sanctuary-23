@@ -33,7 +33,7 @@ const PhongThuyMenhTool = () => {
       <div className="mb-4 flex flex-col gap-3">
         <h2 className="flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
           <span className="h-8 w-1 rounded-full bg-primary" />
-          Chọn mệnh của bạn
+          Chọn mệnh của Quý khách
         </h2>
         <div className="flex flex-wrap gap-2">
           {(Object.keys(MENH_LABEL) as string[]).map((m) => (
@@ -52,15 +52,15 @@ const PhongThuyMenhTool = () => {
         </div>
         <p className="text-sm text-muted-foreground">
           {menh
-            ? `Đang lọc sim có số cuối hợp ${MENH_LABEL[menh]}. Bạn có thể kết hợp với ô tìm kiếm để khoanh vùng thêm.`
-            : 'Chọn một mệnh để lọc kho sim có số cuối phù hợp.'}
+            ? `Đang lọc những số có đuôi hợp ${MENH_LABEL[menh]}. Quý khách có thể kết hợp ô tìm kiếm để khoanh vùng thêm.`
+            : 'Quý khách chọn một mệnh để hệ thống lọc những số có đuôi tương sinh.'}
         </p>
       </div>
 
       <CategorySimGrid
         title={menh ? `Kho Sim Hợp ${MENH_LABEL[menh]}` : 'Kho Sim Hợp Mệnh Cập Nhật'}
-        searchPlaceholder="Nhập số cần tìm hoặc *đuôi để tìm..."
-        emptyText="Hiện chưa có sim hợp mệnh phù hợp trong kho. Vui lòng thử lại sau."
+        searchPlaceholder="Nhập số cần tìm, hoặc *đuôi để tìm theo số cuối..."
+        emptyText="Kho hiện chưa có số hợp mệnh phù hợp. Quý khách vui lòng xem lại sau hoặc liên hệ 0938.868.868 để được tư vấn."
         matchLastDigits={menh ? MENH_DIGITS[menh] : undefined}
       />
     </section>

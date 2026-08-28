@@ -26,7 +26,15 @@ const PROVIDER_DEFAULTS = {
 
 function buildPrompt(topic) {
   const keywords = (topic.keywords && topic.keywords.length ? topic.keywords : [topic.title]).join(', ');
-  return `Bạn là biên tập viên SEO cho website bán sim số đẹp Mobifone (chonsomobifone.com). Viết 1 bài blog bằng TIẾNG VIỆT nhắm vào các từ khóa SEO cho trước, theo văn phong chuẩn của các trang kho sim số đẹp (tham khảo cấu trúc bài của simthanglong.com nhưng VIẾT MỚI hoàn toàn, không sao chép).
+  return `Bạn là biên tập viên nội dung của CHONSOMOBIFONE.COM — một doanh nghiệp bán sim số đẹp Mobifone có thương hiệu. Viết 1 bài bằng TIẾNG VIỆT theo VĂN PHONG DOANH NGHIỆP CHUYÊN NGHIỆP (tham chiếu văn phong Techcombank), phủ được các từ khóa cho trước một cách tự nhiên. VIẾT MỚI hoàn toàn, không sao chép trang nào.
+
+VĂN PHONG BẮT BUỘC (ưu tiên cao hơn mọi yêu cầu SEO bên dưới):
+- Xưng hô: gọi khách là "Quý khách" (mặc định) hoặc "Anh/Chị" (khi hướng dẫn, tư vấn). Gọi mình là "CHONSOMOBIFONE.COM", "chúng tôi", "đội ngũ tư vấn". TUYỆT ĐỐI KHÔNG dùng: "mình", "bạn", "tụi mình", "các bạn", "shop mình". Câu mệnh lệnh nên bỏ chủ ngữ ("Kiểm tra kỹ dãy số trước khi đặt") thay vì gắn "bạn".
+- Giọng: chuyên nghiệp, tin cậy, ấm áp nhưng đúng mực. KHÔNG viết như bài SEO, KHÔNG viết như tin nhắn chat, không emoji, không cảm thán, không hỏi tu từ kiểu "Bạn có biết...?".
+- Ưu tiên các từ: đồng hành, an tâm, thấu hiểu, tối ưu, vững vàng, chủ động (dùng tự nhiên, không nhồi).
+- Nêu LỢI ÍCH CHO KHÁCH TRƯỚC, rồi mới tới đặc điểm sản phẩm. Câu ngắn, thể chủ động, hạn chế câu dài quá 30 chữ.
+- CẤM các cụm sau (viết lại ý bằng câu khác hẳn, không thay bằng "vừa... vừa..." cho có): "không chỉ... mà còn", "Trước hết", "Về phong thủy, mỗi con số mang...", "Trong thời đại công nghệ số", "Đáng chú ý", "Nhìn chung", "Có thể nói rằng", "Hy vọng bài viết này".
+- CẤM câu mẫu dùng lại giữa các bài. Không mở bài bằng công thức "X là dòng sim số đẹp có...". Mỗi bài phải có một cách vào bài khác hẳn về cấu trúc: bối cảnh sử dụng thật, nhóm khách điển hình, cách đọc số, độ khan hiếm, hoặc rủi ro cần tránh.
 
 CHỦ ĐỀ:
 - slug: ${topic.slug}
@@ -37,8 +45,8 @@ CHỦ ĐỀ:
 
 YÊU CẦU NỘI DUNG:
 1. content_html: 700-1100 từ (đếm theo tiếng Việt). Cấu trúc: 1 đoạn mở đầu + 3-5 mục có thẻ <h2>, mỗi mục có <p> và dùng <ul><li> khi hợp lý. KHÔNG bọc <html>, <head>, <body>.
-2. Đánh mạnh SEO: từ khóa chính phải xuất hiện tự nhiên trong đoạn mở đầu, trong ít nhất 2 thẻ <h2> và lặp lại nhiều lần trong thân bài. Chèn đều đặn các từ phụ trợ gợi cảm xúc: may mắn, tài lộc, dễ nhớ, đẳng cấp, thịnh vượng, phát đạt — tự nhiên, không nhồi nhét. Với bài về dòng sim (tứ quý, lục quý, tam hoa…) hoặc đuôi số (68, 86, 39, 79…), triển khai các mục: dòng sim/đuôi số đó là gì (định nghĩa + ví dụ đuôi số cụ thể như 8888, 66666, 68, 39), ý nghĩa phong thủy, cách chọn hợp mệnh, giá trị/giá thị trường tham khảo (nói chung, không bịa số liệu cụ thể), nên mua sim ở đâu uy tín, câu hỏi thường gặp.
-3. Giọng ấm áp nhưng có căn cứ, thân thiện với người mua sim. Trình bày phong thủy/số học như niềm tin dân gian: dùng cụm "theo quan niệm dân gian", "theo phong thủy", "nhiều người tin rằng", "được xem là". Không khẳng định tuyệt đối, không phải lời khuyên y tế hay tài chính.
+2. Phủ từ khóa TỰ NHIÊN: từ khóa chính xuất hiện trong đoạn mở đầu, trong ít nhất 2 thẻ <h2> và rải hợp lý trong thân bài — nhưng không lặp máy móc, không nhồi nhét, thà thiếu một lần lặp còn hơn để câu văn gượng. Với bài về dòng sim (tứ quý, lục quý, tam hoa…) hoặc đuôi số (68, 86, 39, 79…), triển khai các mục: dòng sim/đuôi số đó là gì (định nghĩa + ví dụ đuôi số cụ thể như 8888, 66666, 68, 39), ý nghĩa theo quan niệm dân gian, cách chọn hợp mệnh, giá trị/giá thị trường tham khảo (nói chung, không bịa số liệu cụ thể), tiêu chí chọn nơi mua đáng tin, câu hỏi thường gặp. Các mục KHÔNG được cùng một khuôn câu mở đầu.
+3. Trình bày phong thủy/số học như niềm tin dân gian: dùng cụm "theo quan niệm dân gian", "theo phong thủy", "được xem là". Không khẳng định tuyệt đối, không hứa đổi vận, không phải lời khuyên y tế hay tài chính. Tránh từ ngữ thổi phồng ("chắc chắn giàu", "rẻ nhất thị trường", "uy tín số 1").
 4. Không bịa số liệu, tên khách hàng, đánh giá giả. Không nói xấu đối thủ theo tên (không nhắc tên bất kỳ đối thủ nào).
 5. Chèn ĐÚNG 1 link nội bộ <a href="${topic.internalLink}"> với anchor text tự nhiên, có thể bọc trong tag <strong> nếu cần nhấn.
 6. meta_title: dưới 60 ký tự, chứa từ khóa chính.
@@ -64,6 +72,50 @@ function parseLlmJson(text) {
       return JSON.parse(candidate.slice(start, end + 1));
     }
     throw new Error('Không parse được JSON từ phản hồi LLM.');
+  }
+}
+
+/**
+ * Chốt cửa văn phong. Prompt là lời đề nghị, guard này là điều kiện đăng:
+ * bot mặc định `published=true` nên một bài gọi khách là "bạn" là một bài
+ * sai xưng hô nằm thẳng trên site. Xưng hô sai => chặn (ném lỗi, thử lại một
+ * lượt rồi bỏ lượt chạy). Cụm AI-typical => cảnh báo, vì "chứ không chỉ" có
+ * thể hợp lệ và không đáng đánh đổi cả bài.
+ */
+const BANNED_PRONOUNS = [
+  /\bcác bạn\b/gi,
+  /\btụi mình\b/gi,
+  /\bshop mình\b/gi,
+  /\bbạn\b/gi,
+  /\bmình\b/gi,
+];
+
+const AI_TYPICAL = [
+  /không chỉ[^.!?]{0,40}mà còn/gi,
+  /\bTrước hết\b/gi,
+  /Về phong thủy, mỗi con số mang/gi,
+  /Trong thời đại công nghệ số/gi,
+  /\bNhìn chung\b/gi,
+  /Hy vọng bài viết này/gi,
+];
+
+function checkVoice(fields) {
+  const text = Object.values(fields).join('\n').replace(/<[^>]*>/g, ' ');
+
+  const hits = [];
+  for (const re of BANNED_PRONOUNS) {
+    const found = text.match(re);
+    if (found) hits.push(`${found[0]} (${found.length}×)`);
+  }
+  if (hits.length) {
+    throw new Error(
+      `Sai xưng hô, không đăng: ${hits.join(', ')}. Phải gọi khách là "Quý khách"/"Anh Chị".`,
+    );
+  }
+
+  for (const re of AI_TYPICAL) {
+    const found = text.match(re);
+    if (found) console.warn(`[blog-bot] Cụm AI-typical còn sót: "${found[0]}" — nên sửa tay trước khi để bài chạy lâu dài.`);
   }
 }
 
@@ -102,6 +154,8 @@ function validateAndNormalize(content, topic) {
   if (meta_title.length > 60) {
     console.warn(`[blog-bot] meta_title bị cắt còn ${meta_title.length} ký tự.`);
   }
+
+  checkVoice({ title, meta_title, meta_description, content_html });
 
   return { title, meta_title, meta_description, content_html, words };
 }

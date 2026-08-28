@@ -7,7 +7,7 @@ const ZALO_URL = "https://zalo.me/0933356666";
 
 const TITLE = "Sim Theo Đầu Số Mobifone | Chọn Đầu Số 090, 093, 07x, 089";
 const DESCRIPTION =
-  "Chọn sim Mobifone theo đầu số: 090, 093, 070, 076, 077, 078, 079, 089. Mỗi đầu số một kho số đẹp — tứ quý, thần tài, lộc phát, phong thủy. Giá công khai, sang tên chính chủ, giao toàn quốc.";
+  "Chọn sim Mobifone theo đầu số 090, 093, 070, 076, 077, 078, 079, 089. Mỗi đầu số một kho riêng: tứ quý, thần tài, lộc phát, phong thủy. Giá công khai, chính chủ.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-dau-so";
 
 export const metadata: Metadata = {
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     type: "website",
     title: TITLE,
     description:
-      "Chọn sim Mobifone theo đầu số 090, 093, 07x, 089. Kho số đẹp mỗi đầu số, giá công khai.",
+      "Chọn sim Mobifone theo đầu số 090, 093, 07x, 089. Mỗi đầu số một kho riêng, giá niêm yết công khai.",
     url: CANONICAL,
     images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
   },
@@ -28,14 +28,14 @@ export const metadata: Metadata = {
 // DAU_SO_PREFIXES that isn't listed here falls back to a generic line, so the
 // hub never renders a blank card.
 const PREFIX_INFO: Record<string, string> = {
-  "090": "Đầu số 09x kinh điển, ra đời sớm nhất của Mobifone — dễ nhớ, tạo uy tín khi giao dịch.",
-  "093": "Đầu số 09x lâu đời của Mobifone, quen thuộc với người dùng, hợp cả cá nhân lẫn công việc.",
-  "070": "Đầu số 07x Mobifone, kho số dồi dào với nhiều lựa chọn số đẹp giá tốt.",
-  "076": "Đầu số 07x Mobifone, nhiều dãy số đẹp tầm trung, dễ chọn theo phong thủy.",
-  "077": "Đầu số 07x Mobifone, kho số rộng với nhiều đuôi thần tài, lộc phát.",
-  "078": "Đầu số 07x Mobifone, đa dạng mức giá, hợp người tìm số đẹp tiết kiệm.",
-  "079": "Đầu số 07x Mobifone, sẵn nhiều đuôi 79 (thần tài lớn) được dân kinh doanh săn đón.",
-  "089": "Đầu số 089 Mobifone mới, còn nhiều số đẹp chưa qua sử dụng.",
+  "090": "Đầu số 09x ra đời sớm nhất của Mobifone. Dễ đọc, dễ nhớ, thường được chọn khi cần một số tạo uy tín trong giao dịch.",
+  "093": "Đầu số 09x lâu đời của Mobifone, quen tai với người Việt — dùng cho cá nhân hay công việc đều thuận.",
+  "070": "Kho số 07x Mobifone dồi dào, nhiều lựa chọn cho Quý khách cần một số đẹp mà vẫn giữ được ngân sách.",
+  "076": "Nhiều dãy số đẹp tầm trung thuộc 07x Mobifone, thuận cho Quý khách chọn theo phong thủy.",
+  "077": "Kho 07x Mobifone rộng, còn nhiều đuôi thần tài và lộc phát để Quý khách chọn.",
+  "078": "Đầu số 07x Mobifone với nhiều mức giá, phù hợp Quý khách tìm số đẹp mà tiết kiệm.",
+  "079": "Sẵn nhiều đuôi 79 — thần tài lớn theo quan niệm dân gian, được Quý khách làm kinh doanh săn đón.",
+  "089": "Đầu số 089 Mobifone ra sau, còn nhiều số đẹp chưa qua sử dụng.",
 };
 
 const describePrefix = (prefix: string): string =>
@@ -75,7 +75,7 @@ export default function SimDauSoHubPage() {
               Sim Mobifone theo <span className="text-gold">đầu số</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Chọn đầu số Mobifone bạn thích — mỗi đầu số là một kho số đẹp riêng: tứ quý, thần tài,
+              Quý khách chọn đầu số quen tay nhất — mỗi đầu số là một kho riêng: tứ quý, thần tài,
               lộc phát, phong thủy. Giá niêm yết công khai, sang tên chính chủ.
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
@@ -104,9 +104,9 @@ export default function SimDauSoHubPage() {
               Chọn sim Mobifone theo đầu số
             </h2>
             <p className="leading-relaxed text-muted-foreground">
-              Đầu số là ba chữ số mở đầu của thuê bao (ví dụ 090, 093, 079). Mỗi đầu số Mobifone có
-              một kho số riêng với nhiều mức giá và kiểu số. Chọn đầu số bên dưới để xem toàn bộ sim
-              đẹp thuộc đầu số đó — từ tứ quý, thần tài, lộc phát đến số phong thủy hợp mệnh.
+              Đầu số là ba chữ số mở đầu của thuê bao, ví dụ 090, 093, 079. Mỗi đầu số Mobifone có một kho số riêng,
+              nhiều mức giá và nhiều kiểu số khác nhau. Quý khách chọn đầu số bên dưới để xem toàn bộ sim đẹp thuộc
+              đầu số đó — từ tứ quý, thần tài, lộc phát đến số phong thủy hợp mệnh.
             </p>
           </section>
 

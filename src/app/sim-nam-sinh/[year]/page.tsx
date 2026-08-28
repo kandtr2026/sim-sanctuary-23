@@ -63,6 +63,20 @@ const getYearInfo = (year: string): YearInfo => {
   };
 };
 
+// ── Mở bài luân phiên ────────────────────────────────────────────────────────
+// 4 cách mở bài, chọn theo `year % 4`: deterministic nên SSR/ISR luôn ra cùng
+// một chuỗi (không hydration mismatch), mà hàng chục trang năm sinh không đọc
+// như một khuôn chữ duy nhất. Dữ kiện can chi / con giáp / mệnh giữ nguyên.
+const buildIntro = (year: string, info: YearInfo): string => {
+  const variants = [
+    `Quý khách sinh năm ${year} sẽ tìm thấy ở đây những số có ${year} trong dãy — năm ${info.canChi}, cầm tinh con ${info.conGiap}, mệnh ${info.menh}. Giá niêm yết công khai, sang tên chính chủ.`,
+    `Một dãy số mang sẵn năm ${year} thì Quý khách không phải nhớ nhiều. Kho dưới đây gom những số có ${year} cho người tuổi ${info.canChi} (${info.conGiap}), mệnh ${info.menh}. Nhận SIM, kiểm tra rồi mới thanh toán.`,
+    `Chọn số gắn với năm ${year} cho Quý khách hoặc cho người thân tuổi ${info.conGiap} — năm ${info.canChi}, mệnh ${info.menh}. Mỗi số đều hiện giá ngay cạnh, không cần hỏi giá từng số.`,
+    `Đội ngũ tư vấn đã lọc sẵn những số có ${year} trong dãy để Quý khách khỏi tìm giữa cả kho: năm ${info.canChi}, cầm tinh con ${info.conGiap}, mệnh ${info.menh}. Giao nội thành HCM trong 30 phút – 2 giờ.`,
+  ];
+  return variants[Number(year) % 4];
+};
+
 type Props = {
   params: Promise<{ year: string }>;
   searchParams: Promise<{ d?: string; m?: string }>;
@@ -81,7 +95,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const info = getYearInfo(year);
   const canonical = `${BASE_URL}/sim-nam-sinh/${year}`;
   const title = `Sim Năm Sinh ${year} Mobifone | Chọn Số Hợp Tuổi ${year}`;
-  const description = `Kho sim năm sinh ${year} Mobifone: sim có số ${year} cho người tuổi ${info.canChi} (${info.conGiap}), mệnh ${info.menh}. Giá niêm yết công khai, sang tên chính chủ, giao nội thành HCM.`;
+  const description = `Kho sim năm sinh ${year} Mobifone: số có ${year} trong dãy cho người tuổi ${info.canChi} (${info.conGiap}), mệnh ${info.menh}. Giá công khai, sang tên chính chủ, giao nội thành HCM.`;
 
   // Năm hợp lệ nhưng tồn kho dưới ngưỡng (thường chỉ tới từ URL cũ redirect) →
   // noindex, follow: giữ link equity mà không đẩy trang mỏng vào chỉ mục.
@@ -135,19 +149,19 @@ export default async function SimNamSinhPage({ params, searchParams }: Props) {
   const faqItems = [
     {
       q: `Sim năm sinh ${year} là gì?`,
-      a: `Sim năm sinh ${year} là sim có số ${year} ở các số cuối — năm ${info.canChi}, cầm tinh con ${info.conGiap}, theo quan niệm phong thủy dân gian thuộc mệnh ${info.menh}. Nhiều người chọn số gắn với năm sinh của mình hoặc người thân cho dễ nhớ và mang ý nghĩa cá nhân.`,
+      a: `Sim năm sinh ${year} là sim có số ${year} ở các số cuối — năm ${info.canChi}, cầm tinh con ${info.conGiap}, theo quan niệm phong thủy dân gian thuộc mệnh ${info.menh}. Nhiều người chọn số gắn với năm sinh của bản thân hoặc người thân cho dễ nhớ và mang ý nghĩa riêng.`,
     },
     {
       q: `Sim năm sinh ${year} giá bao nhiêu?`,
-      a: `Sim năm sinh ${year} Mobifone có giá từ vài trăm nghìn đến vài chục triệu đồng, tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số quanh số ${year}. Giá niêm yết công khai trên kho, không phát sinh phí ẩn.`,
+      a: `Sim năm sinh ${year} Mobifone trải rộng từ vài trăm nghìn đến vài chục triệu đồng, tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số quanh số ${year}. Từng số đều hiện giá ngay trong kho, không phát sinh phí ẩn — Quý khách chủ động so giá trước khi hỏi tư vấn.`,
     },
     {
       q: `Chọn sim hợp tuổi ${year} như thế nào?`,
-      a: `Theo quan niệm phong thủy dân gian, người sinh năm ${year} (mệnh ${info.menh}) thường được cho là hợp với những con số mình yêu thích, dễ nhớ — đây là niềm tin để tham khảo, không phải khẳng định tuyệt đối. Nếu muốn lọc sim theo mệnh, bạn có thể dùng công cụ Sim phong thủy hợp mệnh.`,
+      a: `Theo quan niệm phong thủy dân gian, người sinh năm ${year} (mệnh ${info.menh}) thường được cho là hợp với những con số bản thân yêu thích, dễ nhớ — đây là niềm tin để tham khảo, không phải khẳng định tuyệt đối. Nếu muốn lọc theo mệnh, Quý khách dùng thêm công cụ Sim phong thủy hợp mệnh.`,
     },
     {
       q: `Mua sim năm sinh ${year} có sang tên chính chủ được không?`,
-      a: `Được. Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Bạn nhận SIM trước, kiểm tra kỹ rồi mới trả tiền; hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.`,
+      a: `Được. Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới trả tiền; chúng tôi hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.`,
     },
   ];
 
@@ -184,8 +198,7 @@ export default async function SimNamSinhPage({ params, searchParams }: Props) {
               SIM năm sinh {year} — <span className="text-gold">chọn số hợp tuổi {year} theo phong thủy</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Sim có số {year} cho người tuổi {info.canChi} ({info.conGiap}), mệnh {info.menh}. Giá niêm yết công khai,
-              sang tên chính chủ, giao tận nơi nội thành HCM.
+              {buildIntro(year, info)}
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a
@@ -230,8 +243,8 @@ export default async function SimNamSinhPage({ params, searchParams }: Props) {
               thật server-side (tốt cho SEO) — khách xem thêm qua nút dưới. */}
           <section className="rounded-xl border border-border bg-card p-6 text-center shadow-card md:p-8">
             <p className="mb-4 leading-relaxed text-muted-foreground">
-              Muốn xem thêm sim năm sinh {year} hoặc lọc theo giá, đầu số? Xem toàn bộ kho sim hoặc nhắn Zalo để được
-              tư vấn chọn số nhanh.
+              Cần thêm số có {year}, hoặc muốn lọc theo giá và đầu số? Quý khách xem toàn bộ kho, hoặc nhắn Zalo để
+              đội ngũ tư vấn khoanh vùng giúp trong vài phút.
             </p>
             <div className="flex flex-col justify-center gap-2.5 sm:flex-row">
               <a

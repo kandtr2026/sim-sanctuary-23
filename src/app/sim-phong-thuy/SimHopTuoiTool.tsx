@@ -148,16 +148,16 @@ const SimHopTuoiTool = () => {
     const thangN = Number(thang);
     const namN = Number(nam);
     if (!ngayN || !thangN || !namN) {
-      setError("Vui lòng nhập đầy đủ ngày, tháng, năm sinh.");
+      setError("Quý khách vui lòng chọn đủ ngày, tháng và năm sinh.");
       return;
     }
     if (namN < 1950 || namN > 2029) {
-      setError("Năm sinh nên từ 1950 đến 2029.");
+      setError("Năm sinh cần nằm trong khoảng 1950 – 2029.");
       return;
     }
     const cccdClean = cccd.replace(/\D/g, "");
     if (cccdClean.length > 0 && cccdClean.length !== 12) {
-      setError("CCCD phải đủ 12 chữ số để phân tích hóa giải.");
+      setError("Số CCCD cần đủ 12 chữ số để phân tích phần hóa giải.");
       return;
     }
 
@@ -181,13 +181,13 @@ const SimHopTuoiTool = () => {
       });
       const body = (await res.json()) as ApiResponse & { error?: string };
       if (!res.ok || body.error) {
-        setError(body.error ?? "Không thể tra cứu, vui lòng thử lại.");
+        setError(body.error ?? "Hệ thống chưa tra cứu được. Quý khách vui lòng thử lại.");
         setResult(null);
       } else {
         setResult(body);
       }
     } catch {
-      setError("Kết nối thất bại, vui lòng thử lại.");
+      setError("Kết nối bị ngắt. Quý khách vui lòng thử lại.");
       setResult(null);
     } finally {
       setIsLooking(false);
@@ -224,7 +224,7 @@ const SimHopTuoiTool = () => {
           <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: CHAMPAGNE }} />
           <h2 className="text-[22px] md:text-2xl font-semibold flex items-center gap-2" style={{ color: "#F5F5F5", letterSpacing: "-0.01em" }}>
             <Search className="w-5 h-5" style={{ color: CHAMPAGNE }} />
-            Tìm SIM hợp tuổi của bạn
+            Tìm SIM hợp tuổi cho Quý khách
           </h2>
         </div>
 
@@ -384,7 +384,7 @@ const SimHopTuoiTool = () => {
                 <div className="space-y-2">
                   <Label htmlFor="cccd" style={{ color: "rgba(237,237,237,0.8)" }} className="text-sm flex items-center gap-2">
                     <IdCard className="w-4 h-4" style={{ color: CHAMPAGNE }} />
-                    Căn cước công dân (tự động đề xuất hóa giải)
+                    Căn cước công dân (gợi ý hướng hóa giải)
                   </Label>
                   <input
                     id="cccd"
@@ -392,11 +392,12 @@ const SimHopTuoiTool = () => {
                     maxLength={12}
                     value={cccd}
                     onChange={(e) => setCccd(e.target.value.replace(/\D/g, "").slice(0, 12))}
-                    placeholder="Nhập 12 số CCCD (tùy chọn)"
+                    placeholder="12 số CCCD (không bắt buộc)"
                     className="h-12 md:h-13 w-full rounded-xl text-base md:text-lg bg-black/40 border border-white/10 text-white px-4 placeholder:text-white/25 focus:outline-none focus:border-[#D9B778] focus:ring-2 focus:ring-[#D9B778]/30"
                   />
                   <p style={{ color: "rgba(237,237,237,0.5)" }} className="text-xs">
-                    CCCD phải đủ 12 chữ số. Hệ thống tìm năng lượng hung trong CCCD và gợi ý SIM có năng lượng cát hóa giải tương ứng.
+                    Nhập đủ 12 chữ số, hệ thống sẽ soi các năng lượng hung trong CCCD và ưu tiên những SIM
+                    mang năng lượng cát hóa giải tương ứng.
                   </p>
                 </div>
 
@@ -410,11 +411,11 @@ const SimHopTuoiTool = () => {
                     onValueChange={(v) => setNlChuDao(v === "tat-ca" ? null : (v as NangLuong))}
                   >
                     <SelectTrigger className="h-12 rounded-xl text-base bg-black/40 border-white/10 text-white focus:border-[#D9B778]">
-                      <SelectValue placeholder="Tùy chọn" />
+                      <SelectValue placeholder="Không giới hạn" />
                     </SelectTrigger>
                     <SelectContent className="bg-[#1B1618] border-white/10 text-white max-h-72">
                       <SelectItem value="tat-ca" className="text-white text-base">
-                        Tùy chọn
+                        Không giới hạn
                       </SelectItem>
                       {NANG_LUONG_LIST.map((nl) => (
                         <SelectItem key={nl.id} value={nl.id} className="text-white text-base">
@@ -507,8 +508,8 @@ const SimHopTuoiTool = () => {
           </div>
 
           <p style={{ color: "rgba(237,237,237,0.5)" }} className="text-xs">
-            Nhập ngày sinh dương lịch + giờ sinh âm lịch + giới tính. Hệ thống tự động tính mệnh (nạp âm),
-            cung phi, âm dương, Bát Cực Linh Số và chấm điểm SIM trong kho của CHONSOMOBIFONE.
+            Quý khách chọn ngày sinh dương lịch, giờ sinh âm lịch và giới tính. Hệ thống tự tính mệnh (nạp âm),
+            cung phi, âm dương, Bát Cực Linh Số rồi chấm điểm SIM trong kho của CHONSOMOBIFONE.
           </p>
 
           {error && (
@@ -538,7 +539,7 @@ const SimHopTuoiTool = () => {
             ) : (
               <>
                 <Sparkles className="w-4 h-4 mr-2" />
-                Tìm sim hợp tuổi
+                Xem SIM hợp tuổi
               </>
             )}
           </Button>
@@ -551,7 +552,7 @@ const SimHopTuoiTool = () => {
           <div className="flex items-center gap-3 mb-6">
             <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: CHAMPAGNE }} />
             <h2 className="text-[22px] md:text-2xl font-semibold" style={{ color: "#F5F5F5", letterSpacing: "-0.01em" }}>
-              Phân tích phong thủy của bạn
+              Hồ sơ phong thủy của Quý khách
             </h2>
           </div>
 
@@ -624,7 +625,7 @@ const SimHopTuoiTool = () => {
           </div>
           <p className="mb-5 text-sm" style={{ color: "rgba(237,237,237,0.6)" }}>
             CCCD <span className="font-mono" style={{ color: "#D9B778" }}>{cccdInfo.cccd.replace(/(\d{4})(?=\d)/g, "$1 ")}</span>{" "}
-            mang các năng lượng hung sau — SIM gợi ý bên dưới đã được lọc để bổ sung năng lượng cát hóa giải:
+            đang mang những năng lượng hung dưới đây. Danh sách SIM bên dưới đã được lọc để bổ sung năng lượng cát hóa giải:
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -635,7 +636,7 @@ const SimHopTuoiTool = () => {
               <div className="flex flex-wrap gap-2">
                 {cccdInfo.nangLuongHung.length === 0 ? (
                   <p className="text-sm" style={{ color: "rgba(237,237,237,0.7)" }}>
-                    Không phát hiện năng lượng hung — CCCD cân bằng.
+                    CCCD của Quý khách cân bằng, không có năng lượng hung.
                   </p>
                 ) : (
                   cccdInfo.nangLuongHung.map((nl) => (
@@ -654,7 +655,7 @@ const SimHopTuoiTool = () => {
               <div className="flex flex-wrap gap-2">
                 {cccdInfo.hoaGiai.length === 0 ? (
                   <p className="text-sm" style={{ color: "rgba(237,237,237,0.7)" }}>
-                    Không cần hóa giải.
+                    Không cần bổ sung hóa giải.
                   </p>
                 ) : (
                   cccdInfo.hoaGiai.map((nl) => (
@@ -696,12 +697,16 @@ const SimHopTuoiTool = () => {
             </h2>
           </div>
           <p className="mb-6 text-sm" style={{ color: "rgba(237,237,237,0.6)" }}>
-            Chấm điểm trên {result.total} SIM đang có trong kho — theo ngũ hành, âm dương, tổng nút, quẻ dịch, cấu trúc số và Bát Cực Linh Số.
+            Giúp Quý khách khoanh vùng nhanh: {result.total} SIM đang có trong kho đã được chấm điểm theo ngũ hành,
+            âm dương, tổng nút, quẻ dịch, cấu trúc số và Bát Cực Linh Số.
           </p>
 
           {result.sims.length === 0 ? (
             <div className="text-center py-8">
-              <p style={{ color: "rgba(237,237,237,0.7)" }}>Không tìm thấy SIM phù hợp trong kho. Vui lòng thử lại sau.</p>
+              <p style={{ color: "rgba(237,237,237,0.7)" }}>
+                Kho chưa có số khớp bộ tiêu chí này. Quý khách thử nới bộ lọc Bát Cực, hoặc gọi 0938.868.868
+                để đội ngũ tư vấn tìm số riêng.
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -783,7 +788,7 @@ const SimHopTuoiTool = () => {
           )}
 
           <p className="text-xs mt-4 text-center" style={{ color: "rgba(237,237,237,0.5)" }}>
-            Click "ĐẶT NGAY" để đặt mua SIM. Giá hiển thị là giá thực từ kho CHONSOMOBIFONE.
+            Quý khách bấm ĐẶT NGAY để giữ số. Giá hiển thị là giá niêm yết thực tế tại kho CHONSOMOBIFONE.
           </p>
         </div>
       )}

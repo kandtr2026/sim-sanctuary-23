@@ -206,10 +206,10 @@ const BuyNowDialog = ({ open, onOpenChange, sim }: BuyNowDialogProps) => {
           <div className="flex flex-col items-center gap-4 py-8 text-center">
             <CheckCircle className="w-16 h-16 text-emerald-500" />
             <DialogTitle className="text-lg font-semibold text-foreground leading-relaxed tracking-normal">
-              Cảm ơn bạn đã đặt hàng thành công tại CHONSOMOBIFONE.COM
+              CHONSOMOBIFONE.COM đã nhận đơn hàng của Quý khách
             </DialogTitle>
             <p className="text-sm text-muted-foreground">
-              Nhân viên giao dịch sẽ gọi lại sau ít phút.
+              Nhân viên giao dịch sẽ gọi lại xác nhận trong ít phút.
             </p>
           </div>
         ) : (

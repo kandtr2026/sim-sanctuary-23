@@ -19,7 +19,7 @@ const ZALO_URL = "https://zalo.me/0933356666";
 
 const TITLE = "Sim Thần Tài 39 79 | Kho Sim Thần Tài Mobifone Đẹp Giá Rẻ";
 const DESCRIPTION =
-  "Kho sim thần tài Mobifone đẹp: đuôi 39 thần tài nhỏ, 79 thần tài lớn, 7939 thần tài lớn nhỏ. Công thức 3 yếu tố chọn sim, hướng dẫn theo ngân sách, tránh 3 sai lầm phổ biến. Giá niêm yết, sang tên chính chủ, giao tận nơi.";
+  "Quý khách chọn sim thần tài Mobifone đẹp: đuôi 39 thần tài nhỏ, 79 thần tài lớn, 7939. Giá niêm yết công khai, sang tên chính chủ, giao tận nơi HCM.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-than-tai";
 
 export const metadata: Metadata = {
@@ -38,27 +38,27 @@ export const metadata: Metadata = {
 const faqItems = [
   {
     q: "Sim thần tài là gì? Đuôi 39 và 79 khác nhau ra sao?",
-    a: "Sim thần tài là sim có đuôi 39 (thần tài nhỏ) hoặc 79 (thần tài lớn). Cặp 7939 là 'thần tài lớn, thần tài nhỏ' được ưa chuộng vì hội tụ cả hai. Người kinh doanh thường chọn đuôi thần tài với kỳ vọng cầu tài lộc, buôn may bán đắt.",
+    a: "Sim thần tài là số có hai chữ số cuối là 39 (thần tài nhỏ) hoặc 79 (thần tài lớn). Cặp 7939 ghép “thần tài lớn – thần tài nhỏ” nên được hỏi nhiều nhất. Người kinh doanh chọn đuôi này với mong cầu tài lộc, buôn may bán đắt; dãy số cũng dễ đọc khi trao cho khách.",
   },
   {
     q: "Giá sim thần tài Mobifone bao nhiêu?",
-    a: "Giá sim thần tài Mobifone dao động từ vài trăm nghìn đến hàng chục triệu đồng, tùy đầu số (090, 093, 07x...), độ dễ nhớ của dãy số và vị trí đuôi. Giá niêm yết công khai trên kho, không phát sinh phí ẩn.",
+    a: "Từ vài trăm nghìn đến hàng chục triệu đồng. Mức giá tùy đầu số (090, 093, 07x...), độ dễ nhớ của dãy số và vị trí đuôi thần tài. Giá niêm yết công khai trên kho, không phát sinh phí ẩn.",
   },
   {
     q: "Mua sim thần tài có sang tên chính chủ được không?",
-    a: "Được. Toàn bộ sim thần tài tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Bạn nhận SIM trước, kiểm tra kỹ rồi mới trả tiền; hỗ trợ đăng ký chính chủ qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.",
+    a: "Được. Sim thần tài tại CHONSOMOBIFONE.COM đều sang tên chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới thanh toán; thủ tục chính chủ thực hiện tại cửa hàng MobiFone hoặc trên ứng dụng My Mobifone.",
   },
   {
     q: "Giao sim thần tài mất bao lâu?",
-    a: "Nội thành TP.HCM: 30 phút – 2 giờ làm việc. Các tỉnh thành khác: 1–3 ngày làm việc qua chuyển phát nhanh. Thanh toán COD khi nhận hàng hoặc chuyển khoản trước.",
+    a: "Nội thành TP.HCM: 30 phút – 2 giờ làm việc kể từ lúc Quý khách chốt số. Tỉnh thành khác: 1–3 ngày làm việc qua chuyển phát nhanh. Quý khách thanh toán COD lúc nhận hoặc chuyển khoản trước.",
   },
   {
     q: "Sim thần tài đuôi 39 hợp với mệnh nào?",
-    a: "Theo ngũ hành, số 3 thuộc Mộc, số 9 thuộc Hỏa. Cặp 39 (Mộc sinh Hỏa) tương đối hài hòa, phù hợp với người mệnh Mộc hoặc Hỏa. Cặp 79 (số 7 thuộc Kim, số 9 thuộc Hỏa – Hỏa khắc Kim) cần cân nhắc kết hợp với các số khác để cân bằng.",
+    a: "Theo ngũ hành, số 3 thuộc Mộc, số 9 thuộc Hỏa — cặp 39 là Mộc sinh Hỏa, tương đối hài hòa, phù hợp người mệnh Mộc hoặc Hỏa. Cặp 79 có số 7 thuộc Kim gặp số 9 thuộc Hỏa (Hỏa khắc Kim), nên Quý khách cân nhắc kết hợp thêm các số khác cho cân bằng.",
   },
   {
     q: "Có nên mua sim thần tài giá rẻ dưới 500 nghìn không?",
-    a: "Có. Sim thần tài giá rẻ (đầu số mới 07x, đuôi 39) vẫn mang ý nghĩa tài lộc, phù hợp người mới khởi nghiệp, ngân sách hạn chế. Quan trọng là chọn số dễ nhớ, tránh dãy số khó đọc.",
+    a: "Có. Đuôi 39 ở đầu số mới 07x vẫn giữ nguyên ý nghĩa tài lộc, phù hợp khi Quý khách mới khởi nghiệp hoặc cần thêm một số cho công việc. Điều đáng lưu ý là chọn dãy dễ đọc, tránh số rối khiến khách phải hỏi lại.",
   },
 ];
 
@@ -97,7 +97,7 @@ export default async function SimThanTaiPage() {
               Sim Thần Tài Mobifone — <span className="text-gold">đuôi 39, 79, 7939</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Sim thần tài nhỏ (39), thần tài lớn (79). Giá niêm yết công khai, sang tên chính chủ, giao tận nơi nội thành HCM.
+              Quý khách chọn đuôi 39 (thần tài nhỏ) hay 79 (thần tài lớn), giá hiện sẵn cạnh từng số. Sang tên chính chủ, giao tận nơi nội thành HCM.
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a
@@ -127,15 +127,18 @@ export default async function SimThanTaiPage() {
             </h2>
             <div className="space-y-4 leading-relaxed text-muted-foreground">
               <p>
-                <strong className="text-foreground">Sim thần tài</strong> là dòng sim số đẹp có hai số cuối là 39 (thần tài nhỏ) hoặc 79 (thần tài lớn).
-                Với người Việt, Thần Tài là vị thần quản lộc, tiền bạc — gắn cặp số này vào số điện thoại là cách cầu sự thuận lợi,
-                buôn may bán đắt. Cặp 39 đọc gần với "Thần Tài", 79 gợi "Thần Tài lớn", còn 7939 là "thần tài lớn – thần tài nhỏ" hội tụ cả hai.
+                Một chủ quán vừa sang mặt bằng mới, một chị bán hàng online sắp in lại bảng hiệu — nhóm khách này thường
+                hỏi cùng một câu: có số nào đuôi 39 hoặc 79 không. Trong các dòng sim phong thủy, đây là hai đuôi được hỏi
+                nhiều nhất. <strong className="text-foreground">Sim thần tài</strong> chính là những số ấy: đuôi 39 gọi là
+                thần tài nhỏ, đuôi 79 là thần tài lớn, còn 7939 ghép cả hai. Với người Việt, Thần Tài là vị thần quản lộc,
+                nên gắn cặp số này vào số điện thoại là cách gửi một mong cầu buôn may bán đắt.
               </p>
               <p>
-                <strong className="text-foreground">Số 3</strong> tượng trưng cho sinh sôi, phát triển (Mộc). <strong className="text-foreground">Số 7</strong> gắn với may mắn,
-                sức mạnh (Kim). <strong className="text-foreground">Số 9</strong> là cực dương, trường tồn (Hỏa). Khi ghép 3–9 hoặc 7–9, năng lượng sinh sôi
-                (3) hoặc may mắn (7) được kéo dài vĩnh cửu (9). Đây là lý do sim thần tài được doanh nhân ưa chuộng — không chỉ vì
-                ý nghĩa tâm lý mà còn vì ấn tượng chuyên nghiệp khi trao đổi số điện thoại trong kinh doanh.
+                Vì sao lại là 3, 7 và 9? <strong className="text-foreground">Số 3</strong> chỉ sự sinh sôi, phát triển (Mộc).{" "}
+                <strong className="text-foreground">Số 7</strong> gắn với may mắn, sức mạnh (Kim).{" "}
+                <strong className="text-foreground">Số 9</strong> là cực dương, bền lâu (Hỏa). Ghép 3–9 hoặc 7–9, ý sinh sôi
+                và may mắn được kéo dài. Cạnh lớp ý nghĩa đó, đuôi thần tài giúp Quý khách tạo ấn tượng chuyên nghiệp mỗi
+                lần trao số cho đối tác.
               </p>
             </div>
           </section>
@@ -147,8 +150,8 @@ export default async function SimThanTaiPage() {
               Công thức 3 yếu tố chọn sim thần tài đúng chuẩn
             </h2>
             <p className="mb-4 leading-relaxed text-muted-foreground">
-              Giá trị sim thần tài được quyết định bởi 3 yếu tố chính. Hiểu rõ từng yếu tố giúp bạn chọn được số vừa
-              ý nghĩa vừa phù hợp ngân sách.
+              Ba yếu tố dưới đây quyết định giá một số thần tài. Nắm được cả ba, Quý khách chủ động chọn số vừa ý nghĩa
+              vừa đúng ngân sách.
             </p>
 
             <div className="grid gap-4 sm:grid-cols-3">
@@ -217,7 +220,8 @@ export default async function SimThanTaiPage() {
             </div>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
               Theo khảo sát từ CHONSOMOBIFONE, khoảng 62% khách chọn đuôi 39 (thần tài nhỏ) vì giá hợp lý và đủ ý nghĩa
-              tâm lý. Số còn lại chọn 79 hoặc 3979 khi đã có doanh thu ổn định và muốn đầu tư vào hình ảnh cá nhân.
+              tâm lý. Số còn lại chọn 79 hoặc 3979 khi doanh thu đã ổn định và muốn đầu tư cho hình ảnh cá nhân. Nếu Quý
+              khách còn cân giữa hai đuôi: 39 cho giai đoạn khởi đầu, 79 khi cần một dãy số đứng vững trước đối tác.
             </p>
           </section>
 
@@ -240,7 +244,8 @@ export default async function SimThanTaiPage() {
                 <h3 className="mb-1 text-lg font-bold text-gold">2–10 triệu</h3>
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   <strong className="text-foreground">Công thức:</strong> Đầu 076/077/078 + thân số lặp có cấu trúc + đuôi 79
-                  hoặc 3979. Nhóm này có tỷ lệ "mua để dùng lâu dài" cao nhất — sim là công cụ marketing cá nhân.
+                  hoặc 3979. Nhóm này có tỷ lệ mua để dùng lâu dài cao nhất — số điện thoại trở thành một phần nhận diện
+                  của Quý khách.
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground">Ví dụ: 076.68.68.79, 077.888.79</p>
               </div>
@@ -274,7 +279,7 @@ export default async function SimThanTaiPage() {
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   Nhiều số may mắn nhưng dãy số rối, đối tác phải hỏi lại nhiều lần.
                   <strong className="text-foreground"> Giải pháp:</strong> Ưu tiên cấu trúc lặp, đơn giản (VD: 076.68.68.79).
-                  Trong kinh doanh, "dễ nhớ" quan trọng hơn "ý nghĩa".
+                  Trong kinh doanh, dễ nhớ thắng ý nghĩa.
                 </p>
               </div>
               <div className="rounded-lg border border-red-800/30 bg-red-950/20 p-4">
@@ -295,18 +300,18 @@ export default async function SimThanTaiPage() {
               Xu hướng 2026: Kết hợp sim thần tài với dạng taxi
             </h2>
             <p className="leading-relaxed text-muted-foreground">
-              Năm 2026 chứng kiến sự lên ngôi của dòng sim "hai trong một" — vừa mang đuôi thần tài ý nghĩa, vừa có cấu trúc
-              taxi dễ nhớ. Ví dụ: <strong className="text-foreground">09x.39.39.39</strong> (tam hoa 39, cực dễ đọc) hoặc{' '}
-              <strong className="text-foreground">09x.68.68.79</strong> (kết hợp lộc phát 68 và thần tài 79). Dòng sim này
-              được xem là "combo hoàn hảo" — vừa may mắn, vừa hiệu quả trong việc tạo ấn tượng kinh doanh.
+              Năm nay, nhiều khách hàng chọn số ghép hai lớp: đuôi thần tài đi cùng cấu trúc taxi dễ đọc. Ví dụ:{" "}
+              <strong className="text-foreground">09x.39.39.39</strong> (tam hoa 39, đọc một lần là nhớ) hoặc{' '}
+              <strong className="text-foreground">09x.68.68.79</strong> (lộc phát 68 đi cùng thần tài 79). Số dạng này giữ
+              nguyên lớp ý nghĩa, đồng thời dễ truyền miệng khi Quý khách phát danh thiếp hay in lên bảng hiệu.
             </p>
           </section>
 
           {/* ── 7. Kho sim thần tài ─────────────────────────────────────── */}
           <CategorySimGrid
-            title="Kho Sim Thần Tài Cập Nhật"
-            searchPlaceholder="Nhập số hoặc *39 / *79 để tìm đuôi thần tài..."
-            emptyText="Hiện chưa có sim thần tài đuôi phù hợp trong kho. Vui lòng thử lại sau."
+            title="Sim Thần Tài Đuôi 39, 79 Mới Cập Nhật"
+            searchPlaceholder="Nhập số cần tìm, hoặc *39 / *79 để xem đuôi thần tài"
+            emptyText="Kho tạm hết số khớp yêu cầu này. Quý khách thử tìm *39 hoặc *79, hoặc gọi 0938.868.868 để đội ngũ tư vấn lọc số theo đúng ngân sách."
             matchSuffixes={["39", "79"]}
           />
 

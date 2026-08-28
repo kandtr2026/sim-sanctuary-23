@@ -26,7 +26,7 @@ export const POLICY_DOCS: Record<string, PolicyDoc> = {
     description:
       "Chính sách bảo mật thông tin khách hàng tại CHONSOMOBIFONE.COM: dữ liệu được thu thập, mục đích sử dụng, thời gian lưu trữ và quyền của khách hàng.",
     intro:
-      "CHONSOMOBIFONE.COM cam kết bảo vệ thông tin cá nhân của Quý khách. Chính sách dưới đây giải thích chúng tôi thu thập những dữ liệu gì, dùng để làm gì và Quý khách có những quyền nào đối với dữ liệu của mình.",
+      "CHONSOMOBIFONE.COM cam kết bảo vệ thông tin cá nhân của Quý khách. Chính sách dưới đây giải thích chúng tôi thu thập những dữ liệu gì, dùng để làm gì và quyền của Quý khách đối với những dữ liệu đó.",
     blocks: [
       { type: "h2", text: "1. Thông tin chúng tôi thu thập" },
       {
@@ -67,7 +67,7 @@ export const POLICY_DOCS: Record<string, PolicyDoc> = {
       {
         type: "ul",
         items: [
-          "Yêu cầu xem, chỉnh sửa hoặc xóa thông tin cá nhân của mình.",
+          "Yêu cầu xem, chỉnh sửa hoặc xóa thông tin cá nhân của Quý khách.",
           "Yêu cầu ngừng nhận thông tin tư vấn, khuyến mãi.",
           "Khiếu nại nếu cho rằng dữ liệu bị sử dụng sai mục đích.",
         ],

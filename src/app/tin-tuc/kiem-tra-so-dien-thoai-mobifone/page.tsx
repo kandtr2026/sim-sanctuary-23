@@ -34,7 +34,7 @@ const METHODS: [string, string, string, string][] = [
   ],
   [
     "Gọi sang một máy khác",
-    "Số của bạn hiện trên màn hình máy nhận cuộc gọi",
+    "Số thuê bao hiện trên màn hình máy nhận cuộc gọi",
     "Cần một máy thứ hai và tài khoản còn tiền",
     "Tính phí cuộc gọi",
   ],
@@ -42,8 +42,8 @@ const METHODS: [string, string, string, string][] = [
 
 const faq: FaqItem[] = [
   {
-    q: "Làm sao xem số điện thoại của mình trên MobiFone?",
-    a: "Cách chắc chắn nhất là soạn tin nhắn với nội dung TTTB gửi 1414 — tin nhắn miễn phí và hệ thống trả về số thuê bao kèm thông tin đăng ký. Ngoài ra bạn có thể bấm *0# rồi gọi, mở app My MobiFone, hoặc gọi tổng đài 18001090.",
+    q: "Làm sao xem số điện thoại MobiFone đang dùng?",
+    a: "Cách chắc chắn nhất là soạn tin nhắn với nội dung TTTB gửi 1414 — tin nhắn miễn phí và hệ thống trả về số thuê bao kèm thông tin đăng ký. Ngoài ra có thể bấm *0# rồi gọi, mở app My MobiFone, hoặc gọi tổng đài 18001090.",
   },
   {
     q: "Hết tiền trong tài khoản thì kiểm tra số được không?",
@@ -55,10 +55,10 @@ const faq: FaqItem[] = [
   },
   {
     q: "Một chứng minh nhân dân đứng tên được mấy SIM MobiFone?",
-    a: "Theo hướng dẫn của MobiFone, mỗi giấy tờ được đứng tên tối đa 3 thuê bao trả trước và 5 thuê bao trả sau cho khách hàng cá nhân. Bạn có thể soạn TTTB_Số CCCD gửi 1414 để xem những số nào đang đứng tên giấy tờ của mình.",
+    a: "Theo hướng dẫn của MobiFone, mỗi giấy tờ được đứng tên tối đa 3 thuê bao trả trước và 5 thuê bao trả sau cho khách hàng cá nhân. Quý khách có thể soạn TTTB_Số CCCD gửi 1414 để xem danh sách thuê bao đang đăng ký bằng giấy tờ đó.",
   },
   {
-    q: "Vì sao bấm *101# không ra số của mình?",
+    q: "Vì sao bấm *101# không ra số thuê bao?",
     a: "Cú pháp *101# thường được nhắc tới cho việc kiểm tra tài khoản, không phải để xem số thuê bao, và không phải lúc nào cũng còn hiệu lực. Để xem số, hãy dùng TTTB gửi 1414 hoặc *0#.",
   },
   {
@@ -79,9 +79,9 @@ export default function KiemTraSoMobifonePage() {
       ]}
       lead={
         <p>
-          Quên số của chính mình là chuyện rất bình thường: SIM mới vừa lắp, SIM phụ ít dùng, hoặc
-          đổi máy xong không nhớ số nào ở khe nào. Có năm cách xem lại số MobiFone, trong đó hai
-          cách chạy được cả khi tài khoản đã cạn tiền.
+          SIM vừa lắp, SIM phụ ít dùng, hoặc đổi máy xong không nhớ số nào ở khe nào — quên số thuê
+          bao là chuyện rất bình thường. Có năm cách xem lại số MobiFone. Hai cách chạy được khi tài
+          khoản đã cạn tiền; một cách chạy được cả khi SIM đang bị chặn chiều gọi đi.
         </p>
       }
     >
@@ -100,7 +100,7 @@ export default function KiemTraSoMobifonePage() {
             tháng 3/2025.
           </>,
           <>
-            Muốn biết mình đang đứng tên bao nhiêu SIM: soạn{" "}
+            Muốn biết một giấy tờ đang đứng tên bao nhiêu SIM: soạn{" "}
             <strong>TTTB_Số CCCD</strong> gửi <strong>1414</strong>.
           </>,
           <>
@@ -133,15 +133,15 @@ export default function KiemTraSoMobifonePage() {
         <li>Chờ tin trả lời, thường trong vài giây.</li>
       </ol>
       <p>
-        Tin gửi 1414 không tính phí, nên dùng được khi tài khoản bằng không. Nếu bạn muốn biết{" "}
-        <em>tất cả</em> số đang đứng tên giấy tờ của mình, soạn{" "}
-        <strong>TTTB_Số CCCD</strong> (có dấu gạch dưới) gửi <strong>1414</strong>.
+        Tin gửi 1414 không tính phí, nên dùng được khi tài khoản bằng không. Muốn xem <em>tất cả</em>{" "}
+        số đang đứng tên giấy tờ của Quý khách, soạn <strong>TTTB_Số CCCD</strong> (có dấu gạch dưới)
+        gửi <strong>1414</strong>.
       </p>
 
       <Note tone="tip" title="Vì sao nên dùng cách này khi vừa mua SIM">
         Tin trả về cho biết SIM đang đứng tên ai. Với SIM số đẹp mới mua, đây là bước kiểm tra đầu
-        tiên nên làm — nếu tên trong tin không phải tên bạn thì việc sang tên chính chủ vẫn chưa
-        hoàn tất. Chi tiết ở bài{" "}
+        tiên nên làm — nếu tên trong tin không phải tên Quý khách thì việc sang tên chính chủ vẫn
+        chưa hoàn tất. Chi tiết ở bài{" "}
         <Link href="/tin-tuc/kiem-tra-sim-chinh-chu-mobifone">
           kiểm tra SIM chính chủ MobiFone
         </Link>
@@ -151,13 +151,13 @@ export default function KiemTraSoMobifonePage() {
       <h2 id="cach-2">Cách 2 — Bấm *0# rồi gọi</h2>
       <p>
         Mở bàn phím gọi, bấm <strong>*0#</strong> rồi nhấn phím gọi. Máy sẽ hiện một dòng chứa số
-        thuê bao dưới dạng quốc tế, ví dụ <em>84901234567</em>; bạn đổi phần <em>84</em> ở đầu
-        thành số <em>0</em> để có số quen thuộc.
+        thuê bao dưới dạng quốc tế, ví dụ <em>84901234567</em>; đổi phần <em>84</em> ở đầu thành số{" "}
+        <em>0</em> để có số quen thuộc.
       </p>
       <p>
         Đây là cách nhanh nhất và không cần Internet. Cần nói rõ: cú pháp này được hướng dẫn rộng
         rãi và hoạt động trên phần lớn máy, nhưng chưa thấy MobiFone công bố trên trang chính thức,
-        nên nếu máy bạn không hiện gì thì hãy chuyển sang cách 1.
+        nên nếu máy không hiện gì thì hãy chuyển sang cách 1.
       </p>
 
       <h2 id="cach-3">Cách 3 — Gọi tổng đài 18001090</h2>
@@ -180,7 +180,7 @@ export default function KiemTraSoMobifonePage() {
         đang gắn trong máy, số thuê bao hiện ngay ở bước xác nhận mã OTP.
       </p>
       <p>
-        Ngoài app, bạn cũng có thể đăng nhập trang quản lý tài khoản trên{" "}
+        Ngoài app, Quý khách cũng có thể đăng nhập trang quản lý tài khoản trên{" "}
         <a href="https://www.mobifone.vn/tai-khoan/thong-tin-tai-khoan" target="_blank" rel="noopener">
           mobifone.vn
         </a>{" "}
@@ -189,7 +189,7 @@ export default function KiemTraSoMobifonePage() {
 
       <h2 id="cach-5">Cách 5 — Gọi sang một máy khác</h2>
       <p>
-        Cách thủ công nhất và cũng chắc chắn nhất: gọi hoặc nhắn tin sang một máy khác, số của bạn
+        Cách thủ công nhất và cũng chắc chắn nhất: gọi hoặc nhắn tin sang một máy khác, số thuê bao
         sẽ hiện trên màn hình máy nhận. Nhược điểm là tốn phí cuộc gọi và cần có máy thứ hai bên
         cạnh. Dùng cách này khi bốn cách trên đều không cho kết quả.
       </p>
@@ -204,8 +204,8 @@ export default function KiemTraSoMobifonePage() {
         </li>
         <li>
           <strong>Máy hai SIM cần chọn đúng khe.</strong> Trước khi bấm cú pháp hoặc gửi tin, hãy
-          kiểm tra tin nhắn hoặc cuộc gọi sẽ đi ra từ SIM nào — nếu chọn sai khe, bạn sẽ nhận về số
-          của SIM còn lại.
+          kiểm tra tin nhắn hoặc cuộc gọi sẽ đi ra từ SIM nào — chọn sai khe thì kết quả trả về là
+          số của SIM còn lại.
         </li>
         <li>
           <strong>Số in trên phôi SIM là nguồn tra nhanh.</strong> Với SIM mới mua chưa dùng, số
@@ -216,9 +216,9 @@ export default function KiemTraSoMobifonePage() {
 
       <h2 id="mua-sim">Đang tìm một số dễ nhớ hơn?</h2>
       <p>
-        Lý do phổ biến nhất khiến người ta quên số của mình là dãy số quá khó nhớ. Nếu bạn đang cân
-        nhắc đổi sang một số dễ thuộc — cho công việc, cho danh thiếp, hoặc để khách gọi lại đúng
-        ngay lần đầu — có thể xem{" "}
+        Lý do phổ biến nhất khiến một số điện thoại bị quên là dãy số quá khó nhớ. Nếu Quý
+        khách đang cân nhắc đổi sang một số dễ thuộc — cho công việc, cho danh thiếp, hoặc để khách
+        gọi lại đúng ngay lần đầu — có thể xem{" "}
         <Link href="/mua-sim-gia-re">kho SIM MobiFone</Link> với giá niêm yết công khai, hoặc lọc
         theo tuổi và mệnh tại <Link href="/sim-phong-thuy">công cụ tìm SIM hợp tuổi</Link>. Danh
         sách đầu số MobiFone hiện hành có ở bài{" "}

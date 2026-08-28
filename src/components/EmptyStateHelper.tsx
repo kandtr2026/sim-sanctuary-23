@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle, Eraser, XCircle, Sparkles, Phone, ChevronDown } from "lucide-react";
+import { AlertCircle, Eraser, XCircle, Sparkles, Phone, ChevronDown, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SIMCardNew from "@/components/SIMCardNew";
 import { getPromotionalData } from "@/hooks/useSimData";
@@ -86,7 +86,7 @@ const EmptyStateHelper = ({
                   : "Không tìm thấy SIM phù hợp với bộ lọc"}
               </span>
               <span className="text-xs text-amber-700">—</span>
-              <span className="text-xs text-amber-700">Dưới đây là các số gợi ý để bạn tham khảo.</span>
+              <span className="text-xs text-amber-700">Quý khách tham khảo các số gợi ý bên dưới, hoặc gọi hotline để được tư vấn riêng.</span>
               <span className="text-xs text-amber-600 flex items-center gap-1 ml-auto">
                 <Phone className="w-3 h-3" />
                 Hotline: <strong className="text-primary">0938.868.868</strong>
@@ -179,8 +179,8 @@ const EmptyStateHelper = ({
                 </h3>
                 <p className="text-sm text-amber-700 mb-2">
                   {displayQuery
-                    ? "Vui lòng thử tìm kiếm với số khác hoặc liên hệ hotline."
-                    : "Các bộ lọc đã chọn không khớp với SIM nào trong kho."}
+                    ? "Quý khách vui lòng thử một số khác, hoặc để đội ngũ tư vấn tìm số tương đương."
+                    : "Các bộ lọc đang chọn không khớp SIM nào trong kho. Quý khách vui lòng bỏ bớt một điều kiện để mở rộng kết quả."}
                 </p>
                 <div className="flex items-center gap-2 text-sm text-amber-800">
                   <Phone className="w-4 h-4" />
@@ -192,7 +192,12 @@ const EmptyStateHelper = ({
             </div>
           </div>
 
-          {searchSuggestion && <p className="text-sm text-primary mb-4 text-center">💡 Gợi ý: {searchSuggestion}</p>}
+          {searchSuggestion && (
+            <p className="mb-4 flex items-center justify-center gap-1.5 text-center text-sm text-primary">
+              <Lightbulb className="h-4 w-4 shrink-0" />
+              <span>Gợi ý: {searchSuggestion}</span>
+            </p>
+          )}
 
           {/* Active constraints */}
           {constraints.length > 0 && (

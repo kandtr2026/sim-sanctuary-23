@@ -26,6 +26,27 @@ type Props = {
   params: Promise<{ dauso: string }>;
 };
 
+// ── Mở bài luân phiên theo đầu số ────────────────────────────────────────────
+// 8 trang đầu số dùng chung một khuôn. Để chữ không đọc như bản sao, mỗi trang
+// nhận một cách mở bài khác nhau, chọn theo VỊ TRÍ của đầu số trong
+// DAU_SO_PREFIXES (deterministic → SSR/ISR luôn ra cùng chuỗi, không hydration
+// mismatch). Dữ kiện giữ nguyên: cùng nhà mạng Mobifone, cùng các dòng số.
+const INTRO_VARIANTS: ((dauso: string) => string)[] = [
+  (d) =>
+    `Chọn số theo đầu số là cách nhanh nhất để khoanh vùng cả kho. Riêng đầu ${d} của Mobifone đã có đủ tứ quý, thần tài, lộc phát, phong thủy và số thường — Quý khách chỉ cần chốt ngân sách rồi lọc dần.`,
+  (d) =>
+    `Quý khách sẽ thấy ở đây toàn bộ số thuộc đầu ${d} đang có hàng, xếp cạnh nhau kèm giá. Mobifone là một trong những nhà mạng phủ sóng rộng tại Việt Nam, nên số đầu ${d} dùng đâu cũng thuận.`,
+  (d) =>
+    `Một đầu số quen tai giúp Quý khách đọc số cho đối tác nhẹ nhàng hơn. Đầu ${d} thuộc Mobifone, kho gồm tứ quý, thần tài, lộc phát, phong thủy và cả số thường — tùy ngân sách Quý khách chọn.`,
+  (d) =>
+    `Đầu ${d} là lựa chọn của nhiều khách hàng muốn giữ nhận diện Mobifone. Kho đầu ${d} bên dưới trải từ số thường đến tứ quý, thần tài, lộc phát, phong thủy; mỗi số đều hiện giá để Quý khách tự đối chiếu.`,
+];
+
+const introFor = (dauso: string): string => {
+  const idx = Math.max(0, DAU_SO_PREFIXES.indexOf(dauso)) % INTRO_VARIANTS.length;
+  return INTRO_VARIANTS[idx](dauso);
+};
+
 export function generateStaticParams() {
   return DAU_SO_PREFIXES.map((dauso) => ({ dauso }));
 }
@@ -35,7 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!isDauSoPrefix(dauso)) return {};
 
   const title = `Sim ${dauso} Mobifone | Kho Sim Đầu Số ${dauso} Đẹp, Giá Tốt`;
-  const description = `Kho sim đầu số ${dauso} Mobifone đẹp, giá tốt: tứ quý, thần tài, lộc phát, phong thủy. Giá niêm yết công khai, sang tên chính chủ, giao nội thành HCM 30 phút – 2 giờ.`;
+  const description = `Kho sim đầu số ${dauso} Mobifone: tứ quý, thần tài, lộc phát, phong thủy. Giá niêm yết công khai, sang tên chính chủ, giao nội thành HCM 30 phút – 2 giờ.`;
   const canonical = `${BASE_URL}/sim-dau-so/${dauso}`;
 
   return {
@@ -45,7 +66,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       type: "website",
       title,
-      description: `Kho sim đầu số ${dauso} Mobifone đẹp, giá tốt. Giá công khai, chính chủ.`,
+      description: `Kho sim đầu số ${dauso} Mobifone: tứ quý, thần tài, lộc phát, phong thủy. Giá công khai, chính chủ.`,
       url: canonical,
       images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
     },
@@ -61,15 +82,15 @@ export default async function SimDauSoPage({ params }: Props) {
   const faqItems = [
     {
       q: `Sim đầu số ${dauso} giá bao nhiêu?`,
-      a: `Sim đầu số ${dauso} Mobifone có giá từ vài trăm nghìn đến hàng chục triệu đồng, tùy độ đẹp của dãy số (tứ quý, thần tài, lộc phát, phong thủy). Giá niêm yết công khai ngay trên kho, không phát sinh phí ẩn.`,
+      a: `Sim đầu số ${dauso} Mobifone trải từ vài trăm nghìn đến hàng chục triệu đồng, tùy độ đẹp của dãy số (tứ quý, thần tài, lộc phát, phong thủy). Từng số đều hiện giá ngay trong kho, không phát sinh phí ẩn.`,
     },
     {
       q: `Mua sim đầu số ${dauso} có sang tên chính chủ được không?`,
-      a: `Được. Toàn bộ sim đầu số ${dauso} tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Bạn nhận SIM trước, kiểm tra kỹ rồi mới trả tiền; hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.`,
+      a: `Được. Toàn bộ sim đầu số ${dauso} tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới trả tiền; chúng tôi hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.`,
     },
     {
       q: `Giao sim đầu số ${dauso} mất bao lâu?`,
-      a: "Nội thành TP.HCM: 30 phút – 2 giờ làm việc. Các tỉnh thành khác: 1–3 ngày làm việc qua chuyển phát nhanh. Thanh toán COD khi nhận hàng hoặc chuyển khoản trước.",
+      a: "Nội thành TP.HCM: 30 phút – 2 giờ làm việc. Các tỉnh thành khác: 1–3 ngày làm việc qua chuyển phát nhanh. Quý khách thanh toán COD khi nhận hàng, hoặc chuyển khoản trước.",
     },
   ];
 
@@ -106,8 +127,8 @@ export default async function SimDauSoPage({ params }: Props) {
               Sim {dauso} Mobifone — <span className="text-gold">kho số đẹp giá tốt</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Sim đầu số {dauso} Mobifone: tứ quý, thần tài, lộc phát, phong thủy. Giá công khai, sang tên chính chủ,
-              giao tận nơi nội thành HCM.
+              Tứ quý, thần tài, lộc phát, phong thủy — số đầu {dauso} đang có hàng đều hiện giá công khai.
+              Quý khách nhận SIM, kiểm tra rồi mới thanh toán.
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a
@@ -135,9 +156,7 @@ export default async function SimDauSoPage({ params }: Props) {
               Sim đầu số {dauso} Mobifone có gì đặc biệt?
             </h2>
             <p className="leading-relaxed text-muted-foreground">
-              Đầu số {dauso} thuộc Mobifone, một trong những nhà mạng có mạng lưới phủ sóng rộng tại Việt Nam. Kho
-              đầu số {dauso} bao gồm sim tứ quý, thần tài, lộc phát, phong thủy và sim số thường — tùy ngân sách bạn
-              chọn.
+              {introFor(dauso)}
             </p>
           </section>
 
@@ -145,7 +164,7 @@ export default async function SimDauSoPage({ params }: Props) {
           <CategorySimGrid
             title={`Kho Sim ${dauso} Cập Nhật`}
             searchPlaceholder={`Nhập số cần tìm trong kho ${dauso}...`}
-            emptyText={`Hiện chưa có sim đầu số ${dauso} phù hợp trong kho. Vui lòng thử lại sau.`}
+            emptyText={`Kho hiện chưa có số đầu ${dauso} khớp yêu cầu. Quý khách thử từ khóa khác, hoặc liên hệ 0938.868.868 để được tư vấn.`}
             matchPrefixes={[dauso]}
           />
 

@@ -123,10 +123,10 @@ export default function CachTinhDiemSimPage() {
       ]}
       lead={
         <p>
-          Tra cùng một số trên ba website xem sim, bạn sẽ nhận ba điểm số khác nhau. Đó không hẳn
+          Tra cùng một số trên ba website xem sim, Quý khách sẽ nhận ba điểm số khác nhau. Đó không hẳn
           là chuyện trang nào sai — mà vì mỗi nơi cân trọng số theo cách riêng và không ai nói rõ
           công thức. Bài này mở hết phần bên trong: năm trụ cột được tính thế nào, mỗi trụ nặng bao
-          nhiêu phần trăm, và cách bạn tự kiểm lại bằng giấy bút.
+          nhiêu phần trăm, và cách tự kiểm lại bằng giấy bút.
         </p>
       }
     >
@@ -157,7 +157,7 @@ export default function CachTinhDiemSimPage() {
 
       <h2 id="nam-tru-cot">Năm trụ cột và trọng số</h2>
       <p>
-        Một điểm số phong thuỷ chỉ đáng tin khi bạn biết nó được cộng từ đâu. Đây là cấu trúc điểm
+        Một điểm số phong thuỷ chỉ đáng tin khi người mua biết nó được cộng từ đâu. Đây là cấu trúc điểm
         mà công cụ trên site đang dùng, viết ra đầy đủ:
       </p>
 
@@ -304,16 +304,16 @@ export default function CachTinhDiemSimPage() {
       />
 
       <p>
-        Lời quẻ của bốn số cuối: <em>{exampleScore.hexagram}</em>. Đọc bảng này bạn thấy ngay giá
-        trị của việc bóc tách theo trụ: điểm tổng chỉ nói &ldquo;khá&rdquo; hay
+        Lời quẻ của bốn số cuối: <em>{exampleScore.hexagram}</em>. Bảng này cho thấy giá trị của
+        việc bóc tách theo trụ: điểm tổng chỉ nói &ldquo;khá&rdquo; hay
         &ldquo;kém&rdquo;, còn từng trụ mới cho biết nên đổi số hay giữ.
       </p>
 
       <h2 id="ba-cach-sai">Ba cách chấm điểm sai thường gặp</h2>
       <ul>
         <li>
-          <strong>Chấm điểm mà bỏ qua người dùng.</strong> Nếu một trang cho điểm một số mà không
-          hỏi năm sinh của bạn, thì trụ chiếm 40% đã bị bỏ trống. Điểm đó chỉ đo độ đẹp của dãy số,
+          <strong>Chấm điểm mà bỏ qua người dùng.</strong> Một trang cho điểm một số mà không
+          hỏi năm sinh thì trụ chiếm 40% đã bị bỏ trống. Điểm đó chỉ đo độ đẹp của dãy số,
           không đo độ hợp.
         </li>
         <li>

@@ -17,7 +17,7 @@ const ZALO_URL = 'https://zalo.me/0933356666';
 const PRICE_LABEL = `${CHEAP_PRICE.toLocaleString('vi-VN')}đ`;
 
 const TITLE = `Mua SIM Giá Rẻ – Kho SIM MobiFone Đồng Giá ${PRICE_LABEL}`;
-const DESCRIPTION = `Kho SIM MobiFone khuyến mãi đồng giá ${PRICE_LABEL}, đã gồm gói TK179 (7GB/ngày, miễn phí nội mạng). Chọn số theo đuôi kép, tránh 4-7, đuôi 6-8-9. Đặt online, giao SIM toàn quốc.`;
+const DESCRIPTION = `Kho SIM MobiFone khuyến mãi đồng giá ${PRICE_LABEL}, đã gồm gói TK179 (7GB/ngày). Quý khách chủ động chọn số theo đuôi kép, tránh 4-7, đuôi 6-8-9. Giao SIM toàn quốc.`;
 const CANONICAL = "https://www.chonsomobifone.com/mua-sim-gia-re";
 
 // ISR: match the 10-minute promo-warehouse window loosely at 5 minutes, so the
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     title: TITLE,
-    description: `Toàn bộ SIM trong kho đúng ${PRICE_LABEL}, đã gồm gói cước TK179. Chọn số bạn thích, giá không đổi.`,
+    description: `Toàn bộ SIM trong kho đúng ${PRICE_LABEL}, đã gồm gói cước TK179. Quý khách chọn dãy số ưng ý, giá không đổi.`,
     url: CANONICAL,
     images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
   },
@@ -47,27 +47,27 @@ const TK179_PERKS = [
 const faqItems = [
   {
     q: `Vì sao mọi SIM ở đây đều ${PRICE_LABEL}?`,
-    a: `Đây là kho SIM khuyến mãi đồng giá của MobiFone: toàn bộ số trong kho bán đúng ${PRICE_LABEL}, không phân biệt số đẹp hay số thường, và đã bao gồm gói cước TK179 tháng đầu. Bạn không cần so giá giữa các số — chỉ cần chọn dãy số mình thích.`,
+    a: `Đây là kho SIM khuyến mãi đồng giá của MobiFone: toàn bộ số trong kho bán đúng ${PRICE_LABEL}, không phân biệt số đẹp hay số thường, và đã bao gồm gói cước TK179 tháng đầu. Quý khách không phải cân giá giữa các số — chỉ cần chọn dãy số ưng ý nhất.`,
   },
   {
     q: 'Kho này có SIM tứ quý, lộc phát, thần tài không?',
-    a: 'Không. Kho đồng giá là SIM phổ thông: đẹp ở mức dễ nhớ (đuôi kép, tránh số 4 và 7, đuôi 6-8-9, số tiến) chứ không có tứ quý, tam hoa hay lộc phát — những dãy đó thuộc phân khúc vài triệu đến vài chục triệu. Nếu bạn cần số phong thủy hoặc số VIP, hãy xem kho SIM chính ở trang chủ.',
+    a: 'Không. Kho đồng giá là SIM phổ thông: đẹp ở mức dễ nhớ (đuôi kép, tránh số 4 và 7, đuôi 6-8-9, số tiến) chứ không có tứ quý, tam hoa hay lộc phát — những dãy đó thuộc phân khúc vài triệu đến vài chục triệu. Quý khách cần số phong thủy hoặc số VIP, vui lòng xem kho SIM chính ở trang chủ.',
   },
   {
     q: 'SIM giá rẻ có sang tên chính chủ được không?',
-    a: 'Được. Mọi SIM tại CHONSOMOBIFONE.COM đều hỗ trợ đăng ký chính chủ, kể cả SIM đồng giá. Sau khi nhận SIM, bạn mang CCCD đến cửa hàng MobiFone gần nhất hoặc dùng ứng dụng My MobiFone để đăng ký thông tin thuê bao.',
+    a: 'Được. Mọi SIM tại CHONSOMOBIFONE.COM đều hỗ trợ đăng ký chính chủ, kể cả SIM đồng giá. Sau khi nhận SIM, Quý khách mang CCCD đến cửa hàng MobiFone gần nhất, hoặc đăng ký thông tin thuê bao trên ứng dụng My MobiFone.',
   },
   {
     q: 'Gói TK179 hết 30 ngày thì sao?',
-    a: 'SIM vẫn hoạt động bình thường như một thuê bao trả trước MobiFone. Bạn có thể gia hạn TK179, đổi sang gói cước khác, hoặc chỉ nạp tiền dùng theo nhu cầu. Số điện thoại là của bạn, không phụ thuộc vào việc có duy trì gói hay không.',
+    a: 'SIM vẫn hoạt động bình thường như một thuê bao trả trước MobiFone. Quý khách chủ động gia hạn TK179, đổi sang gói cước khác, hoặc chỉ nạp tiền dùng theo nhu cầu. Số điện thoại thuộc về Quý khách, không phụ thuộc vào việc có duy trì gói hay không.',
   },
   {
     q: 'Bao lâu thì nhận được SIM?',
-    a: 'Nội thành TP. Hồ Chí Minh: 30 phút – 2 giờ làm việc. Nội thành Hà Nội và các thành phố lớn: 1 ngày làm việc. Các tỉnh thành khác: 1 – 3 ngày làm việc. Đơn xác nhận sau 20:00 sẽ xử lý vào sáng ngày làm việc kế tiếp. Thanh toán COD khi nhận SIM.',
+    a: 'Nội thành TP. Hồ Chí Minh: 30 phút – 2 giờ làm việc. Nội thành Hà Nội và các thành phố lớn: 1 ngày làm việc. Các tỉnh thành khác: 1 – 3 ngày làm việc. Đơn xác nhận sau 20:00 được xử lý vào sáng ngày làm việc kế tiếp. Quý khách nhận SIM rồi thanh toán COD.',
   },
   {
     q: 'Số tôi đang xem có bị người khác mua mất không?',
-    a: 'Mỗi số chỉ có duy nhất một SIM. Kho trên trang này đã loại các số đã bán và được làm mới sau mỗi 10 phút, nhưng nếu hai người cùng đặt một số trong khoảng đó thì đơn xác nhận trước sẽ được giữ số. Đặt hàng online là cách nhanh nhất để giữ chỗ.',
+    a: 'Mỗi số chỉ có duy nhất một SIM. Kho trên trang này đã loại các số đã bán và được làm mới sau mỗi 10 phút; nếu hai người cùng đặt một số trong khoảng đó thì đơn xác nhận trước sẽ được giữ số. Đặt hàng online là cách nhanh nhất để giữ chỗ.',
   },
 ];
 
@@ -88,8 +88,8 @@ const faqJsonLd = {
 const FACET_COPY: Record<CheapFacet, string> = {
   doi: 'Hai số cuối giống nhau (…33, …88) là dạng dễ đọc và dễ nhớ nhất trong kho phổ thông. Khi đọc số qua điện thoại, người nghe chỉ phải ghi một chữ số cho hai vị trí cuối — ít sai sót hơn hẳn.',
   no47: 'Nhiều khách hàng tránh số 4 và số 7 vì lý do kiêng kỵ. Bộ lọc này chỉ giữ những dãy không có cả hai chữ số đó ở bất kỳ vị trí nào, kể cả trong đầu số.',
-  tail689: 'Đuôi 6 (lộc), 8 (phát), 9 (vĩnh cửu) là ba chữ số kết thúc được ưa chuộng nhất. Trong kho đồng giá, đây là cách nhanh nhất để có một số "nghe được" mà không phải trả giá số đẹp.',
-  tien: 'Ba số cuối tăng dần một đơn vị: …123, …456, …789. Đây là dạng hiếm nhất trong kho — số lượng rất ít và thường hết trước, nên nếu thấy số ưng ý thì nên đặt sớm.',
+  tail689: 'Đuôi 6 (lộc), 8 (phát), 9 (vĩnh cửu) là ba chữ số kết thúc được ưa chuộng nhất. Trong kho đồng giá, đây là cách nhanh nhất để Quý khách có một số thuận tai mà không phải trả mức giá của phân khúc số đẹp.',
+  tien: 'Ba số cuối tăng dần một đơn vị: …123, …456, …789. Đây là dạng hiếm nhất trong kho — số lượng rất ít và thường hết trước, nên Quý khách gặp dãy ưng ý thì nên đặt sớm.',
 };
 
 export default async function MuaSimGiaRePage() {
@@ -125,8 +125,8 @@ export default async function MuaSimGiaRePage() {
               <span className="text-gold">{PRICE_LABEL}</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Không có số nào đắt hơn số nào. Chọn dãy số bạn thích, giá vẫn thế — đã gồm
-              gói cước TK179 tháng đầu.
+              Quý khách chọn dãy số ưng ý, giá vẫn thế — không có số nào đắt hơn số nào, đã
+              gồm gói cước TK179 tháng đầu.
             </p>
 
             <ul className="mx-auto grid max-w-2xl grid-cols-1 gap-x-6 gap-y-1.5 text-left text-xs text-primary-foreground/85 sm:grid-cols-2 md:text-sm">
@@ -154,27 +154,27 @@ export default async function MuaSimGiaRePage() {
               <p>
                 Đây là kho SIM khuyến mãi của MobiFone, tách riêng khỏi kho SIM số đẹp thông
                 thường. Toàn bộ số trong kho bán <strong className="text-foreground">đúng {PRICE_LABEL}</strong>,
-                không phân biệt số nào đẹp hơn số nào — nên bạn không cần cân nhắc giá, chỉ
-                cần chọn dãy số mình thích nhất.
+                không phân biệt số nào đẹp hơn số nào — nên Quý khách không phải cân nhắc giá,
+                chỉ cần chọn dãy số ưng ý nhất.
               </p>
               <p>
                 Giá đã bao gồm gói cước <strong className="text-foreground">TK179</strong> trong 30 ngày
                 đầu: 7GB data tốc độ cao mỗi ngày, miễn phí thoại nội mạng dưới 20 phút mỗi cuộc
                 (tối đa 1.500 phút) và 200 phút liên mạng. Hết 30 ngày, SIM vẫn là thuê bao trả
-                trước MobiFone bình thường — bạn gia hạn TK179, đổi gói khác hay chỉ nạp tiền
-                đều được.
+                trước MobiFone bình thường — Quý khách chủ động gia hạn TK179, đổi gói khác hay
+                chỉ nạp tiền dùng dần.
               </p>
               <div className="rounded-lg border border-gold/25 bg-gold/[0.06] p-4">
                 <p className="mb-2 font-semibold text-foreground">Kho này hợp với ai?</p>
                 <ul className="space-y-1.5 text-sm">
                   <li>• Cần số thứ hai để bán hàng, chạy quảng cáo, tách việc khỏi số cá nhân.</li>
                   <li>• Cần số đăng ký tài khoản, nhận OTP mà không muốn dùng số chính.</li>
-                  <li>• Muốn một số dễ nhớ với chi phí bằng một bữa ăn, không phải vài triệu.</li>
+                  <li>• Muốn một dãy số dễ nhớ và tối ưu ngân sách, thay vì trả vài triệu đồng.</li>
                 </ul>
               </div>
               <p className="text-sm">
                 Cần tứ quý, lộc phát, thần tài hay số phong thủy theo tuổi? Những dãy đó không nằm
-                trong kho khuyến mãi này — xem{' '}
+                trong kho khuyến mãi này — Quý khách vui lòng xem{' '}
                 <a href="/" className="font-medium text-primary underline-offset-2 hover:underline">
                   kho SIM số đẹp
                 </a>{' '}
@@ -193,8 +193,8 @@ export default async function MuaSimGiaRePage() {
               Chọn số thế nào khi mọi số cùng giá?
             </h2>
             <p className="mb-5 text-sm text-muted-foreground">
-              Giá không còn là tiêu chí, nên chỉ còn một câu hỏi: số nào bạn đọc lên thấy thuận
-              miệng nhất. Bốn cách lọc dưới đây tương ứng đúng với các nút lọc ở kho phía trên.
+              Giá không còn là tiêu chí, nên chỉ còn một câu hỏi: dãy nào Quý khách đọc lên thấy
+              thuận miệng nhất. Bốn cách lọc dưới đây tương ứng đúng với các nút lọc ở kho phía trên.
             </p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {CHEAP_FACETS.map((facet) => (
@@ -221,7 +221,7 @@ export default async function MuaSimGiaRePage() {
             </h2>
             <ol className="grid list-none grid-cols-1 gap-4 sm:grid-cols-3">
               {[
-                { n: '1', t: 'Chọn số', d: 'Bấm số bạn thích ở kho phía trên. Mỗi số chỉ có một SIM.' },
+                { n: '1', t: 'Chọn số', d: 'Bấm vào dãy số Quý khách chọn ở kho phía trên. Mỗi số chỉ có một SIM.' },
                 { n: '2', t: 'Điền thông tin', d: 'Họ tên, số liên hệ, địa chỉ nhận. Không cần thanh toán trước.' },
                 { n: '3', t: 'Nhận SIM, trả tiền', d: 'COD khi nhận. Nội thành HCM 30 phút – 2 giờ, tỉnh 1–3 ngày.' },
               ].map((step) => (
@@ -269,8 +269,8 @@ export default async function MuaSimGiaRePage() {
               Hàng nghìn số đang chờ, mọi số đúng {PRICE_LABEL}
             </h2>
             <p className="mx-auto mb-6 max-w-lg text-sm text-primary-foreground/80">
-              Chọn số ở kho phía trên rồi đặt online — hoặc nhắn Zalo, nhân viên sẽ gợi ý số theo
-              yêu cầu của bạn.
+              Quý khách chọn số ở kho phía trên rồi đặt online — hoặc nhắn Zalo để đội ngũ tư vấn
+              gợi ý số theo đúng yêu cầu.
             </p>
             <div className="flex flex-col items-center justify-center gap-2.5 sm:flex-row">
               <a

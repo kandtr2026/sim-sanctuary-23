@@ -35,7 +35,7 @@ const faq: FaqItem[] = [
   },
   {
     q: "Có cần biết giờ sinh để xem Bát Cực Linh Số không?",
-    a: "Không. Bản thân phép Bát Cực chỉ cần dãy số. Giờ sinh và ngày sinh chỉ cần khi bạn muốn kết hợp thêm cung phi, âm dương và ngũ hành bản mệnh để chấm điểm tổng hợp cho từng SIM.",
+    a: "Không. Bản thân phép Bát Cực chỉ cần dãy số. Giờ sinh và ngày sinh chỉ cần khi Quý khách muốn kết hợp thêm cung phi, âm dương và ngũ hành bản mệnh để chấm điểm tổng hợp cho từng SIM.",
   },
 ];
 
@@ -77,7 +77,8 @@ export default function BatCucLinhSoPage() {
           dùng hai hệ quy chiếu khác nhau. Người xem theo ngũ hành đọc từng con số; người xem
           theo <strong>Bát Cực Linh Số</strong> đọc quan hệ giữa hai số đứng cạnh nhau. Bài này
           trình bày trọn bộ 8 năng lượng, bảng tra 64 cặp số, và cách tự soi một dãy SIM bằng
-          giấy bút trong khoảng hai phút.
+          giấy bút trong khoảng hai phút — để Quý khách chủ động thẩm định trước khi nghe bất kỳ
+          lời tư vấn nào.
         </p>
       }
     >
@@ -197,7 +198,7 @@ export default function BatCucLinhSoPage() {
         Với dãy dài như căn cước 12 số, cách làm không đổi, chỉ nhiều cặp hơn. Nếu không muốn
         tính tay cho từng số trong kho hàng nghìn số, công cụ{" "}
         <Link href="/sim-phong-thuy">tìm SIM hợp tuổi</Link> đã chấm sẵn phần này và cho phép lọc
-        theo đúng năng lượng bạn muốn có hoặc muốn tránh.
+        theo đúng năng lượng cần có hoặc cần tránh.
       </p>
 
       <h2 id="doc-ket-qua">Đọc kết quả sao cho đúng trọng tâm</h2>
@@ -216,8 +217,8 @@ export default function BatCucLinhSoPage() {
         </li>
         <li>
           <strong>Cặp lặp lại làm đậm năng lượng.</strong> Ba cặp 66 liền nhau không phải
-          &ldquo;ba lần tốt&rdquo; mà là một tính chất Phục Vị rất đậm — ổn định đến mức trì, nếu
-          bạn cần sự bứt phá thì lại không hợp.
+          &ldquo;ba lần tốt&rdquo; mà là một tính chất Phục Vị rất đậm — ổn định đến mức trì, nên
+          sẽ không hợp với người đang cần bứt phá.
         </li>
       </ul>
 
@@ -252,7 +253,7 @@ export default function BatCucLinhSoPage() {
       <ul>
         <li>
           <Link href="/tin-tuc/sim-hop-menh-ngu-hanh">Ngũ hành bản mệnh</Link> — từng con số
-          thuộc hành nào, có tương sinh với mệnh của bạn hay không.
+          thuộc hành nào, có tương sinh với mệnh của Quý khách hay không.
         </li>
         <li>
           <Link href="/tin-tuc/80-que-kinh-dich-trong-sim">Quẻ Kinh Dịch</Link> — lấy bốn hoặc
@@ -268,7 +269,7 @@ export default function BatCucLinhSoPage() {
       <p>
         Cách cộng gộp năm lớp này thành một điểm số được nói kỹ trong bài{" "}
         <Link href="/tin-tuc/cach-tinh-diem-sim-phong-thuy">cách tính điểm SIM phong thuỷ</Link>.
-        Nếu bạn chỉ muốn xem nhanh một số cụ thể đang đứng ở đâu so với thị trường, dùng công cụ{" "}
+        Cần xem nhanh một số cụ thể đang đứng ở đâu so với thị trường, mời Quý khách dùng công cụ{" "}
         <Link href="/dinh-gia-sim">định giá SIM</Link>.
       </p>
 
@@ -295,7 +296,7 @@ export default function BatCucLinhSoPage() {
       </ul>
 
       <p>
-        Nếu bạn đã biết mình muốn năng lượng nào, cách nhanh nhất là mở{" "}
+        Khi đã chọn được năng lượng mong muốn, cách nhanh nhất là mở{" "}
         <Link href="/sim-phong-thuy">công cụ tìm SIM hợp tuổi</Link>, chọn năng lượng cần có và
         để hệ thống lọc trong{" "}
         <Link href="/mua-sim-gia-re">kho SIM MobiFone</Link> đang còn hàng.

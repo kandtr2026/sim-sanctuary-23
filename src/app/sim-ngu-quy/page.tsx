@@ -18,7 +18,7 @@ const ZALO_URL = "https://zalo.me/0933356666";
 
 const TITLE = "Sim Ngũ Quý 88888 99999 | Kho Sim Ngũ Quý Mobifone";
 const DESCRIPTION =
-  "Kho sim ngũ quý Mobifone đẹp: 88888, 99999, lục quý. Giá niêm yết công khai, sang tên chính chủ, nhận SIM rồi mới trả tiền, giao nội thành HCM 30 phút – 2 giờ.";
+  "Sim ngũ quý Mobifone 88888, 99999 và lục quý — nhóm số khan hiếm. Giá niêm yết công khai, sang tên chính chủ, Quý khách nhận SIM kiểm tra rồi mới thanh toán.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-ngu-quy";
 
 export const metadata: Metadata = {
@@ -37,19 +37,19 @@ export const metadata: Metadata = {
 const faqItems = [
   {
     q: "Sim ngũ quý là gì?",
-    a: "Sim ngũ quý là sim có 5 chữ số giống nhau liền nhau trong dãy số, ví dụ 88888, 99999. Đây là dòng sim hiếm, giá trị cao hơn tứ quý vì độ khó sở hữu và tính thẩm mỹ. Sim lục quý (6 số giống nhau) càng hiếm hơn nữa.",
+    a: "Ngũ quý là năm chữ số giống nhau đứng liền nhau trong dãy số, ví dụ 88888 hay 99999. Hơn tứ quý đúng một con số, nhưng khan hơn nhiều nên giá cũng ở bậc khác. Lục quý — sáu chữ số giống nhau — thuộc nhóm hiếm nhất.",
   },
   {
     q: "Giá sim ngũ quý bao nhiêu?",
-    a: "Sim ngũ quý Mobifone có giá từ vài chục triệu đến hàng trăm triệu đồng, tùy số (ngũ quý 8, 9 đắt nhất), đầu số và vị trí cụm số. Giá niêm yết công khai trên kho, không phát sinh phí ẩn.",
+    a: "Từ vài chục triệu đến hàng trăm triệu đồng. Mức giá đến từ con số được lặp (ngũ quý 8 và ngũ quý 9 đắt nhất), đầu số và vị trí cụm năm số trong dãy. Mỗi số hiện giá niêm yết ngay trên kho, Quý khách xem trước rồi mới đặt.",
   },
   {
     q: "Sim ngũ quý có sang tên chính chủ được không?",
-    a: "Được. Toàn bộ sim ngũ quý tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Bạn nhận SIM trước, kiểm tra kỹ rồi mới trả tiền; hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.",
+    a: "Được — và với số giá trị cao thì đây là bước không thể bỏ qua. Ngũ quý, lục quý tại CHONSOMOBIFONE.COM đều sang tên chính chủ. Quý khách kiểm tra SIM trên tay trước, thanh toán sau; thủ tục chính chủ làm tại cửa hàng MobiFone hoặc trên ứng dụng My Mobifone.",
   },
   {
     q: "Giao sim ngũ quý mất bao lâu?",
-    a: "Nội thành TP.HCM: 30 phút – 2 giờ làm việc. Các tỉnh thành khác: 1–3 ngày làm việc qua chuyển phát nhanh. Thanh toán COD khi nhận hàng hoặc chuyển khoản trước.",
+    a: "Trong nội thành TP.HCM, đội ngũ giao trong 30 phút – 2 giờ làm việc. Tỉnh thành khác nhận qua chuyển phát nhanh sau 1–3 ngày làm việc. Quý khách chọn thanh toán COD lúc nhận hoặc chuyển khoản trước.",
   },
 ];
 
@@ -64,12 +64,12 @@ const faqJsonLd = {
 };
 
 const benefits = [
-  { icon: Star, text: "Kho sim ngũ quý Mobifone hiếm" },
-  { icon: Shield, text: "Giao dịch an toàn, bảo mật" },
-  { icon: CheckCircle, text: "Sang tên chính chủ" },
-  { icon: DollarSign, text: "Giá niêm yết công khai" },
-  { icon: Truck, text: "Nhận SIM rồi mới trả tiền" },
-  { icon: Users, text: "Tư vấn chọn số 24/7" },
+  { icon: Star, text: "Kho ngũ quý, lục quý Mobifone" },
+  { icon: Shield, text: "Giao dịch an toàn, bảo mật thông tin" },
+  { icon: CheckCircle, text: "Sang tên chính chủ cho Quý khách" },
+  { icon: DollarSign, text: "Giá niêm yết công khai từng số" },
+  { icon: Truck, text: "Thanh toán sau khi nhận và kiểm tra SIM" },
+  { icon: Users, text: "Đội ngũ tư vấn trực 24/7" },
 ];
 
 export default async function SimNguQuyPage() {
@@ -97,7 +97,7 @@ export default async function SimNguQuyPage() {
               Sim Ngũ Quý Mobifone — <span className="text-gold">88888, 99999, lục quý</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Sim ngũ quý 8, ngũ quý 9 và lục quý — dòng sim hiếm, giá trị cao. Giá công khai, sang tên chính chủ.
+              Ngũ quý 8, ngũ quý 9 và lục quý — nhóm số khan, dãy đẹp thường có chủ sớm. Giá niêm yết công khai, sang tên chính chủ.
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a
@@ -126,22 +126,25 @@ export default async function SimNguQuyPage() {
             </h2>
             <div className="space-y-4 leading-relaxed text-muted-foreground">
               <p>
-                Sim ngũ quý là sim có 5 chữ số giống nhau đứng liền nhau — 88888, 99999, 66666... Đây là dòng sim số
-                đẹp hiếm, sở hữu nhiều hơn tứ quý đúng một con số nhưng độ khan hiếm và giá trị lại tăng rất nhanh.
+                Nhóm năm chữ số giống nhau liền nhau chỉ chiếm một phần rất nhỏ trong toàn kho, và những dãy đẹp thường
+                có chủ sớm. Vì khan như vậy, nhiều khách hàng xem ngũ quý như một khoản tài sản: vừa dùng hằng ngày, vừa
+                giữ được giá trị.
               </p>
               <p>
-                Trong phong thủy dân gian, <strong className="text-foreground">ngũ quý 8</strong> (88888) gắn với "phát
-                đạt" và <strong className="text-foreground">ngũ quý 9</strong> (99999) gắn với "trường cửu, vĩnh cửu".
-                Sim lục quý (6 số giống nhau) thậm chí còn hiếm hơn, thường chỉ xuất hiện ở phân khúc cao cấp.
+                Về cấu trúc, ngũ quý là năm chữ số giống nhau đứng liền nhau — 88888, 99999, 66666. So với tứ quý chỉ hơn
+                đúng một con số, nhưng độ khan và giá thì nhảy sang bậc khác. Dân gian đọc{" "}
+                <strong className="text-foreground">ngũ quý 8</strong> là phát đạt,{" "}
+                <strong className="text-foreground">ngũ quý 9</strong> là trường cửu; còn lục quý — sáu chữ số giống nhau —
+                hiếm hơn nữa và chủ yếu xuất hiện ở phân khúc cao.
               </p>
             </div>
           </section>
 
           
           <CategorySimGrid
-            title="Kho Sim Ngũ Quý Cập Nhật"
-            searchPlaceholder="Nhập số hoặc *88888 / *99999 để tìm đuôi ngũ quý..."
-            emptyText="Hiện chưa có sim ngũ quý phù hợp trong kho. Vui lòng thử lại sau."
+            title="Sim Ngũ Quý, Lục Quý Mới Cập Nhật"
+            searchPlaceholder="Nhập số cần tìm, hoặc *88888 / *99999 để xem đuôi ngũ quý"
+            emptyText="Kho đang trống ở nhóm này — ngũ quý về lẻ và đi rất nhanh. Quý khách để lại yêu cầu qua Zalo 0933356666, đội ngũ tư vấn sẽ báo khi có dãy phù hợp."
             matchTags={["Ngũ quý", "Lục quý"]}
             quyFilter="Ngũ quý"
           />
@@ -152,9 +155,9 @@ export default async function SimNguQuyPage() {
               Giá sim ngũ quý bao nhiêu?
             </h2>
             <p className="leading-relaxed text-muted-foreground">
-              Sim ngũ quý Mobifone có giá từ vài chục triệu đến hàng trăm triệu đồng. Ngũ quý 8, ngũ quý 9 và đầu số
-              cổ 090/093 đắt nhất. Mọi số đều niêm yết giá công khai ngay trên kho — bạn chọn số trước, so giá trước,
-              rồi mới đặt.
+              Sim ngũ quý Mobifone có giá từ vài chục triệu đến hàng trăm triệu đồng. Ngũ quý 8, ngũ quý 9 cùng đầu số cổ
+              090/093 nằm ở nhóm đắt nhất. Từng số đều gắn giá niêm yết ngay trên kho, nên Quý khách nắm được mặt bằng giá
+              và chủ động chọn dãy vừa tầm, không phải hỏi giá qua trung gian.
             </p>
           </section>
 
@@ -164,8 +167,9 @@ export default async function SimNguQuyPage() {
               Ai nên dùng sim ngũ quý
             </h2>
             <p className="leading-relaxed text-muted-foreground">
-              Người muốn khẳng định vị thế, giám đốc, chủ doanh nghiệp thường chọn sim ngũ quý như một tài sản vừa dùng
-              vừa giữ giá trị. Dòng sim này hiếm và khan trên thị trường, nên số đẹp thường được giữ sớm.
+              Chủ doanh nghiệp, giám đốc, người thường xuyên trao danh thiếp chọn ngũ quý cho một việc rất rõ: đọc số một
+              lần, đối tác nhớ luôn, và dãy số nói được vị thế mà không cần thêm lời nào. Nguồn số dạng này khan, nên khi
+              thấy dãy vừa ý, Quý khách nên giữ sớm.
             </p>
           </section>
 

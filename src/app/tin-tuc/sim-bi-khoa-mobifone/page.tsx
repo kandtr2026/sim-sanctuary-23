@@ -70,7 +70,7 @@ const faq: FaqItem[] = [
   },
   {
     q: "SIM bị khoá 2 chiều nạp tiền được không?",
-    a: "Với trường hợp hết hạn sử dụng, việc nạp thẻ thường không còn tự mở được khi đã bị khoá hai chiều; bạn cần mang giấy tờ và SIM ra cửa hàng MobiFone trong thời gian số còn được giữ. Nếu nguyên nhân là chưa xác thực thông tin thì nạp tiền không giải quyết được — phải hoàn tất xác thực.",
+    a: "Với trường hợp hết hạn sử dụng, việc nạp thẻ thường không còn tự mở được khi đã bị khoá hai chiều; Quý khách cần mang giấy tờ và SIM ra cửa hàng MobiFone trong thời gian số còn được giữ. Nếu nguyên nhân là chưa xác thực thông tin thì nạp tiền không giải quyết được — phải hoàn tất xác thực.",
   },
   {
     q: "SIM bị khoá 2 chiều bao lâu thì bị thu hồi số?",
@@ -78,7 +78,7 @@ const faq: FaqItem[] = [
   },
   {
     q: "Bị khoá quyền nạp thẻ thì làm sao?",
-    a: "Nhập sai mã thẻ nhiều lần sẽ bị tạm khoá quyền nạp thẻ. Bạn có thể tự mở bằng cách soạn tin QUYENNAPTHE_Mã serial thẻ nạp gửi 901, tin nhắn này miễn phí. Mã serial là dãy số in trên thẻ nạp hoặc trong hoá đơn mua mã thẻ.",
+    a: "Nhập sai mã thẻ nhiều lần sẽ bị tạm khoá quyền nạp thẻ. Quý khách có thể tự mở bằng cách soạn tin QUYENNAPTHE_Mã serial thẻ nạp gửi 901, tin nhắn này miễn phí. Mã serial là dãy số in trên thẻ nạp hoặc trong hoá đơn mua mã thẻ.",
   },
   {
     q: "Đang bị khoá chiều gọi đi thì gọi tổng đài bằng cách nào?",
@@ -86,7 +86,7 @@ const faq: FaqItem[] = [
   },
   {
     q: "SIM số đẹp để lâu không dùng có bị mất không?",
-    a: "Có. SIM trả trước không phát sinh nạp thẻ sẽ hết hạn gọi rồi hết hạn nghe, và sau thời gian giữ số thì bị thu hồi — kể cả số tứ quý hay ngũ quý giá trị cao. Đây là lý do nên đặt lịch nạp một mệnh giá nhỏ định kỳ cho những số bạn giữ mà ít dùng.",
+    a: "Có. SIM trả trước không phát sinh nạp thẻ sẽ hết hạn gọi rồi hết hạn nghe, và sau thời gian giữ số thì bị thu hồi — kể cả số tứ quý hay ngũ quý giá trị cao. Đây là lý do nên đặt lịch nạp một mệnh giá nhỏ định kỳ cho những số giữ mà ít dùng.",
   },
 ];
 
@@ -102,10 +102,10 @@ export default function SimBiKhoaPage() {
       ]}
       lead={
         <p>
-          SIM bị khoá có bốn nguyên nhân hoàn toàn khác nhau, và mỗi nguyên nhân có một cách mở
-          riêng. Nạp thẻ trong trường hợp sai nguyên nhân thì tiền vào tài khoản nhưng SIM vẫn khoá.
-          Bài này giúp bạn xác định đúng trường hợp của mình trước khi làm gì, kèm các mốc thời gian
-          trước khi số bị thu hồi.
+          Nạp thẻ khi nguyên nhân không phải hết hạn thì tiền vào tài khoản nhưng SIM vẫn khoá. Bốn
+          nguyên nhân khoá SIM có bốn cách mở khác nhau, và mỗi nguyên nhân có một đồng hồ đếm ngược
+          riêng trước khi số bị thu hồi. Bảng chẩn đoán dưới đây giúp Quý khách xác định đúng trường
+          hợp trước khi làm bất cứ điều gì.
         </p>
       }
     >
@@ -136,8 +136,8 @@ export default function SimBiKhoaPage() {
       <h2 id="mot-chieu-hai-chieu">Khoá một chiều và hai chiều khác nhau thế nào</h2>
       <p>
         Đây là hai mức, không phải hai loại. Khoá một chiều là mức nhẹ: SIM không gọi ra và không
-        gửi tin nhắn được, nhưng người khác vẫn gọi và nhắn cho bạn được — nghĩa là số vẫn thuộc về
-        bạn và vẫn nhận được mã OTP. Khoá hai chiều là mức nặng: mất cả chiều gọi ra và chiều nhận,
+        gửi tin nhắn được, nhưng người khác vẫn gọi và nhắn đến được — nghĩa là số vẫn thuộc về Quý
+        khách và vẫn nhận được mã OTP. Khoá hai chiều là mức nặng: mất cả chiều gọi ra và chiều nhận,
         và đây là mức bắt đầu đếm ngược tới việc <strong>thu hồi số</strong>.
       </p>
       <p>
@@ -147,10 +147,10 @@ export default function SimBiKhoaPage() {
       </p>
 
       <h2 id="chan-doan">Chẩn đoán đúng nguyên nhân trong một phút</h2>
-      <p>Đối chiếu dấu hiệu bạn đang gặp với bảng dưới đây trước khi làm bất cứ điều gì:</p>
+      <p>Đối chiếu dấu hiệu đang gặp với bảng dưới đây trước khi làm bất cứ điều gì:</p>
 
       <DataTable
-        head={["Dấu hiệu bạn thấy", "Nguyên nhân thường gặp", "Việc cần làm"]}
+        head={["Dấu hiệu nhận thấy", "Nguyên nhân thường gặp", "Việc cần làm"]}
         rows={DIAGNOSE.map((d) => [d[0], d[1], d[2]])}
         caption="Bảng chẩn đoán nhanh trạng thái SIM MobiFone bị khoá"
         boldFirstColumn={false}
@@ -178,7 +178,7 @@ export default function SimBiKhoaPage() {
       <Note tone="warn" title="Số ngày sử dụng theo mệnh giá: hãy tự kiểm, đừng tin bảng trên mạng">
         Rất nhiều trang đăng bảng &ldquo;nạp mệnh giá X được Y ngày&rdquo;, nhưng đây là loại thông
         số nhà mạng điều chỉnh theo thời gian và không công bố cố định. Cách chắc chắn là kiểm tra
-        hạn sử dụng hiện tại của chính SIM bạn trên app My MobiFone sau khi nạp.
+        hạn sử dụng hiện tại của chính SIM đó trên app My MobiFone sau khi nạp.
       </Note>
 
       <h2 id="no-cuoc">Nguyên nhân 2 — Nợ cước (thuê bao trả sau)</h2>
@@ -188,8 +188,8 @@ export default function SimBiKhoaPage() {
         đang nợ; sau khi hệ thống ghi nhận, dịch vụ được mở lại.
       </p>
       <p>
-        Nếu bạn đang dùng gói cam kết hoặc gói có hạn mức, hãy kiểm tra thêm phần hạn mức chi tiêu —
-        vượt hạn mức cũng có thể làm dịch vụ bị hạn chế dù bạn chưa quá hạn thanh toán.
+        Với gói cam kết hoặc gói có hạn mức, hãy kiểm tra thêm phần hạn mức chi tiêu — vượt hạn mức
+        cũng có thể làm dịch vụ bị hạn chế dù chưa quá hạn thanh toán.
       </p>
 
       <h2 id="quyen-nap-the">Nguyên nhân 3 — Bị khoá quyền nạp thẻ</h2>
@@ -245,21 +245,21 @@ export default function SimBiKhoaPage() {
         : mua rồi để trong hộc tủ, không nạp thẻ, hết hạn gọi rồi hết hạn nghe, và sau thời gian giữ
         số thì số về lại kho.
       </p>
-      <p>Ba việc nên làm nếu bạn đang giữ số giá trị mà ít dùng:</p>
+      <p>Ba việc nên làm khi đang giữ một số giá trị mà ít dùng:</p>
       <ul>
         <li>
           <strong>Đặt lịch nhắc nạp thẻ định kỳ</strong> — một mệnh giá nhỏ cũng đủ để gia hạn.
         </li>
         <li>
-          <strong>Hoàn tất chính chủ càng sớm càng tốt.</strong> Số chưa đứng tên bạn thì bạn không
-          có tư cách yêu cầu mở khoá hay khôi phục.
+          <strong>Hoàn tất chính chủ càng sớm càng tốt.</strong> Số chưa đứng tên Quý khách thì Quý
+          khách không có tư cách yêu cầu mở khoá hay khôi phục.
         </li>
         <li>
           <strong>Kiểm tra hạn sử dụng mỗi vài tháng</strong> qua app, thay vì chờ tin nhắn cảnh báo.
         </li>
       </ul>
       <p>
-        Nếu số cũ đã bị thu hồi và bạn cần một số mới dễ nhớ cho công việc, có thể xem{" "}
+        Nếu số cũ đã bị thu hồi và Quý khách cần một số mới dễ nhớ cho công việc, có thể xem{" "}
         <Link href="/mua-sim-gia-re">kho SIM MobiFone</Link> với giá niêm yết, hoặc chọn theo tuổi
         tại <Link href="/sim-phong-thuy">công cụ tìm SIM hợp tuổi</Link>.
       </p>

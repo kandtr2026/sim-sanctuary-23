@@ -55,7 +55,7 @@ export default function SimNamSinhFinder() {
         <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: CHAMPAGNE }} />
         <h2 className="text-[22px] md:text-2xl font-semibold flex items-center gap-2" style={{ color: "#F5F5F5", letterSpacing: "-0.01em" }}>
           <Calendar className="w-5 h-5" style={{ color: CHAMPAGNE }} />
-          Tìm SIM theo ngày sinh của bạn
+          Tìm SIM theo ngày sinh của Quý khách
         </h2>
       </div>
 
@@ -117,14 +117,15 @@ export default function SimNamSinhFinder() {
 
       {day && month && year && (
         <p className="mt-4 text-sm" style={{ color: "rgba(237,237,237,0.7)" }}>
-          Bạn sinh ngày{" "}
+          Ngày sinh{" "}
           <strong className="font-semibold" style={{ color: CHAMPAGNE }}>
             {normalize(Number(day))}/{normalize(Number(month))}/{year}
           </strong>{" "}
-          — tìm sim có số{" "}
+          — chúng tôi sẽ lọc những số có{" "}
           <strong className="font-semibold" style={{ color: CHAMPAGNE }}>
             {year}
-          </strong>
+          </strong>{" "}
+          trong dãy
         </p>
       )}
 
@@ -136,11 +137,12 @@ export default function SimNamSinhFinder() {
         style={ctaStyle}
       >
         <Search className="w-4 h-4 mr-2" />
-        Tìm SIM năm sinh
+        Xem SIM năm sinh
       </Button>
 
       <p className="mt-4 text-xs" style={{ color: "rgba(237,237,237,0.5)" }}>
-        Nhập ngày sinh dương lịch của bạn hoặc người thân. Hệ thống tự tìm sim có số năm sinh trong kho SIM Mobifone thật của CHONSOMOBIFONE.
+        Quý khách chọn ngày sinh dương lịch của bản thân hoặc của người thân. Hệ thống lọc trong kho SIM Mobifone thật
+        của CHONSOMOBIFONE những số có năm sinh tương ứng.
       </p>
     </div>
   );

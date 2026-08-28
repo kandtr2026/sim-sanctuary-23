@@ -12,7 +12,7 @@ import { buildBreadcrumb } from "@/lib/seo";
 
 const TITLE = "Xem SIM Hợp Tuổi – Tìm SIM Phong Thủy Theo Ngày Sinh";
 const DESCRIPTION =
-  "Nhập ngày sinh, giờ sinh, giới tính để tìm SIM hợp tuổi, hợp mệnh. Công cụ chấm điểm theo ngũ hành, âm dương, tổng nút, quẻ dịch trên kho SIM Mobifone thật.";
+  "Giúp Quý khách khoanh vùng SIM hợp tuổi, hợp mệnh từ ngày sinh và giờ sinh. Chấm điểm theo ngũ hành, âm dương, tổng nút, quẻ dịch trên kho Mobifone có sẵn.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-phong-thuy";
 
 export const metadata: Metadata = {
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     title: TITLE,
-    description: "Tìm SIM hợp tuổi theo ngày sinh, giờ sinh, giới tính. Chấm điểm SIM theo ngũ hành, âm dương, quẻ dịch.",
+    description: "Xem SIM hợp tuổi theo ngày sinh, giờ sinh và giới tính. Điểm chấm theo ngũ hành, âm dương, quẻ dịch.",
     url: CANONICAL,
     images: [
       {
@@ -43,7 +43,7 @@ const faqData: FaqItem[] = [
   {
     question: "Công cụ tìm SIM hợp tuổi hoạt động như thế nào?",
     answer:
-      "Bạn nhập ngày sinh (dương lịch), giờ sinh (âm lịch) và giới tính. Hệ thống tự tính mệnh theo nạp âm Can–Chi, cung phi Bát Trạch và trạng thái Âm–Dương, sau đó chấm điểm từng SIM trong kho theo 5 trụ cột: ngũ hành, âm dương, tổng nút, quẻ dịch và cấu trúc số.",
+      "Quý khách nhập ngày sinh (dương lịch), giờ sinh (âm lịch) và giới tính. Hệ thống tính mệnh theo nạp âm Can–Chi, cung phi Bát Trạch và trạng thái Âm–Dương, sau đó chấm điểm từng SIM trong kho theo 5 trụ cột: ngũ hành, âm dương, tổng nút, quẻ dịch và cấu trúc số.",
   },
   {
     question: "Mệnh được tính như thế nào?",
@@ -53,7 +53,7 @@ const faqData: FaqItem[] = [
   {
     question: "Tổng nút là gì và vì sao nên chọn sim nhiều nút?",
     answer:
-      "Tổng nút = tổng các chữ số của SIM chia 10 lấy số dư, từ 0 đến 9. SIM có 7–9 nút được xem là tốt, mang lại cảm giác vẹn toàn, thuận lợi khi giao dịch, kinh doanh.",
+      "Tổng nút = tổng các chữ số của SIM chia 10 lấy số dư, từ 0 đến 9. SIM có 7–9 nút được xem là tốt, mang lại cảm giác vẹn toàn — nhiều khách hàng làm kinh doanh, giao dịch thường xuyên ưu tiên nhóm số này.",
   },
   {
     question: "Quẻ dịch (80 quẻ Kinh Dịch) dùng để làm gì?",
@@ -63,12 +63,12 @@ const faqData: FaqItem[] = [
   {
     question: "Kết quả tra cứu có chính xác 100% không?",
     answer:
-      "Đây là công cụ tham khảo dựa trên phong thủy dân gian (ngũ hành, bát trạch, Kinh Dịch), không phải khoa học chính xác. Bạn nên kết hợp nhiều yếu tố và liên hệ tư vấn viên để chọn được số ưng ý nhất.",
+      "Đây là công cụ tham khảo dựa trên phong thủy dân gian (ngũ hành, bát trạch, Kinh Dịch), không phải khoa học chính xác. Quý khách nên cân nhắc thêm các yếu tố khác; đội ngũ tư vấn sẵn sàng đồng hành để Quý khách chọn được số ưng ý.",
   },
   {
     question: "Làm sao để đặt mua SIM sau khi xem kết quả?",
     answer:
-      "Bấm nút ĐẶT NGAY trên SIM bạn chọn, điền thông tin nhận hàng. Hỗ trợ giao SIM toàn quốc, sang tên chính chủ, nhận SIM rồi mới trả tiền (COD).",
+      "Quý khách bấm ĐẶT NGAY ở số đã chọn, điền thông tin nhận hàng. Chúng tôi giao SIM toàn quốc, hỗ trợ sang tên chính chủ, nhận SIM rồi mới trả tiền (COD).",
   },
 ];
 
@@ -92,15 +92,15 @@ const cardStyle: React.CSSProperties = {
 const PILLARS: { title: string; body: string }[] = [
   {
     title: "1. Ngũ hành bản mệnh & quan hệ sinh – khắc",
-    body: "Mỗi người sinh ra thuộc một mệnh Kim, Mộc, Thủy, Hỏa, Thổ theo nạp âm năm sinh. Mỗi con số 0–9 cũng mang một hành riêng (0,1 Thủy · 2,5,8 Thổ · 3,4 Mộc · 6,7 Kim · 9 Hỏa). SIM hợp tuổi cần có nhiều con số tương sinh hoặc đồng hành với bản mệnh, tránh số tương khắc.",
+    body: "Mỗi người thuộc một mệnh Kim, Mộc, Thủy, Hỏa, Thổ theo nạp âm năm sinh. Mỗi con số 0–9 cũng mang một hành riêng (0,1 Thủy · 2,5,8 Thổ · 3,4 Mộc · 6,7 Kim · 9 Hỏa). Số hợp tuổi là số có nhiều chữ số tương sinh hoặc đồng hành với bản mệnh, tránh chữ số tương khắc.",
   },
   {
     title: "2. Cân bằng Âm – Dương",
-    body: "Số chẵn (0, 2, 4, 6, 8) thuộc Âm, số lẻ (1, 3, 5, 7, 9) thuộc Dương. Cung phi và giờ sinh quyết định bạn thiên Âm hay Dương — SIM lý tưởng cần có số Âm – Dương bù trừ để đạt cân bằng, tránh vượng khí lệch một chiều.",
+    body: "Số chẵn (0, 2, 4, 6, 8) thuộc Âm, số lẻ (1, 3, 5, 7, 9) thuộc Dương. Cung phi và giờ sinh cho biết Quý khách thiên Âm hay Dương. Số lý tưởng cần Âm – Dương bù trừ để giữ cân bằng, tránh vượng khí lệch hẳn một chiều.",
   },
   {
     title: "3. Tổng nút cao (≥ 7 nút)",
-    body: "Tổng nút = tổng các chữ số chia 10 lấy dư. SIM đạt 7–9 nút được đánh giá tốt, phù hợp người kinh doanh, làm ăn, giao dịch nhiều — dễ nhớ và tạo cảm giác thuận buồm xuôi gió.",
+    body: "Tổng nút = tổng các chữ số chia 10 lấy dư. SIM đạt 7–9 nút được đánh giá tốt, phù hợp Quý khách kinh doanh, giao dịch nhiều — dễ nhớ và tạo cảm giác thuận buồm xuôi gió.",
   },
   {
     title: "4. Quẻ dịch tốt (80 quẻ Kinh Dịch)",
@@ -108,7 +108,7 @@ const PILLARS: { title: string; body: string }[] = [
   },
   {
     title: "5. Cấu trúc số nổi bật & cặp số đẹp",
-    body: "Các cặp số tài lộc (68, 86 – Lộc Phát; 39, 79 – Thần Tài), đuôi Tam hoa, Tứ quý hay sảnh tiến giúp SIM vừa đẹp về hình thức vừa thuận về mặt phong thủy và dễ định giá lại sau này.",
+    body: "Các cặp số tài lộc (68, 86 – Lộc Phát; 39, 79 – Thần Tài), đuôi Tam hoa, Tứ quý hay sảnh tiến vừa dễ nhớ khi giao dịch, vừa thuận về mặt phong thủy và giữ giá tốt nếu Quý khách muốn chuyển nhượng sau này.",
   },
 ];
 
@@ -127,8 +127,8 @@ export default function SimPhongThuyPage() {
                 </span>
               </h1>
               <p style={{ color: "rgba(237, 237, 237, 0.7)" }} className="mx-auto max-w-xl text-sm md:text-base leading-relaxed">
-                Nhập ngày sinh, giờ sinh, giới tính — chấm điểm SIM hợp mệnh theo ngũ hành, âm dương,
-                tổng nút và 80 quẻ Kinh Dịch. Gợi ý số từ kho SIM Mobifone thật.
+                Giúp Quý khách khoanh vùng số hợp mệnh chỉ từ ngày sinh, giờ sinh và giới tính.
+                Điểm chấm theo ngũ hành, âm dương, tổng nút và 80 quẻ Kinh Dịch, trên kho SIM Mobifone thật.
               </p>
             </div>
 
@@ -147,8 +147,8 @@ export default function SimPhongThuyPage() {
                 Cơ chế chấm điểm SIM: 5 trụ cột phong thủy
               </h2>
               <p className="mb-6 text-sm leading-relaxed" style={{ color: "rgba(237,237,237,0.7)" }}>
-                Công cụ tìm SIM hợp tuổi của CHONSOMOBIFONE đánh giá mỗi số theo 5 tiêu chí, chấm điểm
-                trực tiếp trên kho SIM thật để bạn dễ so sánh và chốt số nhanh.
+                Mỗi số trong kho được đánh giá theo 5 tiêu chí dưới đây. Điểm chấm ngay trên kho SIM thật,
+                giúp Quý khách đối chiếu nhanh và chủ động chọn số.
               </p>
               <div className="space-y-4">
                 {PILLARS.map((pillar) => (
@@ -179,10 +179,10 @@ export default function SimPhongThuyPage() {
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
-                  "Kho SIM Mobifone thật, giá niêm yết công khai",
-                  "Chấm điểm phong thủy minh bạch theo 5 trụ cột",
-                  "Sang tên chính chủ, nhận SIM rồi mới trả tiền",
-                  "Giao nội thành HCM 30 phút – 2h, toàn quốc 1–3 ngày",
+                  "Giá niêm yết công khai trên từng số, trong kho SIM Mobifone thật",
+                  "Điểm phong thủy hiển thị theo 5 trụ cột để Quý khách tự đối chiếu",
+                  "Sang tên chính chủ; Quý khách nhận SIM, kiểm tra rồi mới trả tiền",
+                  "Giao nội thành HCM 30 phút – 2h, các tỉnh thành khác 1–3 ngày",
                 ].map((item) => (
                   <div
                     key={item}
@@ -228,9 +228,9 @@ export default function SimPhongThuyPage() {
               }}
             >
               <p className="text-sm" style={{ color: "rgba(237, 237, 237, 0.8)" }}>
-                <strong style={{ color: "#D9B778" }}>Lưu ý:</strong> Kết quả chấm điểm phong thủy chỉ mang tính
-                chất tham khảo, dựa trên ngũ hành, bát trạch và Kinh Dịch dân gian. Việc chọn SIM nên kết hợp
-                nhiều yếu tố để được số ưng ý nhất.
+                <strong style={{ color: "#D9B778" }}>Lưu ý:</strong> Điểm phong thủy ở đây chỉ mang tính
+                tham khảo, dựa trên ngũ hành, bát trạch và Kinh Dịch theo quan niệm dân gian. Điểm số
+                là một căn cứ để so sánh, không phải lời khuyên đầu tư hay tài chính.
               </p>
             </div>
           </div>

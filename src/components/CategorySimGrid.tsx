@@ -138,7 +138,11 @@ const CategorySimGrid = ({
 
       {hasActiveSearch && (
         <button onClick={clearSearch} className="mb-4 text-sm text-primary hover:underline">
-          ← Quay lại kho {title.toLowerCase()}
+          {/* Trước đây nút ghép "Quay lại kho " + title.toLowerCase(), nên
+              title bắt đầu bằng "Kho" sẽ đọc thành "Quay lại kho kho sim…",
+              còn title dài thì nút dài theo. Nhãn cố định vừa gọn vừa không
+              buộc mọi trang phải đặt title theo một khuôn. */}
+          ← Quay lại toàn bộ kho SIM
         </button>
       )}
 

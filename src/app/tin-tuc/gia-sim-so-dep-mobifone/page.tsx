@@ -133,11 +133,11 @@ const faq: FaqItem[] = [
   },
   {
     q: "Đầu số cổ 090, 093 đắt hơn 07x bao nhiêu?",
-    a: "Không có tỉ lệ cố định, nhưng cùng dạng đuôi thì đầu số cổ thường cao hơn rõ rệt. Bảng giá theo đầu số trong bài cho thấy khoảng giá thực tế của từng đầu số trong kho hiện tại để bạn tự so.",
+    a: "Không có tỉ lệ cố định, nhưng cùng dạng đuôi thì đầu số cổ thường cao hơn rõ rệt. Bảng giá theo đầu số trong bài cho thấy khoảng giá thực tế của từng đầu số trong kho hiện tại, đủ để Quý khách tự đối chiếu.",
   },
   {
     q: "Có nên mua SIM số đẹp trả góp?",
-    a: "Trả góp phù hợp khi bạn cần một số cụ thể cho công việc và không muốn dồn tiền một lần. Cần đọc kỹ điều kiện, kỳ hạn và tổng số tiền phải trả trước khi ký. Thông tin về hình thức này xem tại trang sim trả góp trên site.",
+    a: "Trả góp phù hợp khi Quý khách cần một số cụ thể cho công việc và không muốn dồn tiền một lần. Cần đọc kỹ điều kiện, kỳ hạn và tổng số tiền phải trả trước khi ký. Thông tin về hình thức này xem tại trang sim trả góp trên site.",
   },
   {
     q: "Giá trong bài có phải giá thị trường chung không?",
@@ -164,10 +164,11 @@ export default async function GiaSimSoDepPage() {
       ]}
       lead={
         <p>
-          Câu hỏi &ldquo;SIM này bao nhiêu&rdquo; không có một đáp án, vì giá SIM số đẹp phụ thuộc
-          vào sáu yếu tố khác nhau và chúng nhân lên với nhau. Bài này mổ xẻ từng yếu tố, kèm bảng
-          khoảng giá <strong>lấy trực tiếp từ kho hàng thật</strong> — thấp nhất, trung vị và cao
-          nhất theo từng dòng số, để bạn có mặt bằng mà so.
+          Một dãy SIM tứ quý có thể dừng ở vài triệu, cũng có thể lên vài trăm triệu. Khoảng cách đó
+          không do cảm tính: giá SIM số đẹp hình thành từ sáu yếu tố, và chúng nhân lên với nhau. Bài
+          viết mổ xẻ từng yếu tố, kèm bảng khoảng giá{" "}
+          <strong>lấy trực tiếp từ kho hàng thật</strong> — thấp nhất, trung vị và cao nhất theo từng
+          dòng số, để Quý khách có mặt bằng mà đối chiếu.
         </p>
       }
     >
@@ -196,8 +197,9 @@ export default async function GiaSimSoDepPage() {
 
       <h2 id="sau-yeu-to">Sáu yếu tố quyết định giá một SIM</h2>
       <p>
-        Người mới thường nghĩ giá SIM do &ldquo;đẹp&rdquo; quyết định, nhưng &ldquo;đẹp&rdquo; là
-        tổng của nhiều tiêu chí đo được. Xếp theo mức ảnh hưởng từ mạnh đến nhẹ:
+        Người mới thường nghĩ giá SIM do &ldquo;đẹp&rdquo; quyết định. Thực tế
+        &ldquo;đẹp&rdquo; là tổng của nhiều tiêu chí đo được. Xếp theo mức ảnh hưởng từ mạnh đến
+        nhẹ:
       </p>
 
       <DataTable
@@ -212,7 +214,7 @@ export default async function GiaSimSoDepPage() {
           <p>
             Số liệu dưới đây tính từ {vnd.format(total)} SIM đang có giá niêm yết trong kho. Cột
             &ldquo;Trung vị&rdquo; đáng tin hơn giá trung bình, vì một vài số cực đắt không kéo lệch
-            được nó — đây chính là mức bạn nên dùng làm mốc tham khảo.
+            được nó — đây chính là mức nên dùng làm mốc tham khảo.
           </p>
 
           <DataTable
@@ -229,7 +231,7 @@ export default async function GiaSimSoDepPage() {
         </>
       ) : (
         <Note tone="info" title="Bảng giá đang được cập nhật">
-          Kho số tạm thời chưa đọc được để dựng bảng khoảng giá. Bạn có thể xem giá niêm yết trực
+          Kho số tạm thời chưa đọc được để dựng bảng khoảng giá. Quý khách xem giá niêm yết trực
           tiếp tại <Link href="/mua-sim-gia-re">kho SIM MobiFone</Link>.
         </Note>
       )}
@@ -239,8 +241,8 @@ export default async function GiaSimSoDepPage() {
           <h2 id="bang-gia-theo-dau-so">Khoảng giá theo đầu số</h2>
           <p>
             Bảng này trả lời câu hỏi &ldquo;đầu số cổ đắt hơn bao nhiêu&rdquo; bằng số liệu thay vì
-            cảm nhận. Lưu ý mỗi đầu số có cơ cấu hàng khác nhau, nên chênh lệch phản ánh cả tệp hàng
-            chứ không chỉ giá trị đầu số:
+            cảm nhận. Lưu ý mỗi đầu số có cơ cấu hàng khác nhau. Chênh lệch vì vậy phản ánh cả tệp
+            hàng, không riêng giá trị đầu số:
           </p>
 
           <DataTable
@@ -261,8 +263,8 @@ export default async function GiaSimSoDepPage() {
 
       <h2 id="theo-ngan-sach">Chọn theo ngân sách: nên nhắm dòng nào</h2>
       <p>
-        Cách thực dụng nhất là đi từ ngân sách, không đi từ dòng số. Với mỗi mức tiền, luôn có một
-        dòng cho bạn dãy số dễ nhớ nhất trong tầm đó:
+        Cách thực dụng nhất là đi từ ngân sách, không đi từ dòng số. Mỗi mức tiền đều có một dòng
+        cho dãy số dễ nhớ nhất trong tầm đó:
       </p>
       <ul>
         <li>
@@ -284,7 +286,7 @@ export default async function GiaSimSoDepPage() {
       </ul>
 
       <ArticleSimTable
-        title="SIM giá mềm đang còn hàng, đuôi lộc phát 68 · 86"
+        title="SIM đuôi lộc phát 68 · 86 đang còn hàng"
         filter={{ suffixes: ["68", "86"] }}
         limit={8}
         moreHref="/mua-sim-gia-re"
@@ -293,9 +295,7 @@ export default async function GiaSimSoDepPage() {
       />
 
       <h2 id="dinh-gia">Tự định giá một số trước khi hỏi mua</h2>
-      <p>
-        Trước khi nhắn hỏi giá, bạn có thể tự ước lượng để biết mình đang ở đâu:
-      </p>
+      <p>Trước khi nhắn hỏi giá, năm bước dưới đây cho một ước lượng đủ dùng:</p>
       <ol>
         <li>Xác định dòng số của nó — nhìn bốn số cuối trước.</li>
         <li>Xem đầu số là cổ (090, 093) hay mới (07x, 089).</li>
@@ -322,10 +322,10 @@ export default async function GiaSimSoDepPage() {
       <h2 id="ket">Chốt lại</h2>
       <p>
         Giá SIM số đẹp không có bảng giá cố định, nhưng có <em>mặt bằng</em> — và mặt bằng đó đo
-        được. Biết dòng số, biết đầu số, biết trung vị của dòng đó là đủ để bạn thương lượng không
-        bị hớ. Nếu muốn xem số thật kèm giá thật, mở{" "}
+        được. Biết dòng số, biết đầu số, biết trung vị của dòng đó là đủ để thương lượng một cách
+        vững vàng. Muốn xem số thật kèm giá thật, mở{" "}
         <Link href="/mua-sim-gia-re">kho SIM MobiFone</Link>; muốn lọc theo tuổi và mệnh thì dùng{" "}
-        <Link href="/sim-phong-thuy">công cụ tìm SIM hợp tuổi</Link>; còn nếu cần chia nhỏ khoản
+        <Link href="/sim-phong-thuy">công cụ tìm SIM hợp tuổi</Link>; còn khi cần chia nhỏ khoản
         tiền, xem <Link href="/sim-tra-gop">hình thức trả góp</Link>.
       </p>
     </ArticleShell>

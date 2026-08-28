@@ -94,7 +94,7 @@ const faq: FaqItem[] = [
   },
   {
     q: "Đuôi 49 và 53 có thật sự xấu không?",
-    a: "Đây là niềm tin xuất phát từ câu nói dân gian về tuổi 49 và 53, không liên quan trực tiếp tới hệ thống ngũ hành hay Bát Cực. Xét theo Bát Cực Linh Số, cặp 49 thuộc Thiên Y — nhóm cát. Vì vậy đây là ví dụ rõ nhất cho việc hai hệ đánh giá có thể trái ngược, và người mua nên biết mình đang tin theo hệ nào.",
+    a: "Đây là niềm tin xuất phát từ câu nói dân gian về tuổi 49 và 53, không liên quan trực tiếp tới hệ thống ngũ hành hay Bát Cực. Xét theo Bát Cực Linh Số, cặp 49 thuộc Thiên Y — nhóm cát. Vì vậy đây là ví dụ rõ nhất cho việc hai hệ đánh giá có thể trái ngược, và người mua nên biết rõ đang tin theo hệ nào.",
   },
   {
     q: "Cặp số nào không thuộc năng lượng nào?",
@@ -122,10 +122,10 @@ export default function YNghia2SoCuoiPage() {
       ]}
       lead={
         <p>
-          Hai số cuối là phần người khác đọc lại nhiều nhất khi nhắc số của bạn, nên cũng là phần
-          được gán ý nghĩa nhiều nhất. Vấn đề là mỗi nơi giải nghĩa một kiểu: nơi đọc theo đồng âm,
-          nơi tra theo Bát Cực Linh Số, nơi xét ngũ hành. Bài này đặt cả ba cách cạnh nhau và có
-          bảng tra trọn 100 cặp từ 00 đến 99.
+          Cặp 49: dân gian tránh, còn Bát Cực Linh Số xếp vào nhóm cát. Cặp 79 được gọi là thần tài
+          lớn, nhưng cùng hệ Bát Cực lại xếp vào nhóm hung. Hai số cuối là phần người khác đọc lại
+          nhiều nhất, nên cũng là phần bị gán ý nghĩa theo nhiều hệ khác nhau. Bài viết đặt cả ba
+          cách đọc cạnh nhau và kèm bảng tra trọn 100 cặp từ 00 đến 99.
         </p>
       }
     >
@@ -187,13 +187,18 @@ export default function YNghia2SoCuoiPage() {
         </li>
       </ul>
       <p>
-        Rắc rối chỉ xuất hiện khi ba hệ nói ngược nhau — và điều đó xảy ra thường hơn bạn tưởng.
-        Cặp 49 bị dân gian tránh vì câu nói về tuổi 49, nhưng xét theo Bát Cực Linh Số thì 49 thuộc
-        Thiên Y, cùng nhóm với 68. Không có cách hoà giải nào ngoài việc bạn tự chọn tin theo hệ
-        nào, rồi dùng nhất quán.
+        Rắc rối xuất hiện khi ba hệ nói ngược nhau, và trường hợp đó không hề hiếm. Cặp 49 bị dân
+        gian tránh vì câu nói về tuổi 49, nhưng xét theo Bát Cực Linh Số thì 49 thuộc Thiên Y, cùng
+        nhóm với 68. Không có cách hoà giải nào giữa hai hệ. Việc cần làm là chọn một hệ để tin, rồi
+        dùng nhất quán.
       </p>
 
       <h2 id="top-10">Mười cặp được săn nhiều nhất</h2>
+      <p>
+        Mười cặp dưới đây có tên gọi riêng trên thị trường và được hỏi nhiều nhất. Phần lớn thuộc
+        nhóm lộc, phát, thần tài — nhóm được giới kinh doanh và bán lẻ ưa chuộng vì dễ đọc lại trên
+        điện thoại.
+      </p>
 
       <DataTable
         head={["Cặp", "Tên gọi thị trường", "Năng lượng Bát Cực", "Từ khoá năng lượng"]}
@@ -208,10 +213,10 @@ export default function YNghia2SoCuoiPage() {
         Ngược lại, 78 — cặp ít được nhắc hơn — lại thuộc Diên Niên, một trong bốn năng lượng cát.
       </p>
       <p>
-        Không hệ nào &ldquo;đúng&rdquo; hơn hệ nào; chúng ra đời từ hai truyền thống khác nhau. Điều
-        nên làm là chọn hệ mình tin rồi dùng nhất quán. Nếu bạn theo cách đọc đồng âm dân gian, đuôi
-        79 vẫn là số được thị trường săn đón và có giá; nếu bạn theo Bát Cực Linh Số, hãy xem toàn bộ
-        các cặp trong dãy chứ không chỉ hai số cuối — cách làm có trong bài{" "}
+        Không hệ nào &ldquo;đúng&rdquo; hơn hệ nào; chúng ra đời từ hai truyền thống khác nhau. Việc
+        nên làm là chọn một hệ để tin rồi dùng nhất quán. Theo cách đọc đồng âm dân gian, đuôi 79
+        vẫn là số được thị trường săn đón và có giá. Theo Bát Cực Linh Số, phép soi phải trải khắp
+        các cặp trong dãy. Hai số cuối chỉ là một cặp trong số đó — cách soi đủ dãy có trong bài{" "}
         <Link href="/tin-tuc/bat-cuc-linh-so-la-gi">Bát Cực Linh Số</Link>.
       </p>
 
@@ -265,7 +270,7 @@ export default function YNghia2SoCuoiPage() {
         </li>
         <li>
           <strong>Các hệ phong thuỷ không đồng thuận.</strong> Như đã nói ở trên, 49 thuộc nhóm cát
-          theo Bát Cực. Nếu bạn xem số theo hệ này thì lý do tránh 49 không còn đứng vững.
+          theo Bát Cực. Với người xem số theo hệ này, lý do tránh 49 không còn đứng vững.
         </li>
       </ul>
 
@@ -289,7 +294,7 @@ export default function YNghia2SoCuoiPage() {
         </li>
         <li>
           <strong>Đến lúc còn vài số ngang nhau</strong> thì mở bảng 100 cặp ở trên để chọn hai số
-          cuối theo hệ bạn tin.
+          cuối theo hệ mà Quý khách tin.
         </li>
         <li>
           <strong>Kiểm tra phần thực tế.</strong> Số đẹp mà không sang tên được thì vô nghĩa — xem{" "}

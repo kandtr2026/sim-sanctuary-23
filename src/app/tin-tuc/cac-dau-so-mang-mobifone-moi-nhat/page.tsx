@@ -87,7 +87,7 @@ export default function TinTucBai6Page() {
             </h2>
 
             <p>
-              Để nhanh chóng biết một số điện thoại có phải của Mobifone hay không, bạn chỉ cần đối chiếu 3 chữ số đầu với danh sách phía trên: <strong>089, 090, 093, 070, 076, 077, 078, 079</strong>. Ngoài ra, bạn có thể gọi tổng đài <strong>9090</strong> (miễn phí) để kiểm tra thông tin thuê bao.
+              Để biết một số điện thoại có phải của Mobifone hay không, chỉ cần đối chiếu 3 chữ số đầu với danh sách phía trên: <strong>089, 090, 093, 070, 076, 077, 078, 079</strong>. Ngoài ra, có thể gọi tổng đài <strong>9090</strong> (miễn phí) để kiểm tra thông tin thuê bao.
             </p>
 
             <h2 className="text-xl md:text-2xl font-bold text-primary mt-8 mb-4">
@@ -95,11 +95,11 @@ export default function TinTucBai6Page() {
             </h2>
 
             <p>
-              Mobifone hiện đang khai thác <strong>8 đầu số 10 số</strong> gồm 089, 090, 093, 070, 076, 077, 078, 079. Mỗi đầu số có đặc điểm và mức giá riêng khi lựa chọn SIM số đẹp. Bạn có thể xem ngay{" "}
+              Mobifone hiện đang khai thác <strong>8 đầu số 10 số</strong> gồm 089, 090, 093, 070, 076, 077, 078, 079. Mỗi đầu số có đặc điểm và khoảng giá riêng khi chọn SIM số đẹp. Mời Quý khách xem{" "}
               <Link href="/" className="text-gold hover:underline font-semibold">
                 kho sim Mobifone đang có
               </Link>{" "}
-              tại CHONSOMOBIFONE.COM để chọn được số ưng ý, giao hàng toàn quốc và sang tên chính chủ.
+              tại CHONSOMOBIFONE.COM: giá niêm yết công khai, giao hàng toàn quốc và hỗ trợ sang tên chính chủ.
             </p>
           </div>
         </article>

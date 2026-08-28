@@ -101,7 +101,7 @@ export default async function TinTucPage() {
           Toàn bộ kiến thức cần khi chọn một dãy số: bảng tra ngũ hành và Bát Cực Linh Số, cách tính
           quẻ Kinh Dịch, ý nghĩa từng đuôi số, khoảng giá theo từng dòng SIM, cùng các hướng dẫn thủ
           tục MobiFone thường gặp. Bài nào có bảng tra thì bảng được dựng từ chính dữ liệu mà công cụ
-          trên site đang dùng, nên bài viết và kết quả bạn thấy khi tra cứu luôn khớp nhau.
+          trên site đang dùng, nên nội dung bài viết và kết quả Quý khách thấy khi tra cứu luôn khớp nhau.
         </p>
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

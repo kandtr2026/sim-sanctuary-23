@@ -12,7 +12,7 @@ import { buildBreadcrumb } from "@/lib/seo";
 
 const TITLE = "Sim Năm Sinh – Tìm SIM Theo Ngày Sinh, Hợp Tuổi";
 const DESCRIPTION =
-  "Tìm sim năm sinh theo ngày sinh của bạn: nhập ngày/tháng/năm sinh để xem kho sim có số năm sinh, hợp tuổi. Giá công khai, sang tên chính chủ, giao toàn quốc.";
+  "Tìm sim năm sinh theo ngày sinh của Quý khách: chọn ngày/tháng/năm để xem những số có năm sinh trong dãy. Giá công khai, sang tên chính chủ, giao toàn quốc.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-nam-sinh";
 
 export const metadata: Metadata = {
@@ -35,8 +35,8 @@ interface FaqItem {
 
 const faqData: FaqItem[] = [
   {
-    question: "Làm sao tìm sim năm sinh của mình?",
-    answer: "Nhập ngày, tháng, năm sinh của bạn vào ô trên. Hệ thống tự tìm những sim có số năm sinh (4 số của năm trong dãy số) và hiển thị để bạn chọn.",
+    question: "Tìm sim theo năm sinh như thế nào?",
+    answer: "Quý khách chọn ngày, tháng, năm sinh ở ô phía trên. Hệ thống lọc sẵn những sim có số năm sinh trong dãy số và hiển thị kèm giá để Quý khách chọn.",
   },
   {
     question: "Sim năm sinh có đắt không?",
@@ -44,11 +44,11 @@ const faqData: FaqItem[] = [
   },
   {
     question: "Chọn sim hợp tuổi như thế nào?",
-    answer: "Theo quan niệm dân gian, nhiều người chọn sim gắn với năm sinh của mình hoặc người thân vì dễ nhớ và mang ý nghĩa cá nhân. Đây là niềm tin tham khảo, không phải khẳng định tuyệt đối.",
+    answer: "Theo quan niệm dân gian, nhiều người chọn sim gắn với năm sinh của bản thân hoặc người thân vì dễ nhớ và mang ý nghĩa cá nhân. Đây là niềm tin để tham khảo, không phải khẳng định tuyệt đối.",
   },
   {
     question: "Mua sim năm sinh có sang tên chính chủ không?",
-    answer: "Được. Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Bạn nhận SIM trước, kiểm tra kỹ rồi mới trả tiền.",
+    answer: "Được. Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới trả tiền.",
   },
 ];
 
@@ -71,23 +71,23 @@ const cardStyle: React.CSSProperties = {
 const PILLARS: { title: string; body: string }[] = [
   {
     title: "Sim năm sinh là gì?",
-    body: "Sim năm sinh là dòng sim có số năm sinh ở các số cuối — gắn với năm sinh của bạn hoặc người thân. Nhiều người chọn vì dễ nhớ và mang ý nghĩa cá nhân. Nhập ngày sinh phía trên, hệ thống sẽ tự tìm những sim có số năm sinh phù hợp trong kho để bạn chọn.",
+    body: "Sim năm sinh là dòng sim có số năm sinh nằm ở các số cuối — năm sinh của Quý khách hoặc của người thân. Nhiều người chọn vì dễ nhớ và mang ý nghĩa riêng. Quý khách chỉ cần chọn ngày sinh phía trên, hệ thống lọc sẵn những số có năm sinh tương ứng đang có trong kho.",
   },
   {
     title: "Lợi ích khi chọn sim năm sinh",
-    body: "Sim có số năm sinh giúp bạn dễ dàng ghi nhớ số điện thoại, tạo ấn tượng cá nhân và chuyên nghiệp khi giao dịch. Nhiều người chọn sim có số năm sinh của mình hoặc người thân như một cách lưu giữ kỷ niệm và thể hiện phong cách riêng.",
+    body: "Số có sẵn năm sinh trong dãy thì Quý khách nhớ nhanh hơn, đọc cho đối tác cũng gọn hơn. Với nhiều người, đó còn là cách lưu giữ một dấu mốc riêng — sinh nhật của bản thân, của con, của người thân.",
   },
   {
     title: "Giá sim năm sinh có đắt không?",
-    body: "Sim năm sinh Mobifone có giá từ vài trăm nghìn đến vài chục triệu đồng, tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số quanh số năm sinh. Giá niêm yết công khai trên kho, không phát sinh phí ẩn.",
+    body: "Sim năm sinh Mobifone có giá từ vài trăm nghìn đến vài chục triệu đồng, tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số quanh số năm sinh. Giá niêm yết công khai trên kho, không phát sinh phí ẩn — Quý khách so giá trước, quyết định sau.",
   },
   {
     title: "Chọn sim hợp tuổi theo quan niệm dân gian",
-    body: "Theo quan niệm dân gian, nhiều người chọn sim gắn với năm sinh của mình hoặc người thân vì dễ nhớ và mang ý nghĩa cá nhân. Nếu muốn phân tích sâu hơn theo ngũ hành, âm dương, quẻ dịch, bạn có thể dùng công cụ Sim phong thủy hợp tuổi.",
+    body: "Theo quan niệm dân gian, nhiều người chọn sim gắn với năm sinh của bản thân hoặc người thân vì dễ nhớ và mang ý nghĩa cá nhân. Nếu Quý khách muốn phân tích sâu hơn theo ngũ hành, âm dương, quẻ dịch, hãy dùng thêm công cụ Sim phong thủy hợp tuổi.",
   },
   {
     title: "Cam kết khi mua sim tại CHONSOMOBIFONE",
-    body: "Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Bạn nhận SIM trước, kiểm tra kỹ rồi mới trả tiền. Giao nội thành HCM 30 phút – 2h, toàn quốc 1–3 ngày. Hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.",
+    body: "Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới trả tiền. Giao nội thành HCM 30 phút – 2h, toàn quốc 1–3 ngày. Chúng tôi hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.",
   },
 ];
 
@@ -106,7 +106,8 @@ export default function SimNamSinhPage() {
                 </span>
               </h1>
               <p style={{ color: "rgba(237, 237, 237, 0.7)" }} className="mx-auto max-w-xl text-sm md:text-base leading-relaxed">
-                Nhập ngày/tháng/năm sinh — tìm sim có số năm sinh, hợp tuổi. Giá niêm yết công khai, sang tên chính chủ, giao toàn quốc.
+                Quý khách chọn ngày/tháng/năm sinh, chúng tôi lọc sẵn những số có năm sinh trong dãy. Giá niêm yết
+                công khai, sang tên chính chủ, giao toàn quốc.
               </p>
             </div>
 
@@ -125,7 +126,8 @@ export default function SimNamSinhPage() {
                 Sim năm sinh — thông tin cần biết
               </h2>
               <p className="mb-6 text-sm leading-relaxed" style={{ color: "rgba(237,237,237,0.7)" }}>
-                Kho sim năm sinh Mobifone của CHONSOMOBIFONE với hàng ngàn số có sẵn, giá niêm yết công khai để bạn dễ so sánh và chọn số nhanh.
+                Kho sim năm sinh Mobifone của CHONSOMOBIFONE có hàng ngàn số sẵn hàng, mỗi số một mức giá niêm yết
+                rõ ràng để Quý khách đối chiếu và chủ động chọn.
               </p>
               <div className="space-y-4">
                 {PILLARS.map((pillar) => (
@@ -156,10 +158,10 @@ export default function SimNamSinhPage() {
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
-                  "Kho SIM Mobifone thật, giá niêm yết công khai",
-                  "Tra cứu sim năm sinh nhanh theo ngày sinh",
-                  "Sang tên chính chủ, nhận SIM rồi mới trả tiền",
-                  "Giao nội thành HCM 30 phút – 2h, toàn quốc 1–3 ngày",
+                  "Giá niêm yết công khai trên từng số, trong kho SIM Mobifone thật",
+                  "Tra sim theo ngày sinh chỉ trong một bước",
+                  "Sang tên chính chủ; Quý khách nhận SIM, kiểm tra rồi mới trả tiền",
+                  "Giao nội thành HCM 30 phút – 2h, các tỉnh thành khác 1–3 ngày",
                 ].map((item) => (
                   <div
                     key={item}
@@ -205,7 +207,9 @@ export default function SimNamSinhPage() {
               }}
             >
               <p className="text-sm" style={{ color: "rgba(237, 237, 237, 0.8)" }}>
-                <strong style={{ color: "#D9B778" }}>Lưu ý:</strong> Sim năm sinh là dòng sim có số năm sinh ở các số cuối, mang ý nghĩa cá nhân và dễ nhớ. Việc chọn sim nên kết hợp nhiều yếu tố để được số ưng ý nhất.
+                <strong style={{ color: "#D9B778" }}>Lưu ý:</strong> Sim năm sinh là dòng sim có số năm sinh ở các số
+                cuối, dễ nhớ và mang ý nghĩa riêng với người dùng. Quý khách nên cân nhắc thêm nhiều yếu tố để chọn
+                được số ưng ý.
               </p>
             </div>
           </div>

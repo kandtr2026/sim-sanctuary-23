@@ -31,6 +31,29 @@ type Props = {
   params: Promise<{ dauso: string; loai: string }>;
 };
 
+// ── Mở bài luân phiên cho 24 trang combo ─────────────────────────────────────
+// 8 đầu số × 3 loại đuôi = 24 trang cùng khuôn. Chỉ số biến thể = (vị trí đầu số
+// trong DAU_SO_PREFIXES + vị trí loại trong LOAI_KEYS) % 4 → deterministic, nên
+// SSR/ISR luôn dựng ra cùng một chuỗi (không hydration mismatch), mà hai trang
+// cạnh nhau không mở bài giống nhau. Ý nghĩa đuôi (LOAI[loai].y) giữ nguyên.
+const INTRO_VARIANTS: ((dauso: string, label: string, y: string) => string)[] = [
+  (d, label, y) =>
+    `Quý khách cần một số vừa đúng đầu ${d}, vừa đúng đuôi ${label}? Kho dưới đây đã lọc sẵn: ${y}. Giá niêm yết công khai, sang tên chính chủ, giao tận nơi nội thành HCM.`,
+  (d, label, y) =>
+    `Toàn bộ số đầu ${d} có đuôi ${label} đang có hàng được xếp cạnh nhau kèm giá, để Quý khách so trong một lần: ${y}. Sang tên chính chủ, giao tận nơi nội thành HCM.`,
+  (d, label, y) =>
+    `Hai tiêu chí gộp một chỗ: đầu ${d} quen tay và đuôi ${label} — ${y}. Mỗi số đều hiện giá công khai, sang tên chính chủ, giao tận nơi nội thành HCM.`,
+  (d, label, y) =>
+    `Đội ngũ tư vấn đã tách riêng nhóm số đầu ${d} đuôi ${label} để Quý khách khỏi lọc thủ công: ${y}. Giá công khai, sang tên chính chủ, giao tận nơi nội thành HCM.`,
+];
+
+const introFor = (dauso: string, loai: keyof typeof LOAI): string => {
+  const idx =
+    (Math.max(0, DAU_SO_PREFIXES.indexOf(dauso)) + Math.max(0, LOAI_KEYS.indexOf(loai))) %
+    INTRO_VARIANTS.length;
+  return INTRO_VARIANTS[idx](dauso, LOAI[loai].label, LOAI[loai].y);
+};
+
 export function generateStaticParams() {
   return DAU_SO_PREFIXES.flatMap((dauso) =>
     LOAI_KEYS.map((loai) => ({ dauso, loai })),
@@ -42,8 +65,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!isDauSoPrefix(dauso) || !isLoaiKey(loai)) return {};
 
   const label = LOAI[loai].label;
+  const duoi = LOAI[loai].suffixes.join(" và ");
   const title = `Sim ${label} đầu số ${dauso} Mobifone | Giá tốt, chính chủ`;
-  const description = `Kho sim ${label} đầu số ${dauso} Mobifone đẹp, giá tốt: ${LOAI[loai].y}. Giá niêm yết công khai, sang tên chính chủ, giao nội thành HCM 30 phút – 2 giờ.`;
+  const description = `Kho sim ${label} đầu số ${dauso} Mobifone, đuôi ${duoi}. Giúp Quý khách chọn nhanh: giá niêm yết công khai, sang tên chính chủ, giao nội thành HCM 30 phút – 2 giờ.`;
   const canonical = `${BASE_URL}/sim-dau-so/${dauso}/${loai}`;
 
   return {
@@ -53,7 +77,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       type: "website",
       title,
-      description: `Kho sim ${label} đầu số ${dauso} Mobifone đẹp, giá tốt. Giá công khai, chính chủ.`,
+      description: `Kho sim ${label} đầu số ${dauso} Mobifone, đuôi ${duoi}. Giá công khai, sang tên chính chủ.`,
       url: canonical,
       images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
     },
@@ -75,15 +99,15 @@ export default async function SimDauSoLoaiPage({ params }: Props) {
   const faqItems = [
     {
       q: `Sim ${label} đầu số ${dauso} giá bao nhiêu?`,
-      a: `Sim ${label} đầu số ${dauso} Mobifone có giá từ vài trăm nghìn đến hàng chục triệu đồng, tùy độ đẹp của dãy số. Giá niêm yết công khai ngay trên kho, không phát sinh phí ẩn.`,
+      a: `Sim ${label} đầu số ${dauso} Mobifone trải từ vài trăm nghìn đến hàng chục triệu đồng, tùy độ đẹp của dãy số phía trước đuôi. Từng số đều hiện giá ngay trong kho để Quý khách so trước, không phát sinh phí ẩn.`,
     },
     {
       q: `Mua sim ${label} đầu số ${dauso} có sang tên chính chủ được không?`,
-      a: `Được. Toàn bộ sim ${label} đầu số ${dauso} tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Bạn nhận SIM trước, kiểm tra kỹ rồi mới trả tiền; hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.`,
+      a: `Được. Toàn bộ sim ${label} đầu số ${dauso} tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới trả tiền; chúng tôi hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.`,
     },
     {
       q: `Giao sim ${label} đầu số ${dauso} mất bao lâu?`,
-      a: "Nội thành TP.HCM: 30 phút – 2 giờ làm việc. Các tỉnh thành khác: 1–3 ngày làm việc qua chuyển phát nhanh. Thanh toán COD khi nhận hàng hoặc chuyển khoản trước.",
+      a: "Nội thành TP.HCM: 30 phút – 2 giờ làm việc. Các tỉnh thành khác: 1–3 ngày làm việc qua chuyển phát nhanh. Quý khách thanh toán COD khi nhận hàng, hoặc chuyển khoản trước.",
     },
   ];
 
@@ -124,7 +148,7 @@ export default async function SimDauSoLoaiPage({ params }: Props) {
               <span className="text-gold">giá tốt, chính chủ</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              {loaiInfo.y}. Giá niêm yết công khai, sang tên chính chủ, giao tận nơi nội thành HCM.
+              {introFor(dauso, loai)}
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a
@@ -149,8 +173,8 @@ export default async function SimDauSoLoaiPage({ params }: Props) {
           
           <CategorySimGrid
             title={`Kho Sim ${label} Đầu Số ${dauso} Cập Nhật`}
-            searchPlaceholder={`Nhập số hoặc *39 / *79 để tìm ${label} đầu ${dauso}...`}
-            emptyText={`Hiện chưa có sim ${label} đầu số ${dauso} phù hợp trong kho. Vui lòng thử lại sau.`}
+            searchPlaceholder={`Nhập số, hoặc *${loaiInfo.suffixes[0]} / *${loaiInfo.suffixes[1]} để tìm theo đuôi...`}
+            emptyText={`Kho hiện chưa có số ${label} đầu ${dauso} khớp yêu cầu. Quý khách thử đuôi khác, hoặc liên hệ 0938.868.868 để được tư vấn.`}
             matchPrefixes={[dauso]}
             matchSuffixes={[...loaiInfo.suffixes]}
           />

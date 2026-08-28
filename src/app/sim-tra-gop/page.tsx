@@ -18,7 +18,7 @@ const ZALO_URL = "https://zalo.me/0933356666";
 
 const TITLE = "Mua Sim Trả Góp | Chọn SIM Số Đẹp Trả Góp Lãi Suất Tốt";
 const DESCRIPTION =
-  "Mua sim số đẹp trả góp tại CHONSOMOBIFONE.COM: chọn số tứ quý, thần tài, lộc phát trả góp linh hoạt. Điều kiện đơn giản, sang tên chính chủ sau khi tất toán.";
+  "Mua sim số đẹp trả góp tại CHONSOMOBIFONE.COM: tứ quý, thần tài, lộc phát. Trả trước 10–30%, kỳ hạn 6–12 tháng, sang tên chính chủ khi tất toán.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-tra-gop";
 
 export const metadata: Metadata = {
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     title: TITLE,
-    description: "Chọn sim số đẹp trả góp: tứ quý, thần tài, lộc phát. Điều kiện đơn giản, sang tên sau khi tất toán.",
+    description: "Chọn sim số đẹp trả góp: tứ quý, thần tài, lộc phát. Trả trước 10–30%, sang tên chính chủ khi tất toán.",
     url: CANONICAL,
     images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
   },
@@ -37,19 +37,19 @@ export const metadata: Metadata = {
 const faqItems = [
   {
     q: "Mua sim trả góp là gì?",
-    a: "Mua sim trả góp là hình thức bạn thanh toán trước một phần giá trị sim (thường 10–30%), phần còn lại chia nhỏ trả dần theo tháng. Khi thanh toán đủ, sim được sang tên chính chủ cho bạn.",
+    a: "Mua sim trả góp giúp Quý khách sở hữu số đẹp mà không phải trả toàn bộ một lần: thanh toán trước một phần giá trị sim (thường 10–30%), phần còn lại chia nhỏ trả dần theo tháng. Khi thanh toán đủ, sim được sang tên chính chủ cho Quý khách.",
   },
   {
     q: "Điều kiện để mua sim trả góp?",
-    a: "Điều kiện cơ bản: có CMND/CCCD còn hiệu lực, thu nhập ổn định và không có lịch sử nợ xấu. Với sim giá trị lớn, nhân viên sẽ tư vấn cụ thể hồ sơ và kỳ hạn phù hợp.",
+    a: "Điều kiện cơ bản: có CMND/CCCD còn hiệu lực, thu nhập ổn định và không có lịch sử nợ xấu. Với sim giá trị lớn, đội ngũ tư vấn sẽ trao đổi cụ thể về hồ sơ và kỳ hạn phù hợp với dòng tiền của Quý khách.",
   },
   {
     q: "Khi nào sim được sang tên chính chủ?",
-    a: "Sim được sang tên chính chủ ngay sau khi bạn thanh toán đủ toàn bộ giá trị sim theo thỏa thuận. Trong thời gian trả góp, mọi cam kết về sang tên đều được ghi rõ trong hợp đồng.",
+    a: "Sim được sang tên chính chủ ngay sau khi Quý khách thanh toán đủ toàn bộ giá trị sim theo thỏa thuận. Trong thời gian trả góp, mọi cam kết về việc sang tên đều được ghi rõ trong hợp đồng.",
   },
   {
     q: "Mua sim trả góp có phải trả lãi không?",
-    a: "Tùy chương trình. Có những gói lãi suất 0% trong thời gian đầu, sau đó tính lãi theo thỏa thuận trong hợp đồng. Toàn bộ chi phí được nêu rõ trước khi bạn ký, không phát sinh phí ẩn.",
+    a: "Tùy chương trình. Có những gói lãi suất 0% trong thời gian đầu, sau đó tính lãi theo thỏa thuận trong hợp đồng. Toàn bộ chi phí, kỳ hạn và số tiền phải trả mỗi tháng được nêu rõ trước khi Quý khách ký, không phát sinh phí ẩn.",
   },
 ];
 
@@ -97,7 +97,7 @@ export default async function SimTraGopPage() {
               Mua Sim Trả Góp — <span className="text-gold">chọn số, trả dần hàng tháng</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Chọn sim tứ quý, thần tài, lộc phát trả góp. Trả trước 10–30%, sang tên chính chủ khi tất toán.
+              Giúp Quý khách chủ động dòng tiền khi mua số đẹp: trả trước 10–30%, phần còn lại trả dần theo tháng, sang tên chính chủ khi tất toán.
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a
@@ -142,7 +142,7 @@ export default async function SimTraGopPage() {
           <CategorySimGrid
             title="Kho Sim Có Thể Trả Góp"
             searchPlaceholder="Nhập số hoặc *đuôi để tìm sim trả góp..."
-            emptyText="Hiện chưa có sim phù hợp trong kho. Vui lòng thử lại sau."
+            emptyText="Kho hiện chưa có số phù hợp. Quý khách vui lòng thử lại với dãy số khác."
             matchAll
           />
 

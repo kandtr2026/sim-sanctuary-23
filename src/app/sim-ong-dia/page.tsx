@@ -18,7 +18,7 @@ const ZALO_URL = "https://zalo.me/0933356666";
 
 const TITLE = "Sim Ông Địa 38 78 | Kho Sim Ông Địa Mobifone Đẹp";
 const DESCRIPTION =
-  "Kho sim ông địa Mobifone đẹp: đuôi 38, 78, 7838 ông địa lớn nhỏ. Giá niêm yết công khai, sang tên chính chủ, nhận SIM rồi mới trả tiền, giao nội thành HCM 30 phút – 2 giờ.";
+  "Sim ông địa Mobifone đuôi 38, 78, 7838 cho người buôn bán: giá niêm yết công khai từng số, sang tên chính chủ, thanh toán sau khi nhận SIM, giao tận nơi.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-ong-dia";
 
 export const metadata: Metadata = {
@@ -37,19 +37,19 @@ export const metadata: Metadata = {
 const faqItems = [
   {
     q: "Sim ông địa là gì? Đuôi 38 và 78 khác nhau ra sao?",
-    a: "Sim ông địa là sim có hai số cuối là 38 hoặc 78 — gắn với tín ngưỡng Thần Tài – Ông Địa cầu tài lộc. Cặp 7838 (ông địa lớn, ông địa nhỏ) được ưa chuộng vì hội tụ cả hai. Khác biệt chủ yếu nằm ở ý nghĩa tâm lý; giá thành phụ thuộc vào đầu số và độ đẹp của dãy số.",
+    a: "Sim ông địa là số có hai chữ số cuối 38 hoặc 78, gắn với tín ngưỡng Thần Tài – Ông Địa của người buôn bán. Đuôi 38 là ông địa, đuôi 78 là ông địa lớn, cặp 7838 hội tụ cả hai nên được hỏi nhiều nhất. Khác biệt nằm ở ý nghĩa tâm lý; còn giá cao hay thấp lại do đầu số và nhịp dãy số quyết định.",
   },
   {
     q: "Giá sim ông địa bao nhiêu?",
-    a: "Giá sim ông địa Mobifone dao động từ vài trăm nghìn đến vài chục triệu đồng, tùy đầu số, độ dễ nhớ và vị trí đuôi. Giá niêm yết công khai trên kho, không phát sinh phí ẩn.",
+    a: "Từ vài trăm nghìn đến vài chục triệu đồng. Đầu số, độ dễ nhớ của dãy và vị trí đuôi số quyết định mức giá. Kho niêm yết giá công khai từng số, không phát sinh phí ẩn.",
   },
   {
     q: "Mua sim ông địa có sang tên chính chủ được không?",
-    a: "Được. Toàn bộ sim ông địa tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Bạn nhận SIM trước, kiểm tra kỹ rồi mới trả tiền; hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.",
+    a: "Được. Sim ông địa tại CHONSOMOBIFONE.COM đều sang tên chính chủ cho Quý khách. Trình tự: Quý khách nhận SIM, kiểm tra kỹ, thanh toán sau; việc đăng ký chính chủ thực hiện tại cửa hàng MobiFone hoặc qua ứng dụng My Mobifone, có đội ngũ hướng dẫn từng bước.",
   },
   {
     q: "Giao sim ông địa mất bao lâu?",
-    a: "Nội thành TP.HCM: 30 phút – 2 giờ làm việc. Các tỉnh thành khác: 1–3 ngày làm việc qua chuyển phát nhanh. Thanh toán COD khi nhận hàng hoặc chuyển khoản trước.",
+    a: "Quý khách ở nội thành TP.HCM nhận số trong 30 phút – 2 giờ làm việc. Ngoài TP.HCM, SIM đi chuyển phát nhanh và tới trong 1–3 ngày làm việc. Quý khách trả tiền khi nhận hàng (COD) hoặc chuyển khoản trước.",
   },
 ];
 
@@ -64,12 +64,12 @@ const faqJsonLd = {
 };
 
 const benefits = [
-  { icon: Star, text: "Kho sim ông địa Mobifone đẹp" },
-  { icon: Shield, text: "Giao dịch an toàn, bảo mật" },
-  { icon: CheckCircle, text: "Sang tên chính chủ" },
-  { icon: DollarSign, text: "Giá niêm yết công khai" },
-  { icon: Truck, text: "Nhận SIM rồi mới trả tiền" },
-  { icon: Users, text: "Tư vấn chọn số 24/7" },
+  { icon: Star, text: "Kho sim ông địa đuôi 38, 78, 7838" },
+  { icon: Shield, text: "Giao dịch an toàn, bảo mật thông tin" },
+  { icon: CheckCircle, text: "Hỗ trợ sang tên chính chủ" },
+  { icon: DollarSign, text: "Giá niêm yết công khai từng số" },
+  { icon: Truck, text: "Nhận SIM, kiểm tra rồi mới trả tiền" },
+  { icon: Users, text: "Đội ngũ tư vấn trực 24/7" },
 ];
 
 export default async function SimOngDiaPage() {
@@ -97,7 +97,7 @@ export default async function SimOngDiaPage() {
               Sim Ông Địa Mobifone — <span className="text-gold">đuôi 38, 78, 7838</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Sim ông địa (38) và ông địa lớn (78). Giá niêm yết công khai, sang tên chính chủ, giao tận nơi nội thành HCM.
+              Số dành cho người đứng bán: đuôi 38 (ông địa) và 78 (ông địa lớn). Quý khách xem giá ngay tại kho, nhận SIM rồi mới thanh toán.
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a
@@ -126,23 +126,25 @@ export default async function SimOngDiaPage() {
             </h2>
             <div className="space-y-4 leading-relaxed text-muted-foreground">
               <p>
-                Sim ông địa là dòng sim số đẹp có hai số cuối là 38 hoặc 78 — gắn với tín ngưỡng Thần Tài – Ông Địa
-                trong dân gian, thường được người buôn bán, kinh doanh lựa chọn với kỳ vọng cầu tài lộc, đất đai,
-                buôn may bán đắt.
+                Khách hỏi sim ông địa gần như luôn là người đứng bán: chủ tiệm tạp hóa, quầy vật liệu, cửa hàng ăn, tiểu
+                thương ngoài chợ. Bàn thờ Thần Tài – Ông Địa đặt ngay lối vào, và họ muốn con số dán trên bảng hiệu mang
+                cùng một mong cầu: tài lộc, đất đai, buôn may bán đắt.
               </p>
               <p>
-                <strong className="text-foreground">Đuôi 38</strong> gắn với ông địa, <strong className="text-foreground">đuôi 78</strong> gắn với
-                ông địa lớn, và cặp <strong className="text-foreground">7838</strong> (ông địa lớn – ông địa nhỏ) được ưa chuộng vì hội tụ cả
-                hai. Giá thành phụ thuộc chủ yếu vào đầu số và độ đẹp của dãy số.
+                Cụ thể, sim ông địa là số có hai chữ số cuối là 38 hoặc 78.{" "}
+                <strong className="text-foreground">Đuôi 38</strong> gắn với ông địa,{" "}
+                <strong className="text-foreground">đuôi 78</strong> gắn với ông địa lớn, còn{" "}
+                <strong className="text-foreground">7838</strong> ghép cả hai nên được hỏi nhiều nhất. Giá thì đầu số
+                quyết định phần lớn, sau đó mới tới việc dãy số có dễ đọc, dễ nhớ hay không.
               </p>
             </div>
           </section>
 
           
           <CategorySimGrid
-            title="Kho Sim Ông Địa Cập Nhật"
-            searchPlaceholder="Nhập số hoặc *38 / *78 để tìm đuôi ông địa..."
-            emptyText="Hiện chưa có sim ông địa đuôi phù hợp trong kho. Vui lòng thử lại sau."
+            title="Sim Ông Địa Đuôi 38, 78 Mới Cập Nhật"
+            searchPlaceholder="Nhập số cần tìm, hoặc *38 / *78 để xem đuôi ông địa"
+            emptyText="Kho chưa có số khớp yêu cầu này. Quý khách thử *38, *78 hoặc 7838; cần gấp thì nhắn Zalo 0933356666, đội ngũ tư vấn sẽ lọc kho theo ngân sách của Quý khách."
             matchSuffixes={["38", "78"]}
           />
 
@@ -152,9 +154,9 @@ export default async function SimOngDiaPage() {
               Giá sim ông địa bao nhiêu?
             </h2>
             <p className="leading-relaxed text-muted-foreground">
-              Sim ông địa có giá từ vài trăm nghìn đến vài chục triệu đồng. Đuôi 7838, sim đầu 090/093, số dễ nhớ
-              thường đắt hơn. Mọi số đều niêm yết giá công khai ngay trên kho — bạn chọn số trước, so giá trước, rồi
-              mới đặt.
+              Sim ông địa có giá từ vài trăm nghìn đến vài chục triệu đồng. Đuôi 7838, số đầu 090/093 và các dãy dễ nhớ
+              thuộc nhóm cao hơn. Toàn kho đã gắn giá sẵn: Quý khách xem giá, đối chiếu vài số rồi mới đặt, không cần hỏi
+              giá qua từng tin nhắn.
             </p>
           </section>
 
@@ -164,8 +166,9 @@ export default async function SimOngDiaPage() {
               Ai nên dùng sim ông địa
             </h2>
             <p className="leading-relaxed text-muted-foreground">
-              Người kinh doanh, chủ cửa hàng, người buôn bán nhỏ là nhóm chọn sim ông địa nhiều nhất — bởi ý nghĩa
-              cầu tài lộc, đất đai của cặp đuôi 38/78. Số cũng dễ nhớ, tạo ấn tượng khi khách liên hệ qua điện thoại.
+              Nhóm chọn đuôi 38/78 nhiều nhất là chủ cửa hàng, người kinh doanh nhỏ và tiểu thương. Ý nghĩa cầu tài lộc,
+              đất đai là một phần; phần còn lại rất thực tế — số dễ nhớ, khách gọi lại không phải tra sổ. Nếu Quý khách
+              đang dùng số cho việc bán hàng, đây là nhóm đuôi đáng xem trước.
             </p>
           </section>
 
