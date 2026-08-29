@@ -157,10 +157,17 @@ const MuaSimTuQuyTool = () => {
                         return "Khác";
                       })()}
                     </td>
+                    {/* Giá phải in đủ số, không quy ra "triệu". Dạng cũ chia giá
+                        cho một triệu rồi làm tròn 1 chữ số thập phân, tức độ
+                        chia 100.000đ, nên nhãn nói CAO hơn giá thật: 3.860.000
+                        hiện "3,9 triệu" (+40.000đ), 1.950.000 hiện "2 triệu"
+                        (+50.000đ) — bảng nói một giá, trang đặt hàng nói giá
+                        khác. `formatPrice` là nguồn định dạng tiền duy nhất của
+                        site (xem `src/lib/simUtils.ts`); cột này có
+                        `whitespace-nowrap` trong bảng `overflow-x-auto` nên đủ
+                        chỗ cho "39.000.000đ". */}
                     <td className="py-3 px-4 text-right font-semibold text-primary whitespace-nowrap">
-                      {s.price >= 1_000_000
-                        ? `${(s.price / 1_000_000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} triệu`
-                        : formatPrice(s.price)}
+                      {formatPrice(s.price)}
                     </td>
                     <td className="py-3 px-4 text-center">
                       <a

@@ -17,6 +17,7 @@ import {
   validatePhone,
   formatPhoneDisplay,
   detectCarrier,
+  valuateSim,
   type Carrier,
 } from '@/lib/simValuation';
 import { getSimilarSims, extractTagsFromPhone, type SimItem } from '@/lib/simInventorySheet';
@@ -70,6 +71,39 @@ const carrierColors: Record<Carrier, string> = {
   Unknown: 'bg-gray-500/10 text-gray-600 border-gray-200',
 };
 
+/**
+ * Dải giá mặc định cho khối "SIM tương tự" khi không có mức tham khảo nào.
+ *
+ * Đây từng là dải in cứng cho MỌI số khách tra, nên số 500.000đ và số 200 triệu
+ * nhận cùng một rổ ứng viên. Giữ lại đúng một chỗ: khi cả kho lẫn engine định
+ * giá đều không cho ra mức nào (`valuateSim` trả range rỗng/không hợp lệ).
+ */
+export const DEFAULT_SIMILAR_RANGE: [number, number] = [2_000_000, 20_000_000];
+
+/**
+ * Dải giá để xếp hạng SIM tương tự: ±50% quanh mức tham khảo của chính số khách
+ * vừa tra.
+ *
+ * `getSimilarSims` dùng dải này hai lần — vừa để lọc ứng viên, vừa để cộng +2
+ * điểm cho ứng viên nằm trong dải — nên dải sai là cả hai bước sai theo. Với số
+ * tra ra 500.000đ, dải [250.000 … 750.000] cho ra láng giềng đúng tầm; dải cứng
+ * [2 triệu … 20 triệu] thì không có ứng viên nào cùng tầm giá.
+ *
+ * Sàn 10.000đ khớp `INVENTORY_MIN_PRICE` của kho: dưới mức đó là dòng lỗi giá,
+ * không phải SIM rẻ.
+ */
+export const similarPriceRange = (
+  referencePrice: number | null | undefined,
+  fallback: [number, number] = DEFAULT_SIMILAR_RANGE,
+): [number, number] => {
+  if (typeof referencePrice !== 'number' || !Number.isFinite(referencePrice) || referencePrice <= 0) {
+    return fallback;
+  }
+  const min = Math.max(Math.round(referencePrice * 0.5), 10_000);
+  const max = Math.max(Math.round(referencePrice * 1.5), min + 1);
+  return [min, max];
+};
+
 const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
   const [phone, setPhone] = useState('');
   const [state, setState] = useState<ValuationState>('idle');
@@ -78,6 +112,15 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
 
   // State lưu số đã submit (digits only)
   const [lastSubmittedDigits, setLastSubmittedDigits] = useState<string>('');
+  // Mỗi lần bấm "Định giá" tăng 1. Cần vì tra lại ĐÚNG số cũ thì
+  // `lastSubmittedDigits` và mức tham khảo đều không đổi, thiếu counter này là
+  // khối "SIM tương tự" nằm mãi ở trạng thái đang tải.
+  const [submitSeq, setSubmitSeq] = useState(0);
+  /**
+   * Mức giá tham khảo của chính số khách vừa tra, dùng để dựng dải giá cho khối
+   * "SIM tương tự". `null` = chưa định giá xong (kho chưa nạp), khác `0`.
+   */
+  const [referencePrice, setReferencePrice] = useState<number | null>(null);
 
   // Dùng đúng kho từ trang chủ
   const { allSims, isLoading: inventoryLoading } = useSimData();
@@ -93,7 +136,7 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
     setState('idle');
   }, []);
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
     const validation = validatePhone(phone);
 
     if (!validation.valid) {
@@ -106,35 +149,16 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
 
     // Lưu số đã submit
     setLastSubmittedDigits(digitsInput);
+    setSubmitSeq((seq) => seq + 1);
     setState('loading');
     setError('');
     setResult(null);
 
-    // Ngay lập tức chạy gợi ý tương tự
+    // Khối "SIM tương tự" chờ mức tham khảo của số này (effect bên dưới), vì dải
+    // giá phải đi ra từ kết quả định giá chứ không phải một dải in cứng.
+    setReferencePrice(null);
     setSimilarState('loading');
     setSimilarSims([]);
-
-    try {
-      const normalized = normalizePhone(phone);
-      const tags = extractTagsFromPhone(normalized);
-      const carrier = detectCarrier(normalized);
-
-      const similar = await getSimilarSims({
-        phone: normalized,
-        carrier: carrier,
-        tags: tags,
-        range: [2000000, 20000000] as [number, number],
-      });
-
-      if (similar.length > 0) {
-        setSimilarSims(similar);
-        setSimilarState('success');
-      } else {
-        setSimilarState('empty');
-      }
-    } catch {
-      setSimilarState('error');
-    }
   }, [phone]);
 
   // Effect: Đối chiếu số với kho khi allSims load xong hoặc lastSubmittedDigits thay đổi
@@ -170,6 +194,7 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
         price: foundSim.price,
         tags: foundSim.tags || [],
       });
+      setReferencePrice(foundSim.price);
       setState('success');
     } else {
       // Không tìm thấy => hiển thị thông báo liên hệ
@@ -183,9 +208,46 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
         tags: tags,
         message: 'Số này hiện không có trong kho. Quý khách vui lòng liên hệ 0938.868.868 để được báo mức giá tham khảo.',
       });
+      // Không có giá kho thì mức tham khảo lấy từ chính engine định giá của site
+      // (`valuateSim` — thuần, không gọi mạng). Số này không hiện giá cho khách,
+      // nó chỉ để khối "SIM tương tự" gợi ý đúng tầm: số phổ thông ra láng giềng
+      // vài trăm nghìn, số VIP ra láng giềng vài chục triệu.
+      setReferencePrice(valuateSim(normalized).price);
       setState('success');
     }
-  }, [lastSubmittedDigits, allSims, inventoryLoading]);
+  }, [lastSubmittedDigits, submitSeq, allSims, inventoryLoading]);
+
+  // Khối "SIM tương tự": chạy SAU khi có mức tham khảo, và dải giá dựng quanh
+  // mức đó. Dải cũ in cứng [2 triệu, 20 triệu] cho mọi số, nên số 500.000đ và
+  // số 200 triệu nhận cùng một rổ ứng viên — `getSimilarSims` dùng dải này cả
+  // để lọc lẫn để cộng điểm, nên dải sai là cả hai bước sai theo.
+  useEffect(() => {
+    if (!lastSubmittedDigits || referencePrice === null) return;
+
+    let cancelled = false;
+    const normalized = normalizePhone(lastSubmittedDigits);
+
+    setSimilarState('loading');
+    getSimilarSims({
+      phone: normalized,
+      carrier: detectCarrier(normalized),
+      tags: extractTagsFromPhone(normalized),
+      range: similarPriceRange(referencePrice),
+    })
+      .then((similar) => {
+        if (cancelled) return;
+        setSimilarSims(similar);
+        setSimilarState(similar.length > 0 ? 'success' : 'empty');
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setSimilarState('error');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [lastSubmittedDigits, submitSeq, referencePrice]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {

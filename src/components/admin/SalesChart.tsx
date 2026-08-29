@@ -1,13 +1,35 @@
 import { useEffect, useMemo, useState } from "react";
 import { BarChart3, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { fetchSheetCsv, normalizeHeader, parseCSVLine, stripQuotes } from "@/lib/cheapSimSheet";
+import { MAIN_SHEET_ID } from "@/lib/recentOrdersSheet";
 
-// The SIM_SOLD tab of the same inventory spreadsheet the storefront reads
-// (see supabase/functions/fetch-sim-data). Fetched directly because Google
-// Sheets serves this endpoint with permissive CORS, so the dashboard can
-// render "SIM đã bán" without touching the shared `useSimData` pipeline.
+/**
+ * Tab SIM_SOLD của chính spreadsheet mà storefront đọc (xem
+ * `supabase/functions/fetch-sim-data`).
+ *
+ * Bản cũ `fetch` thẳng gviz với `sheet=SIM_SOLD` không kèm query: 24 cột ×
+ * 2.274 dòng = 383.825 byte, trong đó có `GhiChu`, `Kênh bán`, `STB chuan`…
+ * những cột biểu đồ không dùng. Ở `/admin` thì `GiaThu` là dữ liệu hợp lệ (đó
+ * chính là metric "Giá trị"), nhưng không có lý do gì tải cả tab: projection
+ * dưới đây xin đúng 5 cột và đi qua `sheet-proxy` như mọi chỗ khác của site —
+ * 87.547 byte, giảm 77%.
+ *
+ * Chữ cái cột trong gviz là theo VỊ TRÍ, cùng hợp đồng đã ghi ở
+ * `recentOrdersSheet.ts`: A SoldID · B SoThueBao · C GiaThu · D NgayBan.
+ *
+ * `year(D), month(D), day(D)` thay vì `D`: gviz xuất ô ngày theo định dạng hiển
+ * thị của sheet (hiện `m/d/yyyy`) và bỏ qua mệnh đề `format` khi ra CSV, nên
+ * ngày 1/2 với 2/1 không thể phân biệt lại được nếu ai đó đổi định dạng cột.
+ * `month()` của gviz đếm từ 0.
+ */
+const SOLD_QUERY = "select A, C, year(D), month(D), day(D) where D is not null";
+
 const SOLD_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y/gviz/tq?tqx=out:csv&sheet=SIM_SOLD";
+  `https://docs.google.com/spreadsheets/d/${MAIN_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=SIM_SOLD&tq=${encodeURIComponent(SOLD_QUERY)}`;
+
+/** Header kỳ vọng của projection trên, đã chuẩn hoá. Cột lệch là hỏng to tiếng. */
+const SOLD_HEADER_GUARD = ["soldid", "giathu", "year(ngayban)", "month(ngayban)", "day(ngayban)"];
 
 type Period = "day" | "month";
 type Metric = "count" | "value";
@@ -30,72 +52,21 @@ const formatCompactVnd = (n: number) => {
   return n.toLocaleString("vi-VN");
 };
 
-const parseCsvRows = (text: string): string[][] => {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let current = "";
-  let inQuotes = false;
-
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    if (inQuotes) {
-      if (char === '"') {
-        if (text[i + 1] === '"') {
-          current += '"';
-          i++;
-        } else {
-          inQuotes = false;
-        }
-      } else {
-        current += char;
-      }
-    } else if (char === '"') {
-      inQuotes = true;
-    } else if (char === ",") {
-      row.push(current);
-      current = "";
-    } else if (char === "\n" || char === "\r") {
-      row.push(current);
-      if (row.length > 0) rows.push(row);
-      row = [];
-      current = "";
-    } else {
-      current += char;
-    }
-  }
-  row.push(current);
-  if (row.length > 0) rows.push(row);
-  return rows;
-};
-
-// Sheet exports NgayBan in US format "M/D/YYYY". Be forgiving: detect
-// day-first vs month-first by the part that exceeds 12, and 2-digit years.
-const parseNgayBan = (value: string | undefined): Date | null => {
-  if (!value) return null;
-  const trimmed = String(value).trim();
-  if (!trimmed) return null;
-  const match = trimmed.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})/);
-  if (!match) {
-    const fallback = new Date(trimmed);
-    return Number.isNaN(fallback.getTime()) ? null : fallback;
-  }
-  let a = Number(match[1]);
-  let b = Number(match[2]);
-  let year = Number(match[3]);
-  if (year < 100) year += 2000;
-  if (a > 12) {
-    const tmp = a;
-    a = b;
-    b = tmp;
-  }
-  const date = new Date(year, a - 1, b);
-  return Number.isNaN(date.getTime()) ? null : date;
-};
-
 const parseGiaThu = (value: string | undefined): number => {
   if (!value) return 0;
   const n = Number(String(value).replace(/[^\d]/g, ""));
   return Number.isFinite(n) ? n : 0;
+};
+
+/** gviz trả year/month/day là số nguyên; `month()` của gviz đếm từ 0. */
+const toSaleDate = (yearRaw?: string, monthRaw?: string, dayRaw?: string): Date | null => {
+  const year = Number(yearRaw);
+  const month0 = Number(monthRaw);
+  const day = Number(dayRaw);
+  if (!Number.isInteger(year) || year < 2000 || year > 2100) return null;
+  if (!Number.isInteger(month0) || month0 < 0 || month0 > 11) return null;
+  if (!Number.isInteger(day) || day < 1 || day > 31) return null;
+  return new Date(year, month0, day);
 };
 
 const getAnchor = (date: Date, period: Period): Date => {
@@ -119,6 +90,40 @@ interface ChartBar {
 }
 
 const PERIOD_NOUN: Record<Period, string> = { day: "ngày", month: "tháng" };
+
+/**
+ * Dòng bán đã lọc, hoặc ném lỗi khi header không khớp guard.
+ *
+ * Ném thay vì parse im lặng: chữ cái cột là theo vị trí, một lần chèn cột ở
+ * giữa là `select A, C, …` lấy sang cột khác. Ném thì biểu đồ hiện thông báo
+ * lỗi kèm nút "Thử lại"; parse im lặng thì biểu đồ vẫn vẽ bằng cột sai.
+ */
+const parseSoldCsv = (csv: string): SaleRecord[] => {
+  const lines = csv.trim().split("\n").filter((line) => line.trim());
+  if (lines.length < 2) throw new Error("Sheet trống");
+
+  const headers = parseCSVLine(lines[0]).map(normalizeHeader);
+  if (SOLD_HEADER_GUARD.some((expected, i) => headers[i] !== expected)) {
+    throw new Error(
+      `cột SIM_SOLD đã đổi thứ tự — nhận ${JSON.stringify(headers.slice(0, SOLD_HEADER_GUARD.length))}`,
+    );
+  }
+
+  const records: SaleRecord[] = [];
+  // 10/2.264 SoldID xuất hiện hai lần (bán lại sau khi khách trả), giữ dòng đầu.
+  const seen = new Set<string>();
+  for (let i = 1; i < lines.length; i++) {
+    const [soldId, giaThu, yearRaw, monthRaw, dayRaw] = parseCSVLine(lines[i]).map(stripQuotes);
+    if (soldId) {
+      if (seen.has(soldId)) continue;
+      seen.add(soldId);
+    }
+    const date = toSaleDate(yearRaw, monthRaw, dayRaw);
+    if (!date) continue;
+    records.push({ date, value: parseGiaThu(giaThu) });
+  }
+  return records;
+};
 
 interface ToggleOption<T extends string> {
   value: T;
@@ -170,34 +175,8 @@ export function SalesChart() {
     setSales(null);
     (async () => {
       try {
-        const res = await fetch(SOLD_CSV_URL, { signal: controller.signal });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const text = await res.text();
-        const rows = parseCsvRows(text);
-        if (rows.length < 2) throw new Error("Sheet trống");
-
-        const headers = rows[0].map((h) => h.toUpperCase().replace(/\s+/g, ""));
-        const ngayBanIdx = headers.findIndex((h) => h === "NGAYBAN" || h === "NGÀYBÁN");
-        const soldIdIdx = headers.findIndex((h) => h === "SOLDID");
-        const giaThuIdx = headers.findIndex((h) => h === "GIATHU" || h === "GIÁTHU");
-        const dateIdx = ngayBanIdx !== -1 ? ngayBanIdx : 3;
-        const idIdx = soldIdIdx !== -1 ? soldIdIdx : 0;
-        const valueIdx = giaThuIdx !== -1 ? giaThuIdx : 2;
-
-        const records: SaleRecord[] = [];
-        const seen = new Set<string>();
-        for (let i = 1; i < rows.length; i++) {
-          const row = rows[i];
-          if (!row || row.length === 0) continue;
-          const soldId = (row[idIdx] ?? "").trim();
-          if (soldId) {
-            if (seen.has(soldId)) continue;
-            seen.add(soldId);
-          }
-          const date = parseNgayBan(row[dateIdx]);
-          if (!date) continue;
-          records.push({ date, value: parseGiaThu(row[valueIdx]) });
-        }
+        const csv = await fetchSheetCsv(SOLD_CSV_URL, controller.signal);
+        const records = parseSoldCsv(csv);
         if (cancelled) return;
         setSales(records);
       } catch (e) {

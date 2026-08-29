@@ -33,6 +33,18 @@ interface SIMCardNewProps {
   birthDateDisplay?: string | null;
 }
 
+/**
+ * Nhãn số tiền giảm — in ĐÚNG số tiền giảm thật, không quy tròn thành bậc.
+ *
+ * Bản cũ chia ba bậc và bậc giữa là `if (amount >= 500000) return 'Giảm 1
+ * triệu'`: giảm 500.000đ được quảng cáo thành "Giảm 1 triệu" (gấp đôi), và bậc
+ * triệu làm tròn 1 chữ số thập phân nên giảm 3.860.000đ hiện "Giảm 3,9 triệu"
+ * (+40.000đ). Một nhãn giảm giá nói quá là cam kết sai với khách, nên ở đây chỉ
+ * còn một đường: `formatPrice` — cùng nguồn định dạng tiền với giá bán ngay bên
+ * dưới nó, nên hai con số trên một thẻ không thể lệch nhau.
+ */
+export const formatDiscountAmount = (amount: number): string => `Giảm ${formatPrice(amount)}`;
+
 const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '', birthDateDisplay }: SIMCardNewProps) => {
   const [buyNowOpen, setBuyNowOpen] = useState(false);
   // Build rawNumber from ALL possible sources
@@ -91,18 +103,6 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '', birthDateDi
     : activeQuy
       ? quyDisplayNumber(cardDisplay, sim.rawDigits, activeQuy)
       : cardDisplay;
-
-  const formatDiscountAmount = (amount: number): string => {
-    if (amount >= 1000000) {
-      const millions = amount / 1000000;
-      const rounded = Math.round(millions * 10) / 10;
-      if (Number.isInteger(rounded)) return `Giảm ${rounded} triệu`;
-      return `Giảm ${rounded.toString().replace('.', ',')} triệu`;
-    }
-    if (amount >= 500000) return 'Giảm 1 triệu';
-    const thousands = Math.round(amount / 1000);
-    return `Giảm ${thousands}k`;
-  };
 
   const formatWithHighlight = (displayNumber: string): React.ReactNode => {
     // Active quý filter: tôn cái DẠNG quý lên (vd *77777* ở giữa dãy số),
@@ -174,6 +174,11 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '', birthDateDi
   const originalPrice = promotional?.originalPrice;
   const hasDiscount = originalPrice && originalPrice > 0 && sim.price > 0 && originalPrice > sim.price;
   const discountAmount = hasDiscount ? originalPrice - sim.price : 0;
+  // Cả đường khuyến mãi hiện KHÔNG có dữ liệu: `promotional` chỉ được nạp qua
+  // `promotionalDataStore` của `useSimData`, còn mọi lưới đang đọc `/api/sims`,
+  // nên `hasDiscount` luôn false và nhãn này không xuất hiện trên site thật.
+  // Giữ lại vì `hasDiscount` vẫn là công tắc của ảnh flash-sale + viền + giá
+  // gạch; việc bật lại khuyến mãi hay xoá cả khối thuộc HaDT/Back.
   const discountBadgeText = hasDiscount ? formatDiscountAmount(discountAmount) : null;
 
   // One badge system for the whole row: identical padding, radius, weight and
@@ -243,6 +248,18 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '', birthDateDi
               style={badgeFontSize}
             >
               {quyBadgeText}
+            </span>
+          )}
+          {/* Nhãn số tiền giảm đứng cùng hàng badge (không nằm cạnh giá) để giá
+              bán vẫn là con số lớn duy nhất ở đáy thẻ. Chỉ hiện khi có dữ liệu
+              khuyến mãi thật — hôm nay không dòng nào có, xem chú thích ở
+              `discountBadgeText`. */}
+          {discountBadgeText && (
+            <span
+              className={cn(badgeBase, 'bg-cta/15 text-cta border border-cta/30')}
+              style={badgeFontSize}
+            >
+              {discountBadgeText}
             </span>
           )}
         </div>

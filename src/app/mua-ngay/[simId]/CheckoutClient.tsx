@@ -117,6 +117,21 @@ const isFormValid = (formData: { fullName: string; phone: string; address: strin
   return Object.keys(validateAll(formData)).length === 0;
 };
 
+/**
+ * SIM có đặt hàng được hay không, xét theo giá.
+ *
+ * Đây là bản sao ở phía web của luật `priceVnd` trong
+ * `supabase/functions/make-webhook-proxy/_validators.ts`: webhook từ chối mọi
+ * đơn có `priceVnd <= 0`. Ba số đang trắng cả `GIÁ BÁN` và `Final_Price`
+ * (SIM133091 0779.168.168, SIM133228 0777.997.999, SIM133251 0789.999.919) rơi
+ * đúng vào đó — trước đây trang vẫn hiện đủ form, khách điền họ tên/địa chỉ,
+ * bấm Xác nhận rồi chỉ nhận được toast "Có lỗi xảy ra. Vui lòng thử lại." mà
+ * không biết vì sao. Giá 0 nghĩa là chưa có giá niêm yết, không phải "miễn
+ * phí", nên đường đúng là mời Quý khách nhận báo giá chứ không phải cho đặt.
+ */
+export const isOrderablePrice = (price: number | undefined | null): boolean =>
+  typeof price === 'number' && Number.isFinite(price) && price > 0;
+
 // --- CSV Parsing (unchanged logic) ---
 
 interface CheckoutSimData {
@@ -443,6 +458,10 @@ const CheckoutClient = () => {
 
   const handleConfirmOrder = async () => {
     if (!simWithTags) return;
+    // Chốt chặn cuối: webhook từ chối `priceVnd <= 0`, nên không gửi đơn không
+    // có giá. Form đã không được render ở nhánh dưới, đây là lớp thứ hai cho
+    // trường hợp giá đổi về 0 giữa lúc khách đang điền.
+    if (!isOrderablePrice(displayPrice)) return;
     setIsSubmitting(true);
 
     const payload = {
@@ -545,6 +564,102 @@ const CheckoutClient = () => {
     Khác: 'bg-gray-500 text-white'
   };
 
+  const networkBadgeClass = networkColors[simWithTags.network] || networkColors['Khác'];
+
+  // SIM chưa có giá niêm yết: hiện đường nhận báo giá, KHÔNG hiện form đặt hàng.
+  // Trước đây trang vẫn dựng đủ form với giá "Liên hệ", khách điền xong mới đụng
+  // guard `priceVnd > 0` của webhook và chỉ thấy toast lỗi chung.
+  if (!isOrderablePrice(displayPrice)) {
+    const zaloQuoteUrl = `https://zalo.me/0933356666?text=${encodeURIComponent(
+      `Xin chào, tôi muốn nhận báo giá SIM ${checkoutDisplay || simWithTags.simId}`,
+    )}`;
+
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="bg-card border-b border-border sticky top-0 z-50">
+          <div className="container max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => router.push('/')} className="shrink-0" aria-label="Quay lại">
+              <ArrowLeft className="w-5 h-5" />
+              <span className="sr-only">Quay lại</span>
+            </Button>
+            <h1 className="text-lg font-bold text-foreground truncate">Nhận báo giá SIM</h1>
+          </div>
+        </header>
+
+        <main className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
+          <div className="rounded-xl border border-gold/30 overflow-hidden shadow-card">
+            <div className="bg-gradient-to-b from-[hsl(0,0%,12%)] to-[hsl(0,0%,8%)] p-5">
+              <h2 className="text-center text-sm font-semibold text-gold tracking-widest mb-4">THÔNG TIN SIM</h2>
+
+              <div className="text-center text-3xl md:text-4xl font-bold text-primary tracking-wider">
+                {checkoutDisplay || simWithTags.simId}
+              </div>
+
+              <div className="text-center mt-2">
+                <span className="text-muted-foreground text-xs">Giá bán:</span>
+                <div className="font-bold text-gold text-xl md:text-2xl mt-0.5">Báo giá riêng</div>
+              </div>
+
+              <div className="mt-4 flex justify-center">
+                <span className={`px-3 py-1 rounded text-xs font-bold ${networkBadgeClass}`}>
+                  {simWithTags.network}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <section className="bg-card rounded-xl border border-border p-5 shadow-sm space-y-4">
+            <h2 className="text-base font-bold text-foreground">
+              Số này được báo giá trực tiếp cho Quý khách
+            </h2>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 mt-0.5 shrink-0 text-emerald-500" />
+                <span>Nhân viên giao dịch báo giá trong ít phút cho đúng số Quý khách đang xem.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 mt-0.5 shrink-0 text-emerald-500" />
+                <span>Giao SIM miễn phí toàn quốc, Quý khách thanh toán khi nhận sim.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 mt-0.5 shrink-0 text-emerald-500" />
+                <span>Hỗ trợ sang tên chính chủ và trọn bộ hồ sơ.</span>
+              </li>
+            </ul>
+            <p className="text-sm text-muted-foreground">
+              Đây là số chưa niêm yết giá công khai, nên trang này chưa mở đặt hàng. Quý khách vui lòng
+              nhắn Zalo hoặc gọi hotline để nhận giá chính xác.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <a
+                href={zaloQuoteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-500 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-600"
+              >
+                <span className="font-bold">Z</span>
+                Nhắn Zalo 0933356666
+              </a>
+              <a
+                href="tel:0938868868"
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                <Phone className="w-4 h-4" />
+                Gọi 0938.868.868
+              </a>
+            </div>
+
+            <Button variant="ghost" onClick={() => router.push('/')} className="w-full gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Xem số khác trong kho
+            </Button>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -583,7 +698,7 @@ const CheckoutClient = () => {
               <div className="ml-auto">
                 <span className="text-muted-foreground text-xs">Mạng:</span>
                 <div className="mt-1">
-                  <span className={`px-3 py-1 rounded text-xs font-bold ${networkColors[simWithTags.network] || networkColors['Khác']}`}>
+                  <span className={`px-3 py-1 rounded text-xs font-bold ${networkBadgeClass}`}>
                     {simWithTags.network}
                   </span>
                 </div>
@@ -722,7 +837,7 @@ const CheckoutClient = () => {
 
               <span className="text-muted-foreground">Mạng:</span>
               <span>
-                <span className={`px-2 py-0.5 rounded text-xs font-medium ${networkColors[simWithTags.network] || networkColors['Khác']}`}>
+                <span className={`px-2 py-0.5 rounded text-xs font-medium ${networkBadgeClass}`}>
                   {simWithTags.network}
                 </span>
               </span>
