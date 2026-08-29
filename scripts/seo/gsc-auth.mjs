@@ -64,7 +64,14 @@ const BIEN = {
   key: 'GSC_SIM_PRIVATE_KEY',
 };
 
-const thieuBien = () => Object.values(BIEN).filter((b) => !String(process.env[b] || '').trim());
+/**
+ * Chỉ email + key là BẮT BUỘC. `GSC_SIM_SITE_URL` là tuỳ chọn: `chonProperty()`
+ * trong rank-check.mjs gọi `sites.list` để tự tìm property của
+ * chonsomobifone.com, nên không ai phải đoán property là dạng Domain
+ * ("sc-domain:…") hay URL-prefix ("https://www.…/"). Đặt biến này chỉ để ghim
+ * cứng khi một service account có quyền trên nhiều property cùng tên miền.
+ */
+const thieuBien = () => [BIEN.email, BIEN.key].filter((b) => !String(process.env[b] || '').trim());
 
 // ── JWT tự ký: rẻ hơn kéo cả google-auth-library vào repo cho một script ────
 const b64url = (buf) =>

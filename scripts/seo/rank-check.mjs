@@ -27,6 +27,52 @@ const ngayPT = (lui) =>
     timeZone: 'America/Los_Angeles',
   });
 
+/**
+ * Tìm đúng property trong danh sách property mà service account được cấp quyền.
+ *
+ * Vì sao cần: Search Console có hai dạng property và tên khác nhau hoàn toàn —
+ * `sc-domain:chonsomobifone.com` (Domain, xác minh bằng DNS) và
+ * `https://www.chonsomobifone.com/` (URL-prefix, xác minh bằng thẻ meta hoặc
+ * file). Site này đang xác minh bằng 2 thẻ `google-site-verification`, tức gần
+ * như chắc chắn là URL-prefix; đoán sai dạng thì API trả 404 mà không nói vì sao.
+ *
+ * `GSC_SIM_SITE_URL` nếu đã đặt thì được ưu tiên; không khớp thì hàm này nói rõ
+ * property nào đang có quyền thay vì để người đọc tự mò.
+ */
+const chonProperty = async (token, mongMuon) => {
+  const res = await fetch('https://searchconsole.googleapis.com/webmasters/v3/sites', {
+    headers: { Authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(20_000),
+  });
+  if (!res.ok) {
+    // Không list được thì vẫn thử `mongMuon` — có service account chỉ được cấp
+    // quyền trên đúng một property và bị chặn ở sites.list.
+    return mongMuon;
+  }
+  const danh = ((await res.json()).siteEntry || []).map((s) => s.siteUrl);
+  if (!danh.length) {
+    throw new Error(
+      'Service account chưa được cấp quyền trên property nào. Vào Search Console → ' +
+        'Cài đặt → Người dùng và quyền → thêm email service account (quyền "Bị hạn chế" là đủ).',
+    );
+  }
+  if (mongMuon && danh.includes(mongMuon)) return mongMuon;
+
+  const khop = danh.find((u) => u.includes('chonsomobifone.com'));
+  if (!khop) {
+    throw new Error(
+      `Service account có quyền trên: ${danh.join(', ')} — nhưng không property nào là ` +
+        'chonsomobifone.com. Thêm email đó vào property của site này.',
+    );
+  }
+  if (mongMuon && khop !== mongMuon) {
+    console.warn(
+      `[rank-check] ${BIEN.site} đang là "${mongMuon}" nhưng property thật là "${khop}" — dùng property thật.`,
+    );
+  }
+  return khop;
+};
+
 const truyVan = async (token, site, than) => {
   const res = await fetch(
     `https://searchconsole.googleapis.com/webmasters/v3/sites/${encodeURIComponent(site)}/searchAnalytics/query`,
@@ -67,16 +113,16 @@ const main = async () => {
     console.error(
       `\nChưa cấu hình Search Console cho chonsomobifone.com. Thiếu biến: ${thieu.join(', ')}\n\n` +
         `Các bước làm một lần:\n` +
-        `  1. Search Console → thêm property chonsomobifone.com (nên chọn Domain property).\n` +
-        `  2. Google Cloud → tạo service account, tạo key JSON.\n` +
-        `  3. Search Console → Cài đặt → Người dùng và quyền → thêm email service account,\n` +
-        `     quyền "Đầy đủ" hoặc "Bị hạn chế" (chỉ đọc là đủ).\n` +
-        `  4. Đặt 3 biến trong .env.local:\n` +
-        `       ${BIEN.site}=sc-domain:chonsomobifone.com\n` +
+        `  1. Google Cloud → tạo service account, tạo key JSON.\n` +
+        `  2. Search Console → property chonsomobifone.com → Cài đặt → Người dùng và quyền\n` +
+        `     → thêm email service account (quyền "Bị hạn chế" là đủ).\n` +
+        `  3. Đặt 2 biến trong .env.local (lấy từ file JSON vừa tải):\n` +
         `       ${BIEN.email}=…@….iam.gserviceaccount.com\n` +
         `       ${BIEN.key}="-----BEGIN PRIVATE KEY-----\\n…"\n\n` +
-        `Lưu ý: GSC chỉ có dữ liệu từ lúc property được thêm trở đi — thêm hôm nay thì\n` +
-        `phải chờ vài ngày mới có số, không truy hồi được quá khứ.\n`,
+        `Không cần đặt ${BIEN.site}: script tự gọi sites.list để tìm property của\n` +
+        `chonsomobifone.com, nên không phải đoán property là dạng Domain hay URL-prefix.\n\n` +
+        `Lưu ý: GSC chỉ có dữ liệu từ lúc property được thêm trở đi — property này đã xác minh\n` +
+        `sẵn (2 thẻ google-site-verification đang sống trên site) nên số liệu đã tích luỹ.\n`,
     );
     process.exit(1);
   }
@@ -88,8 +134,8 @@ const main = async () => {
   const dsGoc = JSON.parse(readFileSync(DS_TU_KHOA, 'utf8'));
   const ds = Array.isArray(dsGoc) ? dsGoc : dsGoc.keywords || [];
 
-  const site = process.env[BIEN.site];
   const token = await layAccessToken();
+  const site = await chonProperty(token, process.env[BIEN.site]);
   const khoang = { startDate: ngayPT(soNgay + 1), endDate: ngayPT(1) };
 
   // Lấy tối đa 25k truy vấn của cả kỳ rồi đối chiếu tại chỗ. Gọi từng từ khoá một
