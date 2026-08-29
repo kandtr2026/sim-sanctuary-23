@@ -2,7 +2,6 @@ import { useState } from "react";
 import { AlertCircle, Eraser, XCircle, Sparkles, Phone, ChevronDown, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SIMCardNew from "@/components/SIMCardNew";
-import { getPromotionalData } from "@/hooks/useSimData";
 import type { NormalizedSIM } from "@/lib/simUtils";
 import { getSuggestionHighlightDigits } from "@/lib/highlightUtils";
 import type { FilterState } from "@/hooks/useSimData";
@@ -141,7 +140,6 @@ const EmptyStateHelper = ({
                 <SIMCardNew
                   key={sim.id}
                   sim={sim}
-                  promotional={getPromotionalData(sim.id)}
                   quyFilter={quyFilter}
                   searchQuery={suggestHighlight}
                 />

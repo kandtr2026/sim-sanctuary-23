@@ -202,7 +202,12 @@ const parseAndNormalize = (csvText: string): NormalizedSIM[] => {
     // này gọi `estimatePriceByTags()` — giá random theo tag, F5 ra số khác.
     const effectivePrice = finalPrice ?? originalPrice;
     const simId = sheetSimId.trim() || `sim-${i}`;
-    sims.push(normalizeSIM(rawNumber, displayNumber, effectivePrice, simId));
+    const sim = normalizeSIM(rawNumber, displayNumber, effectivePrice, simId);
+    // Cùng luật với nhánh DB: chỉ mang giá gốc sang khi thật sự cao hơn giá bán.
+    if (originalPrice > 0 && effectivePrice > 0 && originalPrice > effectivePrice) {
+      sim.originalPrice = originalPrice;
+    }
+    sims.push(sim);
   }
 
   return sims;
@@ -256,12 +261,19 @@ const simsDbRowToNormalized = (r: SimsDbRow): NormalizedSIM => {
   // Coi mảng rỗng là "chưa có tag" và tự suy ra bằng detector dùng chung.
   const tags = r.tags && r.tags.length > 0 ? r.tags : detectSimTags(rawDigits);
   const price = r.effective_price || r.final_price || r.original_price || 0;
+  // Chỉ mang `original_price` sang khi nó THẬT SỰ cao hơn giá bán — tức đang giảm
+  // giá thật. Bằng nhau (hiện là 100% kho: 51.636 dòng có Final_Price = GIÁ BÁN)
+  // thì để undefined, nhờ vậy thẻ SIM không bao giờ vẽ giá gạch ngang trùng giá
+  // bán hay badge "Giảm 0đ".
+  const originalPrice =
+    r.original_price > 0 && price > 0 && r.original_price > price ? r.original_price : undefined;
   return {
     id: r.id,
     rawDigits,
     displayNumber: r.display_number || rawDigits,
     formattedNumber: formatSIMNumber(rawDigits),
     price,
+    originalPrice,
     prefix3: rawDigits.slice(0, 3),
     prefix4: rawDigits.slice(0, 4),
     last2: rawDigits.slice(-2),

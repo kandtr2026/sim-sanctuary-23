@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Star, Cake } from 'lucide-react';
-import type { NormalizedSIM, PromotionalData, QuyType } from '@/lib/simUtils';
+import type { NormalizedSIM, QuyType } from '@/lib/simUtils';
 import { matchesQuyType, formatPrice, formatBirthDateDisplayLenient, formatSIMNumber } from '@/lib/simUtils';
 import { cn } from '@/lib/utils';
 import { createHighlightedNumber, createQuyHighlightedNumber, quyDisplayNumber } from '@/lib/highlightUtils';
@@ -22,7 +22,6 @@ const detectCarrier = (number: string): string => {
 
 interface SIMCardNewProps {
   sim: NormalizedSIM;
-  promotional?: PromotionalData;
   quyFilter?: QuyType | null;
   searchQuery?: string;
   /**
@@ -45,7 +44,7 @@ interface SIMCardNewProps {
  */
 export const formatDiscountAmount = (amount: number): string => `Giảm ${formatPrice(amount)}`;
 
-const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '', birthDateDisplay }: SIMCardNewProps) => {
+const SIMCardNew = ({ sim, quyFilter, searchQuery = '', birthDateDisplay }: SIMCardNewProps) => {
   const [buyNowOpen, setBuyNowOpen] = useState(false);
   // Build rawNumber from ALL possible sources
   const rawNumber = (() => {
@@ -171,14 +170,17 @@ const SIMCardNew = ({ sim, promotional, quyFilter, searchQuery = '', birthDateDi
   };
 
   const quyBadgeText = getQuyBadge();
-  const originalPrice = promotional?.originalPrice;
-  const hasDiscount = originalPrice && originalPrice > 0 && sim.price > 0 && originalPrice > sim.price;
+  // Khuyến mãi đọc từ CHÍNH `sim`, không phải từ store ngoài: `sim.originalPrice`
+  // chỉ tồn tại khi thật sự cao hơn `sim.price` (luật chốt ở tầng dữ liệu — xem
+  // NormalizedSIM trong simUtils.ts), nên ở đây không cần so sánh lại.
+  //
+  // Bản cũ đọc `promotional?.originalPrice` từ `promotionalDataStore` của
+  // `useSimData`, mà store đó chỉ được nạp khi có ai gọi hook — còn mọi lưới đọc
+  // `/api/sims`. Kết quả: chủ shop điền Final_Price thấp hơn GIÁ BÁN để chạy
+  // khuyến mãi thì web không hiện gì.
+  const originalPrice = sim.originalPrice;
+  const hasDiscount = originalPrice != null;
   const discountAmount = hasDiscount ? originalPrice - sim.price : 0;
-  // Cả đường khuyến mãi hiện KHÔNG có dữ liệu: `promotional` chỉ được nạp qua
-  // `promotionalDataStore` của `useSimData`, còn mọi lưới đang đọc `/api/sims`,
-  // nên `hasDiscount` luôn false và nhãn này không xuất hiện trên site thật.
-  // Giữ lại vì `hasDiscount` vẫn là công tắc của ảnh flash-sale + viền + giá
-  // gạch; việc bật lại khuyến mãi hay xoá cả khối thuộc HaDT/Back.
   const discountBadgeText = hasDiscount ? formatDiscountAmount(discountAmount) : null;
 
   // One badge system for the whole row: identical padding, radius, weight and

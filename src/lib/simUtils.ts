@@ -19,6 +19,20 @@ export interface NormalizedSIM {
   isVIP: boolean;
   network: 'Mobifone' | 'Vinaphone' | 'Gmobile' | 'Khác';
   beautyScore: number;
+  /**
+   * Giá NIÊM YẾT trước giảm — CHỈ có giá trị khi thật sự cao hơn `price`.
+   *
+   * Bằng nhau hoặc thấp hơn thì để `undefined`, để phía hiển thị chỉ cần một điều
+   * kiện `originalPrice != null` là biết đang giảm giá, không phải mỗi chỗ tự so
+   * sánh một kiểu. Nhờ vậy cũng không bao giờ sinh ra "Giảm 0đ" hay giả giảm giá.
+   *
+   * Trước đây thông tin này nằm ở `PromotionalData` trong một store riêng
+   * (`promotionalDataStore`) chỉ được `useSimData` nạp, còn mọi lưới lại đọc
+   * `/api/sims` — nên nếu chủ shop điền `Final_Price` thấp hơn `GIÁ BÁN` để chạy
+   * khuyến mãi thì web KHÔNG hiện gì. Để nó thành field của chính SIM là đường
+   * duy nhất, không thể lệch.
+   */
+  originalPrice?: number;
 }
 
 // Promotional pricing data - kept separate from NormalizedSIM

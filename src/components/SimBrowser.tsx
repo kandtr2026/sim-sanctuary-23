@@ -12,7 +12,7 @@ import ActiveFilterChips from "@/components/ActiveFilterChips";
 import SortDropdown from "@/components/SortDropdown";
 import MobileFilterDrawer from "@/components/MobileFilterDrawer";
 import EmptyStateHelper from "@/components/EmptyStateHelper";
-import { defaultFilterState, getPromotionalData } from "@/hooks/useSimData";
+import { defaultFilterState } from "@/hooks/useSimData";
 import type { FilterState } from "@/hooks/useSimData";
 import { ChevronDown, ArrowUp, Loader2, RefreshCw, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -546,7 +546,6 @@ const SimBrowser = ({
                     <div key={sim.id} className="min-w-0">
                       <SIMCardNew
                         sim={sim}
-                        promotional={getPromotionalData(sim.id)}
                         quyFilter={activeQuyType}
                         searchQuery={filters.searchQuery}
                       />
