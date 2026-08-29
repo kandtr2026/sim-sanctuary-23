@@ -10,6 +10,37 @@ const ALLOWED_HOSTS = new Set([
   'sheets.googleapis.com',
 ]);
 
+/**
+ * Chỉ hai spreadsheet của chính dự án được đi qua proxy này.
+ *
+ * Trước đây allowlist chỉ chặn ở mức HOST, nên bất kỳ ai trên internet cũng dùng
+ * được endpoint này làm bộ tải Google Sheets đa năng: gọi
+ * `sheet-proxy?url=https://docs.google.com/spreadsheets/d/<bất kỳ ID>/...` là
+ * proxy đi lấy hộ. Hai hệ quả: (1) hạ tầng của shop trở thành công cụ đọc sheet
+ * cho người khác, tính vào quota và băng thông của shop; (2) một endpoint fetch
+ * mở là bề mặt SSRF — hôm nay chặn host nên vô hại, nhưng chỉ cần ai thêm một
+ * host vào allowlist là thành lỗ thật.
+ *
+ * Siết theo ID: kho chính (Sheet1 / SIM_SOLD) và kho khuyến mãi 229k (Tongkho /
+ * Sim_Sold). Thêm sheet mới thì thêm ID vào đây — cố ý bắt phải sửa code, để một
+ * sheet mới không âm thầm đi ra ngoài qua đường này.
+ *
+ * LƯU Ý: việc này KHÔNG che được cột giá vốn. Client hợp lệ vẫn query được cột
+ * `GIÁ THU VỀ` của chính hai sheet trên, và bản thân hai sheet đang chia sẻ công
+ * khai nên ai có link vẫn đọc trực tiếp. Muốn khoá thật thì phải đổi sheet sang
+ * "Bị hạn chế" VÀ cho proxy đọc bằng service account có quyền trên sheet.
+ */
+const ALLOWED_SPREADSHEET_IDS = new Set([
+  '1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y', // kho chính
+  '1gwlG7hsd_na7XB3d4maI99nhMVRUEmAlpx9ueYOELL4', // kho khuyến mãi 229k
+]);
+
+/** Rút spreadsheet ID từ URL gviz/export/API. Không nhận dạng được → null. */
+const spreadsheetIdOf = (u: URL): string | null => {
+  const m = u.pathname.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  return m ? m[1] : null;
+};
+
 const MAX_RESPONSE_BYTES = 10 * 1024 * 1024; // 10MB
 const FETCH_TIMEOUT_MS = 10_000;
 
@@ -68,6 +99,15 @@ serve(async (req) => {
     if (!ALLOWED_HOSTS.has(hostname)) {
       return new Response(
         JSON.stringify({ error: 'Domain not in allowlist', code: 'FORBIDDEN_HOST' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const sheetId = spreadsheetIdOf(parsedUrl);
+    if (!sheetId || !ALLOWED_SPREADSHEET_IDS.has(sheetId)) {
+      console.warn(`[sheet-proxy] Chặn spreadsheet ngoài allowlist: ${sheetId ?? '(không đọc được ID)'}`);
+      return new Response(
+        JSON.stringify({ error: 'Spreadsheet not in allowlist', code: 'FORBIDDEN_SHEET' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
