@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/accordion";
 import { buildBreadcrumb } from "@/lib/seo";
 
-const TITLE = "Sim Năm Sinh – Tìm SIM Theo Ngày Sinh, Hợp Tuổi";
+const TITLE = "Sim Năm Sinh – Tìm SIM Có Đúng Ngày Sinh, Năm Sinh";
 const DESCRIPTION =
   "Tìm sim năm sinh theo ngày sinh của Quý khách: chọn ngày/tháng/năm để xem những số có năm sinh trong dãy. Giá công khai, sang tên chính chủ, giao toàn quốc.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-nam-sinh";
@@ -43,8 +43,8 @@ const faqData: FaqItem[] = [
     answer: "Sim năm sinh có giá từ vài trăm nghìn đến vài chục triệu tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số. Giá niêm yết công khai, không phát sinh phí ẩn.",
   },
   {
-    question: "Chọn sim hợp tuổi như thế nào?",
-    answer: "Theo quan niệm dân gian, nhiều người chọn sim gắn với năm sinh của bản thân hoặc người thân vì dễ nhớ và mang ý nghĩa cá nhân. Đây là niềm tin để tham khảo, không phải khẳng định tuyệt đối.",
+    question: "Không có sim đúng ngày sinh của Quý khách thì sao?",
+    answer: "Kho đổi hàng liên tục nên Quý khách có thể xem lại sau, hoặc chuyển sang chọn theo phong thủy: công cụ Sim hợp tuổi chấm điểm toàn bộ kho theo mệnh, ngũ hành và quẻ dịch của Quý khách, nên luôn có số phù hợp dù dãy số không chứa năm sinh.",
   },
   {
     question: "Mua sim năm sinh có sang tên chính chủ không?",
@@ -82,8 +82,8 @@ const PILLARS: { title: string; body: string }[] = [
     body: "Sim năm sinh Mobifone có giá từ vài trăm nghìn đến vài chục triệu đồng, tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số quanh số năm sinh. Giá niêm yết công khai trên kho, không phát sinh phí ẩn — Quý khách so giá trước, quyết định sau.",
   },
   {
-    title: "Chọn sim hợp tuổi theo quan niệm dân gian",
-    body: "Theo quan niệm dân gian, nhiều người chọn sim gắn với năm sinh của bản thân hoặc người thân vì dễ nhớ và mang ý nghĩa cá nhân. Nếu Quý khách muốn phân tích sâu hơn theo ngũ hành, âm dương, quẻ dịch, hãy dùng thêm công cụ Sim phong thủy hợp tuổi.",
+    title: "Số gắn với năm sinh — vì sao nhiều người chọn",
+    body: "Số có năm sinh trong dãy thì Quý khách nhớ được ngay và đọc cho đối tác cũng nhanh gọn. Nhiều người còn chọn theo năm sinh của người thân để làm quà. Trang này chỉ tìm số CHỨA ĐÚNG năm sinh; nếu Quý khách muốn chọn số theo mệnh, ngũ hành và quẻ dịch thì dùng công cụ Sim hợp tuổi — nó chấm điểm toàn bộ kho nên luôn có số phù hợp.",
   },
   {
     title: "Cam kết khi mua sim tại CHONSOMOBIFONE",

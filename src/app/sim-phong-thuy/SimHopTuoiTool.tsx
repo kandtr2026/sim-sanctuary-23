@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -120,11 +120,19 @@ const toggleNl = (list: NangLuong[], nl: NangLuong): NangLuong[] => {
 
 const SimHopTuoiTool = () => {
   const router = useRouter();
+  // Trang /sim-nam-sinh dẫn khách sang đây khi kho không có số chứa đúng ngày
+  // sinh (?nam=&ngay=&thang=). Điền sẵn ngày sinh để khách khỏi nhập lại — bắt
+  // khách gõ lại đúng thứ vừa nhập ở trang trước là chỗ rơi đơn.
+  const qs = useSearchParams();
+  const soHopLe = (v: string | null, min: number, max: number, mac: string) => {
+    const n = Number(v);
+    return v && Number.isInteger(n) && n >= min && n <= max ? String(n) : mac;
+  };
 
   // Form state
-  const [ngay, setNgay] = useState("1");
-  const [thang, setThang] = useState("1");
-  const [nam, setNam] = useState("1990");
+  const [ngay, setNgay] = useState(() => soHopLe(qs.get("ngay"), 1, 31, "1"));
+  const [thang, setThang] = useState(() => soHopLe(qs.get("thang"), 1, 12, "1"));
+  const [nam, setNam] = useState(() => soHopLe(qs.get("nam"), 1950, 2029, "1990"));
   const [gio, setGio] = useState("0");
   const [gioiTinh, setGioiTinh] = useState<"nam" | "nu">("nam");
 

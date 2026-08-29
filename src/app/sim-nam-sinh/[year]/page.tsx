@@ -95,7 +95,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const info = getYearInfo(year);
   const canonical = `${BASE_URL}/sim-nam-sinh/${year}`;
-  const title = `Sim Năm Sinh ${year} Mobifone | Chọn Số Hợp Tuổi ${year}`;
+  const title = `Sim Năm Sinh ${year} Mobifone | Số Có Đúng ${year} Trong Dãy`;
   const description = `Kho sim năm sinh ${year} Mobifone: số có ${year} trong dãy cho người tuổi ${info.canChi} (${info.conGiap}), mệnh ${info.menh}. Giá công khai, sang tên chính chủ, giao nội thành HCM.`;
 
   // Năm hợp lệ nhưng tồn kho dưới ngưỡng (thường chỉ tới từ URL cũ redirect) →
@@ -111,7 +111,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       type: "website",
       title,
-      description: `Sim năm sinh ${year} Mobifone — có số ${year} hợp tuổi ${info.conGiap}. Giá công khai, chính chủ.`,
+      description: `Sim năm sinh ${year} Mobifone — số có đúng ${year} trong dãy. Giá công khai, chính chủ.`,
       url: canonical,
       images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
     },
@@ -145,6 +145,15 @@ export default async function SimNamSinhPage({ params, searchParams }: Props) {
   } else {
     snapshotSims = await getCategorySnapshot({ birthYear: year }, 12);
     birthTotal = await countBirthYearSims(year);
+    // Kho không có số nào chứa đúng năm này: trước đây `getCategorySnapshot` trả
+    // về số gần đúng và lưới in chúng dưới tiêu đề "Kho SIM Năm Sinh <năm>", tức
+    // hứa một thứ rồi giao thứ khác. Trang này chỉ nhận việc tìm số CHỨA ĐÚNG năm
+    // sinh; không có thì nói thẳng rồi dẫn sang công cụ phong thủy — nơi luôn có
+    // số phù hợp vì nó chấm điểm cả kho theo mệnh chứ không cần dãy số chứa năm.
+    if (birthTotal === 0) {
+      fallbackSims = snapshotSims.slice(0, 8);
+      snapshotSims = [];
+    }
   }
 
   const faqItems = [
@@ -157,8 +166,8 @@ export default async function SimNamSinhPage({ params, searchParams }: Props) {
       a: `Sim năm sinh ${year} Mobifone trải rộng từ vài trăm nghìn đến vài chục triệu đồng, tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số quanh số ${year}. Từng số đều hiện giá ngay trong kho, không phát sinh phí ẩn — Quý khách chủ động so giá trước khi hỏi tư vấn.`,
     },
     {
-      q: `Chọn sim hợp tuổi ${year} như thế nào?`,
-      a: `Theo quan niệm phong thủy dân gian, người sinh năm ${year} (mệnh ${info.menh}) thường được cho là hợp với những con số bản thân yêu thích, dễ nhớ — đây là niềm tin để tham khảo, không phải khẳng định tuyệt đối. Nếu muốn lọc theo mệnh, Quý khách dùng thêm công cụ Sim phong thủy hợp mệnh.`,
+      q: `Không có sim chứa ${year} thì Quý khách nên chọn thế nào?`,
+      a: `Kho đổi hàng liên tục nên Quý khách có thể xem lại sau. Nếu cần số ngay, hãy chuyển sang chọn theo phong thủy: công cụ Sim hợp tuổi chấm điểm toàn bộ kho theo mệnh ${info.menh}, ngũ hành và quẻ dịch của người sinh năm ${year}, nên luôn có số phù hợp dù dãy số không chứa ${year}.`,
     },
     {
       q: `Mua sim năm sinh ${year} có sang tên chính chủ được không?`,
@@ -196,7 +205,7 @@ export default async function SimNamSinhPage({ params, searchParams }: Props) {
               </div>
             </div>
             <h1 className="mx-auto mb-3 max-w-3xl text-2xl font-extrabold leading-tight sm:text-3xl md:text-4xl">
-              SIM năm sinh {year} — <span className="text-gold">chọn số hợp tuổi {year} theo phong thủy</span>
+              SIM năm sinh {year} — <span className="text-gold">số có đúng {year} trong dãy</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
               {buildIntro(year, info)}
