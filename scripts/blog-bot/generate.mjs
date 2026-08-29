@@ -24,9 +24,9 @@ const PROVIDER_DEFAULTS = {
   groq: { baseUrl: 'https://api.groq.com/openai/v1', model: 'llama-3.3-70b-versatile' },
 };
 
-function buildPrompt(topic) {
+function buildPrompt(topic, correction = null) {
   const keywords = (topic.keywords && topic.keywords.length ? topic.keywords : [topic.title]).join(', ');
-  return `Bạn là biên tập viên nội dung của CHONSOMOBIFONE.COM — một doanh nghiệp bán sim số đẹp Mobifone có thương hiệu. Viết 1 bài bằng TIẾNG VIỆT theo VĂN PHONG DOANH NGHIỆP CHUYÊN NGHIỆP (tham chiếu văn phong Techcombank), phủ được các từ khóa cho trước một cách tự nhiên. VIẾT MỚI hoàn toàn, không sao chép trang nào.
+  let prompt = `Bạn là biên tập viên nội dung của CHONSOMOBIFONE.COM — một doanh nghiệp bán sim số đẹp Mobifone có thương hiệu. Viết 1 bài bằng TIẾNG VIỆT theo VĂN PHONG DOANH NGHIỆP CHUYÊN NGHIỆP (tham chiếu văn phong Techcombank), phủ được các từ khóa cho trước một cách tự nhiên. VIẾT MỚI hoàn toàn, không sao chép trang nào.
 
 VĂN PHONG BẮT BUỘC (ưu tiên cao hơn mọi yêu cầu SEO bên dưới):
 - Xưng hô: gọi khách là "Quý khách" (mặc định) hoặc "Anh/Chị" (khi hướng dẫn, tư vấn). Gọi mình là "CHONSOMOBIFONE.COM", "chúng tôi", "đội ngũ tư vấn". TUYỆT ĐỐI KHÔNG dùng: "mình", "bạn", "tụi mình", "các bạn", "shop mình". Câu mệnh lệnh nên bỏ chủ ngữ ("Kiểm tra kỹ dãy số trước khi đặt") thay vì gắn "bạn".
@@ -56,6 +56,11 @@ TRẢ VỀ DUY NHẤT một JSON hợp lệ (không markdown, không text thừa
 {"title": "...", "meta_title": "...", "meta_description": "...", "content_html": "<p>...</p>"}
 
 title là tiêu đề hiển thị của bài (có thể khác tiêu đề gợi ý nhưng cùng ý nghĩa, chứa từ khóa chính). QUAN TRỌNG: không được lặp mẫu "X là gì?" cho mọi bài — hãy đa dạng mẫu câu, luân phiên các kiểu như: "Sim X – Ý Nghĩa Và Cách Chọn...", "Bí quyết chọn sim X hợp mệnh", "Vì sao sim X được săn đón?", "Sim X – Điều cần biết trước khi mua", "Khám phá ý nghĩa của sim X...". Mỗi bài dùng MỘT kiểu câu khác nhau, tránh trùng mẫu với các bài đã viết trước đó.`;
+
+  if (correction) {
+    prompt += `\n\n${correction}`;
+  }
+  return prompt;
 }
 
 function parseLlmJson(text) {
@@ -103,14 +108,20 @@ function checkVoice(fields) {
   const text = Object.values(fields).join('\n').replace(/<[^>]*>/g, ' ');
 
   const hits = [];
+  const words = [];
   for (const re of BANNED_PRONOUNS) {
-    const found = text.match(re);
-    if (found) hits.push(`${found[0]} (${found.length}×)`);
+    const m = text.match(re);
+    if (m) {
+      hits.push(`${m[0]} (${m.length}×)`);
+      words.push(m[0]);
+    }
   }
   if (hits.length) {
-    throw new Error(
+    const err = new Error(
       `Sai xưng hô, không đăng: ${hits.join(', ')}. Phải gọi khách là "Quý khách"/"Anh Chị".`,
     );
+    err.bannedWords = [...new Set(words.map((w) => w.trim().toLowerCase()))];
+    throw err;
   }
 
   for (const re of AI_TYPICAL) {
@@ -234,8 +245,28 @@ export async function generateContent(topic, env = process.env) {
   }
 
   const provider = (env.LLM_PROVIDER || 'deepseek').toLowerCase();
-  const prompt = buildPrompt(topic);
-  const raw = provider === 'anthropic' ? await callAnthropic(prompt, env) : await callOpenAICompatible(prompt, env, provider);
-  const parsed = parseLlmJson(raw);
-  return validateAndNormalize(parsed, topic);
+  const MAX_ATTEMPTS = 3;
+  let lastError;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    let correction = null;
+    if (lastError && lastError.bannedWords && lastError.bannedWords.length) {
+      const banList = [...new Set(lastError.bannedWords)].join('", "');
+      correction = `SỬA LẦN ${attempt} (BẮT BUỘC tuân thủ): Bài lần trước bị từ chối vì chứa các từ bị cấm: "${banList}". TUYỆT ĐỐI KHÔNG được dùng bất kỳ từ nào trong số đó một lần nữa. Chỉ dùng "Quý khách" (mặc định) hoặc "Anh/Chị" (khi hướng dẫn, tư vấn).`;
+    }
+
+    const prompt = buildPrompt(topic, correction);
+    try {
+      const raw = provider === 'anthropic' ? await callAnthropic(prompt, env) : await callOpenAICompatible(prompt, env, provider);
+      const parsed = parseLlmJson(raw);
+      return validateAndNormalize(parsed, topic);
+    } catch (err) {
+      lastError = err;
+      if (attempt >= MAX_ATTEMPTS) {
+        console.error(`[blog-bot] Hết ${MAX_ATTEMPTS} lần thử, bài vẫn lỗi: ${err.message}`);
+        throw err;
+      }
+      console.warn(`[blog-bot] Lần ${attempt} lỗi: ${err.message}. Thử lại lần ${attempt + 1}…`);
+    }
+  }
 }
