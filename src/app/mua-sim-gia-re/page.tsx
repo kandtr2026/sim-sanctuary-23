@@ -17,7 +17,7 @@ import { buildBreadcrumb } from "@/lib/seo";
 const ZALO_URL = 'https://zalo.me/0933356666';
 const PRICE_LABEL = `${CHEAP_PRICE.toLocaleString('vi-VN')}đ`;
 
-const TITLE = `Mua SIM Giá Rẻ – Kho SIM MobiFone Đồng Giá ${PRICE_LABEL}`;
+const TITLE = `Mua SIM Giá Rẻ – SIM MobiFone Đồng Giá ${PRICE_LABEL}`;
 const DESCRIPTION = `Kho SIM MobiFone khuyến mãi đồng giá ${PRICE_LABEL}, một phần số kèm sẵn gói cước. Quý khách chủ động chọn số theo đuôi kép, tránh 4-7, đuôi 6-8-9. Giao SIM toàn quốc.`;
 const CANONICAL = "https://www.chonsomobifone.com/mua-sim-gia-re";
 

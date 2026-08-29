@@ -8,9 +8,12 @@ import { filterSims } from "@/lib/simFilter";
 import { countTags, getUniquePrefixes, PRICE_RANGES } from "@/lib/simUtils";
 import { DAU_SO_PREFIXES } from "@/lib/simTaxonomy";
 
-const TITLE = "Kho SIM số đẹp Mobifone giá rẻ, chính chủ – CHONSOMOBIFONE.COM";
+// Cụm "sim giá rẻ" thuộc /mua-sim-gia-re (chủ dự án chốt 29/08). Title trang chủ
+// trước đây cũng chứa "giá rẻ" nên hai trang tranh nhau cùng một cụm; nay trang
+// chủ nhắm cụm thương hiệu + quy mô kho + cam kết, để cụm giá rẻ cho trang kia.
+const TITLE = "Kho SIM Mobifone 49.000 số – Nhận SIM rồi mới trả tiền";
 const DESCRIPTION =
-  "Kho SIM số đẹp Mobifone: SIM tứ quý, phong thủy, tài lộc, năm sinh, giá rẻ. Tìm số ưng ý, giao SIM toàn quốc, sang tên chính chủ.";
+  "Kho SIM Mobifone hơn 49.000 số: tứ quý, tam hoa, thần tài, lộc phát, phong thủy, năm sinh. Giá niêm yết công khai từng số, sang tên chính chủ, giao toàn quốc.";
 const CANONICAL = "https://www.chonsomobifone.com/";
 
 // ISR: regenerate the static shell (incl. the server-rendered SIM grid +
@@ -59,6 +62,28 @@ const CATEGORY_LINKS: { href: string; label: string }[] = [
   { href: "/mua-sim-gia-re", label: "Sim giá rẻ" },
   { href: "/sim-tra-gop", label: "Sim trả góp" },
   { href: "/dinh-gia-sim", label: "Định giá sim" },
+];
+
+/**
+ * Đường crawl tới các cụm trang programmatic dựng ngày 29/08/2026. Không có khối
+ * này thì chúng chỉ vào được qua sitemap: Google biết URL tồn tại nhưng không có
+ * tín hiệu nội bộ nào nói rằng chúng đáng xếp hạng.
+ *
+ * Chỉ trỏ vào HUB, không liệt kê hàng chục trang con ở trang chủ — hub đã liệt kê
+ * trang con của nó, nên mọi trang vẫn nằm trong 2 cú click mà trang chủ không phình.
+ */
+const DISCOVERY_LINKS: { href: string; label: string }[] = [
+  { href: "/sim-hop-tuoi", label: "Sim hợp tuổi theo năm sinh" },
+  { href: "/sim-hop-menh", label: "Sim hợp mệnh" },
+  { href: "/sim-nam-sinh", label: "Sim có năm sinh" },
+  { href: "/sim-gia", label: "Sim theo tầm giá" },
+  { href: "/sim-tam-hoa", label: "Sim tam hoa" },
+  { href: "/sim-tam-hoa-kep", label: "Sim tam hoa kép" },
+  { href: "/sim-ganh-dao", label: "Sim gánh đảo" },
+  { href: "/sim-lap-kep", label: "Sim lặp kép" },
+  { href: "/sim-de-nho", label: "Sim dễ nhớ" },
+  { href: "/sim-taxi", label: "Sim taxi" },
+  { href: "/sim-tien-len", label: "Sim tiến lên" },
 ];
 
 export default async function HomePage() {
@@ -156,6 +181,26 @@ export default async function HomePage() {
             </h3>
             <ul className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
               {CATEGORY_LINKS.map((link) => (
+                <li key={link.href}>
+                  <a
+                    href={link.href}
+                    className="font-medium text-primary underline-offset-2 hover:underline"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+
+            {/* Đường crawl cho các cụm trang mới (29/08/2026). Không có khối này thì
+                96 trang mới chỉ vào được qua sitemap — mồ côi liên kết nội bộ, tức
+                Google thấy chúng nhưng không thấy chúng quan trọng. Đặt ở trang chủ
+                để mọi cụm nằm trong 2 cú click. */}
+            <h3 className="mb-2 mt-5 text-sm font-semibold text-primary md:text-base">
+              Chọn theo dạng số, tầm giá hoặc tuổi
+            </h3>
+            <ul className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+              {DISCOVERY_LINKS.map((link) => (
                 <li key={link.href}>
                   <a
                     href={link.href}

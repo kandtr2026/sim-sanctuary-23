@@ -78,6 +78,30 @@ const buildIntro = (year: string, info: YearInfo): string => {
   return variants[Number(year) % 4];
 };
 
+// ── Meta description luân phiên ──────────────────────────────────────────────
+// 38 trang năm sinh từng dùng CHUNG một khuôn description, chỉ khác `year`,
+// `canChi`, `conGiap`, `menh` — với Google đó là mô tả gần trùng nhau, và nó
+// thường tự viết lại đoạn mô tả thay vì dùng thẻ của mình. Bốn khuôn dưới đây
+// chọn theo `year % 4` (deterministic như `buildIntro` — SSR/ISR luôn ra cùng
+// một chuỗi, không hydration mismatch), mỗi khuôn nhấn một dữ kiện khác của năm
+// và một lợi ích khác.
+//
+// Độ dài đã đo trên toàn dải năm hợp lệ (1955–2025): 144–155 ký tự, nằm trong
+// khung 140–165. Thêm chữ vào đây thì đo lại.
+//
+// CỐ Ý KHÔNG dùng cụm "hợp tuổi": trang này chỉ nhận ý định "số CHỨA ĐÚNG năm
+// sinh"; cụm "hợp tuổi" thuộc /sim-phong-thuy. Trộn hai ý định vào một trang là
+// mất cả hai.
+const buildDescription = (year: string, info: YearInfo): string => {
+  const variants = [
+    `Kho sim năm sinh ${year} Mobifone: số có ${year} trong dãy, dành cho người sinh năm ${info.canChi}, cầm tinh con ${info.conGiap}. Giá công khai, hỗ trợ sang tên chính chủ.`,
+    `Sim Mobifone có ${year} trong dãy số — năm ${info.canChi}, cầm tinh con ${info.conGiap}, mệnh ${info.menh}. Từng số hiện giá ngay, Quý khách nhận SIM kiểm tra rồi mới thanh toán.`,
+    `Chọn sim gắn năm sinh ${year} — ${info.canChi}, cầm tinh con ${info.conGiap}, mệnh ${info.menh}. Giá niêm yết công khai, sang tên chính chủ, giao tận nơi nội thành HCM 30 phút.`,
+    `Danh sách sim Mobifone có ${year} trong dãy, lọc sẵn cho người sinh năm ${info.canChi} (${info.conGiap}), mệnh ${info.menh}. Xem giá rồi chốt, không cần hỏi giá từng số, giao toàn quốc.`,
+  ];
+  return variants[Number(year) % 4];
+};
+
 type Props = {
   params: Promise<{ year: string }>;
   searchParams: Promise<{ d?: string; m?: string }>;
@@ -95,8 +119,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const info = getYearInfo(year);
   const canonical = `${BASE_URL}/sim-nam-sinh/${year}`;
-  const title = `Sim Năm Sinh ${year} Mobifone | Số Có Đúng ${year} Trong Dãy`;
-  const description = `Kho sim năm sinh ${year} Mobifone: số có ${year} trong dãy cho người tuổi ${info.canChi} (${info.conGiap}), mệnh ${info.menh}. Giá công khai, sang tên chính chủ, giao nội thành HCM.`;
+  const title = `Sim Năm Sinh ${year} | Số Có Đúng ${year} Trong Dãy`;
+  const description = buildDescription(year, info);
 
   // Năm hợp lệ nhưng tồn kho dưới ngưỡng (thường chỉ tới từ URL cũ redirect) →
   // noindex, follow: giữ link equity mà không đẩy trang mỏng vào chỉ mục.

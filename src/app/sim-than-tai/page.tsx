@@ -18,7 +18,7 @@ export const revalidate = 300;
 
 const ZALO_URL = "https://zalo.me/0933356666";
 
-const TITLE = "Sim Thần Tài 39 79 | Kho Sim Thần Tài Mobifone Đẹp Giá Rẻ";
+const TITLE = "Sim Thần Tài 39 79 | Kho Sim Thần Tài Mobifone";
 const DESCRIPTION =
   "Quý khách chọn sim thần tài Mobifone đẹp: đuôi 39 thần tài nhỏ, 79 thần tài lớn, 7939. Giá niêm yết công khai, sang tên chính chủ, giao tận nơi HCM.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-than-tai";

@@ -17,7 +17,10 @@ export const revalidate = 300;
 
 const ZALO_URL = "https://zalo.me/0933356666";
 
-const TITLE = "SIM Phong Thủy Hợp Mệnh | Chọn Số Hợp Mệnh Kim, Mộc, Thủy, Hỏa, Thổ";
+// Title 59 ký tự (khung SERP ~60): bản cũ 67 ký tự bị Google cắt mất phần
+// "Thủy, Hỏa, Thổ", và nó lặp "Hợp Mệnh" hai lần. Bỏ đúng phần lặp — cụm khoá
+// chính "sim phong thủy hợp mệnh" + đủ năm mệnh vẫn còn nguyên.
+const TITLE = "SIM Phong Thủy Hợp Mệnh Kim, Mộc, Thủy, Hỏa, Thổ | MobiFone";
 const DESCRIPTION =
   "Kho sim phong thủy hợp mệnh Mobifone: chọn số theo mệnh Kim, Mộc, Thủy, Hỏa, Thổ. Giá niêm yết công khai, sang tên chính chủ, nhận SIM rồi mới trả tiền.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-phong-thuy-hop-menh";

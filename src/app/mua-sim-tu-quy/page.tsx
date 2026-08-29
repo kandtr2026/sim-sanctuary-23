@@ -13,7 +13,7 @@ import { getCategorySnapshot } from "@/lib/serverSimData";
 
 const ZALO_URL = 'https://zalo.me/0933356666';
 
-const TITLE = "Mua Sim Tứ Quý Giá Tốt | Kho Sim Tứ Quý Đẹp Toàn Quốc";
+const TITLE = "Mua Sim Tứ Quý | Kho Sim Tứ Quý Đẹp Toàn Quốc";
 const DESCRIPTION =
   "Kho sim tứ quý 1111, 6666, 8888, 9999 của CHONSOMOBIFONE.COM, giá niêm yết công khai. Quý khách chọn số, nhận sim rồi mới trả tiền, sang tên chính chủ.";
 const CANONICAL = "https://www.chonsomobifone.com/mua-sim-tu-quy";

@@ -60,7 +60,10 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
   // ── Loạt bài trụ cột 27/08/2026 (mới nhất lên đầu danh sách) ──────────────
   {
     slug: "kiem-tra-so-dien-thoai-mobifone",
-    title: "Cách Kiểm Tra Số Điện Thoại Của Mình MobiFone: 5 Cách Nhanh Nhất",
+    // 58 ký tự. Bản cũ 64 nên SERP cắt mất "Nhanh Nhất". Cụm khoá exact-match
+    // "kiểm tra số điện thoại của mình" giữ nguyên liền mạch (chủ dự án đã chốt),
+    // chỉ đảo số "5" lên đầu để bỏ chữ "Cách" bị lặp hai lần.
+    title: "5 Cách Kiểm Tra Số Điện Thoại Của Mình MobiFone Nhanh Nhất",
     h1: "Cách kiểm tra số điện thoại của mình trên MobiFone",
     description:
       "5 cách xem số điện thoại MobiFone của chính mình khi quên số: soạn TTTB gửi 1414, bấm *0#, gọi tổng đài 18001090, mở app My MobiFone hoặc gọi sang máy khác.",
@@ -174,10 +177,12 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
   },
   {
     slug: "sim-hop-menh-ngu-hanh",
-    title: "Chọn SIM Hợp Mệnh Theo Ngũ Hành: Bảng Tra Kim Mộc Thuỷ Hoả Thổ",
+    // Title 57 (cũ 62): bỏ chữ "Theo" — cụm khoá "sim hợp mệnh ngũ hành" và đủ
+    // năm hành vẫn còn. Description 162 (cũ 137, dưới khung 140–165).
+    title: "Chọn SIM Hợp Mệnh Ngũ Hành: Bảng Tra Kim Mộc Thuỷ Hoả Thổ",
     h1: "Chọn SIM hợp mệnh theo ngũ hành: bảng tra Kim – Mộc – Thuỷ – Hoả – Thổ",
     description:
-      "Bảng ngũ hành của từng con số 0–9 theo Hà Đồ, cách tra mệnh từ năm sinh và nguyên tắc chọn số tương sinh, tránh tương khắc cho từng mệnh.",
+      "Bảng ngũ hành của từng con số 0–9 theo Hà Đồ, cách tra mệnh từ năm sinh và nguyên tắc chọn số tương sinh, tránh tương khắc cho từng mệnh Kim, Mộc, Thuỷ, Hoả, Thổ.",
     excerpt:
       "Mỗi con số thuộc một hành. Tra mệnh theo năm sinh xong, việc chọn số gọn lại còn hai việc: ghép đúng nhóm tương sinh và tránh nhóm tương khắc.",
     category: "Phong thuỷ",
@@ -214,8 +219,9 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
     slug: "y-nghia-2-so-cuoi-dien-thoai",
     title: "Ý Nghĩa 2 Số Cuối Điện Thoại: Bảng Tra Đủ 100 Cặp 00–99",
     h1: "Ý nghĩa 2 số cuối điện thoại: bảng tra đủ 100 cặp từ 00 đến 99",
+    // Description 150 (cũ 136, dưới khung 140–165).
     description:
-      "Bảng tra ý nghĩa 2 số cuối điện thoại đủ 100 cặp 00–99 theo ba hệ: đồng âm dân gian, năng lượng Bát Cực Linh Số và ngũ hành từng chữ số.",
+      "Bảng tra ý nghĩa 2 số cuối điện thoại đủ 100 cặp 00–99 theo ba hệ: đồng âm dân gian, năng lượng Bát Cực Linh Số và ngũ hành của từng chữ số trong cặp.",
     excerpt:
       "68 là lộc phát, 39 là thần tài. Bảng tra dưới đây đủ 100 cặp số cuối từ 00 đến 99, đặt cạnh nhau ba cách đọc phổ biến nhất để Quý khách đối chiếu.",
     category: "Ý nghĩa sim",
@@ -250,7 +256,9 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
   },
   {
     slug: "mua-sim-so-dep-o-dau-uy-tin",
-    title: "Mua SIM Số Đẹp Ở Đâu Uy Tín? 8 Điều Cần Kiểm Tra Trước Khi Trả Tiền",
+    // 48 ký tự. Bản cũ 67 nên SERP cắt mất "Trước Khi Trả Tiền" — phần đó dời
+    // hết vào H1 (`h1` bên dưới) chứ không mất khỏi trang.
+    title: "Mua SIM Số Đẹp Ở Đâu Uy Tín? 8 Điều Cần Kiểm Tra",
     h1: "Mua SIM số đẹp ở đâu uy tín? 8 điều cần kiểm tra trước khi trả tiền",
     description:
       "Checklist 8 bước kiểm tra một nơi bán SIM số đẹp: giá niêm yết, thông tin thuê bao, cam kết sang tên, cách nhận SIM, chính sách đổi trả và dấu hiệu lừa đảo.",

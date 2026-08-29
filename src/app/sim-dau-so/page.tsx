@@ -2,12 +2,18 @@ import type { Metadata } from "next";
 import { Phone, Star, Sparkles, Hash } from "lucide-react";
 import { buildBreadcrumb } from "@/lib/seo";
 import { DAU_SO_PREFIXES } from "@/lib/simTaxonomy";
+import { getDauSoInventory, getInStockDauSo4Prefixes } from "./inventory";
+import { groupThousands, moneyShort } from "./meta";
+
+// ISR: hub giờ đọc tồn kho thật để dựng danh sách đầu số 4 số → 300s cho khớp
+// `revalidate` của các trang con và `/api/sims`.
+export const revalidate = 300;
 
 const ZALO_URL = "https://zalo.me/0933356666";
 
-const TITLE = "Sim Theo Đầu Số Mobifone | Chọn Đầu Số 090, 093, 07x, 089";
+const TITLE = "Sim Theo Đầu Số Mobifone | 090, 093, 07x, 089";
 const DESCRIPTION =
-  "Chọn sim Mobifone theo đầu số 090, 093, 070, 076, 077, 078, 079, 089. Mỗi đầu số một kho riêng: tứ quý, thần tài, lộc phát, phong thủy. Giá công khai, chính chủ.";
+  "Chọn sim MobiFone theo đầu số 090, 093, 070, 076, 077, 078, 079, 089 và các dải 4 số như 0909, 0938, 0901. Mỗi đầu số một kho riêng, giá công khai, chính chủ.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-dau-so";
 
 export const metadata: Metadata = {
@@ -51,7 +57,18 @@ const CATEGORY_LINKS: { href: string; label: string }[] = [
   { href: "/sim-phong-thuy-hop-menh", label: "Sim phong thủy hợp mệnh" },
 ];
 
-export default function SimDauSoHubPage() {
+export default async function SimDauSoHubPage() {
+  // Danh sách đầu số 4 số đi theo tồn kho thật (ngưỡng DAU_SO4_MIN_INVENTORY),
+  // nên hub không bao giờ trỏ link vào một trang mỏng đang bị noindex.
+  const [four, inventory] = await Promise.all([
+    getInStockDauSo4Prefixes(),
+    getDauSoInventory(),
+  ]);
+  const families = DAU_SO_PREFIXES.map((family) => ({
+    family,
+    children: four.filter((p) => p.startsWith(family)),
+  })).filter((g) => g.children.length > 0);
+
   return (
     <>
       <main className="min-h-screen bg-background">
@@ -104,9 +121,10 @@ export default function SimDauSoHubPage() {
               Chọn sim Mobifone theo đầu số
             </h2>
             <p className="leading-relaxed text-muted-foreground">
-              Đầu số là ba chữ số mở đầu của thuê bao, ví dụ 090, 093, 079. Mỗi đầu số Mobifone có một kho số riêng,
+              Đầu số là ba chữ số mở đầu của thuê bao, ví dụ 090, 093, 079. Mỗi đầu số MobiFone có một kho số riêng,
               nhiều mức giá và nhiều kiểu số khác nhau. Quý khách chọn đầu số bên dưới để xem toàn bộ sim đẹp thuộc
-              đầu số đó — từ tứ quý, thần tài, lộc phát đến số phong thủy hợp mệnh.
+              đầu số đó — từ tứ quý, tam hoa, thần tài, lộc phát đến số phong thủy hợp mệnh. Muốn hẹp hơn nữa,
+              Quý khách chọn tiếp dải bốn số (0909, 0938, 0931…) ở mục dưới.
             </p>
           </section>
 
@@ -141,6 +159,57 @@ export default function SimDauSoHubPage() {
               ))}
             </div>
           </section>
+          {/* Danh sách đầu số 4 số — đường crawl duy nhất tới cụm trang 4 số */}
+          {families.length > 0 ? (
+            <section id="dau-so-4-so" className="scroll-mt-[var(--nav-height)]">
+              <h2 className="mb-2 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
+                <span className="h-8 w-1 rounded-full bg-primary" />
+                Đầu số 4 số MobiFone đang nhiều hàng
+              </h2>
+              <p className="mb-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+                Chọn tới bốn chữ số đầu là cách nhanh nhất để khoanh vùng đúng nhóm số Quý khách
+                quen dùng, ví dụ 0909 hay 0938. Danh sách dưới đây chỉ liệt kê dải còn nhiều số
+                thật trong kho, kèm tồn kho và giá thấp nhất tại thời điểm cập nhật.
+              </p>
+              <div className="space-y-5">
+                {families.map(({ family, children }) => (
+                  <div key={family}>
+                    <h3 className="mb-2 text-base font-bold text-foreground">
+                      Dải {family}{" "}
+                      <a
+                        href={`/sim-dau-so/${family}`}
+                        className="text-sm font-medium text-primary underline-offset-2 hover:underline"
+                      >
+                        (xem cả dải)
+                      </a>
+                    </h3>
+                    <ul className="flex flex-wrap gap-2.5">
+                      {children.map((prefix) => {
+                        const stat = inventory.prefixes.get(prefix);
+                        return (
+                          <li key={prefix}>
+                            <a
+                              href={`/sim-dau-so/${prefix}`}
+                              className="flex flex-col rounded-lg border border-border bg-card px-3.5 py-2 text-sm shadow-card transition-colors hover:border-primary/40"
+                            >
+                              <span className="font-bold text-foreground">Sim {prefix}</span>
+                              {stat && stat.count > 0 ? (
+                                <span className="text-xs text-muted-foreground">
+                                  {groupThousands(stat.count)} số · từ{" "}
+                                  {moneyShort(stat.minPrice, "up")}
+                                </span>
+                              ) : null}
+                            </a>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
           {/* Cross-links to the main category pages */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">

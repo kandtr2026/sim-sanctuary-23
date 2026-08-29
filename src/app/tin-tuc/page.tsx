@@ -14,7 +14,7 @@ import {
 // deploy lại.
 export const revalidate = 60;
 
-const TITLE = "Tin Tức SIM Số Đẹp – Kiến Thức Phong Thuỷ & Hướng Dẫn MobiFone";
+const TITLE = "Tin Tức SIM Số Đẹp – Kiến Thức Phong Thuỷ MobiFone";
 const DESCRIPTION =
   "Kiến thức chọn SIM số đẹp: bảng tra ngũ hành, Bát Cực Linh Số, 80 quẻ Kinh Dịch, ý nghĩa đuôi số, giá SIM theo dòng và hướng dẫn thủ tục MobiFone.";
 

@@ -1,8 +1,11 @@
 import type { MetadataRoute } from "next";
 import { getPublishedPosts } from "@/lib/blogPosts";
 import { getInStockBirthYears } from "@/lib/serverSimData";
-import { DAU_SO_PREFIXES, LOAI_KEYS } from "@/lib/simTaxonomy";
 import { TIN_TUC_ARTICLES } from "@/content/tinTucArticles";
+import { getDauSoSitemapEntries } from "@/app/sim-dau-so/inventory";
+import { ALL_YEARS } from "@/app/sim-hop-tuoi/_lib/yearContent";
+import { HANH_META } from "@/app/sim-hop-menh/_lib/hanhMeta";
+import { PRICE_BAND_SLUGS } from "@/lib/simDangSo";
 
 // Sitemap now reads live data (published blog posts + in-stock birth-year
 // clusters) in addition to the fixed static/taxonomy routes. It therefore runs
@@ -41,6 +44,19 @@ const ROUTES: StaticRoute[] = [
   { path: "/sim-phong-thuy-hop-menh", changeFrequency: "weekly", priority: 0.8 },
   { path: "/dinh-gia-sim", changeFrequency: "monthly", priority: 0.7 },
   { path: "/sim-tra-gop", changeFrequency: "monthly", priority: 0.7 },
+  // Hub của 3 cụm trang programmatic mới (29/08/2026).
+  { path: "/sim-hop-tuoi", changeFrequency: "weekly", priority: 0.8, dynamic: true },
+  { path: "/sim-hop-menh", changeFrequency: "weekly", priority: 0.8, dynamic: true },
+  { path: "/sim-gia", changeFrequency: "weekly", priority: 0.8, dynamic: true },
+  // Trang theo DẠNG SỐ — tag đã gắn sẵn cho cả kho, mỗi trang là một cụm từ khoá
+  // riêng mà trước đây site không có trang nào phủ (đối thủ có ~60 trang dạng này).
+  { path: "/sim-tam-hoa", changeFrequency: "weekly", priority: 0.8, dynamic: true },
+  { path: "/sim-tam-hoa-kep", changeFrequency: "weekly", priority: 0.7, dynamic: true },
+  { path: "/sim-ganh-dao", changeFrequency: "weekly", priority: 0.7, dynamic: true },
+  { path: "/sim-lap-kep", changeFrequency: "weekly", priority: 0.7, dynamic: true },
+  { path: "/sim-de-nho", changeFrequency: "weekly", priority: 0.7, dynamic: true },
+  { path: "/sim-taxi", changeFrequency: "weekly", priority: 0.7, dynamic: true },
+  { path: "/sim-tien-len", changeFrequency: "weekly", priority: 0.7, dynamic: true },
   { path: "/thanh-toan", changeFrequency: "monthly", priority: 0.5 },
   { path: "/tin-tuc", changeFrequency: "weekly", priority: 0.6, dynamic: true },
   // Bài /tin-tuc/* viết cứng trong repo được sinh từ sổ đăng ký
@@ -68,21 +84,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route.priority,
   }));
 
-  const dauSoEntries = DAU_SO_PREFIXES.map((dauso) => ({
-    url: `${BASE_URL}/sim-dau-so/${dauso}`,
+  // Đầu số 4 chữ số + combo: dùng helper của chính route, nó ĐÃ loại các URL đang
+  // `noindex` vì mỏng hàng. Bản đầu tôi tự gộp `comboLegacy ∪ comboInStock` → khai
+  // luôn 6 combo mỏng (076/ong-dia, 078/ong-dia, 079/{than-tai,loc-phat,ong-dia},
+  // 089/ong-dia) vào sitemap, tức mời Google vào đúng 6 trang mình vừa chặn index.
+  const dauSoAllEntries = (await getDauSoSitemapEntries()).map(({ path, priority }) => ({
+    url: `${BASE_URL}${path}`,
     lastModified,
     changeFrequency: "weekly" as const,
-    priority: 0.8,
+    priority,
   }));
 
-  const comboEntries = DAU_SO_PREFIXES.flatMap((dauso) =>
-    LOAI_KEYS.map((loai) => ({
-      url: `${BASE_URL}/sim-dau-so/${dauso}/${loai}`,
-      lastModified,
-      changeFrequency: "weekly" as const,
-      priority: 0.8,
-    })),
-  );
+  const hopTuoiEntries = ALL_YEARS.map((nam) => ({
+    url: `${BASE_URL}/sim-hop-tuoi/${nam}`,
+    lastModified,
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }));
+
+  const hopMenhEntries = Object.values(HANH_META).map((h) => ({
+    url: `${BASE_URL}/sim-hop-menh/${h.slug}`,
+    lastModified,
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }));
+
+  const giaEntries = PRICE_BAND_SLUGS.map((slug) => ({
+    url: `${BASE_URL}/sim-gia/${slug}`,
+    lastModified,
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }));
 
   // Bài viết cứng trong repo — lastModified lấy đúng ngày cập nhật đã khai
   // trong sổ đăng ký, nên sitemap không "ping" lại toàn bộ bài mỗi lần deploy.
@@ -121,10 +153,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticEntries,
-    ...dauSoEntries,
-    ...comboEntries,
+    ...dauSoAllEntries,
     ...fileArticleEntries,
     ...blogEntries,
     ...namSinhEntries,
+    ...hopTuoiEntries,
+    ...hopMenhEntries,
+    ...giaEntries,
   ];
 }
