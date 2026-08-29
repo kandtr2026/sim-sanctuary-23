@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Phone, Star, Sparkles, Search } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
+import CategorySimPriceList from "@/components/CategorySimPriceList";
 import TrustCommitments from "@/components/TrustCommitments";
 import CustomerProof from "@/components/CustomerProof";
 import LeadMagnetCta from "@/components/LeadMagnetCta";
@@ -307,7 +308,15 @@ export default async function SimThanTaiPage() {
             </p>
           </section>
 
-          {/* ── 7. Kho sim thần tài ─────────────────────────────────────── */}
+          {/* ── 7. Bảng giá thật + ItemList/Product/Offer ──────────────── */}
+          <CategorySimPriceList
+            title="Giá sim thần tài đang bán"
+            sims={snapshotSims}
+            pageUrl={CANONICAL}
+            note="Bảng lấy 8 số đuôi 39 / 79 có giá thấp nhất trong kho tại thời điểm cập nhật."
+          />
+
+          {/* ── 8. Kho sim thần tài ─────────────────────────────────────── */}
           <CategorySimGrid
             title="Sim Thần Tài Đuôi 39, 79 Mới Cập Nhật"
             searchPlaceholder="Nhập số cần tìm, hoặc *39 / *79 để xem đuôi thần tài"

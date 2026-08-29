@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Phone, Star, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
+import CategorySimPriceList from "@/components/CategorySimPriceList";
 import TrustCommitments from "@/components/TrustCommitments";
 import CustomerProof from "@/components/CustomerProof";
 import LeadMagnetCta from "@/components/LeadMagnetCta";
@@ -160,7 +161,14 @@ export default async function SimDauSoPage({ params }: Props) {
             </p>
           </section>
 
-          
+          {/* Bảng giá thật + ItemList/Product/Offer trong HTML thô */}
+          <CategorySimPriceList
+            title={`Giá sim đầu số ${dauso} đang bán`}
+            sims={snapshotSims}
+            pageUrl={`${BASE_URL}/sim-dau-so/${dauso}`}
+            note={`Bảng lấy 8 số đầu ${dauso} có giá thấp nhất trong kho tại thời điểm cập nhật.`}
+          />
+
           <CategorySimGrid
             title={`Kho Sim ${dauso} Cập Nhật`}
             searchPlaceholder={`Nhập số cần tìm trong kho ${dauso}...`}

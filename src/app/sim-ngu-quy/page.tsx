@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Phone, Star, Shield, CheckCircle, Truck, DollarSign, Users, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
+import CategorySimPriceList from "@/components/CategorySimPriceList";
 import {
   Accordion,
   AccordionContent,
@@ -140,7 +141,14 @@ export default async function SimNguQuyPage() {
             </div>
           </section>
 
-          
+          {/* Bảng giá thật + ItemList/Product/Offer trong HTML thô */}
+          <CategorySimPriceList
+            title="Giá sim ngũ quý, lục quý đang bán"
+            sims={snapshotSims}
+            pageUrl={CANONICAL}
+            note="Bảng lấy 8 số ngũ quý / lục quý có giá thấp nhất trong kho tại thời điểm cập nhật."
+          />
+
           <CategorySimGrid
             title="Sim Ngũ Quý, Lục Quý Mới Cập Nhật"
             searchPlaceholder="Nhập số cần tìm, hoặc *88888 / *99999 để xem đuôi ngũ quý"

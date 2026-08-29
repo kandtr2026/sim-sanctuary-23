@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Phone, Star, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
+import CategorySimPriceList from "@/components/CategorySimPriceList";
 import TrustCommitments from "@/components/TrustCommitments";
 import CustomerProof from "@/components/CustomerProof";
 import LeadMagnetCta from "@/components/LeadMagnetCta";
@@ -135,7 +136,14 @@ export default async function SimLocPhatPage() {
             </div>
           </section>
 
-          
+          {/* Bảng giá thật + ItemList/Product/Offer trong HTML thô */}
+          <CategorySimPriceList
+            title="Giá sim lộc phát đang bán"
+            sims={snapshotSims}
+            pageUrl={CANONICAL}
+            note="Bảng lấy 8 số đuôi 68 / 86 có giá thấp nhất trong kho tại thời điểm cập nhật."
+          />
+
           <CategorySimGrid
             title="Sim Lộc Phát Đuôi 68, 86 Mới Cập Nhật"
             searchPlaceholder="Nhập số cần tìm, hoặc *68 / *86 để xem đuôi lộc phát"

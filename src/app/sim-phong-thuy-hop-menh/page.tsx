@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Phone, Star, Sparkles } from "lucide-react";
 import PhongThuyMenhTool from "./PhongThuyMenhTool";
+import CategorySimPriceList from "@/components/CategorySimPriceList";
 import {
   Accordion,
   AccordionContent,
@@ -148,7 +149,15 @@ export default async function SimPhongThuyHopMenhPage() {
             </p>
           </section>
 
-          
+          {/* Bảng giá thật + ItemList/Product/Offer trong HTML thô — công cụ chọn
+              mệnh bên dưới là client island, bot không đọc được dữ liệu của nó. */}
+          <CategorySimPriceList
+            title="Giá sim đang bán trong kho"
+            sims={snapshotSims}
+            pageUrl={CANONICAL}
+            note="Bảng lấy 8 số có giá thấp nhất trong kho tại thời điểm cập nhật. Quý khách lọc theo mệnh bằng công cụ ngay bên dưới."
+          />
+
           {/* Client island: mệnh picker + grid */}
           <PhongThuyMenhTool />
 

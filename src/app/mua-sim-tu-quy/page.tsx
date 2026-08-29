@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Phone, Shield, Star, Truck, CheckCircle, Sparkles, Award, Users, DollarSign } from "lucide-react";
 import MuaSimTuQuyTool from "./MuaSimTuQuyTool";
+import CategorySimPriceList from "@/components/CategorySimPriceList";
 import {
   Accordion,
   AccordionContent,
@@ -188,6 +189,15 @@ export default async function MuaSimTuQuyPage() {
               </p>
             </div>
           </section>
+
+          {/* Bảng giá thật + ItemList/Product/Offer trong HTML thô — tool bên dưới
+              là client island nên bot cần bảng này để thấy giá và tồn kho. */}
+          <CategorySimPriceList
+            title="Giá sim tứ quý đang bán"
+            sims={snapshotSims}
+            pageUrl={CANONICAL}
+            note="Bảng lấy 8 số tứ quý có giá thấp nhất trong kho tại thời điểm cập nhật."
+          />
 
           {/* ===== 3 + 3b. SEARCH + KHO SIM TỨ QUÝ (client island) ===== */}
           <MuaSimTuQuyTool />

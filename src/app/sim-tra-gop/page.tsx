@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Phone, Star, Shield, CheckCircle, Truck, DollarSign, Users, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
+import CategorySimPriceList from "@/components/CategorySimPriceList";
 import {
   Accordion,
   AccordionContent,
@@ -137,7 +138,14 @@ export default async function SimTraGopPage() {
             </div>
           </section>
 
-          
+          {/* Bảng giá thật + ItemList/Product/Offer trong HTML thô */}
+          <CategorySimPriceList
+            title="Giá sim đang bán trong kho"
+            sims={snapshotSims}
+            pageUrl={CANONICAL}
+            note="Giá niêm yết trả thẳng — mức trả trước và số tiền mỗi tháng được tính trên chính con số này khi Quý khách chọn trả góp."
+          />
+
           {/* Client island: SIM grid */}
           <CategorySimGrid
             title="Kho Sim Có Thể Trả Góp"
