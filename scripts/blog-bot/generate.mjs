@@ -246,13 +246,30 @@ export async function generateContent(topic, env = process.env) {
 
   const provider = (env.LLM_PROVIDER || 'deepseek').toLowerCase();
   const MAX_ATTEMPTS = 3;
+  const BASE_DELAYS = [0, 20000, 40000]; // ms mặc định giữa các lần thử
   let lastError;
 
+  const delayBefore = (attempt) =>
+    new Promise((resolve) => {
+      let delay = BASE_DELAYS[attempt - 1] ?? 20000;
+      // Lỗi rate-limit 429: TikTok/Groq báo "Please try again in Xs" — chờ đủ X + 3s
+      const m = lastError?.message?.match(/try again in (\d+(?:\.\d+)?)s/i);
+      if (m) delay = Math.max(delay, Number(m[1]) * 1000 + 3000);
+      console.warn(`[blog-bot] Chờ ${Math.round(delay / 1000)}s trước lần thử ${attempt}…`);
+      setTimeout(resolve, delay);
+    });
+
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    if (attempt > 1) await delayBefore(attempt);
+
     let correction = null;
-    if (lastError && lastError.bannedWords && lastError.bannedWords.length) {
-      const banList = [...new Set(lastError.bannedWords)].join('", "');
-      correction = `SỬA LẦN ${attempt} (BẮT BUỘC tuân thủ): Bài lần trước bị từ chối vì chứa các từ bị cấm: "${banList}". TUYỆT ĐỐI KHÔNG được dùng bất kỳ từ nào trong số đó một lần nữa. Chỉ dùng "Quý khách" (mặc định) hoặc "Anh/Chị" (khi hướng dẫn, tư vấn).`;
+    if (lastError) {
+      if (lastError.bannedWords && lastError.bannedWords.length) {
+        const banList = [...new Set(lastError.bannedWords)].join('", "');
+        correction = `SỬA LẦN ${attempt} (BẮT BUỘC tuân thủ): Bài lần trước bị từ chối vì chứa các từ bị cấm: "${banList}". TUYỆT ĐỐI KHÔNG được dùng bất kỳ từ nào trong số đó một lần nữa. Chỉ dùng "Quý khách" (mặc định) hoặc "Anh/Chị" (khi hướng dẫn, tư vấn).`;
+      } else {
+        correction = `SỬA LẦN ${attempt}: Bài lần trước bị lỗi (${lastError.message}). TRẢ VỀ DUY NHẤT một JSON hợp lệ đúng khuôn mẫu {"title": "...", "meta_title": "...", "meta_description": "...", "content_html": "<p>...</p>"} — không markdown, không text thừa, không để thiếu trường. TUYỆT ĐỐI không dùng "mình"/"bạn"/"tụi mình"/"các bạn"/"shop mình" — chỉ gọi khách là "Quý khách" hoặc "Anh/Chị".`;
+      }
     }
 
     const prompt = buildPrompt(topic, correction);
