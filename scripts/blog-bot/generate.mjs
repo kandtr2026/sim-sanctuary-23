@@ -130,6 +130,36 @@ function checkVoice(fields) {
   }
 }
 
+/**
+ * Tự sửa xưng hô theo charter khi LLM vẫn lỡ tay dùng "mình/bạn". Model Groq
+ * free-tier hay lặp "mình" dù prompt đã cấm — bước này là lưới an toàn cuối
+ * cùng để bài không bao giờ lên site với sai xưng hô. Trả về object đã sửa +
+ * số chỗ được thay (để log).
+ */
+function fixPronouns(fields) {
+  const RULES = [
+    [/\bcác bạn\b/gi, 'Quý khách'],
+    [/bạn bè/gi, 'khách hàng'],
+    [/\btụi mình\b/gi, 'chúng tôi'],
+    [/\bshop mình\b/gi, 'chúng tôi'],
+    [/\bmình\b/gi, 'Quý khách'],
+    [/\bbạn\b/gi, 'Quý khách'],
+  ];
+
+  let total = 0;
+  const next = {};
+  for (const key of Object.keys(fields)) {
+    let s = String(fields[key] ?? '');
+    for (const [re, rep] of RULES) {
+      const before = s;
+      s = s.replace(re, rep);
+      total += (before.match(re) || []).length;
+    }
+    next[key] = s;
+  }
+  return { fields: next, replacements: total };
+}
+
 function validateAndNormalize(content, topic) {
   const title = typeof content.title === 'string' && content.title.trim() ? content.title.trim() : topic.title;
   const meta_title = typeof content.meta_title === 'string' && content.meta_title.trim()
@@ -144,31 +174,38 @@ function validateAndNormalize(content, topic) {
 
   if (!content_html) throw new Error('LLM trả về content_html rỗng.');
 
-  const words = content_html
+  // Lưới an toàn xưng hô — trước khi đếm từ/check link/check voice.
+  const fixed = fixPronouns({ title, meta_title, meta_description, content_html });
+  if (fixed.replacements > 0) {
+    console.warn(`[blog-bot] Đã tự sửa ${fixed.replacements} chỗ xưng hô ("mình/bạn" → "Quý khách/chúng tôi").`);
+  }
+  const { title: fTitle, meta_title: fMetaTitle, meta_description: fMetaDesc, content_html: fContentHtml } = fixed.fields;
+
+  const words = fContentHtml
     .replace(/<[^>]*>/g, ' ')
     .replace(/&nbsp;/g, ' ')
     .split(/\s+/)
     .filter((w) => /[a-zA-ZÀ-ỹ0-9]/.test(w)).length;
 
-  const hasInternalLink = content_html.includes(`href="${topic.internalLink}"`) || content_html.includes(`href='${topic.internalLink}'`);
+  const hasInternalLink = fContentHtml.includes(`href="${topic.internalLink}"`) || fContentHtml.includes(`href='${topic.internalLink}'`);
   if (!hasInternalLink) {
     throw new Error(`Thiếu link nội bộ ${topic.internalLink} trong content_html.`);
   }
 
-  const metaDescLength = meta_description.length;
+  const metaDescLength = fMetaDesc.length;
   if (metaDescLength < 140 || metaDescLength > 160) {
     console.warn(`[blog-bot] meta_description dài ${metaDescLength} ký tự (ngoài 140-160) — vẫn lưu.`);
   }
   if (words < 700 || words > 1100) {
     console.warn(`[blog-bot] content_html ~${words} từ (ngoài 700-1100) — vẫn lưu.`);
   }
-  if (meta_title.length > 60) {
-    console.warn(`[blog-bot] meta_title bị cắt còn ${meta_title.length} ký tự.`);
+  if (fMetaTitle.length > 60) {
+    console.warn(`[blog-bot] meta_title bị cắt còn ${fMetaTitle.length} ký tự.`);
   }
 
-  checkVoice({ title, meta_title, meta_description, content_html });
+  checkVoice({ title: fTitle, meta_title: fMetaTitle, meta_description: fMetaDesc, content_html: fContentHtml });
 
-  return { title, meta_title, meta_description, content_html, words };
+  return { title: fTitle, meta_title: fMetaTitle, meta_description: fMetaDesc, content_html: fContentHtml, words };
 }
 
 async function callAnthropic(prompt, env) {
