@@ -1,39 +1,22 @@
-"use client";
-
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+import FaqAccordion from '@/components/FaqAccordion';
 import { faqData } from '@/data/faqData';
 
-const FAQSection = () => {
-  return (
-    <section className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
-      <h2 className="text-2xl font-bold text-primary mb-6 flex items-center gap-3">
-        <span className="w-1 h-8 bg-primary rounded-full"></span>
-        Câu Hỏi Thường Gặp
-      </h2>
-      
-      <Accordion type="single" collapsible className="space-y-2">
-        {faqData.map((faq, index) => (
-          <AccordionItem
-            key={index}
-            value={`item-${index}`}
-            className="border border-border rounded-lg px-4 data-[state=open]:bg-background-secondary"
-          >
-            <AccordionTrigger className="text-left font-medium text-foreground hover:text-primary hover:no-underline py-4">
-              {faq.question}
-            </AccordionTrigger>
-            <AccordionContent className="text-muted-foreground pb-4 whitespace-pre-line">
-              {faq.answer}
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
-    </section>
-  );
-};
+/**
+ * FAQ trang chủ. Render bằng `FaqAccordion` (`<details>`) chứ không phải Radix
+ * Accordion: `AccordionContent` chỉ đưa câu trả lời vào DOM khi mục được mở, nên
+ * `FAQPage` JSON-LD ở `src/app/page.tsx` khai đủ hỏi–đáp trong khi HTML thô chỉ
+ * có câu hỏi. Chính `src/data/faqData.ts` đã cảnh báo đúng điều này — chính sách
+ * FAQPage của Google đòi mỗi cặp hỏi–đáp trong markup phải hiển thị được trên
+ * trang.
+ *
+ * Bỏ luôn "use client": không còn state/JS nào ở đây, nên khối này rời khỏi bundle
+ * client của trang chủ.
+ */
+const FAQSection = () => (
+  <FaqAccordion
+    title="Câu Hỏi Thường Gặp"
+    items={faqData.map((faq) => ({ q: faq.question, a: faq.answer }))}
+  />
+);
 
 export default FAQSection;

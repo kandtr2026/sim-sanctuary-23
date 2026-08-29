@@ -2,12 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Sparkles } from "lucide-react";
 import SimNamSinhFinder from "./SimNamSinhFinder";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import FaqAccordion from "@/components/FaqAccordion";
 import { buildBreadcrumb } from "@/lib/seo";
 
 const TITLE = "Sim Năm Sinh – Tìm SIM Có Đúng Ngày Sinh, Năm Sinh";
@@ -184,18 +179,11 @@ export default function SimNamSinhPage() {
                 <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: "#D9B778" }} />
                 Câu hỏi thường gặp
               </h2>
-              <Accordion type="single" collapsible className="w-full">
-                {faqData.map((faq, index) => (
-                  <AccordionItem key={index} value={`faq-${index}`} style={{ borderColor: "rgba(255,255,255,0.08)" }}>
-                    <AccordionTrigger className="text-left hover:no-underline" style={{ color: "#EDEDED" }}>
-                      {faq.question}
-                    </AccordionTrigger>
-                    <AccordionContent style={{ color: "rgba(237, 237, 237, 0.7)" }}>
-                      {faq.answer}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
+              <FaqAccordion
+                items={faqData.map((faq) => ({ q: faq.question, a: faq.answer }))}
+                title={null}
+                className="rounded-none border-0 bg-transparent p-0 shadow-none md:p-0"
+              />
             </div>
 
             {/* Disclaimer */}

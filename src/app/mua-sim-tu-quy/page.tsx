@@ -2,12 +2,7 @@ import type { Metadata } from "next";
 import { Phone, Shield, Star, Truck, CheckCircle, Sparkles, Award, Users, DollarSign } from "lucide-react";
 import MuaSimTuQuyTool from "./MuaSimTuQuyTool";
 import CategorySimPriceList from "@/components/CategorySimPriceList";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import FaqAccordion from "@/components/FaqAccordion";
 import { buildBreadcrumb } from "@/lib/seo";
 import { getCategorySnapshot } from "@/lib/serverSimData";
 
@@ -293,28 +288,7 @@ export default async function MuaSimTuQuyPage() {
           </section>
 
           {/* ===== 8. FAQ ===== */}
-          <section className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
-            <h2 className="text-2xl font-bold text-primary mb-6 flex items-center gap-3">
-              <span className="w-1 h-8 bg-primary rounded-full" />
-              Câu Hỏi Thường Gặp Về Sim Tứ Quý
-            </h2>
-            <Accordion type="single" collapsible className="space-y-2">
-              {faqItems.map((faq, index) =>
-              <AccordionItem
-                key={index}
-                value={`faq-${index}`}
-                className="border border-border rounded-lg px-4 data-[state=open]:bg-secondary/30">
-
-                  <AccordionTrigger className="text-left font-medium text-foreground hover:text-primary hover:no-underline py-4">
-                    {faq.q}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground pb-4">
-                    {faq.a}
-                  </AccordionContent>
-                </AccordionItem>
-              )}
-            </Accordion>
-          </section>
+          <FaqAccordion items={faqItems} title="Câu Hỏi Thường Gặp Về Sim Tứ Quý" />
 
           {/* ===== 9. CTA CUỐI TRANG ===== */}
           <section className="bg-gradient-to-br from-primary via-primary-dark to-primary rounded-xl p-8 md:p-12 text-center text-primary-foreground">

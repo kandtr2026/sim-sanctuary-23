@@ -1,12 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Phone, Sparkles, Star } from "lucide-react";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import FaqAccordion from "@/components/FaqAccordion";
 import { BASE_URL, buildBreadcrumb } from "@/lib/seo";
 import { HANH_SLUGS, hanhFromSlug } from "@/app/sim-hop-menh/_lib/menhSimRanking";
 import { ALL_YEARS, getYearInfo, YEAR_FROM, YEAR_TO } from "./_lib/yearContent";
@@ -226,26 +221,7 @@ export default function SimHopTuoiHubPage() {
           </section>
 
           {/* FAQ */}
-          <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
-            <h2 className="mb-6 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
-              <span aria-hidden className="h-8 w-1 rounded-full bg-primary" />
-              Câu hỏi thường gặp
-            </h2>
-            <Accordion type="single" collapsible className="space-y-2">
-              {faqItems.map((faq, index) => (
-                <AccordionItem
-                  key={index}
-                  value={`faq-${index}`}
-                  className="rounded-lg border border-border px-4 data-[state=open]:bg-secondary/30"
-                >
-                  <AccordionTrigger className="py-4 text-left font-medium text-foreground hover:text-primary hover:no-underline">
-                    {faq.q}
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-4 text-muted-foreground">{faq.a}</AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </section>
+          <FaqAccordion items={faqItems} />
 
           <p className="rounded-xl border border-border bg-secondary/20 p-5 text-center text-sm leading-relaxed text-muted-foreground">
             <strong className="text-foreground">Lưu ý:</strong> Nội dung phong thủy trong cụm trang này dựa

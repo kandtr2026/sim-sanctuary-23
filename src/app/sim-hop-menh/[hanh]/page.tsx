@@ -4,12 +4,7 @@ import Link from "next/link";
 import { Phone, Sparkles, Star } from "lucide-react";
 import CategorySimPriceList from "@/components/CategorySimPriceList";
 import TrustCommitments from "@/components/TrustCommitments";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import FaqAccordion from "@/components/FaqAccordion";
 import { BASE_URL, buildBreadcrumb } from "@/lib/seo";
 import { TUONG_KHAC, TUONG_SINH, tinhCanChi, type NguHanh } from "@/lib/simHopTuoi";
 import NguHanhDigitTable from "../_components/NguHanhDigitTable";
@@ -286,26 +281,7 @@ export default async function SimHopMenhPage({ params }: Props) {
           <TrustCommitments />
 
           {/* FAQ */}
-          <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
-            <h2 className="mb-6 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
-              <span aria-hidden className="h-8 w-1 rounded-full bg-primary" />
-              Câu hỏi thường gặp về sim hợp mệnh {hanh}
-            </h2>
-            <Accordion type="single" collapsible className="space-y-2">
-              {faqItems.map((faq, index) => (
-                <AccordionItem
-                  key={index}
-                  value={`faq-${index}`}
-                  className="rounded-lg border border-border px-4 data-[state=open]:bg-secondary/30"
-                >
-                  <AccordionTrigger className="py-4 text-left font-medium text-foreground hover:text-primary hover:no-underline">
-                    {faq.q}
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-4 text-muted-foreground">{faq.a}</AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </section>
+          <FaqAccordion items={faqItems} title={`Câu hỏi thường gặp về sim hợp mệnh ${hanh}`} />
 
           {/* Sang các mệnh khác + hub gộp */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
