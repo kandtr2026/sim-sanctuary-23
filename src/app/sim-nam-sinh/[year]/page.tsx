@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Phone, Star, Sparkles } from "lucide-react";
 import BirthYearSimGrid from "@/components/BirthYearSimGrid";
+import CategorySimPriceList from "@/components/CategorySimPriceList";
 import TrustCommitments from "@/components/TrustCommitments";
 import CustomerProof from "@/components/CustomerProof";
 import LeadMagnetCta from "@/components/LeadMagnetCta";
@@ -234,6 +235,17 @@ export default async function SimNamSinhPage({ params, searchParams }: Props) {
             day={hasBirthDate ? sp.d : undefined}
             month={hasBirthDate ? sp.m : undefined}
             fallbackSims={fallbackSims}
+          />
+
+          {/* Bảng giá thật + ItemList/Product/Offer trong HTML thô. 38 trang này
+              vốn render số thật qua BirthYearSimGrid nhưng KHÔNG phát Product nào,
+              trong khi mọi trang danh mục khác đều có — nên giá của chúng vô hình
+              với Google. Dùng chung khối của trang danh mục để không lệch cách làm. */}
+          <CategorySimPriceList
+            title={`Giá sim năm sinh ${year} đang bán`}
+            sims={snapshotSims}
+            pageUrl={`${BASE_URL}/sim-nam-sinh/${year}`}
+            note={`Bảng lấy 8 số có ${year} trong dãy, giá thấp nhất trong kho tại thời điểm cập nhật.`}
           />
 
           {/* Cố ý KHÔNG dùng client grid (CategorySimGrid) ở trang năm sinh: bộ

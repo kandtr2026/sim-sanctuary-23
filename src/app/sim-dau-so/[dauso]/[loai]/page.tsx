@@ -275,7 +275,7 @@ export default async function SimDauSoLoaiPage({ params }: Props) {
           __html: JSON.stringify(
             buildBreadcrumb([
               { name: "Trang chủ", path: "/" },
-              { name: "Sim theo đầu số", path: "/sim-dau-so/090" },
+              { name: "Sim theo đầu số", path: "/sim-dau-so" },
               { name: `Sim ${dauso}`, path: `/sim-dau-so/${dauso}` },
               { name: `Sim ${label} ${dauso}`, path: `/sim-dau-so/${dauso}/${loai}` },
             ]),
