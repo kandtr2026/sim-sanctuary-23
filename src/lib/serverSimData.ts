@@ -8,12 +8,12 @@
  * without the featured section, and the client island still works.
  *
  * The CSV parsing logic mirrors useSimData.ts (header normalisation, row
- * parsing, sold/available filtering, safeParseVnd, price estimation fallback),
- * but is self-contained here so importing it in a server component never pulls
- * in client-side deps (react-query, sonner, localStorage).
+ * parsing, sold/available filtering, `parsePrice`), but is self-contained here
+ * so importing it in a server component never pulls in client-side deps
+ * (react-query, sonner, localStorage).
  */
 
-import { normalizeSIM, estimatePriceByTags, formatSIMNumber, detectSimTags, detectNetwork, PRICE_RANGES } from "@/lib/simUtils";
+import { normalizeSIM, parsePrice, formatSIMNumber, detectSimTags, detectNetwork, PRICE_RANGES } from "@/lib/simUtils";
 import type { NormalizedSIM } from "@/lib/simUtils";
 import {
   SUPABASE_URL,
@@ -21,11 +21,21 @@ import {
   EDGE_FUNCTIONS_URL,
 } from "@/integrations/supabase/config";
 
-// ── Module-level cache ──────────────────────────────────────────────────────
-// Across page renders within the same build worker, the same workers share the
-// same module instance, so this cache avoids redundant fetches.
+// ── Module-level cache (có hạn dùng) ────────────────────────────────────────
+// Nhiều lần render trong CÙNG một build worker / ISR worker chia sẻ một lần
+// fetch — nếu không, build 117 trang sẽ kéo kho SIM 117 lần.
+//
+// Nhưng cache phải HẾT HẠN. Bản cũ gán `cachedResult` một lần rồi trả mãi: route
+// có `revalidate = 300` vẫn render lại đúng hạn, chỉ là render lại trên đúng
+// mảng đã đóng băng, nên dữ liệu cũ bằng TUỔI CỦA TIẾN TRÌNH lambda (giá, SIM đã
+// bán, facet, JSON-LD Offer) chứ không phải 5 phút như comment ngụ ý.
+//
+// TTL 300s cho khớp `revalidate = 300` của các route tiêu thụ. Cùng khuôn với
+// `simInventorySheet.ts` (cachedInventory + cacheTimestamp + CACHE_DURATION).
+const CACHE_TTL_MS = 300_000;
 let cachedPromise: Promise<NormalizedSIM[]> | null = null;
 let cachedResult: NormalizedSIM[] | null = null;
+let cachedAt = 0;
 
 // ── CSV header normalisation (mirrors useSimData.ts) ────────────────────────
 const normalizeHeader = (header: string): string => {
@@ -111,12 +121,6 @@ const parseCSV = (csvText: string): Record<string, string>[] => {
   return rows;
 };
 
-// ── Safe VND parser ─────────────────────────────────────────────────────────
-const safeParseVnd = (v: unknown): number => {
-  const n = Number(String(v ?? "").replace(/[^\d]/g, ""));
-  return Number.isFinite(n) ? n : 0;
-};
-
 // ── Fetch + parse + normalise ───────────────────────────────────────────────
 // IMPORTANT (Next 16): do NOT pass an AbortController/AbortSignal to this fetch.
 // Per node_modules/next/dist/docs/01-app/03-api-reference/04-functions/fetch.md
@@ -188,15 +192,14 @@ const parseAndNormalize = (csvText: string): NormalizedSIM[] => {
     const rawDigits = rawNumber.replace(/\D/g, "");
     if (rawDigits.length < 9) continue;
 
-    let originalPrice = safeParseVnd(originalPriceStr);
-    const finalPriceRaw = safeParseVnd(finalPriceStr);
+    // `parsePrice` là hàm nghiêm ngặt dùng chung (simUtils): ô giá không phải số
+    // nguyên có dấu ngăn nghìn → 0, KHÔNG "vét chữ số" thành một con số khác.
+    const originalPrice = parsePrice(originalPriceStr);
+    const finalPriceRaw = parsePrice(finalPriceStr);
     const finalPrice = finalPriceRaw > 0 ? finalPriceRaw : undefined;
 
-    if (!originalPrice || originalPrice <= 0) {
-      const tempSim = normalizeSIM(rawNumber, displayNumber, 0, `temp-${i}`);
-      originalPrice = estimatePriceByTags(tempSim.tags);
-    }
-
+    // Thiếu giá thì để 0 chảy xuống `formatPrice()` → "Liên hệ". Trước đây chỗ
+    // này gọi `estimatePriceByTags()` — giá random theo tag, F5 ra số khác.
     const effectivePrice = finalPrice ?? originalPrice;
     const simId = sheetSimId.trim() || `sim-${i}`;
     sims.push(normalizeSIM(rawNumber, displayNumber, effectivePrice, simId));
@@ -399,22 +402,46 @@ export async function querySimsFromDb(
     }
   }
 
-  // ── Prefixes ──────────────────────────────────────────────────────────
-  if (criteria.prefixes?.length) {
-    if (criteria.prefixes.length === 1) {
-      and.push(`raw_digits=like.${criteria.prefixes[0]}*`);
-    } else {
-      and.push(`or=(${criteria.prefixes.map((p) => `raw_digits=like.${p}*`).join(',')})`);
-    }
+  // ── Prefixes / Suffixes ───────────────────────────────────────────────
+  // Trong `or=(...)` PostgREST đòi cú pháp DẤU CHẤM (`col.op.value`). Bản cũ
+  // sinh `or=(raw_digits=like.090*,raw_digits=like.093*)` → 400 PGRST100
+  // "failed to parse logic tree" (đã xác minh live), `querySimsFromDb` trả null
+  // và cả nhánh rơi về lọc in-memory quét 49k hàng. Kết quả vẫn đúng nên không
+  // ai thấy, chỉ đắt. Cùng khuôn với khối "Price ranges" bên dưới.
+  //
+  // Chỉ nhận giá trị TOÀN chữ số: `prefixes`/`suffixes` đến thẳng từ query string
+  // (`/api/sims` → splitParam, không lọc), nên một giá trị chứa `,` hay `)` sẽ
+  // ghép thêm mệnh đề vào chính logic tree của PostgREST.
+  //
+  // Loại (chứ không "gột" chữ số) để khớp ĐÚNG nhánh lọc in-memory: ở đó
+  // `prefixes.some(p => digits.startsWith(p))` — một giá trị như "0-90" không bao
+  // giờ khớp, tức không góp gì vào phép OR. Nếu gột thành "090" thì cùng một URL
+  // sẽ trả hai tập kết quả khác nhau tuỳ hôm đó đi nhánh DB hay nhánh fallback.
+  const digitGroups = (values: string[] | undefined): string[] =>
+    (values ?? []).map((v) => String(v)).filter((v) => /^\d+$/.test(v));
+
+  // Bỏ thành viên không hợp lệ khỏi tập OR là đúng (nó không khớp gì). Nhưng nếu
+  // bỏ hết mà vẫn còn yêu cầu lọc thì tập OR rỗng ⇒ không khớp gì — phải trả 0
+  // hàng, KHÔNG được bỏ mệnh đề (bỏ đi là âm thầm nới bộ lọc thành "lấy tất cả").
+  const prefixes = digitGroups(criteria.prefixes);
+  const suffixes = digitGroups(criteria.suffixes);
+  if (
+    (criteria.prefixes?.length && prefixes.length === 0) ||
+    (criteria.suffixes?.length && suffixes.length === 0)
+  ) {
+    return { items: [], total: 0 };
   }
 
-  // ── Suffixes ──────────────────────────────────────────────────────────
-  if (criteria.suffixes?.length) {
-    if (criteria.suffixes.length === 1) {
-      and.push(`raw_digits=like.*${criteria.suffixes[0]}`);
-    } else {
-      and.push(`or=(${criteria.suffixes.map((s) => `raw_digits=like.*${s}`).join(',')})`);
-    }
+  if (prefixes.length === 1) {
+    and.push(`raw_digits=like.${prefixes[0]}*`);
+  } else if (prefixes.length > 1) {
+    and.push(`or=(${prefixes.map((p) => `raw_digits.like.${p}*`).join(',')})`);
+  }
+
+  if (suffixes.length === 1) {
+    and.push(`raw_digits=like.*${suffixes[0]}`);
+  } else if (suffixes.length > 1) {
+    and.push(`or=(${suffixes.map((s) => `raw_digits.like.*${s}`).join(',')})`);
   }
 
   // ── Networks ──────────────────────────────────────────────────────────
@@ -517,41 +544,51 @@ export async function querySimsFromDb(
 
 /**
  * Fetch the full SIM catalogue on the server (build or request time).
- * Cached at the module level so multiple pages within the same build worker
- * share one fetch. Returns [] on failure (never throws).
+ * Cached at the module level for `CACHE_TTL_MS` (300s — khớp `revalidate = 300`
+ * của các route tiêu thụ) nên nhiều trang trong cùng một build/ISR worker chia
+ * sẻ một lần fetch, mà dữ liệu vẫn tươi lại sau 5 phút thay vì đóng băng theo
+ * tuổi tiến trình. Returns [] on failure (never throws).
  *
  * Ưu tiên đọc từ Supabase (bảng `sims` — đồng bộ hàng ngày bởi sync-sims, không
  * tải 5.5MB CSV). Nếu Supabase chưa có dữ liệu/lỗi → fallback về CSV như cũ.
  */
 export const getServerSims = async (): Promise<NormalizedSIM[]> => {
-  if (cachedResult) return cachedResult;
+  // Hết hạn thì coi như chưa có cache và fetch lại.
+  if (cachedResult && Date.now() - cachedAt < CACHE_TTL_MS) return cachedResult;
+  // Đang có một lần fetch dở dang → chờ chung, không bắn thêm request.
   if (cachedPromise) return cachedPromise;
+
+  const store = (sims: NormalizedSIM[]): NormalizedSIM[] => {
+    cachedResult = sims;
+    cachedAt = Date.now();
+    return sims;
+  };
 
   cachedPromise = (async () => {
     // 1) Thử Supabase trước — nhẹ, nhanh, luôn tươi theo sync
     const fromDb = await fetchSimsFromDb();
     if (fromDb && fromDb.length > 0) {
-      cachedResult = fromDb;
       console.log(`[serverSimData] loaded ${fromDb.length} SIMs from Supabase`);
-      return fromDb;
+      return store(fromDb);
     }
     // 2) Fallback: CSV qua edge function
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const csv = await fetchCsv();
-        const sims = parseAndNormalize(csv);
-        cachedResult = sims;
-        return sims;
+        return store(parseAndNormalize(csv));
       } catch (e) {
         console.warn(`[serverSimData] fetch failed (attempt ${attempt + 1}):`, e);
       }
     }
+    // Thất bại: KHÔNG cache mảng rỗng — lần gọi sau phải thử lại ngay.
     return [];
   })();
 
-  const result = await cachedPromise;
-  cachedPromise = null;
-  return result;
+  try {
+    return await cachedPromise;
+  } finally {
+    cachedPromise = null;
+  }
 };
 
 /**

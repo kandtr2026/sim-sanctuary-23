@@ -3,12 +3,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { invokeEdgeFunctionText } from '@/integrations/supabase/edgeFunctions';
 import {
   normalizeSIM,
-  
+
   sortSIMs,
   countTags,
   getUniquePrefixes,
   parsePrice,
-  estimatePriceByTags,
   matchesQuyFilter,
   type NormalizedSIM,
   type SortOption,
@@ -188,12 +187,10 @@ export const getPromotionalData = (simId: string): PromotionalData | undefined =
   return promotionalDataStore.get(simId);
 };
 
-// Parse VND-like numbers safely (handles commas, spaces, currency symbols, etc.)
-// Example: "1,200,000" -> 1200000
-const safeParseVnd = (v: unknown): number => {
-  const n = Number(String(v ?? '').replace(/[^\d]/g, ''));
-  return Number.isFinite(n) ? n : 0;
-};
+// Giá đọc từ sheet đi qua `parsePrice` (simUtils) — hàm NGHIÊM NGẶT dùng chung
+// cho cả server (`serverSimData`) và client. Bản `safeParseVnd` cũ ở đây "vét chữ
+// số" nên "1,5 triệu" → 15 và "229.000 - LH 0933356666" → 2.290.000.933.356.666.
+// Ô nào không phải số nguyên có dấu ngăn nghìn thì thành 0 → "Liên hệ".
 
 // Valid CSV headers to look for
 const VALID_HEADERS = [
@@ -502,25 +499,24 @@ const fetchSimData = async (): Promise<NormalizedSIM[]> => {
       // Ignore rows with less than 9 digits
       if (rawDigits.length < 9) return;
       
-      // Prefer safe VND parsing for sheet values (handles commas/spaces/etc.)
-      let originalPrice = safeParseVnd(originalPriceStr);
-      const finalPriceRaw = safeParseVnd(finalPriceStr);
+      // Giá đọc bằng hàm parse nghiêm ngặt dùng chung (xem `parsePrice`)
+      const originalPrice = parsePrice(originalPriceStr);
+      const finalPriceRaw = parsePrice(finalPriceStr);
       const finalPrice = finalPriceRaw > 0 ? finalPriceRaw : undefined;
 
       const discountType = parseDiscountType(discountTypeStr) || undefined;
-      const discountValue = safeParseVnd(discountValueStr) || undefined;
-      
+      const discountValue = parsePrice(discountValueStr) || undefined;
+
       // Count SIMs with actual discount (finalPrice < originalPrice)
       if (finalPrice && finalPrice > 0 && finalPrice < originalPrice) {
         discountCount++;
       }
-      
-      // Estimate price if original price is missing or invalid
-      if (!originalPrice || originalPrice <= 0) {
-        const tempSim = normalizeSIM(rawNumber, displayNumber, 0, `temp-${index}`);
-        originalPrice = estimatePriceByTags(tempSim.tags);
-      }
-      
+
+      // Thiếu giá → để 0, `formatPrice()` in "Liên hệ". Trước đây chỗ này gọi
+      // `estimatePriceByTags()`: giá random theo tag, chạy MỖI lần hook fetch nên
+      // cùng một SIM F5 ra một giá khác, và `/dinh-gia-sim` dán nhãn "Giá niêm
+      // yết công khai trong kho" lên con số bịa đó.
+
       // Use finalPrice for sorting/filtering if available, else originalPrice
       const effectivePrice = finalPrice ?? originalPrice;
       // Use Google Sheet SimID if available, otherwise fallback to index-based id

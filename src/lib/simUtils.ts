@@ -466,17 +466,34 @@ export const analyzeDigits = (rawDigits: string): { digitCounts: number[]; sumDi
   return { digitCounts: counts, sumDigits: sum };
 };
 
-// Parse CSV price string to number (robust)
+/**
+ * Ô giá của sheet → số VND. MỘT hàm duy nhất cho mọi tầng đọc giá phía web
+ * (`serverSimData`, `useSimData`, checkout) — trước đây mỗi chỗ có bản `safeParseVnd`
+ * riêng nên không có nơi nào để sửa một lần.
+ *
+ * Chỉ nhận số nguyên có dấu ngăn nghìn; thứ gì khác trả 0 để caller coi như
+ * "chưa có giá" (`formatPrice(0)` → "Liên hệ"). Bản cũ "vét chữ số"
+ * (`replace(/[^\d]/g, '')`) biến rác thành giá thật:
+ *
+ *   "1,5 triệu"                → 15
+ *   "4tr5"                     → 45
+ *   "229.000 - LH 0933356666"  → 2.290.000.933.356.666
+ *
+ * Cùng khuôn với `parseCheapPrice` (cheapSimSheet.ts) và `parsePriceToNumber`
+ * (simInventorySheet.ts): bỏ dòng thì khách không thấy số đó, còn parse sai thì
+ * đặt một giá sai trước mặt khách. Cột `GIÁ BÁN`/`Final_Price` của sheet là cột
+ * SỐ nên cả 49.378 dòng hiện tại đều ở dạng "39,000,000" — luật này không gạt
+ * oan dòng nào.
+ */
 export const parsePrice = (priceStr: string | number): number => {
-  if (typeof priceStr === 'number') return priceStr;
-  if (!priceStr) return 0;
-  
-  // Remove all non-numeric characters except for decimal points that might be thousands separators
-  const cleaned = String(priceStr)
-    .replace(/[^\d]/g, ''); // Remove everything except digits
-  
-  const value = parseInt(cleaned, 10);
-  return isNaN(value) ? 0 : value;
+  if (typeof priceStr === 'number') return Number.isFinite(priceStr) ? priceStr : 0;
+  const s = String(priceStr ?? '').trim();
+  if (!s) return 0;
+  // 229000 | 229.000 | 229,000 — dấu chấm và phẩy đều là ngăn nghìn trong locale
+  // của sheet, và chỉ xuất hiện theo nhóm 3 chữ số.
+  if (!/^\d{1,3}(?:[.,]\d{3})*$|^\d+$/.test(s)) return 0;
+  const value = parseInt(s.replace(/[.,]/g, ''), 10);
+  return Number.isFinite(value) ? value : 0;
 };
 
 /**
@@ -493,25 +510,15 @@ export const formatPrice = (price: number | undefined | null): string => {
   return `${Math.round(price).toLocaleString('vi-VN')}đ`;
 };
 
-// Estimate price based on tags (for missing prices)
-export const estimatePriceByTags = (tags: string[]): number => {
-  // Price ranges based on prompt specification
-  if (tags.includes('Lục quý')) {
-    return Math.floor(Math.random() * (650000000 - 120000000) + 120000000);
-  }
-  if (tags.includes('Ngũ quý')) {
-    return Math.floor(Math.random() * (250000000 - 60000000) + 60000000);
-  }
-  if (tags.includes('Tứ quý')) {
-    return Math.floor(Math.random() * (60000000 - 12000000) + 12000000);
-  }
-  if (tags.includes('Tam hoa kép') || tags.includes('Tam hoa') || 
-      tags.includes('Thần tài') || tags.includes('Lộc phát')) {
-    return Math.floor(Math.random() * (25000000 - 4000000) + 4000000);
-  }
-  // Default range for others
-  return Math.floor(Math.random() * (1200000 - 390000) + 390000);
-};
+// KHÔNG có hàm "đoán giá theo tag" ở đây, và đừng thêm lại.
+//
+// `estimatePriceByTags()` cũ sinh giá bằng `Math.random()` theo tag (tứ quý →
+// 12–60 triệu) cho mọi SIM thiếu giá, rồi giá đó chảy vào lưới sản phẩm, vào
+// `/dinh-gia-sim` dưới nhãn "Giá niêm yết công khai trong kho", vào JSON-LD
+// Offer và vào cả trang thanh toán. Cùng một số, F5 lại ra một giá khác.
+//
+// Luật thay thế: giá không đọc được → 0 → `formatPrice(0)` = "Liên hệ". Mọi
+// nhánh cần "giá chưa biết" phải dùng 0, không phải một con số bịa.
 
 /**
  * Restore the leading zero on a Vietnamese mobile number.
