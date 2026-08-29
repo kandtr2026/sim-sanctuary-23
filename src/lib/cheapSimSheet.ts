@@ -32,10 +32,10 @@ export const CHEAP_PRICE = 229_000;
  * browser, which fixes two problems a client-side parse could not:
  *
  *   - payload: 3,6 MB → ~510 KB, because 20.786 rows never leave Google.
- *   - exposure: `select A, C, E` ships SimID, number and list price only. A
- *     `select *` hands every visitor the `Giá Thu` cost column plus Serial,
- *     User, qrText and qrImageFormula. Same for Sim_Sold, where the projection
- *     drops its own `GiaThu`.
+ *   - exposure: `select A, C, D, E` ships SimID, number, gói cước and list price
+ *     only. A `select *` hands every visitor the `Giá Thu` cost column plus
+ *     Serial, User, qrText and qrImageFormula. Same for Sim_Sold, where the
+ *     projection drops its own `GiaThu`.
  *
  * Column letters are positional in gviz and therefore coupled to the sheet
  * layout. `CHEAP_HEADER_GUARD` fails loudly if the columns are ever reordered,
@@ -44,8 +44,8 @@ export const CHEAP_PRICE = 229_000;
 export const gvizUrl = (sheet: string, query: string) =>
   `https://docs.google.com/spreadsheets/d/${CHEAP_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheet}&tq=${encodeURIComponent(query)}`;
 
-/** Expected projected headers of `select A, C, E`, normalised. */
-export const CHEAP_HEADER_GUARD = ['simid', 'stb1', 'giaban'];
+/** Expected projected headers of `select A, C, D, E`, normalised. */
+export const CHEAP_HEADER_GUARD = ['simid', 'stb1', 'phanloai', 'giaban'];
 
 /** Google blocks direct browser requests to gviz; everything goes via the proxy. */
 export const fetchSheetCsv = async (url: string, signal?: AbortSignal): Promise<string> => {
@@ -120,7 +120,33 @@ export interface CheapSim {
   rawDigits: string;
   price: number;
   network: string;
+  /**
+   * Gói cước đi kèm ĐÚNG theo cột `Phân loại` của từng dòng, đã rút về tên gói
+   * (TK179, M125M, MXH120…); rỗng nghĩa là SIM KHÔNG có gói.
+   *
+   * Trước đây thẻ SIM in cứng "ĐÃ GỒM GÓI TK179" cho mọi số, trong khi kho chỉ
+   * có 649/13.088 dòng là TK179 và 8.387 dòng không gói — tức 95% thẻ hứa một
+   * gói mà số đó không có. Nhãn phải chạy theo dữ liệu, không phải hằng số.
+   */
+  goiCuoc: string;
 }
+
+/**
+ * "TMDT-TK179_MQ" → "TK179". Cột `Phân loại` trộn tiền tố kênh bán (TMDT-,
+ * TMDT-12, TMDT-6) với hậu tố đối tác (_MQ, _ZP, _ETK) quanh tên gói. Khách chỉ
+ * cần biết tên gói, nên phần còn lại bị lược.
+ */
+export const normalizeGoiCuoc = (raw: string): string => {
+  const s = String(raw ?? '').trim().toUpperCase();
+  if (!s) return '';
+  const known = ['TK179', 'TK159', 'TK135', 'HN125M', 'M125M', 'MXH120', 'PT90', 'NA90'];
+  for (const goi of known) {
+    if (s.includes(goi)) return goi;
+  }
+  // Giá trị lạ: trả về nguyên trạng đã lược tiền tố kênh bán, thà hiện đúng chữ
+  // trong sheet còn hơn im lặng bỏ mất thông tin gói.
+  return s.replace(/^TMDT-\d*/, '').replace(/_[A-Z]+$/, '') || '';
+};
 
 /**
  * Build a `CheapSim` from the three projected cells, or null if the row is not
@@ -132,6 +158,7 @@ export const buildCheapSim = (
   stb1: string,
   priceRaw: string,
   bounds: { min: number; max: number },
+  phanLoaiRaw = '',
 ): CheapSim | null => {
   if (!simId || !stb1 || !priceRaw) return null;
 
@@ -147,6 +174,7 @@ export const buildCheapSim = (
     rawDigits,
     price,
     network: detectNetwork(rawDigits),
+    goiCuoc: normalizeGoiCuoc(phanLoaiRaw),
   };
 };
 
@@ -191,7 +219,7 @@ export const fetchCheapSimById = async (
   if (!isCheapSimId(simId)) return null;
 
   const [rowCsv, soldCsv] = await Promise.all([
-    fetchSheetCsv(gvizUrl('Tongkho', `select A, C, E where A = '${simId}' and G = '${CHEAP_KHO}'`), signal),
+    fetchSheetCsv(gvizUrl('Tongkho', `select A, C, D, E where A = '${simId}' and G = '${CHEAP_KHO}'`), signal),
     fetchSheetCsv(gvizUrl('Sim_Sold', `select B where B = '${simId}'`), signal),
   ]);
 
@@ -205,6 +233,6 @@ export const fetchCheapSimById = async (
   const headers = parseCSVLine(lines[0]).map(normalizeHeader);
   if (CHEAP_HEADER_GUARD.some((expected, i) => headers[i] !== expected)) return null;
 
-  const [id, stb1, priceRaw] = parseCSVLine(lines[1]).map(stripQuotes);
-  return buildCheapSim(id, stb1, priceRaw, CHEAP_PRICE_BOUNDS);
+  const [id, stb1, phanLoai, priceRaw] = parseCSVLine(lines[1]).map(stripQuotes);
+  return buildCheapSim(id, stb1, priceRaw, CHEAP_PRICE_BOUNDS, phanLoai);
 };

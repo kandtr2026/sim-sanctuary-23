@@ -26,7 +26,7 @@ import {
 
 // Same queries the client hook uses: promo stock only (Kho = '0đ'), and the
 // full sold list so already-sold numbers are never shown.
-const TONGKHO_QUERY = `select A, C, E where G = '${CHEAP_KHO}'`;
+const TONGKHO_QUERY = `select A, C, D, E where G = '${CHEAP_KHO}'`;
 const SOLD_QUERY = "select B";
 
 // Module-level cache: multiple renders within one build/ISR worker share a
@@ -57,10 +57,10 @@ const parseRows = (csv: string, soldIds: Set<string>): CheapSim[] => {
   const sims: CheapSim[] = [];
   const seen = new Set<string>();
   for (let i = 1; i < lines.length; i++) {
-    const [simId, stb1, priceRaw] = parseCSVLine(lines[i]).map(stripQuotes);
+    const [simId, stb1, phanLoai, priceRaw] = parseCSVLine(lines[i]).map(stripQuotes);
     if (simId && soldIds.has(simId.toUpperCase())) continue;
 
-    const sim = buildCheapSim(simId, stb1, priceRaw, CHEAP_PRICE_BOUNDS);
+    const sim = buildCheapSim(simId, stb1, priceRaw, CHEAP_PRICE_BOUNDS, phanLoai);
     if (!sim) continue;
     if (seen.has(sim.id)) continue;
     seen.add(sim.id);

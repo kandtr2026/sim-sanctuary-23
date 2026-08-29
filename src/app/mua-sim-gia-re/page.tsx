@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Wifi, PhoneCall, BadgeCheck, Truck, MessageCircle, Search } from "lucide-react";
 import MuaSimGiaReTool from "./MuaSimGiaReTool";
+import CategorySimPriceList from "@/components/CategorySimPriceList";
 import {
   Accordion,
   AccordionContent,
@@ -17,7 +18,7 @@ const ZALO_URL = 'https://zalo.me/0933356666';
 const PRICE_LABEL = `${CHEAP_PRICE.toLocaleString('vi-VN')}đ`;
 
 const TITLE = `Mua SIM Giá Rẻ – Kho SIM MobiFone Đồng Giá ${PRICE_LABEL}`;
-const DESCRIPTION = `Kho SIM MobiFone khuyến mãi đồng giá ${PRICE_LABEL}, đã gồm gói TK179 (7GB/ngày). Quý khách chủ động chọn số theo đuôi kép, tránh 4-7, đuôi 6-8-9. Giao SIM toàn quốc.`;
+const DESCRIPTION = `Kho SIM MobiFone khuyến mãi đồng giá ${PRICE_LABEL}, một phần số kèm sẵn gói cước. Quý khách chủ động chọn số theo đuôi kép, tránh 4-7, đuôi 6-8-9. Giao SIM toàn quốc.`;
 const CANONICAL = "https://www.chonsomobifone.com/mua-sim-gia-re";
 
 // ISR: match the 10-minute promo-warehouse window loosely at 5 minutes, so the
@@ -31,15 +32,21 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     title: TITLE,
-    description: `Toàn bộ SIM trong kho đúng ${PRICE_LABEL}, đã gồm gói cước TK179. Quý khách chọn dãy số ưng ý, giá không đổi.`,
+    description: `Toàn bộ SIM trong kho đúng ${PRICE_LABEL}, một phần số kèm sẵn gói cước. Quý khách chọn dãy số ưng ý, giá không đổi.`,
     url: CANONICAL,
     images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
   },
 };
 
-const TK179_PERKS = [
-  { Icon: Wifi, text: '7GB data tốc độ cao mỗi ngày' },
-  { Icon: PhoneCall, text: 'Miễn phí gọi nội mạng, 200 phút liên mạng' },
+// Kho khuyến mãi KHÔNG đồng nhất về gói cước: đếm trên 13.088 dòng của kho
+// (cột `Phân loại`) cho 8.387 số không kèm gói, 2.292 M125M, 782 MXH120, 649
+// TK179, 546 TK159, 307 TK135, 71 PT90, 53 NA90. Vì vậy trang chỉ được nói về
+// gói ở mức "một phần kho có kèm gói", còn gói cụ thể thì nhãn trên từng thẻ SIM
+// tự khai theo dòng đó (xem MuaSimGiaReTool.tsx). Đồng giá 229.000đ vẫn đúng cho
+// toàn kho — đó là điều duy nhất được hứa cho mọi số.
+const KHO_PERKS = [
+  { Icon: Wifi, text: 'Một phần kho kèm sẵn gói cước, nhãn ghi rõ trên từng số' },
+  { Icon: PhoneCall, text: 'Số nào chưa có gói, Quý khách tự chọn gói sau khi kích hoạt' },
   { Icon: BadgeCheck, text: 'SIM MobiFone chính hãng, sang tên chính chủ' },
   { Icon: Truck, text: 'Giao SIM toàn quốc, miễn phí vận chuyển' },
 ];
@@ -47,7 +54,7 @@ const TK179_PERKS = [
 const faqItems = [
   {
     q: `Vì sao mọi SIM ở đây đều ${PRICE_LABEL}?`,
-    a: `Đây là kho SIM khuyến mãi đồng giá của MobiFone: toàn bộ số trong kho bán đúng ${PRICE_LABEL}, không phân biệt số đẹp hay số thường, và đã bao gồm gói cước TK179 tháng đầu. Quý khách không phải cân giá giữa các số — chỉ cần chọn dãy số ưng ý nhất.`,
+    a: `Đây là kho SIM khuyến mãi đồng giá của MobiFone: toàn bộ số trong kho bán đúng ${PRICE_LABEL}, không phân biệt số đẹp hay số thường. Quý khách không phải cân giá giữa các số — chỉ cần chọn dãy số ưng ý nhất.`,
   },
   {
     q: 'Kho này có SIM tứ quý, lộc phát, thần tài không?',
@@ -58,8 +65,8 @@ const faqItems = [
     a: 'Được. Mọi SIM tại CHONSOMOBIFONE.COM đều hỗ trợ đăng ký chính chủ, kể cả SIM đồng giá. Sau khi nhận SIM, Quý khách mang CCCD đến cửa hàng MobiFone gần nhất, hoặc đăng ký thông tin thuê bao trên ứng dụng My MobiFone.',
   },
   {
-    q: 'Gói TK179 hết 30 ngày thì sao?',
-    a: 'SIM vẫn hoạt động bình thường như một thuê bao trả trước MobiFone. Quý khách chủ động gia hạn TK179, đổi sang gói cước khác, hoặc chỉ nạp tiền dùng theo nhu cầu. Số điện thoại thuộc về Quý khách, không phụ thuộc vào việc có duy trì gói hay không.',
+    q: 'SIM có kèm gói cước không? Gói hết hạn thì sao?',
+    a: 'Tùy từng số. Nhãn dưới giá của mỗi SIM ghi rõ số đó kèm gói nào (TK179, M125M, MXH120, TK159, TK135…) hoặc chưa kèm gói. Với số có gói, hết thời hạn ưu đãi thì SIM vẫn hoạt động bình thường như một thuê bao trả trước MobiFone: Quý khách chủ động gia hạn, đổi gói khác, hoặc chỉ nạp tiền dùng theo nhu cầu. Số điện thoại thuộc về Quý khách, không phụ thuộc vào việc có duy trì gói hay không.',
   },
   {
     q: 'Bao lâu thì nhận được SIM?',
@@ -94,12 +101,18 @@ const FACET_COPY: Record<CheapFacet, string> = {
 
 export default async function MuaSimGiaRePage() {
   // Real promo SIMs, server-rendered into the HTML. The checkout route
-  // (/mua-ngay/[id]) resolves these SIMKM… ids, and SimSnapshot only reads
-  // id/displayNumber/price, so mapping through normalizeSIM is enough.
+  // (/mua-ngay/[id]) resolves these SIMKM… ids, and CategorySimPriceList only
+  // reads id/rawDigits/price, so mapping through normalizeSIM is enough.
+  //
+  // Vì sao chốt cứng `price === CHEAP_PRICE`: cả trang này nói "đồng giá
+  // 229.000đ", nhưng `buildCheapSim` chỉ chặn giá trong khoảng 10k–500k
+  // (CHEAP_PRICE_BOUNDS) — nếu một hàng trong sheet lệch khỏi 229.000đ thì bảng
+  // và Offer JSON-LD sẽ tự mâu thuẫn với chữ "đồng giá" ngay trên cùng trang.
+  // Lọc ở đây khiến giá in ra, giá trong schema và giá quảng cáo luôn là MỘT số.
   const cheapSnapshot = await getCheapSnapshot(8);
-  const snapshotSims = cheapSnapshot.map((s) =>
-    normalizeSIM(s.rawDigits, s.displayNumber, s.price, s.id),
-  );
+  const snapshotSims = cheapSnapshot
+    .filter((s) => s.price === CHEAP_PRICE)
+    .map((s) => normalizeSIM(s.rawDigits, s.displayNumber, s.price, s.id));
   return (
     <>
       <main className="min-h-screen bg-background">
@@ -125,12 +138,12 @@ export default async function MuaSimGiaRePage() {
               <span className="text-gold">{PRICE_LABEL}</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Quý khách chọn dãy số ưng ý, giá vẫn thế — không có số nào đắt hơn số nào, đã
-              gồm gói cước TK179 tháng đầu.
+              Quý khách chọn dãy số ưng ý, giá vẫn thế — không có số nào đắt hơn số nào. Số nào
+              kèm sẵn gói cước, nhãn dưới giá ghi rõ tên gói.
             </p>
 
             <ul className="mx-auto grid max-w-2xl grid-cols-1 gap-x-6 gap-y-1.5 text-left text-xs text-primary-foreground/85 sm:grid-cols-2 md:text-sm">
-              {TK179_PERKS.map(({ Icon, text }) => (
+              {KHO_PERKS.map(({ Icon, text }) => (
                 <li key={text} className="flex items-center gap-2">
                   <Icon className="h-4 w-4 flex-shrink-0 text-gold" aria-hidden="true" />
                   <span>{text}</span>
@@ -142,6 +155,18 @@ export default async function MuaSimGiaRePage() {
 
         {/* ===== SEARCH + INVENTORY (client island) ===== */}
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
+          {/* Bảng số thật + ItemList/Product/Offer trong HTML thô. Giá trên trang
+              này vốn đã có sẵn (hero, FAQ, metadata) nên khối này gánh phần còn
+              thiếu: đánh dấu sản phẩm cho 8 số đang bán. Mọi dòng cùng mức
+              229.000đ là ĐÚNG bản chất kho, không phải lỗi hiển thị. */}
+          <CategorySimPriceList
+            title={`Số đang còn trong kho — đồng giá ${PRICE_LABEL}`}
+            sims={snapshotSims}
+            pageUrl={CANONICAL}
+            intro={`Số thật đang còn trong kho, mỗi số đúng ${PRICE_LABEL} — Quý khách không phải cân giá giữa các số.`}
+            note={`Kho khuyến mãi bán một mức duy nhất, nên cột giá của mọi dòng đều là ${PRICE_LABEL} — Quý khách chỉ cần chọn dãy số ưng ý.`}
+          />
+
           <MuaSimGiaReTool />
 
           {/* ===== WHAT THIS KHO IS ===== */}
@@ -158,11 +183,15 @@ export default async function MuaSimGiaRePage() {
                 chỉ cần chọn dãy số ưng ý nhất.
               </p>
               <p>
-                Giá đã bao gồm gói cước <strong className="text-foreground">TK179</strong> trong 30 ngày
-                đầu: 7GB data tốc độ cao mỗi ngày, miễn phí thoại nội mạng dưới 20 phút mỗi cuộc
-                (tối đa 1.500 phút) và 200 phút liên mạng. Hết 30 ngày, SIM vẫn là thuê bao trả
-                trước MobiFone bình thường — Quý khách chủ động gia hạn TK179, đổi gói khác hay
-                chỉ nạp tiền dùng dần.
+                Một phần số trong kho kèm sẵn gói cước MobiFone tháng đầu — thường gặp là{' '}
+                <strong className="text-foreground">TK179</strong> (7GB data mỗi ngày),{' '}
+                <strong className="text-foreground">M125M</strong>,{' '}
+                <strong className="text-foreground">MXH120</strong>,{' '}
+                <strong className="text-foreground">TK159</strong>,{' '}
+                <strong className="text-foreground">TK135</strong>. Nhãn ngay dưới giá của từng số
+                cho Quý khách biết số đó kèm gói nào, hoặc chưa kèm gói. Hết thời hạn ưu đãi, SIM
+                vẫn là thuê bao trả trước bình thường — Quý khách chủ động gia hạn, đổi gói khác
+                hay chỉ nạp tiền dùng dần.
               </p>
               <div className="rounded-lg border border-gold/25 bg-gold/[0.06] p-4">
                 <p className="mb-2 font-semibold text-foreground">Kho này hợp với ai?</p>

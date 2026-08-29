@@ -104,11 +104,14 @@ const CheapSimCard = ({
           >
             {formatPrice(sim.price)}
           </span>
+          {/* Nhãn gói cước chạy theo cột `Phân loại` của CHÍNH dòng đó. Bản cũ in
+              cứng "ĐÃ GỒM GÓI TK179" cho mọi thẻ, trong khi kho chỉ có 649/13.088
+              số là TK179 và 8.387 số không kèm gói — 95% thẻ hứa sai gói. */}
           <span
             className="block text-muted-foreground"
             style={{ fontSize: 'clamp(9px, 1.6vw, 12px)', lineHeight: '1.3', letterSpacing: '0.02em' }}
           >
-            ĐÃ GỒM GÓI TK179
+            {sim.goiCuoc ? `ĐÃ GỒM GÓI ${sim.goiCuoc}` : 'CHƯA GỒM GÓI CƯỚC'}
           </span>
         </div>
         <div className="mt-1.5 grid grid-cols-[auto_1fr] items-stretch gap-1">
