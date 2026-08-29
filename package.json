@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "blog-bot": "node scripts/blog-bot/index.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "seo:rank": "node scripts/seo/rank-check.mjs"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.11",
