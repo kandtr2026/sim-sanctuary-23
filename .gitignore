@@ -38,3 +38,7 @@ dist-ssr
 # Ảnh/video thô do bộ gen media trả về. Chỉ bản đã nén trong public/blog mới
 # được commit (xem scripts/blog-images/optimize.mjs).
 generated-media/
+
+# Log build tạm và state của Supabase CLI — không thuộc source
+build-verify.txt
+supabase/.temp/
