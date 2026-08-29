@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { fetchSheetCsv, normalizeHeader, parseCSVLine, stripQuotes } from '@/lib/cheapSimSheet';
 
 // ============================================================
 // Đếm số SIM đã bán (đã bị trừ khỏi kho) - realtime theo Google Sheet
@@ -9,8 +10,21 @@ import { useQuery } from '@tanstack/react-query';
 
 // Spreadsheet A - kho chính (trùng với fetch-sim-data edge function)
 const SHEET_ID = '1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y';
-// gviz API có sẵn CORS nên fetch thẳng từ trình duyệt được (không cần proxy)
-const SIM_SOLD_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=SIM_SOLD`;
+
+/**
+ * `select B` — chỉ cột `SoThueBao`, và đi qua `sheet-proxy`.
+ *
+ * Bản cũ fetch thẳng `sheet=SIM_SOLD` không projection: 383 KB, 24 cột, **gồm cả
+ * cột `GiaThu` (giá thu về)**. Hook này chạy trong `TrustBar` — component nằm ở
+ * layout dùng chung — nên mọi khách vào BẤT KỲ trang nào cũng tải về bảng giá vốn
+ * của toàn bộ đơn đã bán. Đếm số dòng thì chỉ cần đúng một cột.
+ */
+const SIM_SOLD_URL =
+  `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=SIM_SOLD` +
+  `&tq=${encodeURIComponent('select B')}`;
+
+/** Header kỳ vọng của `select B`; lệch là hỏng to tiếng thay vì đếm cột sai. */
+const EXPECTED_HEADER = 'sothuebao';
 
 // Số nền cộng thêm vào số đếm thật (để 0 nếu muốn hiển thị đúng số thật)
 const BASE_COUNT = 0;
@@ -21,21 +35,7 @@ const CACHE_KEY = 'delivered_count_cache';
 const CACHE_TTL = 5 * 60 * 1000; // 5 phút
 const REFRESH_INTERVAL = 2 * 60 * 1000; // tự làm mới mỗi 2 phút
 
-// Parse 1 dòng CSV (xử lý dấu phẩy trong ô quoted)
-const parseCSVLine = (line: string): string[] => {
-  const values: string[] = [];
-  let current = '';
-  let inQuotes = false;
-  for (const char of line) {
-    if (char === '"') { inQuotes = !inQuotes; }
-    else if (char === ',' && !inQuotes) { values.push(current.trim()); current = ''; }
-    else { current += char; }
-  }
-  values.push(current.trim());
-  return values;
-};
-
-// Đếm số dòng SIM đã bán từ CSV của tab SIM_SOLD
+// Đếm số dòng SIM đã bán từ CSV `select B` của tab SIM_SOLD
 const countSoldRows = (csv: string): number => {
   // U+FEFF is the UTF-8 BOM Google Sheets prepends. Written as an escape rather
   // than a literal so it stays visible in source and survives editor re-saves.
@@ -48,23 +48,17 @@ const countSoldRows = (csv: string): number => {
   const lines = text.split('\n').filter((l) => l.trim());
   if (lines.length < 2) return 0; // chỉ có header hoặc rỗng
 
-  const headers = parseCSVLine(lines[0]).map((h) =>
-    h.replace(/^"|"$/g, '').trim().toUpperCase()
-  );
-  // Tìm cột SoThueBao (chứa SimID đã bán)
-  const colIdx = headers.findIndex(
-    (h) => h === 'SOTHUEBAO' || h === 'SO THUE BAO' || h === 'SỐTHUÊBAO'
-  );
+  const headers = parseCSVLine(lines[0]).map((h) => normalizeHeader(h));
+  // Projection chỉ có một cột nên vị trí là cố định — nhưng vẫn phải kiểm tên: nếu
+  // ai chèn cột vào sheet thì `B` trỏ sang cột khác và số đếm thành vô nghĩa. Sai
+  // tên thì ném lỗi để hook giữ số cũ, không hiện số bừa.
+  if (headers[0] !== EXPECTED_HEADER) {
+    throw new Error('SIM_SOLD đổi thứ tự cột — cột B không còn là SoThueBao');
+  }
 
   let count = 0;
   for (let i = 1; i < lines.length; i++) {
-    const vals = parseCSVLine(lines[i]);
-    // Nếu tìm được cột thì đếm ô không rỗng; nếu không, đếm dòng có dữ liệu
-    const val =
-      colIdx !== -1
-        ? (vals[colIdx] || '').replace(/^"|"$/g, '').trim()
-        : (vals[0] || '').trim();
-    if (val) count++;
+    if (stripQuotes(parseCSVLine(lines[i])[0] || '')) count++;
   }
   return count;
 };
@@ -86,12 +80,7 @@ const saveCache = (count: number) => {
 };
 
 const fetchDeliveredCount = async (): Promise<number> => {
-  const bust = `&t=${Date.now()}`;
-  const res = await fetch(`${SIM_SOLD_URL}${bust}`, {
-    headers: { Accept: 'text/csv,*/*' },
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const csv = await res.text();
+  const csv = await fetchSheetCsv(SIM_SOLD_URL);
   const count = countSoldRows(csv);
   saveCache(count);
   return count;
