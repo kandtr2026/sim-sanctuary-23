@@ -13,7 +13,7 @@
  * in client-side deps (react-query, sonner, localStorage).
  */
 
-import { normalizeSIM, estimatePriceByTags, formatSIMNumber, detectSimTags, detectNetwork } from "@/lib/simUtils";
+import { normalizeSIM, estimatePriceByTags, formatSIMNumber, detectSimTags, detectNetwork, PRICE_RANGES } from "@/lib/simUtils";
 import type { NormalizedSIM } from "@/lib/simUtils";
 import {
   SUPABASE_URL,
@@ -427,34 +427,34 @@ export async function querySimsFromDb(
   }
 
   // ── Price ranges ──────────────────────────────────────────────────────
-  const PRICE_RANGES = [
-    { min: 0, max: 999999 },
-    { min: 1000000, max: 2999999 },
-    { min: 3000000, max: 4999999 },
-    { min: 5000000, max: 9999999 },
-    { min: 10000000, max: 49999999 },
-    { min: 50000000, max: 99999999 },
-    { min: 100000000, max: 199999999 },
-    { min: 200000000, max: 999999999 },
-  ];
+  // MỘT nguồn biên giá duy nhất: `PRICE_RANGES` trong simUtils (cùng bảng mà
+  // chip lọc/facet count dùng). Trước đây file này giữ bản copy 8 bậc lệch
+  // (bậc 7 kéo tới 999.999.999) nên số > 500 triệu lọt vào nhãn "200 - 500
+  // triệu" và bậc "Trên 500 triệu" (index 8) không tồn tại → sinh `or=()` →
+  // PostgREST 400 → rơi âm thầm về lọc in-memory 49k hàng.
+  // Bậc cuối có `max: Infinity` → chỉ được phép sinh điều kiện `gte`.
   if (criteria.priceRanges?.length) {
-    const terms = criteria.priceRanges
-      .map((idx) => {
-        const r = PRICE_RANGES[idx];
-        if (!r) return '';
-        return `and(effective_price=gte.${r.min},effective_price=lte.${r.max})`;
-      })
-      .filter(Boolean);
-    if (terms.length === 1) {
-      // Single range → two AND terms added separately
-      const r = PRICE_RANGES[criteria.priceRanges[0]!];
-      if (r) {
-        and.push(`effective_price=gte.${r.min}`);
-        and.push(`effective_price=lte.${r.max}`);
-      }
-    } else {
+    // Bỏ index lạ (ngoài bảng) thay vì tạo mệnh đề rỗng.
+    const ranges = criteria.priceRanges
+      .map((idx) => PRICE_RANGES[idx])
+      .filter((r): r is (typeof PRICE_RANGES)[number] => Boolean(r));
+
+    if (ranges.length === 1) {
+      // Một bậc → đẩy thành các AND term riêng
+      const r = ranges[0];
+      and.push(`effective_price=gte.${r.min}`);
+      if (Number.isFinite(r.max)) and.push(`effective_price=lte.${r.max}`);
+    } else if (ranges.length > 1) {
+      // Trong `or=(...)` PostgREST đòi cú pháp DẤU CHẤM (`col.op.value`); dùng
+      // `col=op.value` ở đây sẽ bị PGRST100 "failed to parse logic tree".
+      const terms = ranges.map((r) =>
+        Number.isFinite(r.max)
+          ? `and(effective_price.gte.${r.min},effective_price.lte.${r.max})`
+          : `effective_price.gte.${r.min}`,
+      );
       and.push(`or=(${terms.join(',')})`);
     }
+    // ranges.length === 0 (toàn index lạ) → không thêm mệnh đề nào
   }
 
   if (criteria.customPriceMin != null) and.push(`effective_price=gte.${criteria.customPriceMin}`);
