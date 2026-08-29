@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from 'react';
+import Link from 'next/link';
 import { Phone, TrendingUp, Smartphone, ExternalLink, Loader2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -411,9 +412,9 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
 
             {similarState === 'success' && similarSims.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {similarSims.map((sim, idx) => (
+                {similarSims.map((sim) => (
                   <div
-                    key={idx}
+                    key={sim.simId}
                     className="bg-background rounded-lg border border-border p-4 hover:border-primary/50 transition-colors"
                   >
                     {/* Phone number */}
@@ -449,27 +450,18 @@ const DinhGiaSimTool = ({ faqData }: { faqData: FaqItem[] }) => {
                       </div>
                     )}
 
-                    {/* Action button */}
-                    {sim.url ? (
-                      <a
-                        href={sim.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center w-full gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary-dark text-primary-foreground text-sm font-semibold transition-colors"
-                      >
-                        ĐẶT NGAY
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full rounded-full"
-                        disabled
-                      >
-                        Liên hệ tư vấn
-                      </Button>
-                    )}
+                    {/*
+                      Mọi thẻ đều đặt được: kho đã lọc SIM đã bán / bị ẩn / giá lỗi,
+                      nên không còn trường hợp "Liên hệ" kèm nút bấm không được.
+                      Link theo SimID đúng như các thẻ SIM khác của site.
+                    */}
+                    <Link
+                      href={`/mua-ngay/${encodeURIComponent(sim.simId)}`}
+                      className="inline-flex items-center justify-center w-full gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary-dark text-primary-foreground text-sm font-semibold transition-colors"
+                    >
+                      ĐẶT NGAY
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </Link>
                   </div>
                 ))}
               </div>
