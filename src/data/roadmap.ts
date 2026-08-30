@@ -49,7 +49,7 @@ export const ROADMAP: RoadmapPhase[] = [
       { id: "A2", title: "Bắt UTM/gclid/fbclid vào lead + lượt xem", status: "done", priority: "P0", kpi: "Mỗi lead có nguồn + campaign; dashboard lọc theo utm_campaign", updated: "2026-08-24" },
       { id: "A3", title: "Nối GA4 → Google Ads + conversion action Zalo/gọi", status: "doing", priority: "P0", kpi: "Ads nhận chuyển đổi 'lead' → đấu thầu theo chuyển đổi", next: "Code sẵn (inert): chủ shop cấp AW-… + label Zalo, set NEXT_PUBLIC_GADS_AW_ID + NEXT_PUBLIC_GADS_CONV_LABEL trong Vercel rồi redeploy", updated: "2026-08-26" },
       { id: "A4", title: "Kích hoạt Facebook Pixel (set NEXT_PUBLIC_FB_PIXEL_ID)", status: "todo", priority: "P1", kpi: "Pixel Helper xanh; có event Lead khi bấm Zalo", next: "Pixel đang inert — set env ở Vercel rồi redeploy" },
-      { id: "A5", title: "Search Console: verify + nộp sitemap + đọc query thật", status: "doing", priority: "P1", kpi: "100+ URL indexed; có bảng query thay suy đoán từ khoá" },
+      { id: "A5", title: "Search Console: verify + nộp sitemap + đọc query thật", status: "doing", priority: "P1", kpi: "100+ URL indexed; có bảng query thay suy đoán từ khoá", next: "Bảng query ĐÃ DỰNG: /admin/seo (118 từ khoá, nguồn scripts/seo/keywords.json). Còn chờ chủ shop cấp GSC_SIM_CLIENT_EMAIL + GSC_SIM_PRIVATE_KEY để cột thứ hạng có số. Verify + sitemap đã xong (288 URL).", updated: "2026-08-30" },
       { id: "A6", title: "Sổ chốt đơn thủ công (lead → đơn)", status: "todo", priority: "P0", kpi: "Ghép SĐT/Zalo + utm_campaign với 'đã bán' → tính CPL & CPA", next: "Web KHÔNG có bảng đơn — đây là mắt xích đo doanh số duy nhất (việc vận hành)" },
     ],
   },
@@ -94,7 +94,7 @@ export const ROADMAP: RoadmapPhase[] = [
     tasks: [
       { id: "E1", title: "Báo cáo tuần: lead theo utm_campaign × loại + ghép chi phí Ads (tay) → CPL & CPA", status: "todo", priority: "P1", kpi: "≥1 quyết định nhân/cắt mỗi tuần" },
       { id: "E2", title: "CRO: trang lượt xem cao nhưng ít lead → sửa CTA/nội dung", status: "todo", priority: "P2", kpi: "tỉ lệ lead/lượt xem theo trang tăng", next: "Giao ChuTot (chữ) + Front (nút)" },
-      { id: "E3", title: "Từ khoá thật thay suy đoán (GSC + search terms Ads)", status: "todo", priority: "P1", kpi: "số cụm mới có lead; giảm chi cho truy vấn không ra lead" },
+      { id: "E3", title: "Từ khoá thật thay suy đoán (GSC + search terms Ads)", status: "doing", priority: "P1", kpi: "số cụm mới có lead; giảm chi cho truy vấn không ra lead", next: "Phần GSC đã có bảng ở /admin/seo (xem A5). CÒN THIẾU: search terms từ Google Ads, và ghép từ khoá với lead để biết cụm nào ra đơn — bảng hiện chỉ đo thứ hạng, không biết từ khoá nào bán được.", updated: "2026-08-30" },
     ],
   },
 ];

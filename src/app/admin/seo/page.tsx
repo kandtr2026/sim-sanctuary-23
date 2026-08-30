@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Check, Loader2, RefreshCw, Search } from "lucide-react";
 import RequireAdmin from "@/components/admin/RequireAdmin";
+import SeoRankTable from "@/components/admin/SeoRankTable";
 import {
   SEO_BASELINE,
   SEO_GROUPS,
@@ -255,11 +256,14 @@ function AdminSeoContent() {
           ))}
         </div>
 
+        <SeoRankTable />
+
         <p className="mt-6 text-xs leading-relaxed text-muted-foreground">
-          Danh sách này đọc từ <code className="rounded bg-muted px-1">src/data/seoChecklist.ts</code>.
-          Các việc gắn nhãn “tự kiểm” lấy trạng thái thật từ server nên không cần sửa file. Bảng 118 từ
-          khoá và công cụ đo thứ hạng nằm ở <code className="rounded bg-muted px-1">scripts/seo/</code>,
-          chạy bằng <code className="rounded bg-muted px-1">npm run seo:rank</code>.
+          Danh sách việc đọc từ <code className="rounded bg-muted px-1">src/data/seoChecklist.ts</code>.
+          Các việc gắn nhãn “tự kiểm” lấy trạng thái thật từ server nên không cần sửa file. Bảng thứ
+          hạng ở trên và CLI <code className="rounded bg-muted px-1">npm run seo:rank</code> dùng CHUNG
+          danh sách <code className="rounded bg-muted px-1">scripts/seo/keywords.json</code> — sửa từ
+          khoá ở đó, đừng sửa hai nơi.
         </p>
       </div>
     </div>
