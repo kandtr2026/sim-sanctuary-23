@@ -17,7 +17,6 @@ const simCategoryLinks = [
   { label: "SIM đồng giá 229K", href: "/mua-sim-gia-re" },
   { label: "SIM tứ quý", href: "/mua-sim-tu-quy" },
   { label: "SIM trả góp", href: "/sim-tra-gop" },
-  { label: "Định giá SIM", href: "/dinh-gia-sim" },
 ];
 
 const policyLinks = [

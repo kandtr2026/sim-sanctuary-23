@@ -10,7 +10,6 @@ const suggestions = [
   { label: "SIM đồng giá 229K", to: "/mua-sim-gia-re" },
   { label: "SIM phong thủy", to: "/sim-phong-thuy" },
   { label: "SIM tứ quý", to: "/mua-sim-tu-quy" },
-  { label: "Định giá SIM", to: "/dinh-gia-sim" },
   { label: "Hướng dẫn thanh toán", to: "/thanh-toan" },
 ];
 

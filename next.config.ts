@@ -51,6 +51,22 @@ const nextConfig: NextConfig = {
         destination: "/sim-nam-sinh/:year",
         permanent: true,
       },
+      /**
+       * `/dinh-gia-sim` đã bị xoá (30/08/2026 — chủ dự án chốt trang sai định
+       * hướng, không dùng). Nhưng URL đó từng ở Footer, trang chủ, trang 404, 7 chỗ
+       * trong 5 bài blog, và ĐÃ nộp trong sitemap cho Google — nên phải 301 chứ
+       * không được để 404: link ngoài và link Google đang giữ vẫn phải tới đâu đó
+       * có ích.
+       *
+       * Đích là `/sim-gia` (chọn SIM theo tầm giá) vì đó là ý định gần nhất còn
+       * tồn tại: khách vào trang định giá để biết một số đáng bao nhiêu, giờ xem
+       * được các tầm giá thật trong kho.
+       */
+      {
+        source: "/dinh-gia-sim",
+        destination: "/sim-gia",
+        permanent: true,
+      },
     ];
   },
 };

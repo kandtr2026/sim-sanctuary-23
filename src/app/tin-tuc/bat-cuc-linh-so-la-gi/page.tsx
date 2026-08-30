@@ -269,8 +269,8 @@ export default function BatCucLinhSoPage() {
       <p>
         Cách cộng gộp năm lớp này thành một điểm số được nói kỹ trong bài{" "}
         <Link href="/tin-tuc/cach-tinh-diem-sim-phong-thuy">cách tính điểm SIM phong thuỷ</Link>.
-        Cần xem nhanh một số cụ thể đang đứng ở đâu so với thị trường, mời Quý khách dùng công cụ{" "}
-        <Link href="/dinh-gia-sim">định giá SIM</Link>.
+        Cần chấm điểm nhanh một số cụ thể, mời Quý khách dùng công cụ{" "}
+        <Link href="/sim-phong-thuy">tìm SIM hợp tuổi</Link>.
       </p>
 
       <h2 id="luu-y">Bốn điều nên tỉnh táo</h2>

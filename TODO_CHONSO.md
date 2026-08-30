@@ -30,7 +30,7 @@ Console cho chủ shop: **`/admin/seo`** — 21 việc, 6 nhóm, mỗi việc gh
 
 ### 2.1. Nối Google Search Console — P0
 
-Chặn toàn bộ việc đo lường SEO. 118 từ khoá đã sẵn sàng nhưng chưa có cột thứ hạng nào.
+Chặn toàn bộ việc đo lường SEO. 116 từ khoá đã sẵn sàng nhưng chưa có cột thứ hạng nào.
 
 Cần đúng **2 giá trị** từ Google Cloud service account: `client_email` và `private_key`.
 Không cần `GSC_SIM_SITE_URL` — script tự gọi `sites.list` để tìm property.
@@ -67,8 +67,12 @@ Xong thì chạy:
 cd "E:/Claude A Khoa Processing/sim-sanctuary-23" && node scripts/seo/rank-check.mjs --ngay 90
 ```
 
-Property đã xác minh sẵn (2 thẻ `google-site-verification` đang sống trên site) nên Google **đã tích
-luỹ số liệu** — rút ra là có lịch sử ngay, không phải chờ.
+**ĐÍNH CHÍNH (30/08):** tôi từng khẳng định "property đã xác minh sẵn nên Google đã tích luỹ số
+liệu, rút ra là có lịch sử ngay". SAI. Property là dạng **Domain** (`sc-domain:`), xác minh bằng DNS
+vào 30/08 — 2 thẻ `google-site-verification` trên site thuộc property khác. Google chỉ tích luỹ dữ
+liệu TỪ LÚC property được tạo, không truy hồi quá khứ. Đã kiểm 3 cách (16 tháng không chia chiều /
+theo từng ngày / `dataState=all`): **0 dòng ở cả ba**. Cần chờ 2–3 ngày mới có dữ liệu, 1–2 tuần mới
+đủ dày để đọc thứ hạng.
 
 ### 2.2. Khoá 2 Google Sheet — P0 an ninh
 
@@ -95,13 +99,11 @@ Việc này **không** che cột giá vốn.
 
 | # | Việc | Chỗ | Vì sao đáng làm |
 |---|---|---|---|
-| 3.1 | Đếm facet bằng SQL thay vì crawl 49k hàng | `src/app/api/sims/route.ts` (`includeFacets=1`) | Lần gọi lạnh từng treo ~46s → sidebar không có số đếm |
-| 3.2 | `/dinh-gia-sim` giảm payload 2,1 MB | `src/lib/simInventorySheet.ts` | Projection đã hết đường; phải query theo dải giá/dạng số của chính số khách tra thay vì tải cả kho |
-| 3.3 | Xếp hạng "SIM tương tự" | `src/app/dinh-gia-sim/DinhGiaSimTool.tsx` | Đã lấy ±50% quanh mức tham khảo, nhưng số không có nhãn nào thì mọi ứng viên cùng điểm → thứ tự là thứ tự sheet |
-| 3.4 | Dọn dòng có trong DB mà không còn trong sheet | `supabase/functions/sync-sims` | Chưa bao giờ được dọn; cần chủ shop quyết vì là xoá dữ liệu |
-| 3.5 | Chuẩn hoá văn phong 158 bài blog trong Supabase | bảng `blog_posts` | Sửa qua `/admin/posts` hoặc SQL — không sửa được trong repo |
-| 3.6 | Quẻ 55 `hexagrams.ts` ghi "có có thành công" | `src/lib/hexagrams.ts:69` | Không rõ ý gốc, cần chủ shop đối chiếu bản tra cứu |
-| 3.7 | `admin/SalesChart` fetch SIM_SOLD đầy đủ | `src/components/admin/SalesChart.tsx` | Ở `/admin` nên giá vốn là dữ liệu hợp lệ; chỉ là chưa qua proxy |
+| 3.1 | Đếm facet bằng SQL thay vì crawl 49k hàng | `src/app/api/sims/route.ts` (`includeFacets=1`) | Đo thật 30/08: lần lạnh 4,8s, lần cache 0,29s (con số ~46s báo trước đó là một lần gọi lúc đang build song song, không đại diện) |
+| 3.2 | Dọn dòng có trong DB mà không còn trong sheet | `supabase/functions/sync-sims` | Chưa bao giờ được dọn; cần chủ shop quyết vì là xoá dữ liệu |
+| 3.3 | Chuẩn hoá văn phong 158 bài blog trong Supabase | bảng `blog_posts` | Sửa qua `/admin/posts` hoặc SQL — không sửa được trong repo |
+| 3.4 | Quẻ 55 `hexagrams.ts` ghi "có có thành công" | `src/lib/hexagrams.ts:69` | Không rõ ý gốc, cần chủ shop đối chiếu bản tra cứu |
+| 3.5 | `admin/SalesChart` fetch SIM_SOLD đầy đủ | `src/components/admin/SalesChart.tsx` | Ở `/admin` nên giá vốn là dữ liệu hợp lệ; chỉ là chưa qua proxy |
 
 ---
 
@@ -150,7 +152,23 @@ danh sách nợ — tôi đã báo sai 3 lần vì đọc lại commit message c
 
 ## 5. ĐÃ XONG (28–30/08/2026)
 
-**138 file, +13.547 / −2.190 dòng.** `tsc` sạch · **152 test** pass · build **290 trang tĩnh**.
+`tsc` sạch · **142 test** pass · build **288 trang tĩnh**.
+
+### Xoá trang định giá (30/08)
+
+Chủ dự án chốt `/dinh-gia-sim` sai định hướng, không có nhu cầu dùng. Đã xoá cả cụm: 2 file trang,
+`src/lib/simValuation.ts`, `src/lib/simInventorySheet.ts`, 1 file test. Kèm dọn 4 chỗ điều hướng
+(trang chủ, Footer, trang 404, sitemap), 7 link trong 5 bài blog (thay bằng link tới trang còn tồn
+tại chứ không xoá trắng câu), 2 từ khoá trong `keywords.json` (118 → 116).
+**301 `/dinh-gia-sim` → `/sim-gia`** trong `next.config.ts` vì URL đó đã nộp trong sitemap cho Google
+và từng ở Footer — để 404 là mất link ngoài.
+
+### Nối Search Console (30/08)
+
+Đường ống đã thông đủ 4 mắt xích: xác minh DNS → bật Search Console API trong project Google Cloud →
+cấp quyền cho service account → đặt 2 biến `GSC_SIM_*`. `sites.list` trả
+`sc-domain:chonsomobifone.com [siteRestrictedUser]`. Sitemap đã nộp: Google đọc sau 1 giây, 0 lỗi,
+287 URL submitted / 0 indexed (mới nộp). **Chưa có dữ liệu thứ hạng — xem đính chính ở mục 2.1.**
 
 ### Văn phong
 - `9381de4` 54 file sang giọng "Quý khách" (xưng hô sai 224 → 10, cụm AI-typical 13 → 0). Blog-bot có
@@ -178,7 +196,7 @@ danh sách nợ — tôi đã báo sai 3 lần vì đọc lại commit message c
 - `09f4acf` tách ý định: `/sim-phong-thuy` giữ "hợp tuổi", `/sim-nam-sinh` chỉ nhắm "số chứa đúng năm
   sinh"; hết hàng thì dẫn khách sang công cụ phong thủy (điền sẵn ngày sinh qua `?nam=&ngay=&thang=`).
 - `858d336` FAQ schema: 26 trang thôi khai câu trả lời không có trong DOM.
-- `2b64a10` + `b091009` công cụ đo thứ hạng (`npm run seo:rank`) + 118 từ khoá.
+- `2b64a10` + `b091009` công cụ đo thứ hạng (`npm run seo:rank`) + danh sách từ khoá.
 - `145fe92` `sheet-proxy` siết theo spreadsheet ID.
 - `23b55f6` TTL cho cache kho 229k; sửa check migration luôn báo sai.
 

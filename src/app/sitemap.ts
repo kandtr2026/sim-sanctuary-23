@@ -42,7 +42,6 @@ const ROUTES: StaticRoute[] = [
   { path: "/sim-ngu-quy", changeFrequency: "weekly", priority: 0.8, dynamic: true },
   { path: "/sim-ong-dia", changeFrequency: "weekly", priority: 0.8, dynamic: true },
   { path: "/sim-phong-thuy-hop-menh", changeFrequency: "weekly", priority: 0.8 },
-  { path: "/dinh-gia-sim", changeFrequency: "monthly", priority: 0.7 },
   { path: "/sim-tra-gop", changeFrequency: "monthly", priority: 0.7 },
   // Hub của 3 cụm trang programmatic mới (29/08/2026).
   { path: "/sim-hop-tuoi", changeFrequency: "weekly", priority: 0.8, dynamic: true },

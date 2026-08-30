@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parsePrice, formatPrice } from '@/lib/simUtils';
 import { parseCheapPrice } from '@/lib/cheapSimSheet';
-import { parsePriceToNumber } from '@/lib/simInventorySheet';
 
 /**
  * Khoá luật đọc ô giá.
@@ -74,11 +73,13 @@ describe('parsePrice — từ chối chuỗi rác thay vì bịa số', () => {
   });
 });
 
-describe('parsePrice — cùng luật với hai hàm parse đã có trong repo', () => {
+describe('parsePrice — cùng luật với hàm parse của kho 229k', () => {
   const cases = ['39,000,000', '229.000', '800000', '0', '1,5 triệu', '4tr5', 'Liên hệ', '1,20'];
 
-  it.each(cases)('"%s" cho cùng kết quả với parseCheapPrice và parsePriceToNumber', (input) => {
+  // Trước đây khối này đối chiếu BA hàm; `parsePriceToNumber` đã bị xoá cùng
+  // `simInventorySheet.ts` khi bỏ trang định giá. Hai hàm còn lại vẫn phải cùng
+  // luật: chuỗi không đúng dạng số nguyên có ngăn nghìn thì trả 0, KHÔNG vét chữ số.
+  it.each(cases)('"%s" cho cùng kết quả với parseCheapPrice', (input) => {
     expect(parsePrice(input)).toBe(parseCheapPrice(input));
-    expect(parsePrice(input)).toBe(parsePriceToNumber(input));
   });
 });

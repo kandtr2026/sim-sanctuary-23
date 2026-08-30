@@ -149,8 +149,7 @@ export default function CachTinhDiemSimPage() {
           </>,
           <>
             Muốn có điểm cho một số cụ thể ngay: dùng{" "}
-            <Link href="/sim-phong-thuy">công cụ tìm SIM hợp tuổi</Link> hoặc{" "}
-            <Link href="/dinh-gia-sim">định giá SIM</Link>.
+            <Link href="/sim-phong-thuy">công cụ tìm SIM hợp tuổi</Link>.
           </>,
         ]}
       />
@@ -339,8 +338,8 @@ export default function CachTinhDiemSimPage() {
           giờ sinh để xem điểm theo từng trụ.
         </li>
         <li>
-          Muốn biết một số đang ở khoảng giá nào:{" "}
-          <Link href="/dinh-gia-sim">định giá SIM</Link>.
+          Muốn xem số trong một tầm giá cụ thể:{" "}
+          <Link href="/sim-gia">chọn SIM theo tầm giá</Link>.
         </li>
         <li>
           Chỉ muốn lọc nhanh theo mệnh:{" "}

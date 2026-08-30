@@ -148,7 +148,7 @@ export const SEO_GROUPS: SeoGroup[] = [
         owner: "chu-shop",
         priority: "P0",
         why:
-          "Web đã thôi tải cột GIÁ THU VỀ và Giá Thu Điều Chỉnh xuống trình duyệt (ticker trang chủ 14,1 MB → 2,8 KB; trang định giá 5,6 MB → 2,1 MB). Nhưng ai có link Sheet vẫn đọc được toàn bộ bảng biên lợi nhuận — chỗ này chỉ đổi được trên Google Drive.",
+          "Web đã thôi tải cột GIÁ THU VỀ và Giá Thu Điều Chỉnh xuống trình duyệt (ticker trang chủ 14,1 MB → 2,8 KB; trang định giá đã xoá hẳn 30/08). Nhưng ai có link Sheet vẫn đọc được toàn bộ bảng biên lợi nhuận — chỗ này chỉ đổi được trên Google Drive.",
         how:
           "Google Drive → file kho SIM → Chia sẻ → đổi từ Bất kỳ ai có đường liên kết sang Bị hạn chế, rồi thêm riêng các tài khoản cần đọc. Lưu ý kiểm lại web sau khi đổi: các edge function đọc Sheet qua gviz cần quyền phù hợp.",
         risk: "Đối thủ hoặc khách biết giá vốn thì mọi cuộc mặc cả bắt đầu từ con số đó.",
@@ -178,7 +178,7 @@ export const SEO_GROUPS: SeoGroup[] = [
         owner: "chu-shop",
         priority: "P2",
         why:
-          "Đối thủ simsodep có trang thu-mua-cam-co-sim. Mình có công cụ định giá sẵn nên nối vào rất rẻ — nhưng phải biết shop có thật sự nhận mua lại hay không, không thể mở trang rồi để khách gọi vào hỏi một dịch vụ không tồn tại.",
+          "Đối thủ simsodep có trang thu-mua-cam-co-sim. Nhưng phải biết shop có thật sự nhận mua lại hay không, không thể mở trang rồi để khách gọi vào hỏi một dịch vụ không tồn tại.",
       },
       {
         id: "sim-doanh-nghiep",

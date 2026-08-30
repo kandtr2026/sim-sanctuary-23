@@ -294,8 +294,8 @@ export default function SimHopMenhNguHanhPage() {
         </li>
       </ul>
       <p>
-        Muốn biết một số cụ thể đang có mức giá thế nào so với các số cùng dạng, dùng thêm công cụ{" "}
-        <Link href="/dinh-gia-sim">định giá SIM</Link> trước khi chốt.
+        Muốn xem các số cùng mệnh đang có mức giá thế nào, mời Quý khách mở{" "}
+        <Link href="/sim-hop-menh">kho SIM hợp mệnh</Link> — mỗi số đều hiện giá niêm yết.
       </p>
     </ArticleShell>
   );

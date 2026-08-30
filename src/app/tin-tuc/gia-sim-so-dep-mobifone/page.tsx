@@ -190,7 +190,7 @@ export default async function GiaSimSoDepPage() {
             trường chung.
           </>,
           <>
-            Có số muốn kiểm giá: dùng <Link href="/dinh-gia-sim">công cụ định giá SIM</Link>.
+            Muốn xem số trong một tầm giá: mở <Link href="/sim-gia">SIM theo tầm giá</Link>.
           </>,
         ]}
       />
@@ -304,8 +304,8 @@ export default async function GiaSimSoDepPage() {
           Cộng thêm nếu con số lặp là 6 · 8 · 9, trừ đi nếu là 0 · 4 hoặc phần đầu dãy khó đọc.
         </li>
         <li>
-          Đối chiếu bằng <Link href="/dinh-gia-sim">công cụ định giá SIM</Link> để có khoảng giá cho
-          chính dãy số đó.
+          Đối chiếu với <Link href="/sim-gia">các tầm giá trong kho</Link> để biết dãy số đó thuộc
+          nhóm nào.
         </li>
       </ol>
 

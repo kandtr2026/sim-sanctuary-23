@@ -61,7 +61,6 @@ const CATEGORY_LINKS: { href: string; label: string }[] = [
   { href: "/sim-phong-thuy-hop-menh", label: "Sim phong thủy hợp mệnh" },
   { href: "/mua-sim-gia-re", label: "Sim giá rẻ" },
   { href: "/sim-tra-gop", label: "Sim trả góp" },
-  { href: "/dinh-gia-sim", label: "Định giá sim" },
 ];
 
 /**

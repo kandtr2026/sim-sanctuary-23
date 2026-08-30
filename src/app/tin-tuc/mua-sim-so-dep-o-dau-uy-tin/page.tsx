@@ -244,8 +244,8 @@ export default function MuaSimOdauUyTinPage() {
 
       <p>
         Toàn bộ số trong <Link href="/mua-sim-gia-re">kho SIM MobiFone</Link> đều hiện giá ngay trên
-        số, không cần nhắn tin hỏi giá. Muốn đối chiếu mức giá cho một dãy số cụ thể trước khi liên
-        hệ, dùng <Link href="/dinh-gia-sim">công cụ định giá SIM</Link>.
+        số, không cần nhắn tin hỏi giá. Muốn so giá trong một tầm cụ thể trước khi liên hệ, mời Quý
+        khách xem <Link href="/sim-gia">SIM theo tầm giá</Link>.
       </p>
 
       <Note tone="info" title="Điều chúng tôi không cam kết">

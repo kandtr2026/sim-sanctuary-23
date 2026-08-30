@@ -2,10 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { formatPrice } from '@/lib/simUtils';
-import { valuateSim } from '@/lib/simValuation';
 import { formatDiscountAmount } from '@/components/SIMCardNew';
 import { isOrderablePrice } from '@/app/mua-ngay/[simId]/CheckoutClient';
-import { DEFAULT_SIMILAR_RANGE, similarPriceRange } from '@/app/dinh-gia-sim/DinhGiaSimTool';
 import { validatePayload } from '../../supabase/functions/make-webhook-proxy/_validators';
 
 /**
@@ -135,45 +133,5 @@ describe('LỖI 3 — SIM trắng giá không được mở form đặt hàng', 
     // Và đường liên hệ phải có mặt trong nhánh đó.
     expect(src).toContain('zalo.me/0933356666');
     expect(src).toContain('tel:0938868868');
-  });
-});
-
-describe('LỖI 4 — dải giá SIM tương tự đi theo kết quả định giá', () => {
-  it('±50% quanh mức tham khảo', () => {
-    expect(similarPriceRange(500_000)).toEqual([250_000, 750_000]);
-    expect(similarPriceRange(3_860_000)).toEqual([1_930_000, 5_790_000]);
-    expect(similarPriceRange(200_000_000)).toEqual([100_000_000, 300_000_000]);
-  });
-
-  it('số 500k và số 200 triệu không còn nhận cùng một rổ ứng viên', () => {
-    const [cheapMin, cheapMax] = similarPriceRange(500_000);
-    const [vipMin] = similarPriceRange(200_000_000);
-    expect(cheapMax).toBeLessThan(vipMin);
-    // Dải cứng cũ trùm cả hai số, nên cả hai nhận chung ứng viên 2–20 triệu.
-    const [oldMin, oldMax] = DEFAULT_SIMILAR_RANGE;
-    expect(cheapMin).toBeLessThan(oldMin);
-    expect(vipMin).toBeGreaterThan(oldMax);
-  });
-
-  it('sàn 10.000đ, khớp INVENTORY_MIN_PRICE của kho', () => {
-    const [min] = similarPriceRange(1_000);
-    expect(min).toBe(10_000);
-  });
-
-  it('không có mức tham khảo thì mới dùng dải mặc định', () => {
-    expect(similarPriceRange(0)).toEqual(DEFAULT_SIMILAR_RANGE);
-    expect(similarPriceRange(null)).toEqual(DEFAULT_SIMILAR_RANGE);
-    expect(similarPriceRange(undefined)).toEqual(DEFAULT_SIMILAR_RANGE);
-    expect(similarPriceRange(NaN)).toEqual(DEFAULT_SIMILAR_RANGE);
-  });
-
-  it('mức tham khảo của số ngoài kho lấy từ engine định giá, không phải dải cứng', () => {
-    // 0907891189 (số trong ví dụ của báo lỗi) và 0779.999.999 phải ra hai tầm
-    // giá khác nhau, nếu không thì việc xếp hạng lại vô nghĩa.
-    const plain = valuateSim('0907891189').price;
-    const vip = valuateSim('0779999999').price;
-    expect(plain).toBeGreaterThan(0);
-    expect(vip).toBeGreaterThan(plain);
-    expect(similarPriceRange(plain)[1]).toBeLessThan(similarPriceRange(vip)[0]);
   });
 });
