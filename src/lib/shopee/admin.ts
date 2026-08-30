@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { SUPABASE_URL } from "@/integrations/supabase/config";
 
 /**
  * Supabase client dùng service role — BỎ QUA RLS.
@@ -12,23 +13,18 @@ import { createClient } from "@supabase/supabase-js";
  * chặn, chỉ service role đọc được.
  */
 export function createAdminClient() {
-  const url =
-    process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    process.env.SUPABASE_URL;
+  // URL lấy từ config (nguồn duy nhất của app) chứ KHÔNG đọc
+  // process.env.NEXT_PUBLIC_SUPABASE_URL: biến đó không tồn tại trên Vercel, nên
+  // đọc env trực tiếp là hàm này luôn ném lỗi "thiếu biến" dù cấu hình vẫn đủ.
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) {
-    throw new Error(
-      "Thiếu NEXT_PUBLIC_SUPABASE_URL hoặc SUPABASE_SERVICE_ROLE_KEY để truy cập bảng shopee_*.",
-    );
+  if (!SUPABASE_URL || !key) {
+    throw new Error("Thiếu SUPABASE_SERVICE_ROLE_KEY để truy cập bảng shopee_*.");
   }
-  return createClient(url, key, {
+  return createClient(SUPABASE_URL, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
 
 export function hasServiceRoleEnv(): boolean {
-  return !!(
-    (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL) &&
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  );
+  return !!(SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
 }

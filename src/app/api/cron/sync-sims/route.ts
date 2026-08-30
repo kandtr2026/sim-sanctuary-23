@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { SUPABASE_URL } from "@/integrations/supabase/config";
 
 /**
  * Cron đồng bộ kho SIM: Vercel gọi route này theo lịch trong `vercel.json`, route
@@ -21,7 +22,6 @@ export const dynamic = "force-dynamic";
 // Sync 51k dòng qua 52 batch không xong trong 10s mặc định.
 export const maxDuration = 300;
 
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 
 /**
  * Vercel gắn `Authorization: Bearer <CRON_SECRET>` khi biến CRON_SECRET tồn tại.
@@ -43,10 +43,9 @@ export async function GET(req: NextRequest) {
   }
 
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!SUPABASE_URL || !serviceKey) {
+  if (!serviceKey) {
     // Nêu TÊN biến còn thiếu, không bao giờ nêu giá trị.
-    const thieu = [!SUPABASE_URL && "SUPABASE_URL", !serviceKey && "SUPABASE_SERVICE_ROLE_KEY"].filter(Boolean);
-    return Response.json({ error: `Thiếu biến môi trường: ${thieu.join(", ")}` }, { status: 500 });
+    return Response.json({ error: "Thiếu biến môi trường: SUPABASE_SERVICE_ROLE_KEY" }, { status: 500 });
   }
 
   // `force=1` cố ý KHÔNG bật: job tự so vân tay nội dung, dữ liệu không đổi thì nó
