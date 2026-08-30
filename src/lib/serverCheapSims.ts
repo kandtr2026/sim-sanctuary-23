@@ -31,8 +31,15 @@ const SOLD_QUERY = "select B";
 
 // Module-level cache: multiple renders within one build/ISR worker share a
 // single pair of fetches (mirrors serverSimData.ts).
+//
+// TTL 300s cho khớp `revalidate = 300` của /mua-sim-gia-re. Bản đầu không có TTL:
+// `cachedResult` gán một lần rồi trả mãi, nên `revalidate` render lại trang mà vẫn
+// đọc mảng đã đóng băng — độ tươi thật bằng tuổi tiến trình lambda, không phải
+// 5 phút. Đúng lỗi đã sửa ở `serverSimData.ts`; file này bị bỏ sót lượt đó.
+const CACHE_TTL_MS = 300_000;
 let cachedPromise: Promise<CheapSim[]> | null = null;
 let cachedResult: CheapSim[] | null = null;
+let cachedAt = 0;
 
 const parseSoldIds = (csv: string): Set<string> => {
   const out = new Set<string>();
@@ -78,7 +85,7 @@ const parseRows = (csv: string, soldIds: Set<string>): CheapSim[] => {
  * scope; returns `[]` on failure (never throws).
  */
 export const getCheapSims = async (): Promise<CheapSim[]> => {
-  if (cachedResult) return cachedResult;
+  if (cachedResult && Date.now() - cachedAt < CACHE_TTL_MS) return cachedResult;
   if (cachedPromise) return cachedPromise;
 
   cachedPromise = (async () => {
@@ -98,6 +105,7 @@ export const getCheapSims = async (): Promise<CheapSim[]> => {
         if (sims.length === 0) throw new Error("No cheap SIMs after parsing");
 
         cachedResult = sims;
+        cachedAt = Date.now();
         return sims;
       } catch (e) {
         console.warn(`[serverCheapSims] fetch failed (attempt ${attempt + 1}):`, e);

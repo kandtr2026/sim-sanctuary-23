@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/config";
 
 /**
  * Trạng thái THẬT của mấy việc cấu hình mà trang /admin/seo hiển thị.
@@ -16,23 +17,27 @@ export const dynamic = "force-dynamic";
 const coBien = (ten: string): boolean => Boolean(process.env[ten]?.trim());
 
 /**
- * Bảng `sims_sync_state` đã tồn tại chưa. Dùng anon key + `head=true` nên không
- * kéo hàng nào về; RLS của bảng chỉ cho service_role đọc, nên anon sẽ nhận 401/403
- * khi bảng CÓ và 404 + PGRST205 khi bảng CHƯA có. Phân biệt bằng mã lỗi, không phải
- * bằng việc đọc được dữ liệu.
+ * Bảng `sims_sync_state` đã tồn tại chưa. Dùng anon key + `HEAD` nên không kéo hàng
+ * nào về; bảng CHƯA có thì PostgREST trả 404 (PGRST205), bảng CÓ thì trả 200 kèm 0
+ * hàng (RLS chỉ cho service_role đọc — RLS lọc HÀNG, không trả 403). Phân biệt bằng
+ * mã trả về, không phải bằng việc đọc được dữ liệu.
+ *
+ * Đọc URL + key từ `@/integrations/supabase/config` chứ KHÔNG đọc
+ * `process.env.NEXT_PUBLIC_*` trực tiếp: hai biến đó KHÔNG tồn tại trên Vercel (repo
+ * để giá trị mặc định ngay trong config), nên bản đầu của route này luôn thoát sớm
+ * và trả `null` — tức bảng đã tạo rồi mà console vẫn báo "chưa có". Config là nguồn
+ * duy nhất mà cả app đang dùng.
  */
 const kiemBangSyncState = async (): Promise<boolean | null> => {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
+  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) return null;
 
   try {
-    const res = await fetch(`${url}/rest/v1/sims_sync_state?select=key&limit=1`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/sims_sync_state?select=key&limit=1`, {
       method: "HEAD",
-      headers: { apikey: key, Authorization: `Bearer ${key}` },
+      headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}` },
       signal: AbortSignal.timeout(8000),
     });
-    // 404 = quan hệ không tồn tại. 401/403 = có bảng nhưng RLS chặn anon (đúng ý).
+    // 404 = quan hệ không tồn tại. 200/401/403 = bảng có (RLS chặn anon là đúng ý).
     if (res.status === 404) return false;
     if (res.ok || res.status === 401 || res.status === 403) return true;
     return null;
