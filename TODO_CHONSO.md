@@ -17,8 +17,8 @@ Trả về 3 cờ. Trạng thái lúc viết file:
 
 | Cờ | Giá trị | Nghĩa |
 |---|---|---|
-| `cronSecret` | `true` | Cron `sync-sims` chạy được |
-| `syncState` | `true` | Bảng `sims_sync_state` đã có |
+| `cronSecret` | `true` | Biến đã đặt (KHÔNG suy ra job chạy được — xem mục 6) |
+| `syncState` | `true` | **Chỉ nghĩa là BẢNG `sims_sync_state` tồn tại.** RLS chặn anon đọc hàng nên endpoint này KHÔNG phân biệt được "chưa có vân tay" với "đã có vân tay" — đừng dùng cờ này để kết luận job đã chạy |
 | `gscConnected` | **`false`** | **Chưa nối Search Console — việc P0 duy nhất còn lại** |
 
 Console cho chủ shop: **`/admin/seo`** — 21 việc, 6 nhóm, mỗi việc ghi *vì sao*, *cách làm*,
@@ -136,6 +136,13 @@ tồn tại (rủi ro manual action). Dùng `src/components/FaqAccordion.tsx` (`
 **`repo này KHÔNG auto-deploy`** và **có agent khác đẩy commit song song** (blog-bot). Luôn
 `git fetch` + `git rebase origin/main` trước khi push; đừng force.
 
+**Sửa một lỗi thì GREP xem còn bao nhiêu chỗ khác cùng dạng.** Lỗi "đọc env Supabase không tồn
+tại" tôi sửa ở `/api/admin/seo-status`, không grep, và 20 phút sau nó làm sập nhịp cron đầu tiên ở
+`/api/cron/sync-sims`. Grep lần hai còn ra `src/lib/shopee/admin.ts`. Ba chỗ, một lỗi.
+
+**`syncState: true` KHÔNG chứng minh job sync đã chạy** — nó chỉ nói bảng tồn tại. Phép thử đúng là
+facet VIP (xem mục 6).
+
 **Commit message ghi "còn lại: X" là trạng thái LÚC VIẾT.** Grep code trước khi đưa một việc vào
 danh sách nợ — tôi đã báo sai 3 lần vì đọc lại commit message của chính mình.
 
@@ -177,18 +184,51 @@ danh sách nợ — tôi đã báo sai 3 lần vì đọc lại commit message c
 
 ---
 
-## 6. Mốc cần theo
+## 6. Cron `sync-sims` — trạng thái và cách kiểm
 
-Cron `sync-sims`: **`17 1,13 * * *` (UTC)** = 08:17 và 20:17 giờ VN. `CRON_SECRET` đặt lúc
-22:15 UTC 29/08.
+Lịch: **`17 1,13 * * *` (UTC)** = 08:17 và 20:17 giờ VN.
 
-**Phép thử nhịp sync đầu tiên** — facet VIP, vì đó là lần đầu `beauty_score` và `is_vip` được điền:
+**Nhịp đầu tiên (01:17 UTC 30/08) ĐÃ CHẠY VÀ THẤT BẠI**, đã sửa. Log Vercel ghi
+`GET /api/cron/sync-sims → 500` (không phải 401, tức secret khớp): route đọc
+`process.env.SUPABASE_URL` — biến không tồn tại trên Vercel → thoát ngay với "Thiếu biến môi
+trường". Sửa ở commit `cdd6fbf` (đọc từ `@/integrations/supabase/config`).
+
+**Chạy tay end-to-end sau khi sửa: thành công.**
+
+```json
+{"synced":true,"reason":"no_previous_fingerprint","rows":51639,"sold":2269,
+ "invalidPrice":1,"fingerprintSaved":true,"dbRows":51639}
+```
+
+60 giây, ghi đủ 51.639 dòng. Kết quả:
+
+| | Trước sync | Sau sync |
+|---|---|---|
+| Kho (`total`) | 49.093 | **49.070** |
+| Facet VIP | 0 | **2.257** |
+
+`invalidPrice: 1` là dòng `GIÁ BÁN = " 10 "` bị chặn đúng thiết kế.
+
+**PHÉP THỬ ĐÁNG TIN để biết job có chạy hay không — facet VIP, KHÔNG phải `syncState`:**
 
 ```bash
 curl -s "https://www.chonsomobifone.com/api/sims?includeFacets=1&limit=1"
 ```
 
-Trước sync: VIP = **0**. Sau sync phải ra **≈ 2.425**. Kho `total` 49.093 cũng sẽ đổi.
+VIP > 0 nghĩa là job đã ghi được `beauty_score` / `is_vip`. Nếu nghi job hỏng, đọc log:
 
-**Hệ quả mong đợi, không phải lỗi:** thứ tự lưới ở nhóm cùng giá sẽ khác đi, vì sort mặc định là
+```bash
+cd "E:/Claude A Khoa Processing/sim-sanctuary-23" && npx vercel logs --json 2>&1 | rg 'cron|sync-sims'
+```
+
+`401` = secret lệch · `500` = route thoát vì thiếu biến/lỗi nội bộ · `502` = gọi được route nhưng
+edge function `sync-sims` hỏng · không có dòng nào = cron chưa từng được gọi
+(kiểm `npx vercel crons ls`).
+
+**Nhịp tự động kế tiếp: 13:17 UTC hôm nay.** Lần đó phải trả `reason` khác
+`no_previous_fingerprint` vì đã có vân tay để so — nếu vẫn `no_previous_fingerprint` thì việc lưu vân
+tay đang hỏng.
+
+**Hệ quả mong đợi, không phải lỗi:** thứ tự lưới ở nhóm cùng giá đã khác đi, vì sort mặc định là
 `effective_price.asc,beauty_score.desc` mà tie-break trước giờ toàn 0.
+
