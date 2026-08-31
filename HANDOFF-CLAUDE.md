@@ -11,6 +11,16 @@ _Cập nhật: 2026-08-26. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone 
   2. `src/lib/shopee/credentials.ts` `saveConfig`: bỏ trống partnerKey → giữ nguyên key cũ (từ DB, hoặc env nếu chưa có DB); KHÔNG ghi key rỗng lên DB (DB thắng env nên ghi rỗng là hỏng).
 - **Việc tiếp theo cho user (thủ công)**: mở open.shopee.com → copy đúng Partner Key → `/admin/shopee` → bấm "Cấu hình" → nhập Partner ID `2031725` + Partner Key đúng + Live → Lưu → Uỷ quyền shop → đăng nhập shop SIM → callback. Sau đó chọn category + đồng bộ lô.
 
+## 0b. PHIÊN 31/08 — Shopee: lỗi "It should have refresh_token" (endpoint đổi spec)
+
+- **Lỗi user gặp sau khi nhập key đúng**: callback báo `[error_param] It should have refresh_token in the request body. (path=/api/v2/auth/access_token/get)`.
+- **Chẩn đoán**: Shopee đổi spec (Developer Guide 23/07/2026) — endpoint **`POST /api/v2/auth/access_token/get` giờ là REFRESH token** (body phải có `refresh_token`). Lấy token từ **code** uỷ quyền phải dùng endpoint **mới `POST /api/v2/auth/token/get`**. Code cũ gửi `code` vào `/access_token/get` → Shopee hiểu là gọi refresh → báo thiếu refresh_token.
+- **Fix (commit `c822971`, deploy READY)** — `src/lib/shopee/config.ts`:
+  - `PATH_TOKEN_GET` = `/api/v2/auth/token/get` (đổi code → token)
+  - `PATH_TOKEN_REFRESH` = `/api/v2/auth/access_token/get` (refresh)
+  - Đã thêm comment cảnh báo trong file để lần sau không sửa ngược.
+- **Việc tiếp**: user bấm lại "Uỷ quyền shop" từ đầu (code cũ hết hạn/dùng 1 lần), lần này đổi code sẽ thành công.
+
 ## 1. ĐÃ XONG phiên này
 
 - **Fix admin đếm chính chủ thành khách** (commit `3347121`): `usePageVisitTracker` (mount ở root layout → chạy cả `/admin`) từng insert `/admin`, `/admin/dashboard` vào `page_visits` như thể khách, và chính admin test web public (`/?q=*2020`, `/sim-nam-sinh`...) cũng bị đếm → "Trang khách đã xem"/"Khách đến từ đâu" toàn giờ nửa đêm, trông vô lý. Fix:
