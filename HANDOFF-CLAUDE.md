@@ -2,6 +2,15 @@
 
 _Cập nhật: 2026-08-26. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone số đẹp._
 
+## 0. PHIÊN 31/08/2026 — Shopee: sửa flow cấu hình sau lỗi "Wrong sign"
+
+- **Lỗi user gặp**: bấm "Uỷ quyền shop" → Shopee trả `error_sign / Wrong sign`.
+- **Chẩn đoán**: 4 bảng shopee_* trong DB Supabase đều **trống** → đang dùng credential từ **env Vercel** (SHOPEE_PARTNER_ID=2031725 + SHOPEE_PARTNER_KEY). Code ký HMAC chuẩn (`partner_id+path+timestamp`), nên `Wrong sign` = **partner_key trong env không khớp partner_id** (thừa xuống dòng/khoảng trắng hoặc sai key).
+- **Fix (commit `2b59dbb`, deploy READY)**:
+  1. `src/app/admin/shopee/page.tsx`: thêm nút **"Cấu hình"** bên cạnh "Uỷ quyền shop" khi đã cấu hình (env) nhưng chưa uỷ quyền — trước đây không mở được form để sửa key.
+  2. `src/lib/shopee/credentials.ts` `saveConfig`: bỏ trống partnerKey → giữ nguyên key cũ (từ DB, hoặc env nếu chưa có DB); KHÔNG ghi key rỗng lên DB (DB thắng env nên ghi rỗng là hỏng).
+- **Việc tiếp theo cho user (thủ công)**: mở open.shopee.com → copy đúng Partner Key → `/admin/shopee` → bấm "Cấu hình" → nhập Partner ID `2031725` + Partner Key đúng + Live → Lưu → Uỷ quyền shop → đăng nhập shop SIM → callback. Sau đó chọn category + đồng bộ lô.
+
 ## 1. ĐÃ XONG phiên này
 
 - **Fix admin đếm chính chủ thành khách** (commit `3347121`): `usePageVisitTracker` (mount ở root layout → chạy cả `/admin`) từng insert `/admin`, `/admin/dashboard` vào `page_visits` như thể khách, và chính admin test web public (`/?q=*2020`, `/sim-nam-sinh`...) cũng bị đếm → "Trang khách đã xem"/"Khách đến từ đâu" toàn giờ nửa đêm, trông vô lý. Fix:
@@ -60,5 +69,5 @@ _Cập nhật: 2026-08-26. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone 
 - **Supabase Edge Function fetch-sim-data** timeout 15s, data ~7MB → không cache được.
 - **SimNamSinhFinder.tsx** có WIP chưa commit — không stage nếu không liên quan.
 - **Bát Cực hóa giải mapping**: TuyệtMệnh→SinhKhí, NgũQuỷ→ThiênY, LụcSát→DiênNiên, HọaHại→PhụcVị.
-- **Shopee sync**: partner_id=2031725, partner_key đã set trong Vercel env. Cần thêm redirect URL + uỷ quyền shop trước khi sync.
+- **Shopee sync**: partner_id=2031725, partner_key trong env Vercel **CÓ THỂ SAI** (đang báo Wrong sign — xem mục 0). Đã có nút "Cấu hình" để nhập lại key qua UI (ghi DB mã hoá, DB thắng env). Sau khi uỷ quyền cần thêm redirect URL `https://www.chonsomobifone.com/admin/shopee/callback` + bật module Product trên open.shopee.com.
 - **Migration conflict**: `20260826_sims_catalog.sql` (WIP phiên khác) cùng version 20260826 — đã repair remote history, không đụng.
