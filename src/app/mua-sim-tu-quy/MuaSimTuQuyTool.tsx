@@ -174,6 +174,7 @@ const MuaSimTuQuyTool = () => {
                         href={ZALO_URL}
                         target="_blank"
                         rel="noopener noreferrer"
+                        data-sim-number={s.displayNumber}
                         className="inline-flex items-center gap-1 bg-primary text-primary-foreground px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-primary/90 transition"
                       >
                         <Phone className="w-3 h-3" /> Liên hệ

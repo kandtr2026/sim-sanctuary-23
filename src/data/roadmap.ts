@@ -50,7 +50,7 @@ export const ROADMAP: RoadmapPhase[] = [
       { id: "A3", title: "Nối GA4 → Google Ads + conversion action Zalo/gọi", status: "doing", priority: "P0", kpi: "Ads nhận chuyển đổi 'lead' → đấu thầu theo chuyển đổi", next: "Code sẵn (inert): chủ shop cấp AW-… + label Zalo, set NEXT_PUBLIC_GADS_AW_ID + NEXT_PUBLIC_GADS_CONV_LABEL trong Vercel rồi redeploy", updated: "2026-08-26" },
       { id: "A4", title: "Kích hoạt Facebook Pixel (set NEXT_PUBLIC_FB_PIXEL_ID)", status: "todo", priority: "P1", kpi: "Pixel Helper xanh; có event Lead khi bấm Zalo", next: "Pixel đang inert — set env ở Vercel rồi redeploy" },
       { id: "A5", title: "Search Console: verify + nộp sitemap + đọc query thật", status: "doing", priority: "P1", kpi: "100+ URL indexed; có bảng query thay suy đoán từ khoá", next: "Bảng query ĐÃ DỰNG: /admin/seo (118 từ khoá, nguồn scripts/seo/keywords.json). Còn chờ chủ shop cấp GSC_SIM_CLIENT_EMAIL + GSC_SIM_PRIVATE_KEY để cột thứ hạng có số. Verify + sitemap đã xong (288 URL).", updated: "2026-08-30" },
-      { id: "A6", title: "Sổ chốt đơn thủ công (lead → đơn)", status: "todo", priority: "P0", kpi: "Ghép SĐT/Zalo + utm_campaign với 'đã bán' → tính CPL & CPA", next: "Web KHÔNG có bảng đơn — đây là mắt xích đo doanh số duy nhất (việc vận hành)" },
+      { id: "A6", title: "Sổ chốt đơn thủ công (lead → đơn)", status: "done", priority: "P0", kpi: "Ghép SĐT/Zalo + utm_campaign với 'đã bán' → tính CPL & CPA", next: "Chủ shop set ORDERS_WEBHOOK_SECRET ở Vercel + cấu hình AppSheet automation (payload theo hợp đồng trong TODO_CHONSO) + thêm cột 'Mã campaign' vào sổ chốt đơn", updated: "2026-08-31" },
     ],
   },
   {

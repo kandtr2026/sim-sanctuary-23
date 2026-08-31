@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, MousePointerClick, Percent, RefreshCw, Target } from "lucide-react";
+import { Eye, MousePointerClick, Percent, RefreshCw, ShoppingBag, Target } from "lucide-react";
 import { getCampaignFunnel, getSourceFunnel, type FunnelRow } from "@/lib/campaignAnalytics";
 import { StatCard } from "@/components/admin/StatCard";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,9 @@ const RANGES: RangeDays[] = [7, 30, 90];
 
 // The analytics lib buckets untagged visits under this exact key.
 const NO_TAG = "(không gắn UTM)";
+
+// A6 — đơn không gắn mã campaign rơi vào bucket này (xem campaignAnalytics.ts).
+const NO_ORDER_TAG = "(không gắn mã)";
 
 const TYPE_META: Record<"zalo" | "call" | "messenger", { label: string; color: string }> = {
   zalo: { label: "Zalo", color: "bg-sky-500/15 text-sky-400" },
@@ -64,10 +67,12 @@ function FunnelTable({
   rows,
   firstColLabel,
   labelOf,
+  showOrders = false,
 }: {
   rows: FunnelRow[];
   firstColLabel: string;
   labelOf: (row: FunnelRow) => string;
+  showOrders?: boolean;
 }) {
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-card">
@@ -78,12 +83,19 @@ function FunnelTable({
             <th scope="col" className="px-4 py-2.5 text-right font-medium">Lượt xem</th>
             <th scope="col" className="px-4 py-2.5 text-right font-medium">Lead</th>
             <th scope="col" className="px-4 py-2.5 text-right font-medium">Tỉ lệ lead</th>
+            {showOrders && (
+              <>
+                <th scope="col" className="px-4 py-2.5 text-right font-medium">Đơn</th>
+                <th scope="col" className="px-4 py-2.5 text-right font-medium">Doanh thu</th>
+                <th scope="col" className="px-4 py-2.5 text-right font-medium">Lead→đơn</th>
+              </>
+            )}
             <th scope="col" className="hidden px-4 py-2.5 font-medium md:table-cell">Chi tiết lead</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
           {rows.map((row) => {
-            const untagged = row.key === NO_TAG;
+            const untagged = row.key === NO_TAG || row.key === NO_ORDER_TAG;
             const label = labelOf(row);
             return (
               <tr key={row.key} className="transition-colors hover:bg-muted/30">
@@ -106,6 +118,27 @@ function FunnelTable({
                     {row.leadRate}%
                   </span>
                 </td>
+                {showOrders && (
+                  <>
+                    <td className="whitespace-nowrap px-4 py-2.5 text-right font-semibold text-foreground">
+                      {row.orders > 0 ? row.orders.toLocaleString("vi-VN") : <span className="text-muted-foreground">0</span>}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-2.5 text-right">
+                      {row.revenue > 0 ? (
+                        <span className="font-medium text-gold">
+                          {(row.revenue / 1_000_000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}tr
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-2.5 text-right">
+                      <span className={row.orderRate > 0 ? "font-medium text-emerald-600" : "text-muted-foreground"}>
+                        {row.orderRate}%
+                      </span>
+                    </td>
+                  </>
+                )}
                 <td className="hidden px-4 py-2.5 md:table-cell">
                   <LeadBreakdown row={row} />
                 </td>
@@ -146,7 +179,16 @@ export function CampaignPerformanceSection() {
   const totals = useMemo(() => {
     const visits = campaignRows.reduce((sum, r) => sum + r.visits, 0);
     const leads = campaignRows.reduce((sum, r) => sum + r.leads, 0);
-    return { visits, leads, rate: visits > 0 ? Math.round((leads / visits) * 1000) / 10 : 0 };
+    const orders = campaignRows.reduce((sum, r) => sum + r.orders, 0);
+    const revenue = campaignRows.reduce((sum, r) => sum + r.revenue, 0);
+    return {
+      visits,
+      leads,
+      orders,
+      revenue,
+      rate: visits > 0 ? Math.round((leads / visits) * 1000) / 10 : 0,
+      orderRate: leads > 0 ? Math.round((orders / leads) * 1000) / 10 : 0,
+    };
   }, [campaignRows]);
 
   const hasData = campaignRows.length > 0 || sourceRows.length > 0;
@@ -221,7 +263,7 @@ export function CampaignPerformanceSection() {
       ) : (
         <div className="space-y-6">
           {/* Tổng quan cả cửa số thời gian */}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <StatCard label={`Lượt xem (${days} ngày)`} value={totals.visits.toLocaleString("vi-VN")} icon={Eye} />
             <StatCard
               label="Lead (Zalo/gọi/mess)"
@@ -231,8 +273,16 @@ export function CampaignPerformanceSection() {
               valueClass="text-primary"
             />
             <StatCard
-              label="Tỉ lệ lead / lượt xem"
-              value={`${totals.rate}%`}
+              label="Đơn (từ webhook)"
+              value={totals.orders.toLocaleString("vi-VN")}
+              sub={totals.orderRate > 0 ? `${totals.orderRate}% lead → đơn` : undefined}
+              icon={ShoppingBag}
+              iconClass="bg-emerald-500/15 text-emerald-500"
+              valueClass="text-emerald-600"
+            />
+            <StatCard
+              label="Doanh thu"
+              value={`${(totals.revenue / 1_000_000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}tr`}
               icon={Percent}
               iconClass="bg-gold/15 text-gold"
               valueClass="text-gold"
@@ -247,12 +297,12 @@ export function CampaignPerformanceSection() {
                 Chưa có dữ liệu theo chiến dịch.
               </p>
             ) : (
-              <FunnelTable rows={campaignRows} firstColLabel="Chiến dịch" labelOf={(r) => r.label} />
+              <FunnelTable rows={campaignRows} firstColLabel="Chiến dịch" labelOf={(r) => r.label} showOrders />
             )}
             <p className="mt-2 text-xs text-muted-foreground">
-              Lead = click Zalo/gọi/messenger. Web chưa có bảng đơn nên đây là số{" "}
-              <span className="font-medium text-foreground">LEAD</span>, không phải doanh số — ghép chi phí Ads (nhập tay)
-              để ra CPL.
+              Lead = click Zalo/gọi/messenger. Đơn = webhook /api/orders (bảng <span className="font-mono">orders</span>),{" "}
+              ghép theo <span className="font-mono">campaign_code</span> đi nhờ tin nhắn Zalo "[Mã: …]" — xem TODO_CHONSO mục hợp đồng dữ liệu.
+              Ghép chi phí Ads (nhập tay) để ra CPL/CPA.
             </p>
           </div>
 

@@ -5,6 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { getPagePath, classifySource } from "@/lib/trackingUtils";
 import { getAttribution } from "@/lib/attribution";
 import { GADS_CONV_SEND_TO } from "@/lib/gadsTracking";
+import { tagZaloHref } from "@/lib/zaloCampaignTag";
+
+/**
+ * A6 — gắn mã campaign vào link Zalo trước khi navigate (chi tiết + test:
+ * `src/lib/zaloCampaignTag.ts`). Ở đây chỉ nối dây: trong capture-phase listener,
+ * khi click rơi vào anchor zalo.me thì tag href ngay — không phụ thuộc isOwner
+ * (admin cũng cần thấy mã khi test, nhưng không bị đếm lead).
+ */
 
 /**
  * Global conversion-click tracker.
@@ -57,12 +65,21 @@ export function useConversionTracker() {
       .catch(() => {});
 
     const onClick = (e: Event) => {
+      const type = classifyClick(e.target);
+      if (!type) return;
+
+      // A6 — gắn mã campaign vào link Zalo trước khi navigate, không phụ thuộc
+      // isOwner (admin cũng cần thấy mã khi test, nhưng không bị đếm lead).
+      if (type === "zalo") {
+        const anchor = (e.target as Element).closest<HTMLAnchorElement>("a[href^='https://zalo.me']");
+        const tagged = anchor ? tagZaloHref(anchor) : undefined;
+        if (anchor && tagged) anchor.setAttribute("href", tagged);
+      }
+
       // Skip tracking before the owner check resolves (default false) so real
       // visitor clicks are never missed; a false positive from the owner is
       // rarer and self-inflicted.
       if (isOwner) return;
-      const type = classifyClick(e.target);
-      if (!type) return;
 
       const now = Date.now();
       const last = lastLoggedRef.current;

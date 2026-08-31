@@ -2,7 +2,7 @@
 
 > File điều hành cho dự án `chonsomobifone.com`. Agent nào vào sau đọc file này trước.
 > Cập nhật: **30/08/2026**. Source: repo này (`sim-sanctuary-23`, nhánh `main`).
-> Deploy: **KHÔNG auto-deploy từ git** — phải `npx vercel --prod --yes` bằng tay.
+> Deploy: **push git → Vercel tự deploy** (xác nhận từ chủ dự án). KHÔNG dùng `npx vercel --prod`.
 > Edge function: `npx supabase functions deploy <tên>` (deploy riêng, không đi cùng Vercel).
 
 ---
@@ -249,4 +249,41 @@ tay đang hỏng.
 
 **Hệ quả mong đợi, không phải lỗi:** thứ tự lưới ở nhóm cùng giá đã khác đi, vì sort mặc định là
 `effective_price.asc,beauty_score.desc` mà tie-break trước giờ toàn 0.
+
+---
+
+## 7. HỢP ĐỒNG DỮ LIỆU — A6: AppSheet → webhook /api/orders
+
+> Chủ shop cấu hình automation trên AppSheet: khi thêm/sửa dòng trong sổ chốt đơn,
+> POST về endpoint này. Chuyên viên điền `Mã campaign` vào cột tương ứng (nhìn từ
+> tin nhắn Zalo "[Mã: …]"), AppSheet gửi kèm.
+
+**Endpoint:** `POST https://www.chonsomobifone.com/api/orders`
+
+**Headers:**
+```
+x-orders-secret: <ORDERS_WEBHOOK_SECRET>
+Content-Type: application/json
+```
+
+**Body (JSON):**
+| Field | Type | Required | Mô tả |
+|---|---|---|---|
+| `external_id` | string | no | ID dòng AppSheet — dùng để dedup, nếu gửi lại cùng ID chỉ upsert 1 dòng |
+| `phone` | string | **yes** | SĐT khách hàng |
+| `price` | number | **yes** | Doanh thu (VND, số nguyên dương) |
+| `sim` | string | no | Số SIM đã bán |
+| `campaign_code` | string | no | Mã campaign từ tin nhắn Zalo "[Mã: …]" — chuẩn hoá lowercase |
+| `sold_at` | string (ISO) | no | Ngày bán (nếu bỏ trống dùng `created_at` của webhook) |
+
+**Ví dụ:**
+```json
+{"external_id":"row_abc123","phone":"0903123456","price":3500000,"sim":"0933686666","campaign_code":"gg-search-tuquy","sold_at":"2026-08-31T10:00:00Z"}
+```
+
+**Response:** `200 {"ok":true,"id":123}` — lỗi trả 400/401/500 kèm `{"error":"…"}`.
+
+**Chuẩn bị:** chủ shop set `ORDERS_WEBHOOK_SECRET` trên Vercel (production) trước khi
+bật automation. Secret hiện tại (tạo 31/08/2026 để nghiệm thu) do agent quản lý —
+khi chủ shop muốn tự quản, xoá và tạo lại bằng `npx vercel env add ORDERS_WEBHOOK_SECRET production`.
 
