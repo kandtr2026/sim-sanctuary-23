@@ -198,11 +198,29 @@ export async function saveConfig(input: {
     Number(existing.partner_id) !== input.partnerId ||
     existing.env !== env;
 
+  // Bỏ trống partnerKey = giữ nguyên key cũ. Trường hợp chưa từng có key ở đâu
+  // (không có DB lẫn env) thì phải nhập — không được ghi key rỗng vào DB vì sẽ
+  // làm hỏng cấu hình đang chạy (env thắng không còn nữa khi có dòng DB).
+  let partnerKey = input.partnerKey;
+  if (!partnerKey) {
+    if (existing) {
+      try {
+        partnerKey = decryptSecret(existing.partner_key_enc);
+      } catch {
+        throw new ShopeeConfigError("Key hiện tại không giải mã được — hãy nhập lại Partner Key.");
+      }
+    } else {
+      const fromEnv = process.env.SHOPEE_PARTNER_KEY || "";
+      if (fromEnv) partnerKey = fromEnv;
+      else throw new ShopeeConfigError("Phải nhập Partner Key lần đầu.");
+    }
+  }
+
   const row = {
     id: ROW_ID,
     partner_id: input.partnerId,
     shop_id: input.shopId,
-    partner_key_enc: encryptSecret(input.partnerKey),
+    partner_key_enc: encryptSecret(partnerKey),
     env,
     updated_by: input.updatedBy,
     updated_at: new Date().toISOString(),

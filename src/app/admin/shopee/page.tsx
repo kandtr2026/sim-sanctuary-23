@@ -374,9 +374,14 @@ function ShopeeAdminContent() {
                   <KeyRound className="h-4 w-4" /> Cấu hình
                 </Button>
               ) : !cred.authorized ? (
-                <Button size="sm" onClick={() => void handleAuthUrl()}>
-                  <ShieldCheck className="h-4 w-4" /> Uỷ quyền shop
-                </Button>
+                <>
+                  <Button size="sm" onClick={() => void handleAuthUrl()}>
+                    <ShieldCheck className="h-4 w-4" /> Uỷ quyền shop
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={openConfig}>
+                    <Settings className="h-4 w-4" /> Cấu hình
+                  </Button>
+                </>
               ) : (
                 <Button size="sm" variant="outline" onClick={openConfig}>
                   <Settings className="h-4 w-4" /> Cấu hình lại
