@@ -1,6 +1,6 @@
 # BÀN GIAO — chonsomobifone (sim-sanctuary-23)
 
-_Cập nhật: 2026-08-26. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone số đẹp._
+_Cập nhật: 2026-08-31. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone số đẹp._
 
 ## 0. PHIÊN 31/08/2026 — Shopee: sửa flow cấu hình sau lỗi "Wrong sign"
 
@@ -20,6 +20,23 @@ _Cập nhật: 2026-08-26. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone 
   - `PATH_TOKEN_REFRESH` = `/api/v2/auth/access_token/get` (refresh)
   - Đã thêm comment cảnh báo trong file để lần sau không sửa ngược.
 - **Việc tiếp**: user bấm lại "Uỷ quyền shop" từ đầu (code cũ hết hạn/dùng 1 lần), lần này đổi code sẽ thành công.
+
+## 0c. PHIÊN 31/08/2026 — A6: đóng vòng đo lead → đơn (campaign tag + webhook orders)
+
+- **Mục tiêu**: biết "chiến dịch nào ra ĐƠN, không chỉ ra lead". Web biết campaign/gclid mỗi cú bấm Zalo (conversion_clicks) nhưng không biết SĐT; AppSheet biết SĐT+đơn nhưng không biết campaign. Nối bằng cách cho campaign đi nhờ tin nhắn Zalo, đơn về qua webhook.
+- **MẢNH 1 — gắn mã campaign vào nút Zalo** (`src/lib/zaloCampaignTag.ts` + hook trong `src/hooks/useConversionTracker.ts`, commit `0b0455d`):
+  - Capture-phase click listener sửa href link zalo.me NGAY TRƯỚC KHI navigate: chèn `?text=…[Mã: X]` (X = utm_campaign, hoặc "ads" nếu có gclid, hoặc source).
+  - Link đã có `?text=` (vd /mua-ngay, QuickContactPopup) → GIỮ text cũ, chỉ nối `[Mã: X]`. Không tag 2 lần.
+  - SIM cụ thể: đọc `data-sim-number` trên anchor (đã thêm ở `/mua-sim-tu-quy` bảng tứ quý) hoặc path `/mua-ngay/<simId>`.
+- **MẢNH 2 — nhận đơn + dashboard**:
+  - Migration `supabase/migrations/20260831100000_orders.sql` (đã áp remote qua Management API `supabase db query --linked`): bảng `orders` (phone, price, sim, campaign_code, source, external_id UNIQUE, raw). RLS: admin SELECT, KHÔNG policy INSERT/UPDATE/DELETE → chỉ service role ghi. Đã verify anon đọc được `[]`.
+  - Route `POST /api/orders` (`src/app/api/orders/route.ts`, runtime nodejs): header `x-orders-secret` === `ORDERS_WEBHOOK_SECRET` (fail-closed), body phone+price bắt buộc, campaign_code trim/lowercase, upsert theo external_id. Đã set `ORDERS_WEBHOOK_SECRET` trên Vercel production.
+  - Dashboard: `src/lib/campaignAnalytics.ts` (fetch orders + ghép theo campaign_code, case-insensitive; đơn rỗng → bucket `(không gắn mã)`) + `CampaignPerformanceSection.tsx` (cột Đơn / Doanh thu / Tỉ lệ lead→đơn + 4 StatCard).
+- **Nghiệm thu (đã chạy thật)**:
+  - curl POST /api/orders: không secret → 401, sai secret → 401, thiếu phone → 400, đủ payload → 200 `{ok,id}`. Gửi lại `external_id=accept-001` 2 lần → vẫn 1 dòng (dedup). PostgREST xác nhận 3 dòng (2 đơn gg-search-tuquy 6,4tr + 1 đơn không mã).
+  - Browser thật (chromium headless): vào `/` và `/mua-sim-tu-quy` với `?utm_campaign=gg-search-tuquy` → click nút Zalo → href chứa `?text=…[Mã: gg-search-tuquy]`; row có `data-sim-number` → text có cả SIM.
+  - `tsc` sạch, 153 test pass (142 cũ + 11 mới: campaignOrderMerge 4 + zaloCampaignTag 7), build XANH.
+- **CÒN LẠI (chủ shop)**: set/cấu hình `ORDERS_WEBHOOK_SECRET` + automation AppSheet theo hợp đồng ở `TODO_CHONSO.md` mục 7 (POST /api/orders, cột "Mã campaign" điền từ tin nhắn Zalo). Phase 2 (gclid offline import) CHƯA làm — đúng yêu cầu.
 
 ## 1. ĐÃ XONG phiên này
 
