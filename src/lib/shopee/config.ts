@@ -16,9 +16,14 @@ export const SHOPEE_HOSTS: Record<string, string> = {
 
 /** Trang uỷ quyền: mở trên browser, chủ shop bấm đồng ý. */
 export const PATH_AUTH_PARTNER = "/api/v2/shop/auth_partner";
-/** Đổi `code` (Shopee trả về sau khi uỷ quyền) thành access_token. */
-export const PATH_TOKEN_GET = "/api/v2/auth/access_token/get";
-export const PATH_TOKEN_REFRESH = "/api/v2/auth/access_token/refresh";
+/**
+ * Đổi `code` (Shopee trả về sau khi uỷ quyền) thành access_token.
+ * ⚠️ Shopee đổi endpoint từ 2026: lấy token bằng CODE là `/api/v2/auth/token/get`,
+ * còn `/api/v2/auth/access_token/get` giờ là REFRESH (đòi refresh_token trong body).
+ * Nếu gửi code vào đường cũ sẽ bị lỗi "It should have refresh_token in the request body".
+ */
+export const PATH_TOKEN_GET = "/api/v2/auth/token/get";
+export const PATH_TOKEN_REFRESH = "/api/v2/auth/access_token/get";
 
 // ── Product ───────────────────────────────────────────────────────────────────
 export const PATH_ADD_ITEM = "/api/v2/product/add_item";
