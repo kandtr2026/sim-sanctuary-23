@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Star, Cake } from 'lucide-react';
+import { Star, Cake, MessageCircle } from 'lucide-react';
 import type { NormalizedSIM, QuyType } from '@/lib/simUtils';
 import { matchesQuyType, formatPrice, formatBirthDateDisplayLenient, formatSIMNumber } from '@/lib/simUtils';
 import { cn } from '@/lib/utils';
@@ -319,6 +319,20 @@ const SIMCardNew = ({ sim, quyFilter, searchQuery = '', birthDateDisplay }: SIMC
             </span>
           </div>
         </div>
+
+        {/* Chat Zalo — pre-filled đúng số này. data-sim-number để listener (A6)
+            tự chèn "[Mã: campaign]" vào tin nhắn; KHÔNG tự dựng text ở đây. */}
+        <a
+          href="https://zalo.me/0933356666"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-sim-number={searchDisplay || rawNumber}
+          aria-label={`Chat Zalo mua sim ${searchDisplay}`}
+          className="mt-1.5 flex w-full items-center justify-center gap-1 rounded-md border border-sky-500/30 bg-sky-500/10 py-1.5 text-xs font-semibold text-sky-400 transition hover:bg-sky-500/20"
+        >
+          <MessageCircle className="h-3.5 w-3.5" />
+          Chat Zalo
+        </a>
       </div>
     </>
   );

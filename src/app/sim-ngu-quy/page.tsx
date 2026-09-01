@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Phone, Star, Shield, CheckCircle, Truck, DollarSign, Users, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
-import CategorySimPriceList from "@/components/CategorySimPriceList";
+import CategoryFeaturedSims from "@/components/CategoryFeaturedSims";
 import FaqAccordion from "@/components/FaqAccordion";
 import { buildBreadcrumb } from "@/lib/seo";
-import { getCategorySnapshot } from "@/lib/serverSimData";
+import { getCategorySnapshotMix } from "@/lib/serverSimData";
 
 // ISR: prerender + revalidate every 300s (khớp /api/sims) so crawlers hit a
 // cached page instead of forcing SSR (ƒ) on every request.
@@ -69,7 +69,7 @@ const benefits = [
 ];
 
 export default async function SimNguQuyPage() {
-  const snapshotSims = await getCategorySnapshot({ tags: ["Ngũ quý", "Lục quý"] }, 8);
+  const featuredSims = await getCategorySnapshotMix({ tags: ["Ngũ quý", "Lục quý"] }, 10);
   return (
     <>
       <main className="min-h-screen bg-background">
@@ -115,6 +115,24 @@ export default async function SimNguQuyPage() {
         </section>
 
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
+
+          {/* ===== DẢI "NỔI BẬT" — SỐ + GIÁ + Zalo NGAY SAU HERO ===== */}
+          <CategoryFeaturedSims
+            title="Sim Ngũ Quý Nổi Bật Trong Kho"
+            sims={featuredSims}
+            pageUrl={CANONICAL}
+          />
+
+          {/* ===== Ô TÌM + LƯỚI "KHO NGŨ QUÝ CẬP NHẬT" ===== */}
+          <CategorySimGrid
+            title="Sim Ngũ Quý, Lục Quý Mới Cập Nhật"
+            searchPlaceholder="Nhập số cần tìm, hoặc *88888 / *99999 để xem đuôi ngũ quý"
+            emptyText="Kho đang trống ở nhóm này — ngũ quý về lẻ và đi rất nhanh. Quý khách để lại yêu cầu qua Zalo 0933356666, đội ngũ tư vấn sẽ báo khi có dãy phù hợp."
+            matchTags={["Ngũ quý", "Lục quý"]}
+            quyFilter="Ngũ quý"
+          />
+
+          {/* ===== GIÁO DỤC (dời xuống sau sản phẩm, giữ nguyên nội dung SEO) ===== */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
               <span className="h-8 w-1 rounded-full bg-primary" />
@@ -135,22 +153,6 @@ export default async function SimNguQuyPage() {
               </p>
             </div>
           </section>
-
-          {/* Bảng giá thật + ItemList/Product/Offer trong HTML thô */}
-          <CategorySimPriceList
-            title="Giá sim ngũ quý, lục quý đang bán"
-            sims={snapshotSims}
-            pageUrl={CANONICAL}
-            note="Bảng lấy 8 số ngũ quý / lục quý có giá thấp nhất trong kho tại thời điểm cập nhật."
-          />
-
-          <CategorySimGrid
-            title="Sim Ngũ Quý, Lục Quý Mới Cập Nhật"
-            searchPlaceholder="Nhập số cần tìm, hoặc *88888 / *99999 để xem đuôi ngũ quý"
-            emptyText="Kho đang trống ở nhóm này — ngũ quý về lẻ và đi rất nhanh. Quý khách để lại yêu cầu qua Zalo 0933356666, đội ngũ tư vấn sẽ báo khi có dãy phù hợp."
-            matchTags={["Ngũ quý", "Lục quý"]}
-            quyFilter="Ngũ quý"
-          />
 
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">

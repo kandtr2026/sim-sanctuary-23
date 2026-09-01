@@ -767,17 +767,12 @@ export const getBirthDateFallbackSims = async (
 };
 
 /**
- * Filter the full catalogue by category criteria, sort by price ascending, and
- * return the top `limit` SIMs. Pure function — does not fetch.
+ * Lọc + sắp xếp toàn kho theo tiêu chí danh mục. Trả về danh sách đã lọc, chưa
+ * cắt limit — hai hàm snapshot dưới (top-giá-rẻ và phổ-giá) dùng chung để không
+ * lệch luật lọc.
  */
-export const getCategorySnapshot = async (
-  filter: SnapshotFilter,
-  limit = 8,
-): Promise<NormalizedSIM[]> => {
-  let sims = await getServerSims();
-  if (sims.length === 0) return [];
-
-  // Apply filters
+const filterCategorySims = (filter: SnapshotFilter, input: NormalizedSIM[]): NormalizedSIM[] => {
+  let sims = input;
   if (filter.prefixes?.length) {
     sims = sims.filter((s) => filter.prefixes!.some((p) => getDigits(s).startsWith(p)));
   }
@@ -795,7 +790,20 @@ export const getCategorySnapshot = async (
   }
 
   // Only SIMs with a positive price
-  sims = sims.filter((s) => s.price > 0);
+  return sims.filter((s) => s.price > 0);
+};
+
+/**
+ * Filter the full catalogue by category criteria, sort by price ascending, and
+ * return the top `limit` SIMs. Pure function — does not fetch.
+ */
+export const getCategorySnapshot = async (
+  filter: SnapshotFilter,
+  limit = 8,
+): Promise<NormalizedSIM[]> => {
+  const all = await getServerSims();
+  if (all.length === 0) return [];
+  const sims = filterCategorySims(filter, all);
 
   // Sort by price ascending, then by beauty score descending. For birth-year
   // snapshots, surface true "đuôi năm" matches (last 4 === year) first so the
@@ -811,6 +819,58 @@ export const getCategorySnapshot = async (
   });
 
   return sims.slice(0, limit);
+};
+
+/**
+ * Snapshot PHỔ GIÁ đa dạng cho dải "Nổi bật" của trang đích Ads (CRO): vài số rẻ
+ * nhất + vài số tầm trung + 1–2 số cao cấp. Khác getCategorySnapshot (toàn số rẻ
+ * nhất): khách Ads intent cao phải thấy mặt bằng giá thật ngay màn đầu, chứ không
+ * chỉ toàn số vài trăm triệu (đắt nhất) hay toàn số tầm 1 mức (rẻ nhất).
+ *
+ * Trả về theo thứ tự rẻ → tầm trung → cao, để hàng đầu không bao giờ là số "nửa
+ * tỉ" đập vào mắt ngay khi mở trang.
+ */
+export const getCategorySnapshotMix = async (
+  filter: SnapshotFilter,
+  limit = 10,
+): Promise<NormalizedSIM[]> => {
+  const all = await getServerSims();
+  if (all.length === 0) return [];
+  const sims = filterCategorySims(filter, all);
+  sims.sort((a, b) => a.price - b.price || b.beautyScore - a.beautyScore);
+  if (sims.length <= limit) return sims;
+
+  const pick = limit;
+  const cheapCount = 2; // vài số rẻ nhất
+  const premiumCount = 2; // 1–2 số cao cấp
+  const midCount = Math.max(0, pick - cheapCount - premiumCount);
+  const result: NormalizedSIM[] = [];
+
+  const pushUnique = (s: NormalizedSIM) => {
+    if (result.length < pick && !result.includes(s)) result.push(s);
+  };
+
+  // 1) Số rẻ nhất
+  for (let i = 0; i < cheapCount; i++) pushUnique(sims[i]);
+
+  // 2) Số cao cấp nhất (lấy từ cuối)
+  for (let i = sims.length - 1; i >= sims.length - premiumCount; i--) pushUnique(sims[i]);
+
+  // 3) Số tầm trung — chia đều theo vị trí để không dồn về một mức giá
+  const midStart = cheapCount;
+  const midEnd = sims.length - premiumCount;
+  if (midCount > 0 && midEnd > midStart) {
+    const midPool = sims.slice(midStart, midEnd);
+    const step = midPool.length / midCount;
+    for (let i = 0; i < midCount; i++) {
+      pushUnique(midPool[Math.min(midPool.length - 1, Math.floor(i * step))]);
+    }
+  }
+
+  // 4) Lấp đầy nếu chưa đủ (danh mục ít số)
+  for (const s of sims) pushUnique(s);
+
+  return result;
 };
 
 // ── Sim "năm sinh" inventory helpers ─────────────────────────────────────────

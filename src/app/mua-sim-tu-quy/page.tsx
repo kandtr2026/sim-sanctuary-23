@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Phone, Shield, Star, Truck, CheckCircle, Sparkles, Award, Users, DollarSign } from "lucide-react";
 import MuaSimTuQuyTool from "./MuaSimTuQuyTool";
-import CategorySimPriceList from "@/components/CategorySimPriceList";
+import CategoryFeaturedSims from "@/components/CategoryFeaturedSims";
 import FaqAccordion from "@/components/FaqAccordion";
 import { buildBreadcrumb } from "@/lib/seo";
-import { getCategorySnapshot } from "@/lib/serverSimData";
+import { getCategorySnapshotMix } from "@/lib/serverSimData";
 
 const ZALO_URL = 'https://zalo.me/0933356666';
 
@@ -121,7 +121,9 @@ const benefits = [
 { icon: Users, text: 'Đội ngũ tư vấn trực 24/7' }];
 
 export default async function MuaSimTuQuyPage() {
-  const snapshotSims = await getCategorySnapshot({ tags: ["Tứ quý"] }, 8);
+  // Dải "Nổi bật" dùng snapshot PHỔ GIÁ (rẻ + tầm trung + cao) thay vì toàn số
+  // rẻ nhất — khách Ads thấy mặt bằng giá thật ngay màn đầu.
+  const featuredSims = await getCategorySnapshotMix({ tags: ["Tứ quý"] }, 10);
   return (
     <>
       <main className="min-h-screen bg-background">
@@ -166,7 +168,19 @@ export default async function MuaSimTuQuyPage() {
 
         <div className="container mx-auto px-4 py-8 md:py-12 space-y-12 md:space-y-16">
 
-          {/* ===== 2. GIỚI THIỆU SIM TỨ QUÝ ===== */}
+          {/* ===== 2. DẢI "NỔI BẬT" — SỐ + GIÁ + Zalo NGAY SAU HERO ===== */}
+          {/* Server-render (có ItemList/Product/Offer JSON-LD) để bot và khách
+              Ads thấy số + giá + cửa Zalo trước, không phải bài giảng. */}
+          <CategoryFeaturedSims
+            title="Sim Tứ Quý Nổi Bật Trong Kho"
+            sims={featuredSims}
+            pageUrl={CANONICAL}
+          />
+
+          {/* ===== 3. Ô TÌM + LƯỚI "KHO SIM TỨ QUÝ CẬP NHẬT" ===== */}
+          <MuaSimTuQuyTool />
+
+          {/* ===== 4. GIỚI THIỆU SIM TỨ QUÝ (dời xuống, giữ nguyên cho SEO) ===== */}
           <section className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
             <h2 className="text-2xl font-bold text-primary mb-4 flex items-center gap-3">
               <span className="w-1 h-8 bg-primary rounded-full" />
@@ -185,19 +199,7 @@ export default async function MuaSimTuQuyPage() {
             </div>
           </section>
 
-          {/* Bảng giá thật + ItemList/Product/Offer trong HTML thô — tool bên dưới
-              là client island nên bot cần bảng này để thấy giá và tồn kho. */}
-          <CategorySimPriceList
-            title="Giá sim tứ quý đang bán"
-            sims={snapshotSims}
-            pageUrl={CANONICAL}
-            note="Bảng lấy 8 số tứ quý có giá thấp nhất trong kho tại thời điểm cập nhật."
-          />
-
-          {/* ===== 3 + 3b. SEARCH + KHO SIM TỨ QUÝ (client island) ===== */}
-          <MuaSimTuQuyTool />
-
-          {/* ===== 4. CÁC LOẠI SIM TỨ QUÝ ===== */}
+          {/* ===== 5. CÁC LOẠI SIM TỨ QUÝ ===== */}
           <section className="space-y-8">
             <h2 className="text-2xl font-bold text-primary flex items-center gap-3">
               <span className="w-1 h-8 bg-primary rounded-full" />

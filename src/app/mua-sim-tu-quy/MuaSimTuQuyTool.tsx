@@ -3,13 +3,10 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Phone, Search, ChevronRight } from "lucide-react";
+import { Search, ChevronRight } from "lucide-react";
 import SIMCardNew from "@/components/SIMCardNew";
-import { formatPrice } from "@/lib/simUtils";
-import { planSimDisplay } from "@/lib/simDisplay";
 import type { NormalizedSIM } from "@/lib/simUtils";
 
-const ZALO_URL = "https://zalo.me/0933356666";
 const QUY_TU = encodeURIComponent("Tứ quý");
 
 const MuaSimTuQuyTool = () => {
@@ -47,11 +44,6 @@ const MuaSimTuQuyTool = () => {
   // Cheap sims sorted by price asc (for "Kho Sim Tứ Quý Cập Nhật")
   const tuQuySims = useMemo(() => {
     return [...allTuQuySims].sort((a, b) => a.price - b.price).slice(0, 12);
-  }, [allTuQuySims]);
-
-  // Expensive sims sorted by price desc (for "Sim Tứ Quý Nổi Bật")
-  const featuredTuQuySims = useMemo(() => {
-    return [...allTuQuySims].sort((a, b) => b.price - a.price).slice(0, 10);
   }, [allTuQuySims]);
 
   const searchResults = useMemo(() => {
@@ -103,91 +95,6 @@ const MuaSimTuQuyTool = () => {
             </button>
           </div>
         </form>
-      </section>
-
-      {/* ===== SIM TỨ QUÝ NỔI BẬT ===== */}
-      <section className="bg-card rounded-xl shadow-card border border-border p-6 md:p-8">
-        <h2 className="text-2xl font-bold text-primary mb-6 flex items-center gap-3">
-          <span className="w-1 h-8 bg-primary rounded-full" />
-          Sim Tứ Quý Nổi Bật
-        </h2>
-        {isLoading ? (
-          <div className="space-y-3 py-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 animate-pulse">
-                <div className="h-5 w-32 bg-muted rounded" />
-                <div className="h-5 w-20 bg-muted rounded hidden sm:block" />
-                <div className="h-5 w-24 bg-muted rounded ml-auto" />
-                <div className="h-7 w-20 bg-muted rounded" />
-              </div>
-            ))}
-          </div>
-        ) : featuredTuQuySims.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-secondary/50">
-                  <th className="text-left py-3 px-4 font-semibold text-foreground">Số SIM</th>
-                  <th className="text-left py-3 px-4 font-semibold text-foreground hidden sm:table-cell">Nhà mạng</th>
-                  <th className="text-right py-3 px-4 font-semibold text-foreground">Giá</th>
-                  <th className="text-center py-3 px-4 font-semibold text-foreground">Hành động</th>
-                </tr>
-              </thead>
-              <tbody>
-                {featuredTuQuySims.map((s) => (
-                  <tr key={s.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
-                    <td className="py-3 px-4 font-bold text-foreground tracking-wide">
-                      {(() => {
-                        // Tứ quý phải hiện 4 số cuối liền nhau (VD 093.368.6666).
-                        // Dùng rule chấm dùng chung thay vì tự cắt 3-3-4 ở đây —
-                        // xem `src/lib/simDisplay.ts`.
-                        const raw = s.rawDigits || (s.displayNumber || "").replace(/\D/g, "");
-                        const preferred = s.formattedNumber || s.displayNumber;
-                        if (raw.length < 5) return preferred;
-                        return planSimDisplay(raw, `*${raw.slice(-4)}`, preferred).display;
-                      })()}
-                    </td>
-                    <td className="py-3 px-4 text-muted-foreground hidden sm:table-cell">
-                      {(() => {
-                        const digits = (s.displayNumber || "").replace(/\D/g, "");
-                        const p = digits.slice(0, 3);
-                        if (["090", "093", "089", "070", "076", "077", "078", "079"].includes(p)) return "Mobifone";
-                        if (["091", "094", "088", "081", "082", "083", "084", "085"].includes(p)) return "Vinaphone";
-                        if (["099", "059"].includes(p)) return "Gmobile";
-                        return "Khác";
-                      })()}
-                    </td>
-                    {/* Giá phải in đủ số, không quy ra "triệu". Dạng cũ chia giá
-                        cho một triệu rồi làm tròn 1 chữ số thập phân, tức độ
-                        chia 100.000đ, nên nhãn nói CAO hơn giá thật: 3.860.000
-                        hiện "3,9 triệu" (+40.000đ), 1.950.000 hiện "2 triệu"
-                        (+50.000đ) — bảng nói một giá, trang đặt hàng nói giá
-                        khác. `formatPrice` là nguồn định dạng tiền duy nhất của
-                        site (xem `src/lib/simUtils.ts`); cột này có
-                        `whitespace-nowrap` trong bảng `overflow-x-auto` nên đủ
-                        chỗ cho "39.000.000đ". */}
-                    <td className="py-3 px-4 text-right font-semibold text-primary whitespace-nowrap">
-                      {formatPrice(s.price)}
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <a
-                        href={ZALO_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        data-sim-number={s.displayNumber}
-                        className="inline-flex items-center gap-1 bg-primary text-primary-foreground px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-primary/90 transition"
-                      >
-                        <Phone className="w-3 h-3" /> Liên hệ
-                      </a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">Kho sim tứ quý nổi bật đang được cập nhật. Vui lòng quay lại sau ít phút.</div>
-        )}
       </section>
 
       {/* ===== KHO SIM TỨ QUÝ THỰC TẾ ===== */}
