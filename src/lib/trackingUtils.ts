@@ -11,7 +11,11 @@
 export const getPagePath = (pathname: string, searchParams: string): string => {
   const checkoutMatch = pathname.match(/^\/mua-ngay\//);
   if (checkoutMatch) return "/mua-ngay";
-  return searchParams ? `${pathname}?${searchParams}` : pathname;
+  // searchParams từ window.location.search (useConversionTracker) có sẵn "?",
+  // từ useSearchParams().toString() (usePageVisitTracker) KHÔNG có "?".
+  // Nối đúng 1 dấu "?" duy nhất.
+  const q = searchParams.startsWith("?") ? searchParams.slice(1) : searchParams;
+  return q ? `${pathname}?${q}` : pathname;
 };
 
 /**
