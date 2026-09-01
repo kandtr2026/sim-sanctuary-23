@@ -38,6 +38,16 @@ _Cập nhật: 2026-08-31. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone 
   - `tsc` sạch, 153 test pass (142 cũ + 11 mới: campaignOrderMerge 4 + zaloCampaignTag 7), build XANH.
 - **CÒN LẠI (chủ shop)**: set/cấu hình `ORDERS_WEBHOOK_SECRET` + automation AppSheet theo hợp đồng ở `TODO_CHONSO.md` mục 7 (POST /api/orders, cột "Mã campaign" điền từ tin nhắn Zalo). Phase 2 (gclid offline import) CHƯA làm — đúng yêu cầu.
 
+## 0d. PHIÊN 01/09/2026 — CRO 2 trang đích Ads (mua-sim-tu-quy + sim-ngu-quy)
+
+- **Mục tiêu**: khách Ads intent cao thấy SỐ + GIÁ + cửa Zalo ngay, không phải bài giảng. Chỉ sắp lại thứ tự + gộp trùng + thêm nút Zalo, KHÔNG redesign.
+- **Đã làm** (commit `3f42dce`, deploy READY):
+  1. **Đảo thứ tự product-first**: Hero → dải "Nổi Bật" (SỐ+GIÁ) → ô tìm + lưới "Kho … Cập Nhật" → RỒI MỚI section giáo dục "…Là Gì?" (giữ nguyên nội dung SEO).
+  2. **Gộp trùng**: bỏ `CategorySimPriceList` ("Giá … đang bán" — 8 số cùng giá) khỏi 2 trang; thay bằng `CategoryFeaturedSims` (server-render, kèm ItemList/Product/Offer JSON-LD). Sau cùng mỗi trang chỉ còn 1 dải nổi bật + 1 lưới tìm kiếm.
+  3. **Dải nổi bật mix giá**: hàm mới `getCategorySnapshotMix(filter, limit)` trong `src/lib/serverSimData.ts` (2 số rẻ nhất + vài số tầm trung + 2 số cao cấp, trả theo thứ tự rẻ→cao). Verify live: tứ quý 8tr→513tr, ngũ quý 2tr→120tr.
+  4. **2 hành động mỗi số**: dải nổi bật có "Đặt mua" + "Zalo" (anchor zalo.me + `data-sim-number` → listener A6 tự chèn `[Mã:]`). `SIMCardNew` thêm nút "Chat Zalo" (dùng chung cho cả lưới 2 trang).
+- **Nghiệm thu**: browser thật mobile 375px — cả 2 trang first H2 = "…Nổi Bật Trong Kho", phổ giá đa dạng, bấm Zalo → tin nhắn có đúng số + `[Mã: gg-search-tuquy]`, thứ tự section OK. Build XANH.
+
 ## 1. ĐÃ XONG phiên này
 
 - **Fix admin đếm chính chủ thành khách** (commit `3347121`): `usePageVisitTracker` (mount ở root layout → chạy cả `/admin`) từng insert `/admin`, `/admin/dashboard` vào `page_visits` như thể khách, và chính admin test web public (`/?q=*2020`, `/sim-nam-sinh`...) cũng bị đếm → "Trang khách đã xem"/"Khách đến từ đâu" toàn giờ nửa đêm, trông vô lý. Fix:
