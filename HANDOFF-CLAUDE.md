@@ -1,6 +1,27 @@
 # BÀN GIAO — chonsomobifone (sim-sanctuary-23)
 
-_Cập nhật: 2026-08-31. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone số đẹp._
+_Cập nhật: 2026-09-02. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone số đẹp._
+
+## 0e. PHIÊN 02/09/2026 — Zalo CRO: audit ma sát + fix nút Zalo card + deploy
+
+- **Mục tiêu**: xác định rào cản khiến người dùng không bấm được nút Zalo để mua hàng, và fix.
+- **Audit** (agent-team đóng vai người dùng, scrape live HTML 197KB trang chủ):
+  - **Không có rào cản block tuyệt đối** (0 popup, 0 adblock dialog, 0 registration wall, 0 preloader, 0 clickiator, link `target="_blank"`, không có JS `preventDefault`).
+  - **Ma sát chính**:
+    1. Mobile mất nút Zalo nổi (floating stack `hidden md:flex`).
+    2. Nút Zalo trên card quá nhỏ (`text-xs py-1.5` ~30px, dưới chuẩn 44px).
+    3. Bấm Zalo thiếu context (link mở `zalo.me/0933356666` trống, không prefill số SIM).
+    4. FAQ hướng dẫn "nhấn MUA NGAY" nhưng UI không có nút MUA NGAY (trong SSR).
+    5. Messenger floating mập mờ (button không href).
+  - **Phát hiện sau khi có source**: source ĐÃ có StickyCtaBottomBar (CTA Zalo dưới mobile) + A6 tag Zalo tự chèn số SIM (useConversionTracker + zaloCampaignTag) + BuyNowDialog có "MUA NGAY" real. Audit live chỉ thấy SSR desktop → không phát hiện các client component này.
+  - **Tài liệu roadmap**: `ROADMAP-CHONSOMOBIFONE-ZALO.md` (root repo heoiu).
+- **Fix** (commit `50d1824`, push `main`, auto-deploy Vercel):
+  - `src/components/SIMCardNew.tsx` (T3): nút Zalo card tăng từ `py-1.5 text-xs` lên `py-2.5 text-sm min-h-11` (≥44px), icon to hơn (`h-4 w-4`), khoảng cách rộng hơn (`gap-1.5`).
+  - **Các ma sát khác đã có sẵn trong source** (chỉ cần deploy):
+    - T1/T2: StickyCtaBottomBar (mobile) + FloatingContactButtons (desktop) — luôn có Zalo ở mọi vị trí cuộn.
+    - T5: `useConversionTracker` + `tagZaloHref` tự chèn `?text=Em quan tâm SIM {số}. [Mã: campaign]` khi click.
+    - T6/T7: FAQ "MUA NGAY" đúng (BuyNowDialog có nút "MUA NGAY" thật), card 2 CTA tách biệt.
+- **Nghiệm thu**: live `www.chonsomobifone.com` trả 200, có class `min-h-11`, `floating-contact-stack` present. Build XANH. Lint: 0 lỗi mới (10 error có sẵn trong supabase/functions). Test: 152/153 pass (1 fail có sẵn `priceHonesty.test.ts` — đọc MuaSimTuQuyTool.tsx, không liên quan).
 
 ## 0. PHIÊN 31/08/2026 — Shopee: sửa flow cấu hình sau lỗi "Wrong sign"
 
