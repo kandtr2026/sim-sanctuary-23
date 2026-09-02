@@ -6,6 +6,7 @@
 import { createHmac } from "crypto";
 import {
   PATH_ADD_ITEM,
+  PATH_ADD_MODEL,
   PATH_DELETE_ITEM,
   PATH_GET_ATTRIBUTES,
   PATH_GET_CATEGORY,
@@ -13,6 +14,7 @@ import {
   PATH_GET_ITEM_LIST,
   PATH_GET_MODEL_LIST,
   PATH_GET_LOGISTICS,
+  PATH_INIT_TIER_VARIATION,
   PATH_TOKEN_REFRESH,
   PATH_UPDATE_ITEM,
   PATH_UPDATE_STOCK,
@@ -270,6 +272,29 @@ export class ShopeeProductClient {
   /** Lấy danh sách model (biến thể) của một item — để có giá/kho khi item có model. */
   async getModelList(itemId: number): Promise<Record<string, unknown>> {
     return this.call(PATH_GET_MODEL_LIST, {}, { item_id: itemId }, "GET");
+  }
+
+  /** Thêm model (biến thể) mới vào item. */
+  async addModel(itemId: number, model: Record<string, unknown>): Promise<{ model_id: number }> {
+    const resp = await this.call(PATH_ADD_MODEL, {
+      item_id: itemId,
+      model_list: [model],
+    });
+    const modelId = Number(resp?.model_id || 0);
+    if (!modelId) {
+      throw new ShopeeApiError("missing_model_id", "Shopee không trả model_id", PATH_ADD_MODEL);
+    }
+    return { model_id: modelId };
+  }
+
+  /** Dựng lại toàn bộ cây biến thể (tier_variation + model) — dùng để thêm/xoá biến thể. */
+  async initTierVariation(payload: {
+    item_id: number;
+    tier_variation: Record<string, unknown>[];
+    model: Record<string, unknown>[];
+  }): Promise<{ error: string | null }> {
+    await this.call(PATH_INIT_TIER_VARIATION, payload);
+    return { error: null };
   }
 
   async updateStock(itemId: number, stock: number): Promise<void> {
