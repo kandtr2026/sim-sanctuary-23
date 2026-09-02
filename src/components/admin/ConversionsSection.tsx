@@ -13,6 +13,21 @@ const TYPE_LABELS: Record<string, { label: string; color: string }> = {
   messenger: { label: "Messenger", color: "bg-blue-500/15 text-blue-400" },
 };
 
+const POSITION_LABELS: Record<string, string> = {
+  header: "Header",
+  card: "Card SIM",
+  floating: "Nút nổi",
+  "sticky-bar": "Thanh dưới",
+  dialog: "Popup",
+  other: "Khác",
+};
+
+const DEVICE_LABELS: Record<string, string> = {
+  mobile: "Mobile",
+  desktop: "Desktop",
+  tablet: "Tablet",
+};
+
 const Skeleton = () => (
   <div className="space-y-3">
     {Array.from({ length: 4 }).map((_, i) => (
@@ -64,6 +79,26 @@ export function ConversionsSection() {
   }, [clicks]);
 
   const total = clicks.length;
+
+  // T10 — bảng đo ma sát theo vị trí CTA và thiết bị (giúp quyết định đặt
+  // nút Zalo đâu, có cần mobile bar không).
+  const byPosition = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const c of clicks) {
+      const p = c.position || "other";
+      counts[p] = (counts[p] ?? 0) + 1;
+    }
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  }, [clicks]);
+
+  const byDevice = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const c of clicks) {
+      const d = c.device || "unknown";
+      counts[d] = (counts[d] ?? 0) + 1;
+    }
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  }, [clicks]);
 
   return (
     <section>
@@ -128,6 +163,51 @@ export function ConversionsSection() {
                 );
               })}
             </div>
+
+            {/* T10 — đo ma sát: click theo vị trí CTA + thiết bị. Cột này trống
+                cho dữ liệu cũ (ghi từ 2026-09-02). */}
+            {byPosition.some(([, c]) => c > 0) && (
+              <>
+                <h4 className="mt-4 mb-2 text-xs font-semibold text-muted-foreground">Theo vị trí nút</h4>
+                <div className="flex flex-wrap gap-2">
+                  {byPosition.map(([pos, count]) => {
+                    const label = POSITION_LABELS[pos] ?? pos;
+                    const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                    return (
+                      <span
+                        key={pos}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs"
+                      >
+                        <span className="rounded bg-muted px-1.5 py-0.5 font-semibold text-muted-foreground">{label}</span>
+                        <span className="font-bold text-foreground">{count}</span>
+                        <span className="text-muted-foreground">({pct}%)</span>
+                      </span>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+            {byDevice.some(([, c]) => c > 0) && (
+              <>
+                <h4 className="mt-4 mb-2 text-xs font-semibold text-muted-foreground">Theo thiết bị</h4>
+                <div className="flex flex-wrap gap-2">
+                  {byDevice.map(([dev, count]) => {
+                    const label = DEVICE_LABELS[dev] ?? dev;
+                    const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                    return (
+                      <span
+                        key={dev}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs"
+                      >
+                        <span className="rounded bg-muted px-1.5 py-0.5 font-semibold text-muted-foreground">{label}</span>
+                        <span className="font-bold text-foreground">{count}</span>
+                        <span className="text-muted-foreground">({pct}%)</span>
+                      </span>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Bảng click gần nhất */}
@@ -137,7 +217,8 @@ export function ConversionsSection() {
                 <tr>
                   <th className="px-4 py-2.5 font-medium">Loại</th>
                   <th className="px-4 py-2.5 font-medium">Trang click</th>
-                  <th className="hidden px-4 py-2.5 font-medium sm:table-cell">Nguồn</th>
+                  <th className="hidden px-4 py-2.5 font-medium lg:table-cell">Vị trí</th>
+                  <th className="hidden px-4 py-2.5 font-medium md:table-cell">Số SIM</th>
                   <th className="px-4 py-2.5 font-medium">Thời gian</th>
                 </tr>
               </thead>
@@ -154,8 +235,12 @@ export function ConversionsSection() {
                       <td className="max-w-[200px] truncate px-4 py-2.5 font-mono text-xs text-foreground">
                         {click.path}
                       </td>
-                      <td className="hidden px-4 py-2.5 text-xs text-muted-foreground sm:table-cell">
-                        {click.source || "—"}
+                      <td className="hidden px-4 py-2.5 text-xs text-muted-foreground lg:table-cell">
+                        {POSITION_LABELS[click.position || ""] ?? click.position ?? "—"}
+                        {click.variant ? ` (${click.variant})` : ""}
+                      </td>
+                      <td className="hidden px-4 py-2.5 font-mono text-xs text-muted-foreground md:table-cell">
+                        {click.sim_number || "—"}
                       </td>
                       <td className="whitespace-nowrap px-4 py-2.5 text-xs text-muted-foreground">
                         {new Date(click.clicked_at).toLocaleString("vi-VN")}

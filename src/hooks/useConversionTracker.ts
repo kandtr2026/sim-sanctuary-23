@@ -6,6 +6,7 @@ import { getPagePath, classifySource } from "@/lib/trackingUtils";
 import { getAttribution } from "@/lib/attribution";
 import { GADS_CONV_SEND_TO } from "@/lib/gadsTracking";
 import { tagZaloHref } from "@/lib/zaloCampaignTag";
+import { getCardZaloVariant } from "@/lib/experiment";
 
 /**
  * A6 — gắn mã campaign vào link Zalo trước khi navigate (chi tiết + test:
@@ -40,7 +41,6 @@ type ConversionType = "zalo" | "call" | "messenger";
 const classifyClick = (target: EventTarget | null): ConversionType | null => {
   if (!(target instanceof Element)) return null;
 
-  // Walk up from the clicked element to the anchor/button that owns the click.
   const el = target.closest("a[href^='tel:'], a[href^='https://zalo.me'], [data-conversion]");
   if (!el) return null;
 
@@ -50,12 +50,38 @@ const classifyClick = (target: EventTarget | null): ConversionType | null => {
   return null;
 };
 
+/** Đọc data-sim-number từ phần tử click hoặc cha (cho card Zalo link). */
+const getSimNumber = (target: EventTarget | null): string | null => {
+  if (!(target instanceof Element)) return null;
+  const el = target.closest("[data-sim-number]") as HTMLElement | null;
+  return el?.getAttribute("data-sim-number") ?? null;
+};
+
+/** Phát hiện vị trí CTA từ class/id của cha. */
+const getPosition = (target: EventTarget | null): string => {
+  if (!(target instanceof Element)) return "other";
+  const el = target.closest("[data-sim-number], .floating-contact-stack, header, #sticky-cta-bottom, [role='dialog']") as HTMLElement | null;
+  if (!el) return "other";
+  if (el.closest(".floating-contact-stack")) return "floating";
+  if (el.closest("#sticky-cta-bottom")) return "sticky-bar";
+  if (el.closest("header")) return "header";
+  if (el.closest("[role='dialog']")) return "dialog";
+  if (el.getAttribute("data-sim-number")) return "card";
+  return "other";
+};
+
+const getDevice = (): string => {
+  if (typeof window === "undefined") return "unknown";
+  const w = window.innerWidth;
+  if (w < 768) return "mobile";
+  if (w < 1024) return "tablet";
+  return "desktop";
+};
+
 export function useConversionTracker() {
   const lastLoggedRef = useRef<{ type: ConversionType; at: number } | null>(null);
 
   useEffect(() => {
-    // Signed-in owner (admin) testing the public site must not be counted as a
-    // lead. Resolved once on mount; the value is stable for the page session.
     let isOwner = false;
     supabase.auth
       .getSession()
@@ -68,17 +94,13 @@ export function useConversionTracker() {
       const type = classifyClick(e.target);
       if (!type) return;
 
-      // A6 — gắn mã campaign vào link Zalo trước khi navigate, không phụ thuộc
-      // isOwner (admin cũng cần thấy mã khi test, nhưng không bị đếm lead).
+      // A6 — gắn mã campaign (chạy trước khi check isOwner)
       if (type === "zalo") {
         const anchor = (e.target as Element).closest<HTMLAnchorElement>("a[href^='https://zalo.me']");
         const tagged = anchor ? tagZaloHref(anchor) : undefined;
         if (anchor && tagged) anchor.setAttribute("href", tagged);
       }
 
-      // Skip tracking before the owner check resolves (default false) so real
-      // visitor clicks are never missed; a false positive from the owner is
-      // rarer and self-inflicted.
       if (isOwner) return;
 
       const now = Date.now();
@@ -88,26 +110,29 @@ export function useConversionTracker() {
 
       const path = getPagePath(window.location.pathname, window.location.search);
       const { source } = classifySource(document.referrer);
-
-      // Một nguồn sự thật duy nhất cho "lead" trên GA4: mọi CTA liên hệ
-      // (desktop + mobile) đều bắn đúng 1 event generate_lead ở đây. Guard
-      // window.gtag?. vì ad-blocker có thể chặn gtag.
       const attr = getAttribution();
+
+      // T9/T11 — enrich
+      const simNumber = getSimNumber(e.target);
+      const position = getPosition(e.target);
+      const device = getDevice();
+      const variant = type === "zalo" ? (getCardZaloVariant() ?? null) : null;
+
       window.gtag?.("event", "generate_lead", {
         method: type,
         lead_source: source,
         page_path: path,
+        sim_number: simNumber,
+        position,
+        device,
         ...attr,
       });
-      // Google Ads conversion (A3): khi chủ shop đã cấp AW-… + label (set env),
-      // mỗi lead Zalo/gọi bắn thêm event conversion để Ads đấu thầu theo chuyển đổi.
       if (GADS_CONV_SEND_TO) {
         window.gtag?.("event", "conversion", {
           send_to: GADS_CONV_SEND_TO,
           method: type,
         });
       }
-      // Đồng bộ với generate_lead: bắn Lead về Facebook Pixel (guard — có thể bị chặn).
       window.fbq?.("track", "Lead", { content_name: type });
 
       supabase
@@ -117,6 +142,10 @@ export function useConversionTracker() {
           path,
           source,
           user_agent: navigator.userAgent,
+          sim_number: simNumber,
+          position,
+          device,
+          variant,
           ...attr,
         })
         .then(({ error }) => {
@@ -124,8 +153,6 @@ export function useConversionTracker() {
         });
     };
 
-    // Capture phase: runs before any component onClick / link navigation, so
-    // the click is counted even when the browser navigates away immediately.
     document.addEventListener("click", onClick, { capture: true });
     return () => document.removeEventListener("click", onClick, { capture: true });
   }, []);

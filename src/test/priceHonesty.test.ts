@@ -47,12 +47,15 @@ describe('LỖI 1 — bảng tứ quý không được làm tròn giá', () => {
     expect(formatPrice(0)).toBe('Liên hệ');
   });
 
-  it('cột Giá của bảng tứ quý đi qua formatPrice', () => {
-    const src = readSource('src/app/mua-sim-tu-quy/MuaSimTuQuyTool.tsx');
-    expect(src).toContain('{formatPrice(s.price)}');
+  it('cột Giá của bảng tứ quý đi qua formatPrice (qua SIMCardNew)', () => {
+    const srcTool = readSource('src/app/mua-sim-tu-quy/MuaSimTuQuyTool.tsx');
+    const srcCard = readSource('src/components/SIMCardNew.tsx');
+    // MuaSimTuQuyTool render SIMCardNew (chứa formatPrice). Kiểm tra cả 2.
+    expect(srcTool).toContain('SIMCardNew');
+    expect(srcCard).toContain('formatPrice(sim.price)');
     // Chốt chặn: không được quay lại tự quy ra "triệu" trong trang này.
-    expect(src).not.toContain('maximumFractionDigits');
-    expect(src).not.toContain('1_000_000');
+    expect(srcTool).not.toContain('maximumFractionDigits');
+    expect(srcTool).not.toContain('1_000_000');
   });
 });
 

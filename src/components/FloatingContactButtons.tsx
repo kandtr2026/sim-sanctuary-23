@@ -9,12 +9,10 @@ const CALL_URL = "tel:+84938868868";
 const MESSENGER_FALLBACK_URL =
   "https://m.me/111745910591052?ref=Ch%C3%A0o%20shop%2C%20t%C3%B4i%20c%E1%BA%A7n%20t%C6%B0%20v%E1%BA%A5n%20sim%20s%E1%BB%91%20%C4%91%E1%BA%B9p";
 
-const handleOpenMessengerChat = (e: React.MouseEvent) => {
-  e.preventDefault();
-  // The FB customer-chat plugin (MessengerChatPlugin) was removed, so there is
-  // no in-page chat to open — always fall back to the m.me deep link.
-  window.open(MESSENGER_FALLBACK_URL, "_blank", "noopener,noreferrer");
-  // Show quick templates panel
+// The FB customer-chat plugin (MessengerChatPlugin) was removed, so the button
+// is a real deep link to m.me. onClick chỉ bật panel template nhanh; không cần
+// preventDefault — href điều hướng mở tab mới bình thường (work cả khi JS tắt).
+const showMessengerTemplates = () => {
   window.__showMessengerTemplates?.();
 };
 
@@ -63,9 +61,12 @@ const FloatingContactButtons = () => {
           gap: "clamp(10px, 1.2vw, 14px)",
         }}
       >
-        {/* MESSENGER Button */}
-        <button
-          onClick={handleOpenMessengerChat}
+        {/* MESSENGER Button — deep link m.me, hint panel template nếu JS có */}
+        <a
+          href={MESSENGER_FALLBACK_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={showMessengerTemplates}
           data-conversion="messenger"
           aria-label="Chat Messenger"
           className="floating-contact-btn flex items-center justify-center rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-[#0084ff] focus:ring-offset-2"
@@ -85,7 +86,7 @@ const FloatingContactButtons = () => {
           >
             <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.19 5.44 3.14 7.17.16.13.26.35.27.57l.05 1.78c.04.57.61.94 1.13.71l1.98-.87c.17-.08.36-.1.53-.06.91.25 1.87.38 2.9.38 5.64 0 10-4.13 10-9.7C22 6.13 17.64 2 12 2zm5.89 7.73l-2.88 4.57c-.46.73-1.44.91-2.13.4l-2.29-1.72a.54.54 0 00-.65 0l-3.09 2.35c-.41.31-.95-.18-.68-.62l2.88-4.57c.46-.73 1.44-.91 2.13-.4l2.29 1.72a.54.54 0 00.65 0l3.09-2.35c.41-.31.95.18.68.62z" />
           </svg>
-        </button>
+        </a>
 
         {/* CALL Button */}
         <a
