@@ -4,7 +4,8 @@
  * TẠI SAO: bảng shopee_item_map chỉ biết những SIM do tool này đẩy lên. Những
  * sản phẩm đăng tay hoặc từ nơi khác trên cùng shop thì admin không thấy. Module
  * này gọi get_item_list phân trang để lấy HẾT item đang live trên Shopee, rồi
- * ghép với map để biết sản phẩm nào là của SIM nào.
+ * gọi get_item_base_info (lô tối đa 50) để lấy tên/giá/kho/ảnh, ghép với map để
+ * biết sản phẩm nào là của SIM nào.
  */
 
 import { createAdminClient } from "./admin";
@@ -30,6 +31,9 @@ export interface PullResult {
   syncedCount: number;
 }
 
+/** Số item tối đa mỗi lần get_item_base_info (Shopee giới hạn 50). */
+const BASE_INFO_BATCH = 50;
+
 /** Đổi tên status Shopee sang nhãn dễ đọc trên panel. */
 export function hienThiTrangThai(status: string): string {
   switch (String(status || "").toUpperCase()) {
@@ -42,14 +46,16 @@ export function hienThiTrangThai(status: string): string {
     case "UNLIST":
     case "UNLISTED":
       return "Ngừng bán";
+    case "REVIEWING":
+      return "Đang duyệt";
     default:
       return status || "—";
   }
 }
 
 /**
- * Lấy toàn bộ item đang NORMAL trên Shopee (phân trang đến khi hết).
- * Trả về danh sách đã ghép sim_id từ shopee_item_map (theo item_id).
+ * Lấy toàn bộ item đang NORMAL trên Shopee (phân trang theo has_next_page/
+ * next_offset), rồi lấy chi tiết theo lô 50.
  */
 export async function pullAllItems(): Promise<PullResult> {
   const creds = await getCreds();
@@ -71,36 +77,71 @@ export async function pullAllItems(): Promise<PullResult> {
     simByItem.set(Number(r.item_id), r.sim_id);
   }
 
-  const items: ShopeeListing[] = [];
-  let page = 0;
+  // Bước 1: quét get_item_list để lấy item_id + status (phân trang).
+  const summary: { item_id: number; status: string }[] = [];
+  let offset = 0;
   let total = -1;
+  let page = 0;
 
-  // get_item_list trả tối đa 100 item/lần; quét tới khi hết tổng hoặc hết trang.
   for (;;) {
-    const resp = await client.getItemList(page, ITEM_LIST_PAGE_SIZE);
-    const list = (resp?.item_list ?? []) as Record<string, unknown>[];
+    const resp = await client.getItemList(offset, ITEM_LIST_PAGE_SIZE);
+    const list = (resp?.item ?? []) as Record<string, unknown>[];
     if (resp?.total_count !== undefined) total = Number(resp.total_count);
 
     for (const it of list) {
       const itemId = Number(it?.item_id || 0);
       if (!itemId) continue;
-      const imgObj = (it?.image ?? {}) as Record<string, unknown>;
-      const imgList = (imgObj?.image_url_list ?? []) as string[];
-      items.push({
+      summary.push({
         item_id: itemId,
-        item_name: String(it?.item_name ?? ""),
-        price: Number(it?.price ?? 0),
-        stock: Number(it?.stock ?? 0),
-        status: String(it?.status ?? it?.item_status ?? ""),
-        image: imgList[0] ?? null,
-        sim_id: simByItem.get(itemId) ?? null,
+        status: String(it?.item_status ?? it?.status ?? ""),
       });
     }
 
-    const soCo = (resp?.item_list as unknown[] | undefined)?.length ?? 0;
-    if (soCo === 0) break;
-    if (total > 0 && items.length >= total) break;
+    const hasNext = resp?.has_next_page === true;
+    const nextOffset = Number(resp?.next_offset ?? -1);
+    if (!hasNext || list.length === 0) break;
+    if (nextOffset >= 0 && nextOffset !== offset) {
+      offset = nextOffset;
+    } else {
+      offset += ITEM_LIST_PAGE_SIZE;
+    }
     page++;
+    // Phòng khi Shopee trả lặp: dừng nếu đã quét hết total.
+    if (total > 0 && summary.length >= total) break;
+  }
+
+  // Bước 2: lấy chi tiết (tên/giá/kho/ảnh) theo lô 50.
+  const items: ShopeeListing[] = [];
+  for (let i = 0; i < summary.length; i += BASE_INFO_BATCH) {
+    const batch = summary.slice(i, i + BASE_INFO_BATCH);
+    const resp = await client.getItemBaseInfo(batch.map((b) => b.item_id));
+    const infoList = (resp?.item_list ?? []) as Record<string, unknown>[];
+    const infoById = new Map<number, Record<string, unknown>>();
+    for (const it of infoList) {
+      const itemId = Number(it?.item_id || 0);
+      if (itemId) infoById.set(itemId, it);
+    }
+
+    for (const b of batch) {
+      const info = infoById.get(b.item_id) ?? {};
+      const priceInfo = (info?.price_info ?? []) as Record<string, unknown>[];
+      const price = Number(priceInfo[0]?.current_price ?? 0) || Number(info?.price ?? 0) || 0;
+      const sellerStock = (info?.seller_stock ?? []) as Record<string, unknown>[];
+      const stock = Number(info?.stock ?? 0) || Number(sellerStock[0]?.stock ?? 0) || 0;
+      const imgObj = (info?.image ?? {}) as Record<string, unknown>;
+      const imgList = (imgObj?.image_url_list ?? []) as string[];
+      const realStatus = String(info?.item_status ?? b.status ?? "");
+
+      items.push({
+        item_id: b.item_id,
+        item_name: String(info?.item_name ?? ""),
+        price,
+        stock,
+        status: realStatus || b.status,
+        image: imgList[0] ?? null,
+        sim_id: simByItem.get(b.item_id) ?? null,
+      });
+    }
   }
 
   // Lưu token mới (nếu auto-refresh xảy ra trong lúc quét).

@@ -103,7 +103,14 @@ export class ShopeeProductClient {
       params.set("shop_id", String(this.creds.shopId));
     }
     for (const [k, v] of Object.entries(query)) {
-      if (v !== undefined && v !== null) params.set(k, String(v));
+      if (v === undefined || v === null) continue;
+      if (Array.isArray(v)) {
+        for (const item of v) {
+          params.append(k, String(item));
+        }
+      } else {
+        params.set(k, String(v));
+      }
     }
     return `${this.creds.host}${path}?${params.toString()}`;
   }
@@ -112,6 +119,7 @@ export class ShopeeProductClient {
     path: string,
     body: Record<string, unknown> = {},
     query: Record<string, unknown> = {},
+    method: "GET" | "POST" = "POST",
   ): Promise<Record<string, unknown>> {
     await this.throttle();
     this.callCount++;
@@ -121,9 +129,9 @@ export class ShopeeProductClient {
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
     try {
       const res = await fetch(url, {
-        method: "POST",
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        ...(method === "POST" ? { body: JSON.stringify(body) } : {}),
         signal: controller.signal,
       });
       const text = await res.text();
@@ -154,13 +162,14 @@ export class ShopeeProductClient {
     path: string,
     body: Record<string, unknown> = {},
     query: Record<string, unknown> = {},
+    method: "GET" | "POST" = "POST",
   ): Promise<Record<string, unknown>> {
     let refreshed = false;
     let lastErr: unknown;
 
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
-        return await this.rawCall(path, body, query);
+        return await this.rawCall(path, body, query, method);
       } catch (err) {
         lastErr = err;
 
@@ -248,12 +257,13 @@ export class ShopeeProductClient {
       PATH_GET_ITEM_LIST,
       {},
       { offset: page * pageSize, page_size: pageSize, item_status: "NORMAL" },
+      "GET",
     );
     return resp ?? {};
   }
 
   async getItemBaseInfo(itemIds: number[]): Promise<Record<string, unknown>> {
-    return this.call(PATH_GET_ITEM_BASE_INFO, { item_id_list: itemIds });
+    return this.call(PATH_GET_ITEM_BASE_INFO, {}, { item_id_list: itemIds }, "GET");
   }
 
   async updateStock(itemId: number, stock: number): Promise<void> {
@@ -268,19 +278,19 @@ export class ShopeeProductClient {
   }
 
   async getCategories(country = "VN"): Promise<Record<string, unknown>[]> {
-    const resp = await this.call(PATH_GET_CATEGORY, {}, { country });
+    const resp = await this.call(PATH_GET_CATEGORY, {}, { country }, "GET");
     const list = (resp?.category_list ?? []) as Record<string, unknown>[];
     return list ?? [];
   }
 
   async getAttributes(categoryId: number, country = "VN"): Promise<Record<string, unknown>[]> {
-    const resp = await this.call(PATH_GET_ATTRIBUTES, {}, { category_id: categoryId, country });
+    const resp = await this.call(PATH_GET_ATTRIBUTES, {}, { category_id: categoryId, country }, "GET");
     const list = (resp?.attribute_list ?? []) as Record<string, unknown>[];
     return list ?? [];
   }
 
   async getLogistics(country = "VN"): Promise<Record<string, unknown>[]> {
-    const resp = await this.call(PATH_GET_LOGISTICS, {}, { country });
+    const resp = await this.call(PATH_GET_LOGISTICS, {}, { country }, "GET");
     const list = (resp?.logistics_list ?? []) as Record<string, unknown>[];
     return list ?? [];
   }
