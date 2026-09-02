@@ -93,8 +93,6 @@ export const POLICY_DOCS: Record<string, PolicyDoc> = {
         type: "ul",
         items: [
           "Giá niêm yết trên website là giá bán SIM, đã bao gồm phí sang tên chính chủ, chưa bao gồm phí hòa mạng hoặc gói cước theo yêu cầu riêng.",
-          "Kho số được cập nhật liên tục. Một số SIM có thể đã được bán trước khi hệ thống cập nhật; trong trường hợp đó chúng tôi sẽ thông báo và tư vấn số tương đương.",
-          "Chúng tôi có quyền điều chỉnh giá mà không cần báo trước. Giá áp dụng cho đơn hàng là giá tại thời điểm nhân viên xác nhận đơn với Quý khách.",
         ],
       },
       { type: "h2", text: "2. Đặt hàng và xác nhận" },
