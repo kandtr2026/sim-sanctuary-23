@@ -17,13 +17,30 @@ import {
   PATH_UPDATE_STOCK,
 } from "./config";
 
-/** Error code Shopee trả về khi access_token hết hạn. */
+/** Error code Shopee trả về khi access_token hết hạn/sai. */
 const TOKEN_ERRORS = new Set([
   "error_auth",
   "error_token",
   "invalid_access_token",
   "access_token_error",
 ]);
+
+/**
+ * Shopee hay trả code viết SAI CHÍNH TẢ (vd `invalid_acceess_token` — 2 chữ c)
+ * khi token hết hạn. Khớp cứng theo danh sách sẽ bỏ sót, làm auto-refresh không
+ * chạy dù refresh_token vẫn còn sống. Nên ngoài khớp code còn dò thêm message.
+ */
+function isTokenError(err: ShopeeApiError): boolean {
+  if (TOKEN_ERRORS.has(err.code)) return true;
+  const text = `${err.code} ${err.message}`.toLowerCase();
+  return (
+    text.includes("access_token") ||
+    text.includes("token expired") ||
+    text.includes("token invalid") ||
+    text.includes("invalid token") ||
+    text.includes("authorization")
+  );
+}
 
 const RETRYABLE_ERRORS = new Set(["error_server", "error_busy", "error_inner"]);
 
@@ -147,7 +164,7 @@ export class ShopeeProductClient {
       } catch (err) {
         lastErr = err;
 
-        if (err instanceof ShopeeApiError && TOKEN_ERRORS.has(err.code) && !refreshed) {
+        if (err instanceof ShopeeApiError && isTokenError(err) && !refreshed) {
           refreshed = true;
           await this.refreshAccessToken();
           continue; // thử lại ngay với token mới, không tính vào backoff
