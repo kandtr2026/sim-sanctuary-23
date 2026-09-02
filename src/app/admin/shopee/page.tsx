@@ -93,6 +93,7 @@ interface ShopeeVariant {
   sku: string | null;
   price: number;
   stock: number;
+  inKho: boolean;
 }
 
 interface PullResult {
@@ -243,22 +244,7 @@ function ShopeeAdminContent() {
     return Array.from(set);
   }, [allSims]);
 
-  // Tập số SIM hiện có trong kho (rawDigits 10 số) — để soi biến thể Shopee.
-  const khoDigits = useMemo(() => {
-    const set = new Set<string>();
-    for (const s of allSims) {
-      const d = s.rawDigits.replace(/\D/g, "").padStart(10, "0").slice(-10);
-      if (d.length >= 10) set.add(d);
-    }
-    return set;
-  }, [allSims]);
-
-  // Rút số SIM từ nhãn biến thể: bỏ ký tự, PAD đầu số 0 cho đủ 10 số rồi lấy 10
-  // cuối. Shopee hay ghi số thiếu số 0 đầu (vd "767777770" thay vì "0767777770").
-  const simDigits = (label: string): string =>
-    label.replace(/\D/g, "").padStart(10, "0").slice(-10);
-
-  // Cảnh báo: số biến thể KHÔNG có trong kho (bán nhưng hết/nhầm).
+  // Cảnh báo: số biến thể KHÔNG còn trong kho thật (server đã tính inKho).
   const soBienTheKhongCo = useMemo(() => {
     const map = new Map<number, number>();
     if (!pulled) return map;
@@ -266,14 +252,14 @@ function ShopeeAdminContent() {
       if (!row.variants) continue;
       let n = 0;
       for (const v of row.variants) {
-        if (v.label && !khoDigits.has(simDigits(v.label))) n++;
+        if (v.label && v.inKho === false) n++;
       }
       map.set(row.item_id, n);
     }
     return map;
-  }, [pulled, khoDigits]);
+  }, [pulled]);
 
-  const tonTaiTrongKho = (label: string): boolean => khoDigits.has(simDigits(label));
+  const tonTaiTrongKho = (v: ShopeeVariant): boolean => v.inKho !== false;
 
   const toggle = (id: string) => {
     setSelected((prev) => {
@@ -1100,8 +1086,8 @@ function ShopeeAdminContent() {
                                     <tr key={v.model_id} className="border-t border-border/40">
                                       <td className="px-3 py-1.5 font-medium text-foreground">
                                         {v.label || <span className="text-muted-foreground italic">(không có nhãn)</span>}
-                                        {v.label && !tonTaiTrongKho(v.label) && (
-                                          <span className="ml-1.5 inline-block h-2 w-2 rounded-full sd-canh-bao" title="Không có trong kho số" />
+                                        {v.label && !tonTaiTrongKho(v) && (
+                                          <span className="ml-1.5 inline-block h-2 w-2 rounded-full sd-canh-bao" title="Không còn trong kho" />
                                         )}
                                       </td>
                                       <td className="px-3 py-1.5 text-muted-foreground">{v.model_id}</td>

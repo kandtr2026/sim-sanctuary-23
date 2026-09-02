@@ -21,6 +21,8 @@ export interface ShopeeVariant {
   sku: string | null;
   price: number;
   stock: number;
+  /** Số SIM có còn trong kho thật (bảng sims, status=available) không. */
+  inKho: boolean;
 }
 
 export interface ShopeeListing {
@@ -61,6 +63,11 @@ export function hienThiTrangThai(status: string): string {
 function formatTien(n: number): string {
   if (!n || n <= 0) return "";
   return n.toLocaleString("vi-VN") + "₫";
+}
+
+/** Rút số SIM 10 số từ nhãn (bỏ ký tự, pad số 0 đầu). */
+function simDigits(label: string): string {
+  return String(label || "").replace(/\D/g, "").padStart(10, "0").slice(-10);
 }
 
 export async function pullAllItems(): Promise<PullResult> {
@@ -130,7 +137,7 @@ export async function pullAllItems(): Promise<PullResult> {
       let price = Number(priceInfo[0]?.current_price ?? 0) || Number(info?.price ?? 0) || 0;
       let stock = Number(info?.stock ?? 0) || Number(sellerStockArr[0]?.stock ?? 0) || 0;
       let priceNote = "";
-      let variants: { model_id: number; label: string; sku: string | null; price: number; stock: number }[] | undefined;
+      let variants: ShopeeVariant[] | undefined;
 
       // Item có model: price_info không được trả → gọi get_model_list.
       if (hasModel || (!price && !stock)) {
@@ -168,6 +175,7 @@ export async function pullAllItems(): Promise<PullResult> {
                 sku: String(m?.model_sku ?? "") || null,
                 price: p,
                 stock: st,
+                inKho: false, // sẽ được gán lại sau khi tra kho thật
               });
             }
 
@@ -199,6 +207,39 @@ export async function pullAllItems(): Promise<PullResult> {
 
   if (client.refreshedTokens) {
     await persistRefreshedTokens(client.refreshedTokens);
+  }
+
+  // Bước 3: tra kho thật (bảng sims, status=available) để biết biến thể nào còn số.
+  // Dùng service role (từ createAdminClient) nên đọc được sims mặc dù RLS bật.
+  try {
+    const allDigits = new Set<string>();
+    for (const it of items) {
+      if (!it.variants) continue;
+      for (const v of it.variants) {
+        const d = simDigits(v.label);
+        if (d) allDigits.add(d);
+      }
+    }
+    if (allDigits.size > 0) {
+      const db = createAdminClient();
+      const { data: simRows } = await db
+        .from("sims")
+        .select("raw_digits")
+        .in("raw_digits", Array.from(allDigits))
+        .eq("status", "available");
+      const available = new Set<string>();
+      for (const r of (simRows ?? []) as { raw_digits: string }[]) {
+        available.add(r.raw_digits);
+      }
+      for (const it of items) {
+        if (!it.variants) continue;
+        for (const v of it.variants) {
+          v.inKho = available.has(simDigits(v.label));
+        }
+      }
+    }
+  } catch {
+    // Không tra được kho thì tất cả inKho=false (cảnh báo tạm an toàn hơn).
   }
 
   return {
