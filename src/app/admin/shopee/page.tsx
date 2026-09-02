@@ -337,6 +337,23 @@ function ShopeeAdminContent() {
     }
   };
 
+  const [diag, setDiag] = useState<Record<string, unknown> | null>(null);
+  const [diagnosing, setDiagnosing] = useState(false);
+
+  const handleDiagnose = async () => {
+    if (!token) return;
+    setDiagnosing(true);
+    setDiag(null);
+    try {
+      const result = await api<Record<string, unknown>>("/api/admin/shopee/diagnose", {}, token);
+      setDiag(result);
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setDiagnosing(false);
+    }
+  };
+
   const liveItems = items.filter((i) => i.status === "live").length;
   const failedItems = items.filter((i) => i.status === "failed").length;
 
@@ -834,7 +851,20 @@ function ShopeeAdminContent() {
               {pulling ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
               {pulling ? "Đang lấy…" : "Lấy danh sách từ Shopee"}
             </Button>
+            <Button size="sm" variant="outline" onClick={() => void handleDiagnose()} disabled={diagnosing}>
+              {diagnosing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+              Chẩn đoán
+            </Button>
           </div>
+
+          {diag && (
+            <div className="mb-4 rounded-lg border border-border bg-muted/30 p-3 text-xs">
+              <p className="mb-1 font-semibold text-foreground">Kết quả chẩn đoán</p>
+              <pre className="whitespace-pre-wrap break-words font-mono text-muted-foreground">
+                {JSON.stringify(diag, null, 2)}
+              </pre>
+            </div>
+          )}
           <p className="mb-3 text-xs text-muted-foreground">
             Kéo trực tiếp từ Shopee (get_item_list) — hiện tất cả sản phẩm đang có trên shop, kể cả đăng tay,
             để biết mình còn thiếu hay trùng gì.
