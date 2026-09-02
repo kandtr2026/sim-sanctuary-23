@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 
@@ -19,6 +20,11 @@ const menuItems = [
 
 const Navigation = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Menu chính chỉ dành cho trang công khai; ẩn hẳn trong khu vực /admin
+  // để panel quản trị không bị rối (xem /admin/chien-dich, /admin/du-an, /admin/seo).
+  if (pathname?.startsWith("/admin")) return null;
 
   return (
     <nav className="bg-card sticky top-0 z-50 shadow-soft border-b border-border">
