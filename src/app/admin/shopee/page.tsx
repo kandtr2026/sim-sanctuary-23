@@ -244,6 +244,14 @@ function ShopeeAdminContent() {
     return Array.from(set);
   }, [allSims]);
 
+  // Snapshot cũ (lưu trước khi server tính inKho) thì thiếu field → báo cần refresh.
+  const isOldSnapshot = useMemo(
+    () =>
+      pulled !== null &&
+      pulled.items.some((row) => row.variants && row.variants.length > 0 && row.variants.every((v) => v.inKho === undefined)),
+    [pulled],
+  );
+
   // Cảnh báo: số biến thể KHÔNG còn trong kho thật (server đã tính inKho).
   const soBienTheKhongCo = useMemo(() => {
     const map = new Map<number, number>();
@@ -942,6 +950,13 @@ function ShopeeAdminContent() {
               <pre className="whitespace-pre-wrap break-words font-mono text-muted-foreground">
                 {JSON.stringify(diag, null, 2)}
               </pre>
+            </div>
+          )}
+
+          {isOldSnapshot && (
+            <div className="mb-4 rounded-lg border border-gold/40 bg-gold/5 p-3 text-xs text-gold">
+              Bảng này là bản lưu cũ (trước khi có tính năng cảnh báo kho) nên chưa đánh dấu được số nào hết.
+              Bấm <b>Lấy danh sách từ Shopee</b> để nạp lại và có cảnh báo chính xác.
             </div>
           )}
           <p className="mb-3 text-xs text-muted-foreground">
