@@ -152,6 +152,8 @@ function ShopeeAdminContent() {
   // Kéo toàn bộ listing từ Shopee
   const [pulling, setPulling] = useState(false);
   const [pulled, setPulled] = useState<PullResult | null>(null);
+  const [snapshotAt, setSnapshotAt] = useState<string | null>(null);
+  const [snapshotStale, setSnapshotStale] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
 
   // Bộ lọc + chọn lô
@@ -189,6 +191,35 @@ function ShopeeAdminContent() {
   useEffect(() => {
     if (token) void loadStatus(token);
   }, [token, loadStatus]);
+
+  // Nạp snapshot (cache) từ DB để vào trang thấy ngay bảng, không chờ fetch Shopee.
+  const loadSnapshot = useCallback(
+    async (tk?: string) => {
+      if (!tk) return;
+      try {
+        const snap = await api<{
+          items: ShopeeListing[];
+          total: number;
+          pages: number;
+          syncedCount: number;
+          fetchedAt: string | null;
+          isStale: boolean;
+        }>("/api/admin/shopee/items/snapshot", {}, tk);
+        if (snap.items.length > 0) {
+          setPulled({ items: snap.items, total: snap.total, fetched: snap.items.length, pages: snap.pages, syncedCount: snap.syncedCount });
+          setSnapshotAt(snap.fetchedAt);
+          setSnapshotStale(snap.isStale);
+        }
+      } catch {
+        // Không có snapshot thì để trống, chờ bấm "Lấy danh sách từ Shopee".
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (token) void loadSnapshot(token);
+  }, [token, loadSnapshot]);
 
   // ── Bộ lọc SIM ──
   const filtered = useMemo(() => {
@@ -340,9 +371,15 @@ function ShopeeAdminContent() {
     setPulling(true);
     setPulled(null);
     try {
-      const result = await api<PullResult>("/api/admin/shopee/items/from-shopee", {}, token);
+      const result = await api<PullResult & { saved?: boolean; fetchedAt?: string }>(
+        "/api/admin/shopee/items/from-shopee",
+        {},
+        token,
+      );
       setPulled(result);
-      toast.success(`Đã lấy ${result.fetched} sản phẩm từ Shopee (${result.pages} trang).`);
+      setSnapshotAt(result.fetchedAt ?? new Date().toISOString());
+      setSnapshotStale(false);
+      toast.success(`Đã lấy ${result.fetched} sản phẩm từ Shopee (${result.pages} trang) và lưu lại.`);
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
@@ -882,6 +919,13 @@ function ShopeeAdminContent() {
           <p className="mb-3 text-xs text-muted-foreground">
             Kéo trực tiếp từ Shopee (get_item_list) — hiện tất cả sản phẩm đang có trên shop, kể cả đăng tay,
             để biết mình còn thiếu hay trùng gì.
+            {snapshotAt && (
+              <span className="ml-2">
+                · đang xem bản lưu lúc{" "}
+                <b className="text-foreground">{new Date(snapshotAt).toLocaleString("vi-VN")}</b>
+                {snapshotStale && <span className="text-gold"> (đã cũ &gt;6h — bấm Lấy danh sách để cập nhật)</span>}
+              </span>
+            )}
           </p>
 
           {!pulled && !pulling && (

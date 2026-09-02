@@ -1,13 +1,12 @@
 import type { NextRequest } from "next/server";
-import { pullAllItems } from "@/lib/shopee/pull";
+import { pullAllItems, saveSnapshot } from "@/lib/shopee/pull";
 import { errorResponse, jsonNoStore, requireAdmin } from "@/lib/shopee/http";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /**
- * Kéo toàn bộ sản phẩm đang có trên Shopee (get_item_list phân trang) về để
- * admin theo dõi. Chỉ đọc từ Shopee + đọc map, KHÔNG ghi gì vào DB.
+ * Kéo toàn bộ sản phẩm đang có trên Shopee về, lưu snapshot vào DB, trả kết quả.
  */
 export async function GET(req: NextRequest) {
   const gate = await requireAdmin(req);
@@ -15,7 +14,8 @@ export async function GET(req: NextRequest) {
 
   try {
     const result = await pullAllItems();
-    return jsonNoStore(result);
+    await saveSnapshot(result, gate.user.email);
+    return jsonNoStore({ ...result, saved: true, fetchedAt: new Date().toISOString() });
   } catch (err) {
     return errorResponse(err);
   }

@@ -209,3 +209,54 @@ export async function pullAllItems(): Promise<PullResult> {
     syncedCount: items.filter((i) => i.sim_id).length,
   };
 }
+
+const TABLE_SNAPSHOT = "shopee_listing_snapshot";
+
+/** Lưu kết quả pull vào bảng snapshot để login lần sau hiện ngay không phải fetch Shopee. */
+export async function saveSnapshot(result: PullResult, createdBy: string): Promise<void> {
+  const db = createAdminClient();
+  const { error } = await db.from(TABLE_SNAPSHOT).upsert({
+    id: 1,
+    items: result.items,
+    total: result.total,
+    pages: result.pages,
+    synced_count: result.syncedCount,
+    fetched_at: new Date().toISOString(),
+    created_by: createdBy,
+  });
+  if (error) throw new Error(`Không lưu được snapshot Shopee: ${error.message}`);
+}
+
+export interface SnapshotResult {
+  items: ShopeeListing[];
+  total: number;
+  pages: number;
+  syncedCount: number;
+  fetchedAt: string | null;
+  isStale: boolean;
+}
+
+/** Đọc snapshot gần nhất (cache) — không gọi Shopee. isStale=true nếu quá 6 giờ. */
+export async function getSnapshot(): Promise<SnapshotResult> {
+  const db = createAdminClient();
+  const { data, error } = await db
+    .from(TABLE_SNAPSHOT)
+    .select("*")
+    .eq("id", 1)
+    .maybeSingle();
+  if (error) throw new Error(`Không đọc được snapshot Shopee: ${error.message}`);
+  const row = data as
+    | { items: ShopeeListing[]; total: number; pages: number; synced_count: number; fetched_at: string | null }
+    | null;
+  if (!row) return { items: [], total: 0, pages: 0, syncedCount: 0, fetchedAt: null, isStale: false };
+
+  const fetchedMs = row.fetched_at ? new Date(row.fetched_at).getTime() : 0;
+  return {
+    items: Array.isArray(row.items) ? row.items : [],
+    total: Number(row.total || 0),
+    pages: Number(row.pages || 0),
+    syncedCount: Number(row.synced_count || 0),
+    fetchedAt: row.fetched_at ?? null,
+    isStale: Date.now() - fetchedMs > 6 * 3600 * 1000,
+  };
+}
