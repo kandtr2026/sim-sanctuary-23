@@ -73,6 +73,32 @@ interface SyncResult {
   errors: { simId: string; number: string; error: string }[];
 }
 
+interface ShopeeListing {
+  item_id: number;
+  item_name: string;
+  price: number;
+  stock: number;
+  status: string;
+  image: string | null;
+  sim_id: string | null;
+}
+
+interface PullResult {
+  items: ShopeeListing[];
+  total: number;
+  fetched: number;
+  pages: number;
+  syncedCount: number;
+}
+
+const HIEN_THI_TRANG_THAI: Record<string, string> = {
+  NORMAL: "Đang bán",
+  DELETED: "Đã xoá",
+  BANNED: "Bị khoá",
+  UNLIST: "Ngừng bán",
+  UNLISTED: "Ngừng bán",
+};
+
 const api = async <T,>(path: string, init?: RequestInit, token?: string): Promise<T> => {
   const res = await fetch(path, {
     ...init,
@@ -110,6 +136,10 @@ function ShopeeAdminContent() {
   const [syncing, setSyncing] = useState(false);
   const [lastResult, setLastResult] = useState<SyncResult | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
+
+  // Kéo toàn bộ listing từ Shopee
+  const [pulling, setPulling] = useState(false);
+  const [pulled, setPulled] = useState<PullResult | null>(null);
 
   // Bộ lọc + chọn lô
   const [network, setNetwork] = useState<string>("all");
@@ -289,6 +319,21 @@ function ShopeeAdminContent() {
       toast.error((err as Error).message);
     } finally {
       setRemovingId(null);
+    }
+  };
+
+  const handlePullFromShopee = async () => {
+    if (!token) return;
+    setPulling(true);
+    setPulled(null);
+    try {
+      const result = await api<PullResult>("/api/admin/shopee/items/from-shopee", {}, token);
+      setPulled(result);
+      toast.success(`Đã lấy ${result.fetched} sản phẩm từ Shopee (${result.pages} trang).`);
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setPulling(false);
     }
   };
 
@@ -771,6 +816,91 @@ function ShopeeAdminContent() {
                 </p>
               )}
             </div>
+          )}
+        </section>
+
+        {/* ── Toàn bộ sản phẩm trên Shopee ── */}
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Store className="h-4 w-4 text-gold" /> Toàn bộ sản phẩm trên Shopee
+              {pulled && (
+                <Badge variant="outline" className="ml-1">
+                  {pulled.fetched} sản phẩm · {pulled.syncedCount} là SIM đã sync
+                </Badge>
+              )}
+            </h2>
+            <Button size="sm" onClick={() => void handlePullFromShopee()} disabled={pulling}>
+              {pulling ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              {pulling ? "Đang lấy…" : "Lấy danh sách từ Shopee"}
+            </Button>
+          </div>
+          <p className="mb-3 text-xs text-muted-foreground">
+            Kéo trực tiếp từ Shopee (get_item_list) — hiện tất cả sản phẩm đang có trên shop, kể cả đăng tay,
+            để biết mình còn thiếu hay trùng gì.
+          </p>
+
+          {!pulled && !pulling && (
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              Bấm "Lấy danh sách từ Shopee" để nạp toàn bộ sản phẩm đang live trên shop.
+            </p>
+          )}
+
+          {pulled && (
+            <>
+              <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <span>Tổng trên Shopee: <b className="text-foreground">{pulled.total}</b></span>
+                <span>Đã lấy: <b className="text-foreground">{pulled.fetched}</b></span>
+                <span>Số trang: <b className="text-foreground">{pulled.pages}</b></span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-xs text-muted-foreground">
+                      <th className="py-2 pr-3 font-medium">Sản phẩm</th>
+                      <th className="py-2 pr-3 font-medium">Item ID</th>
+                      <th className="py-2 pr-3 font-medium">Trạng thái</th>
+                      <th className="py-2 pr-3 font-medium">Giá</th>
+                      <th className="py-2 pr-3 font-medium">Kho</th>
+                      <th className="py-2 font-medium">SIM</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pulled.items.map((row) => (
+                      <tr key={row.item_id} className="border-b border-border/60 last:border-0">
+                        <td className="max-w-[280px] py-2 pr-3">
+                          <span className="block truncate font-medium text-foreground">{row.item_name}</span>
+                          {row.image && (
+                            <img src={row.image} alt="" className="mt-1 h-8 w-8 rounded object-cover" />
+                          )}
+                        </td>
+                        <td className="py-2 pr-3 text-muted-foreground">{row.item_id}</td>
+                        <td className="py-2 pr-3">
+                          {row.status === "NORMAL" ? (
+                            <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-700">
+                              {HIEN_THI_TRANG_THAI[row.status] ?? row.status}
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline">{HIEN_THI_TRANG_THAI[row.status] ?? row.status}</Badge>
+                          )}
+                        </td>
+                        <td className="py-2 pr-3 text-gold">{formatPrice(row.price)}</td>
+                        <td className="py-2 pr-3 text-muted-foreground">{row.stock}</td>
+                        <td className="py-2">
+                          {row.sim_id ? (
+                            <Badge variant="outline" className="border-blue-500/40 bg-blue-500/10 text-blue-700">
+                              {row.sim_id}
+                            </Badge>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </section>
       </main>
