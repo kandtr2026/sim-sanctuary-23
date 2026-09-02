@@ -81,6 +81,7 @@ interface ShopeeListing {
   status: string;
   image: string | null;
   sim_id: string | null;
+  priceNote?: string;
 }
 
 interface PullResult {
@@ -914,7 +915,18 @@ function ShopeeAdminContent() {
                             <Badge variant="outline">{HIEN_THI_TRANG_THAI[row.status] ?? row.status}</Badge>
                           )}
                         </td>
-                        <td className="py-2 pr-3 text-gold">{formatPrice(row.price)}</td>
+                        <td className="py-2 pr-3 text-gold">
+                          {row.price > 0 ? (
+                            <>
+                              {formatPrice(row.price)}
+                              {row.priceNote ? (
+                                <span className="ml-1 text-xs text-muted-foreground">{row.priceNote}</span>
+                              ) : null}
+                            </>
+                          ) : (
+                            formatPrice(row.price)
+                          )}
+                        </td>
                         <td className="py-2 pr-3 text-muted-foreground">{row.stock}</td>
                         <td className="py-2">
                           {row.sim_id ? (

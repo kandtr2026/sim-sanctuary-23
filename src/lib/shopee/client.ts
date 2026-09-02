@@ -11,6 +11,7 @@ import {
   PATH_GET_CATEGORY,
   PATH_GET_ITEM_BASE_INFO,
   PATH_GET_ITEM_LIST,
+  PATH_GET_MODEL_LIST,
   PATH_GET_LOGISTICS,
   PATH_TOKEN_REFRESH,
   PATH_UPDATE_ITEM,
@@ -264,6 +265,11 @@ export class ShopeeProductClient {
 
   async getItemBaseInfo(itemIds: number[]): Promise<Record<string, unknown>> {
     return this.call(PATH_GET_ITEM_BASE_INFO, {}, { item_id_list: itemIds }, "GET");
+  }
+
+  /** Lấy danh sách model (biến thể) của một item — để có giá/kho khi item có model. */
+  async getModelList(itemId: number): Promise<Record<string, unknown>> {
+    return this.call(PATH_GET_MODEL_LIST, {}, { item_id: itemId }, "GET");
   }
 
   async updateStock(itemId: number, stock: number): Promise<void> {
