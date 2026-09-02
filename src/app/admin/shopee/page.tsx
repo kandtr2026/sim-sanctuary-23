@@ -247,14 +247,16 @@ function ShopeeAdminContent() {
   const khoDigits = useMemo(() => {
     const set = new Set<string>();
     for (const s of allSims) {
-      const d = s.rawDigits.replace(/\D/g, "");
-      if (d.length >= 10) set.add(d.slice(-10));
+      const d = s.rawDigits.replace(/\D/g, "").padStart(10, "0").slice(-10);
+      if (d.length >= 10) set.add(d);
     }
     return set;
   }, [allSims]);
 
-  // Rút số SIM từ nhãn biến thể (bỏ ký tự, lấy 10 số cuối).
-  const simDigits = (label: string): string => label.replace(/\D/g, "").slice(-10);
+  // Rút số SIM từ nhãn biến thể: bỏ ký tự, PAD đầu số 0 cho đủ 10 số rồi lấy 10
+  // cuối. Shopee hay ghi số thiếu số 0 đầu (vd "767777770" thay vì "0767777770").
+  const simDigits = (label: string): string =>
+    label.replace(/\D/g, "").padStart(10, "0").slice(-10);
 
   // Cảnh báo: số biến thể KHÔNG có trong kho (bán nhưng hết/nhầm).
   const soBienTheKhongCo = useMemo(() => {
