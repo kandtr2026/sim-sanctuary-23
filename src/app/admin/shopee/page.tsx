@@ -163,6 +163,8 @@ function ShopeeAdminContent() {
   const [addItemId, setAddItemId] = useState<number | null>(null);
   const [addForm, setAddForm] = useState({ label: "", price: "" });
   const [adding, setAdding] = useState(false);
+  // Filter kho khi chọn số
+  const [khoFilter, setKhoFilter] = useState({ network: "all", priceMax: "all" });
 
   // Bộ lọc + chọn lô
   const [network, setNetwork] = useState<string>("all");
@@ -1307,17 +1309,41 @@ function ShopeeAdminContent() {
                   <p className="mb-2 text-xs font-semibold text-foreground">
                     Hoặc chọn từ kho số ({allSims.length} SIM)
                   </p>
-                  <div className="mb-2 flex gap-2">
+                  <div className="mb-2 flex flex-wrap gap-2">
                     <Input
-                      className="h-8 text-xs"
+                      className="h-8 flex-1 text-xs"
                       placeholder="Tìm số..."
                       value={addForm.label}
                       onChange={(e) => setAddForm({ ...addForm, label: e.target.value })}
                     />
+                    <Select value={khoFilter.network} onValueChange={(v) => setKhoFilter((p) => ({ ...p, network: v }))}>
+                      <SelectTrigger className="h-8 w-[110px] text-xs">
+                        <SelectValue placeholder="Nhà mạng" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Mọi mạng</SelectItem>
+                        {networks.map((n) => (
+                          <SelectItem key={n} value={n}>{n}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={khoFilter.priceMax} onValueChange={(v) => setKhoFilter((p) => ({ ...p, priceMax: v }))}>
+                      <SelectTrigger className="h-8 w-[130px] text-xs">
+                        <SelectValue placeholder="Giá tối đa" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Mọi giá</SelectItem>
+                        {PRICE_RANGES.map((r) => (
+                          <SelectItem key={r.max} value={String(r.max)}>Dưới {r.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="max-h-48 space-y-1 overflow-y-auto">
                     {allSims
                       .filter((s) => {
+                        if (khoFilter.network !== "all" && s.network !== khoFilter.network) return false;
+                        if (khoFilter.priceMax !== "all" && s.price > Number(khoFilter.priceMax)) return false;
                         const q = addForm.label.replace(/\D/g, "");
                         return !q || s.rawDigits.includes(q) || (s.displayNumber && s.displayNumber.includes(q));
                       })
@@ -1333,6 +1359,8 @@ function ShopeeAdminContent() {
                         </div>
                       ))}
                     {allSims.filter((s) => {
+                      if (khoFilter.network !== "all" && s.network !== khoFilter.network) return false;
+                      if (khoFilter.priceMax !== "all" && s.price > Number(khoFilter.priceMax)) return false;
                       const q = addForm.label.replace(/\D/g, "");
                       return !q || s.rawDigits.includes(q) || (s.displayNumber && s.displayNumber.includes(q));
                     }).length === 0 && (
