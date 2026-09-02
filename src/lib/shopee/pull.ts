@@ -14,6 +14,15 @@ import { getCreds, persistRefreshedTokens } from "./credentials";
 import { ShopeeProductClient } from "./client";
 import { ITEM_LIST_PAGE_SIZE } from "./config";
 
+export interface ShopeeVariant {
+  model_id: number;
+  /** Số SIM (nhãn option từ tier_variation). */
+  label: string;
+  sku: string | null;
+  price: number;
+  stock: number;
+}
+
 export interface ShopeeListing {
   item_id: number;
   item_name: string;
@@ -24,6 +33,8 @@ export interface ShopeeListing {
   sim_id: string | null;
   /** Ghi chú giá khi item có model: "từ 199.000₫" hoặc rỗng nếu 1 giá. */
   priceNote?: string;
+  /** Danh sách biến thể (mỗi số SIM) — chỉ khi item có model. */
+  variants?: ShopeeVariant[];
 }
 
 export interface PullResult {
@@ -119,15 +130,20 @@ export async function pullAllItems(): Promise<PullResult> {
       let price = Number(priceInfo[0]?.current_price ?? 0) || Number(info?.price ?? 0) || 0;
       let stock = Number(info?.stock ?? 0) || Number(sellerStockArr[0]?.stock ?? 0) || 0;
       let priceNote = "";
+      let variants: { model_id: number; label: string; sku: string | null; price: number; stock: number }[] | undefined;
 
       // Item có model: price_info không được trả → gọi get_model_list.
       if (hasModel || (!price && !stock)) {
         try {
-          const models = (await client.getModelList(b.item_id)) as Record<string, unknown>;
-          const modelList = (models?.model ?? []) as Record<string, unknown>[];
+          const raw = (await client.getModelList(b.item_id)) as Record<string, unknown>;
+          const modelList = (raw?.model ?? []) as Record<string, unknown>[];
+          const tierVariations = (raw?.tier_variation ?? []) as Record<string, unknown>[];
+
           if (modelList.length > 0) {
             const prices: number[] = [];
             let totalStock = 0;
+            const vs: typeof variants = [];
+
             for (const m of modelList) {
               const mp = (m?.price_info ?? []) as Record<string, unknown>[];
               const p = Number(mp[0]?.current_price ?? 0);
@@ -135,13 +151,32 @@ export async function pullAllItems(): Promise<PullResult> {
               const sv2 = (m?.stock_info_v2 ?? {}) as Record<string, unknown>;
               const sum = (sv2?.summary_info ?? {}) as Record<string, unknown>;
               const ss = (sv2?.seller_stock ?? []) as Record<string, unknown>;
-              totalStock += Number(sum?.total_available_stock ?? 0) || Number((ss[0] as Record<string, unknown>)?.stock ?? 0);
+              const st = Number(sum?.total_available_stock ?? 0) || Number((ss[0] as Record<string, unknown>)?.stock ?? 0);
+              totalStock += st;
+
+              const ti = (m?.tier_index ?? []) as number[];
+              const labelParts = ti.map((idx, vi) => {
+                const tv = tierVariations[vi] as Record<string, unknown> | undefined;
+                const opts = (tv?.option_list ?? []) as Record<string, unknown>[];
+                return String(opts[idx]?.option ?? "");
+              });
+              const label = labelParts.join(" / ").trim();
+
+              vs.push({
+                model_id: Number(m?.model_id ?? 0),
+                label,
+                sku: String(m?.model_sku ?? "") || null,
+                price: p,
+                stock: st,
+              });
             }
+
             if (prices.length > 0) {
               price = Math.min(...prices);
               if (prices.length > 1) priceNote = `từ ${formatTien(price)}`;
             }
             stock = totalStock;
+            if (vs.some((v) => v.label.length > 0)) variants = vs;
           }
         } catch {
           // Không lấy được model → giữ price/stock cũ (có thể vẫn 0).
@@ -157,6 +192,7 @@ export async function pullAllItems(): Promise<PullResult> {
         image: imgList[0] ?? null,
         sim_id: simByItem.get(b.item_id) ?? null,
         priceNote: priceNote || undefined,
+        ...(variants ? { variants } : {}),
       });
     }
   }

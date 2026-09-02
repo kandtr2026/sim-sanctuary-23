@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   ExternalLink,
   KeyRound,
   Loader2,
@@ -82,6 +84,15 @@ interface ShopeeListing {
   image: string | null;
   sim_id: string | null;
   priceNote?: string;
+  variants?: ShopeeVariant[];
+}
+
+interface ShopeeVariant {
+  model_id: number;
+  label: string;
+  sku: string | null;
+  price: number;
+  stock: number;
 }
 
 interface PullResult {
@@ -141,6 +152,7 @@ function ShopeeAdminContent() {
   // Kéo toàn bộ listing từ Shopee
   const [pulling, setPulling] = useState(false);
   const [pulled, setPulled] = useState<PullResult | null>(null);
+  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
 
   // Bộ lọc + chọn lô
   const [network, setNetwork] = useState<string>("all");
@@ -895,12 +907,14 @@ function ShopeeAdminContent() {
                       <th className="py-2 pr-3 font-medium">Giá</th>
                       <th className="py-2 pr-3 font-medium">Kho</th>
                       <th className="py-2 pr-3 font-medium">SIM</th>
+                      <th className="py-2 pr-3 font-medium">Biến thể</th>
                       <th className="py-2 font-medium"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {pulled.items.map((row) => (
-                      <tr key={row.item_id} className="border-b border-border/60 last:border-0">
+                      <Fragment key={row.item_id}>
+                      <tr className="border-b border-border/60 last:border-0">
                         <td className="max-w-[280px] py-2 pr-3">
                           <span className="block truncate font-medium text-foreground">{row.item_name}</span>
                           {row.image && (
@@ -939,6 +953,28 @@ function ShopeeAdminContent() {
                             <span className="text-xs text-muted-foreground">—</span>
                           )}
                         </td>
+                        <td className="py-2 pr-3">
+                          {row.variants ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="gap-1 text-xs text-muted-foreground"
+                              onClick={() => {
+                                setExpandedItems((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(row.item_id)) next.delete(row.item_id);
+                                  else next.add(row.item_id);
+                                  return next;
+                                });
+                              }}
+                            >
+                              {expandedItems.has(row.item_id) ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                              {row.variants.length} số
+                            </Button>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </td>
                         <td className="py-2 text-right">
                           <Button
                             variant="ghost"
@@ -952,6 +988,43 @@ function ShopeeAdminContent() {
                           </Button>
                         </td>
                       </tr>
+                      {expandedItems.has(row.item_id) && row.variants && row.variants.length > 0 && (
+                        <tr key={`${row.item_id}-variants`}>
+                          <td colSpan={8} className="bg-muted/20 p-0">
+                            <div className="max-h-64 overflow-y-auto border-t border-border/60">
+                              <table className="w-full text-left text-xs">
+                                <thead>
+                                  <tr className="text-muted-foreground">
+                                    <th className="px-3 py-1.5 font-medium">Số SIM</th>
+                                    <th className="px-3 py-1.5 font-medium">Model ID</th>
+                                    <th className="px-3 py-1.5 font-medium">Giá</th>
+                                    <th className="px-3 py-1.5 font-medium">Kho</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {row.variants.map((v) => (
+                                    <tr key={v.model_id} className="border-t border-border/40">
+                                      <td className="px-3 py-1.5 font-medium text-foreground">
+                                        {v.label || <span className="text-muted-foreground italic">(không có nhãn)</span>}
+                                      </td>
+                                      <td className="px-3 py-1.5 text-muted-foreground">{v.model_id}</td>
+                                      <td className="px-3 py-1.5 text-gold">{v.price > 0 ? formatPrice(v.price) : <span className="text-muted-foreground">—</span>}</td>
+                                      <td className="px-3 py-1.5">
+                                        {v.stock > 0 ? (
+                                          <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-700">{v.stock}</Badge>
+                                        ) : (
+                                          <Badge variant="outline" className="border-red-500/40 bg-red-500/10 text-red-700">Hết</Badge>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                     ))}
                   </tbody>
                 </table>
