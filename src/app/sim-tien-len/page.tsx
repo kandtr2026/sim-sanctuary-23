@@ -17,7 +17,7 @@ const TAG = "Tiến lên";
 
 const TITLE = "Sim Tiến Lên Mobifone | Đuôi 1234, 3456, 6789 Giá Rõ";
 const DESCRIPTION =
-  "Sim tiến lên Mobifone có bốn số cuối tăng liền: 1234, 3456, 6789. Dãy số đi lên, đọc trôi, khách nhớ nhanh. Giá niêm yết công khai, giao nội thành HCM.";
+  "Sim tiến lên Mobifone có bốn số cuối tăng liền: 1234, 3456, 6789. Dãy số đi lên, đọc trôi, khách nhớ nhanh. Giá niêm yết công khai, 30 phút giao toàn quốc.";
 const CANONICAL = `${BASE_URL}/sim-tien-len`;
 
 export async function generateMetadata(): Promise<Metadata> {

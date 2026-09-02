@@ -43,6 +43,6 @@ export const faqData = [
   {
     question: 'Thời gian giao hàng là bao lâu?',
     answer:
-      'Nội thành TP. Hồ Chí Minh: 30 phút – 2 giờ làm việc.\nNội thành Hà Nội và các thành phố lớn: 1 ngày làm việc.\nCác tỉnh thành khác: 1 – 3 ngày làm việc.\nĐơn xác nhận sau 20:00 sẽ được xử lý vào sáng ngày làm việc kế tiếp.',
+      '30 phút giao toàn quốc. Quý khách nhận SIM, kiểm tra rồi mới thanh toán (COD).',
   },
 ];

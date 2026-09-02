@@ -65,7 +65,7 @@ const faqItems = [
   },
   {
     q: 'Bao lâu thì nhận được SIM?',
-    a: 'Nội thành TP. Hồ Chí Minh: 30 phút – 2 giờ làm việc. Nội thành Hà Nội và các thành phố lớn: 1 ngày làm việc. Các tỉnh thành khác: 1 – 3 ngày làm việc. Đơn xác nhận sau 20:00 được xử lý vào sáng ngày làm việc kế tiếp. Quý khách nhận SIM rồi thanh toán COD.',
+    a: '30 phút giao toàn quốc. Quý khách nhận SIM, kiểm tra rồi mới thanh toán (COD).',
   },
   {
     q: 'Số tôi đang xem có bị người khác mua mất không?',
@@ -247,7 +247,7 @@ export default async function MuaSimGiaRePage() {
               {[
                 { n: '1', t: 'Chọn số', d: 'Bấm vào dãy số Quý khách chọn ở kho phía trên. Mỗi số chỉ có một SIM.' },
                 { n: '2', t: 'Điền thông tin', d: 'Họ tên, số liên hệ, địa chỉ nhận. Không cần thanh toán trước.' },
-                { n: '3', t: 'Nhận SIM, trả tiền', d: 'COD khi nhận. Nội thành HCM 30 phút – 2 giờ, tỉnh 1–3 ngày.' },
+                { n: '3', t: 'Nhận SIM, trả tiền', d: 'COD khi nhận. 30 phút giao toàn quốc.' },
               ].map((step) => (
                 <li key={step.n} className="rounded-lg border border-border/60 bg-secondary/30 p-4">
                   <div className="mb-2 flex items-center gap-2">

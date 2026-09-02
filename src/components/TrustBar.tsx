@@ -24,7 +24,7 @@ const TrustBar = () => {
                 phút chỉ đúng với nội thành HCM, các tỉnh là 1–3 ngày theo
                 /chinh-sach-giao-hang. Cùng loại sai lệch mà IntroSection đã
                 sửa trước đó, nên sửa về đúng mốc chính sách. */}
-            <span>Giao nội thành HCM 30 phút – 2 giờ</span>
+            <span>30 phút giao toàn quốc</span>
           </div>
           <div className="hidden sm:block text-primary-foreground/40">|</div>
           <div className="flex items-center gap-1.5">

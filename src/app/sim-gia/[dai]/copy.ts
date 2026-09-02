@@ -150,7 +150,7 @@ export const BAND_COPY: Record<string, BandCopy> = {
       },
       {
         q: "Đặt số hôm nay thì bao lâu nhận được?",
-        a: "Nội thành TP.HCM nhận trong 30 phút – 2 giờ làm việc kể từ lúc chốt số. Tỉnh thành khác 1–3 ngày làm việc qua chuyển phát nhanh, thanh toán COD lúc nhận hoặc chuyển khoản trước.",
+        a: "30 phút giao toàn quốc kể từ lúc chốt số. Quý khách thanh toán COD lúc nhận hoặc chuyển khoản trước.",
       },
     ],
   },

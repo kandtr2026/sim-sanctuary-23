@@ -46,7 +46,7 @@ const faqItems = [
   },
   {
     q: "Giao sim thần tài mất bao lâu?",
-    a: "Nội thành TP.HCM: 30 phút – 2 giờ làm việc kể từ lúc Quý khách chốt số. Tỉnh thành khác: 1–3 ngày làm việc qua chuyển phát nhanh. Quý khách thanh toán COD lúc nhận hoặc chuyển khoản trước.",
+    a: "30 phút giao toàn quốc kể từ lúc Quý khách chốt số. Quý khách thanh toán COD lúc nhận hoặc chuyển khoản trước.",
   },
   {
     q: "Sim thần tài đuôi 39 hợp với mệnh nào?",
@@ -93,7 +93,7 @@ export default async function SimThanTaiPage() {
               Sim Thần Tài Mobifone — <span className="text-gold">đuôi 39, 79, 7939</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Quý khách chọn đuôi 39 (thần tài nhỏ) hay 79 (thần tài lớn), giá hiện sẵn cạnh từng số. Sang tên chính chủ, giao tận nơi nội thành HCM.
+              Quý khách chọn đuôi 39 (thần tài nhỏ) hay 79 (thần tài lớn), giá hiện sẵn cạnh từng số. Sang tên chính chủ, 30 phút giao toàn quốc.
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a

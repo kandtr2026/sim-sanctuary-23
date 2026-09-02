@@ -42,7 +42,7 @@ const faqItems = [
 { q: 'Sim tứ quý có sang tên được không?', a: 'Được. Toàn bộ sim tứ quý tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ miễn phí. Quý khách mang CMND/CCCD đến cửa hàng nhà mạng gần nhất, hoặc đăng ký ngay trên ứng dụng My Mobifone.' },
 { q: 'Sim tứ quý nhà mạng nào tốt nhất?', a: 'Mỗi nhà mạng mạnh ở một điểm. Mobifone nổi bật về chất lượng cuộc gọi và data 4G/5G. Viettel có vùng phủ sóng rộng. Vinaphone ổn định với người dùng lâu năm. Quan trọng hơn cả vẫn là chọn dãy số hợp mệnh và hợp tuổi của Quý khách.' },
 { q: 'Sim tứ quý có hợp phong thủy không?', a: 'Một chữ số lặp lại bốn lần tạo nên nguồn năng lượng tập trung, nên tứ quý được xem là dòng sim đậm ý nghĩa phong thủy. Mỗi số một hàm ý: 1111 khởi đầu, 6666 lộc lá, 8888 phát tài, 9999 quyền lực. Đội ngũ tư vấn có thể đối chiếu mệnh và tuổi cùng Quý khách trước khi chốt số.' },
-{ q: 'Giao sim tứ quý mất bao lâu?', a: 'Nội thành TP.HCM và Hà Nội: 30 phút – 2 tiếng. Các tỉnh thành khác: 1–2 ngày làm việc qua chuyển phát nhanh. Quý khách thanh toán COD khi nhận sim, hoặc chuyển khoản trước nếu thuận tiện hơn.' }];
+{ q: 'Giao sim tứ quý mất bao lâu?', a: '30 phút giao toàn quốc. Quý khách nhận SIM, kiểm tra rồi mới thanh toán (COD).' }];
 
 const faqJsonLd = {
   '@context': 'https://schema.org',

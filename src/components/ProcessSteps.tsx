@@ -3,7 +3,7 @@ import { ChevronRight, Zap } from 'lucide-react';
 const steps = [
   { number: '1', title: 'CHỌN SỐ', description: 'Chọn sim trong kho số.' },
   { number: '2', title: 'ĐẶT HÀNG', description: 'Điền thông tin online.' },
-  { number: '3', title: 'NHẬN SIM', description: 'Giao tận nhà 30 phút – 2 giờ (nội thành HCM).', urgent: true },
+  { number: '3', title: 'NHẬN SIM', description: 'Giao tận nhà 30 phút toàn quốc.', urgent: true },
 ];
 
 /**

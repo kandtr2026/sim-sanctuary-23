@@ -66,7 +66,7 @@ const faqItems = [
   },
   {
     q: "Giao sim tam hoa mất bao lâu?",
-    a: "Nội thành TP.HCM: 30 phút – 2 giờ làm việc kể từ lúc Quý khách chốt số. Tỉnh thành khác: 1–3 ngày làm việc qua chuyển phát nhanh, thanh toán COD lúc nhận hoặc chuyển khoản trước.",
+    a: "30 phút giao toàn quốc kể từ lúc Quý khách chốt số. Quý khách thanh toán COD lúc nhận hoặc chuyển khoản trước.",
   },
 ];
 

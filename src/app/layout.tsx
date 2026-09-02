@@ -22,7 +22,7 @@ const BASE_URL = "https://www.chonsomobifone.com";
 const STORE_PLACE_ID = "ChIJV2BfBgAvdTERQ39odCHMHT0";
 const DEFAULT_TITLE = "CHONSOMOBIFONE.COM — Kho SIM số đẹp Mobifone uy tín";
 const DEFAULT_DESCRIPTION =
-  "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh. Giao SIM toàn quốc, sang tên chính chủ. Hotline 0938.868.868.";
+  "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh. 30 phút giao toàn quốc, sang tên chính chủ. Hotline 0938.868.868.";
 
 // LocalBusiness schema (P1-3). The old index.html only had a bare Organization;
 // the business has a physical TPHCM storefront, so `Store` (a LocalBusiness
@@ -120,7 +120,7 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: DEFAULT_TITLE,
     description:
-      "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh. Giao SIM toàn quốc, sang tên chính chủ.",
+      "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh. 30 phút giao toàn quốc, sang tên chính chủ.",
     images: [
       {
         url: "/share-banner.png?v=999",
@@ -134,7 +134,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: DEFAULT_TITLE,
     description:
-      "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh.",
+      "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh. 30 phút giao toàn quốc, sang tên chính chủ.",
     images: ["/share-banner.png?v=999"],
   },
   // Next's `verification.google` only emits one token, so render both through

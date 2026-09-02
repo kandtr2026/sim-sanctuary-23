@@ -133,7 +133,7 @@ const QuickContactPopup = ({ open, onOpenChange, simNumber, simPrice, simNetwork
           </span>
           <span className="flex items-center gap-1">
             <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(45,80%,55%)] shrink-0" />
-            Miễn phí giao hàng
+            30 phút giao toàn quốc
           </span>
         </div>
       </DialogContent>

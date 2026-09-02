@@ -58,7 +58,7 @@ const faqItems = [
   },
   {
     q: "Đặt sim lặp kép rồi nhận hàng thế nào?",
-    a: "Quý khách chọn số, đội ngũ giữ số và xác nhận qua điện thoại hoặc Zalo. Nội thành TP.HCM nhận trong 30 phút – 2 giờ làm việc, tỉnh thành khác 1–3 ngày. Kiểm tra SIM trên tay rồi mới thanh toán, hỗ trợ sang tên chính chủ.",
+    a: "Quý khách chọn số, đội ngũ giữ số và xác nhận qua điện thoại hoặc Zalo. 30 phút nhận SIM toàn quốc. Kiểm tra SIM trên tay rồi mới thanh toán, hỗ trợ sang tên chính chủ.",
   },
 ];
 

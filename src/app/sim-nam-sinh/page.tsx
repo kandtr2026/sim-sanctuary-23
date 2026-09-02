@@ -82,7 +82,7 @@ const PILLARS: { title: string; body: string }[] = [
   },
   {
     title: "Cam kết khi mua sim tại CHONSOMOBIFONE",
-    body: "Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới trả tiền. Giao nội thành HCM 30 phút – 2h, toàn quốc 1–3 ngày. Chúng tôi hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.",
+    body: "Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới trả tiền. 30 phút giao toàn quốc. Chúng tôi hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.",
   },
 ];
 
@@ -156,7 +156,7 @@ export default function SimNamSinhPage() {
                   "Giá niêm yết công khai trên từng số, trong kho SIM Mobifone thật",
                   "Tra sim theo ngày sinh chỉ trong một bước",
                   "Sang tên chính chủ; Quý khách nhận SIM, kiểm tra rồi mới trả tiền",
-                  "Giao nội thành HCM 30 phút – 2h, các tỉnh thành khác 1–3 ngày",
+                  "30 phút giao toàn quốc",
                 ].map((item) => (
                   <div
                     key={item}

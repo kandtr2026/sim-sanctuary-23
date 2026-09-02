@@ -68,7 +68,7 @@ const buildIntro = (year: string, info: YearInfo): string => {
     `Quý khách sinh năm ${year} sẽ tìm thấy ở đây những số có ${year} trong dãy — năm ${info.canChi}, cầm tinh con ${info.conGiap}, mệnh ${info.menh}. Giá niêm yết công khai, sang tên chính chủ.`,
     `Một dãy số mang sẵn năm ${year} thì Quý khách không phải nhớ nhiều. Kho dưới đây gom những số có ${year} cho người tuổi ${info.canChi} (${info.conGiap}), mệnh ${info.menh}. Nhận SIM, kiểm tra rồi mới thanh toán.`,
     `Chọn số gắn với năm ${year} cho Quý khách hoặc cho người thân tuổi ${info.conGiap} — năm ${info.canChi}, mệnh ${info.menh}. Mỗi số đều hiện giá ngay cạnh, không cần hỏi giá từng số.`,
-    `Đội ngũ tư vấn đã lọc sẵn những số có ${year} trong dãy để Quý khách khỏi tìm giữa cả kho: năm ${info.canChi}, cầm tinh con ${info.conGiap}, mệnh ${info.menh}. Giao nội thành HCM trong 30 phút – 2 giờ.`,
+    `Đội ngũ tư vấn đã lọc sẵn những số có ${year} trong dãy để Quý khách khỏi tìm giữa cả kho: năm ${info.canChi}, cầm tinh con ${info.conGiap}, mệnh ${info.menh}. 30 phút nhận SIM toàn quốc.`,
   ];
   return variants[Number(year) % 4];
 };
@@ -91,8 +91,8 @@ const buildDescription = (year: string, info: YearInfo): string => {
   const variants = [
     `Kho sim năm sinh ${year} Mobifone: số có ${year} trong dãy, dành cho người sinh năm ${info.canChi}, cầm tinh con ${info.conGiap}. Giá công khai, hỗ trợ sang tên chính chủ.`,
     `Sim Mobifone có ${year} trong dãy số — năm ${info.canChi}, cầm tinh con ${info.conGiap}, mệnh ${info.menh}. Từng số hiện giá ngay, Quý khách nhận SIM kiểm tra rồi mới thanh toán.`,
-    `Chọn sim gắn năm sinh ${year} — ${info.canChi}, cầm tinh con ${info.conGiap}, mệnh ${info.menh}. Giá niêm yết công khai, sang tên chính chủ, giao tận nơi nội thành HCM 30 phút.`,
-    `Danh sách sim Mobifone có ${year} trong dãy, lọc sẵn cho người sinh năm ${info.canChi} (${info.conGiap}), mệnh ${info.menh}. Xem giá rồi chốt, không cần hỏi giá từng số, giao toàn quốc.`,
+    `Chọn sim gắn năm sinh ${year} — ${info.canChi}, cầm tinh con ${info.conGiap}, mệnh ${info.menh}. Giá niêm yết công khai, sang tên chính chủ, 30 phút giao toàn quốc.`,
+    `Danh sách sim Mobifone có ${year} trong dãy, lọc sẵn cho người sinh năm ${info.canChi} (${info.conGiap}), mệnh ${info.menh}. Xem giá rồi chốt, không cần hỏi giá từng số, 30 phút giao toàn quốc.`,
   ];
   return variants[Number(year) % 4];
 };

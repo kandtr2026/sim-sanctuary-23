@@ -5,7 +5,7 @@ import { buildBreadcrumb } from "@/lib/seo";
 
 const TITLE = "Hướng Dẫn Thanh Toán & Đặt Mua SIM | CHONSOMOBIFONE";
 const DESCRIPTION =
-  "Hướng dẫn đặt mua SIM số đẹp Mobifone: quy trình 3 bước, giao SIM miễn phí toàn quốc, địa chỉ cửa hàng và thông tin tài khoản thanh toán chính thức.";
+  "Hướng dẫn đặt mua SIM số đẹp Mobifone: quy trình 3 bước, 30 phút giao toàn quốc, địa chỉ cửa hàng và thông tin tài khoản thanh toán chính thức.";
 const CANONICAL = "https://www.chonsomobifone.com/thanh-toan";
 
 const STORE_PLACE_ID = "ChIJV2BfBgAvdTERQ39odCHMHT0";

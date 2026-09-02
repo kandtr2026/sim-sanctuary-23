@@ -116,7 +116,7 @@ const DESC_MAX = 165;
 const CLOSERS: string[] = [
   "Quý khách xem giá công khai từng số.",
   "Nhận SIM kiểm tra rồi mới trả tiền.",
-  "Giao nội thành HCM 30 phút – 2 giờ.",
+  "30 phút giao toàn quốc.",
   "Anh Chị lọc theo đuôi hoặc ngân sách.",
   "Sang tên chính chủ.",
   "Tư vấn qua 0938.868.868.",

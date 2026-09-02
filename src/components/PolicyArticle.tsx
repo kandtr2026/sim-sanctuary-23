@@ -150,7 +150,7 @@ export const POLICY_DOCS: Record<string, PolicyDoc> = {
       {
         type: "ul",
         items: [
-          "Nội thành TP. Hồ Chí Minh: giao trong 30 phút – 2 giờ làm việc.",
+          "Nội thành TP. Hồ Chí Minh: giao trong 30 phút làm việc.",
           "Nội thành Hà Nội và các thành phố lớn: 1 ngày làm việc.",
           "Các tỉnh thành khác: 1 – 3 ngày làm việc qua chuyển phát nhanh.",
           "Đơn xác nhận sau 20:00 sẽ được xử lý vào sáng ngày làm việc kế tiếp.",

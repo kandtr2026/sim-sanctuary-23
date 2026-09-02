@@ -90,7 +90,7 @@ const buildFaq = (info: YearInfo) => {
     },
     {
       q: `Mua sim hợp tuổi ${nam} có sang tên chính chủ được không?`,
-      a: `Được. Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Quý khách nhận SIM, kiểm tra đúng số đã chọn rồi mới trả tiền. Giao nội thành TP.HCM 30 phút – 2 giờ, các tỉnh khác 1–3 ngày.`,
+      a: `Được. Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Quý khách nhận SIM, kiểm tra đúng số đã chọn rồi mới trả tiền. 30 phút giao toàn quốc.`,
     },
   ];
 };

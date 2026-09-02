@@ -45,7 +45,7 @@ const faqItems = [
   },
   {
     q: "Giao sim ông địa mất bao lâu?",
-    a: "Quý khách ở nội thành TP.HCM nhận số trong 30 phút – 2 giờ làm việc. Ngoài TP.HCM, SIM đi chuyển phát nhanh và tới trong 1–3 ngày làm việc. Quý khách trả tiền khi nhận hàng (COD) hoặc chuyển khoản trước.",
+    a: "30 phút giao toàn quốc. Quý khách trả tiền khi nhận hàng (COD) hoặc chuyển khoản trước.",
   },
 ];
 

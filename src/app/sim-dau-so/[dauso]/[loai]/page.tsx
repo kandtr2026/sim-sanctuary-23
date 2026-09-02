@@ -57,13 +57,13 @@ const variantFor = (dauso: string, loai: keyof typeof LOAI): number =>
 // (LOAI[loai].y) giữ nguyên.
 const INTRO_VARIANTS: ((dauso: string, label: string, y: string, fact: string) => string)[] = [
   (d, label, y, fact) =>
-    `Quý khách cần một số vừa đúng đầu ${d}, vừa đúng đuôi ${label}? Kho dưới đây đã lọc sẵn: ${y}. ${fact} Sang tên chính chủ, giao tận nơi nội thành HCM.`,
+    `Quý khách cần một số vừa đúng đầu ${d}, vừa đúng đuôi ${label}? Kho dưới đây đã lọc sẵn: ${y}. ${fact} Sang tên chính chủ, 30 phút giao toàn quốc.`,
   (d, label, y, fact) =>
     `Toàn bộ số đầu ${d} có đuôi ${label} đang có hàng được xếp cạnh nhau kèm giá, để Quý khách so trong một lần: ${y}. ${fact}`,
   (d, label, y, fact) =>
     `Hai tiêu chí gộp một chỗ: đầu ${d} quen tay và đuôi ${label} — ${y}. ${fact} Mỗi số đều hiện giá công khai, sang tên chính chủ.`,
   (d, label, y, fact) =>
-    `Đội ngũ tư vấn đã tách riêng nhóm số đầu ${d} đuôi ${label} để Quý khách khỏi lọc thủ công: ${y}. ${fact} Giao tận nơi nội thành HCM.`,
+    `Đội ngũ tư vấn đã tách riêng nhóm số đầu ${d} đuôi ${label} để Quý khách khỏi lọc thủ công: ${y}. ${fact} 30 phút giao toàn quốc.`,
 ];
 
 const introFor = (dauso: string, loai: keyof typeof LOAI, fact: string): string =>
@@ -161,7 +161,7 @@ export default async function SimDauSoLoaiPage({ params }: Props) {
     },
     {
       q: `Giao sim ${label} đầu số ${dauso} mất bao lâu?`,
-      a: "Nội thành TP.HCM: 30 phút – 2 giờ làm việc. Các tỉnh thành khác: 1–3 ngày làm việc qua chuyển phát nhanh. Quý khách thanh toán COD khi nhận hàng, hoặc chuyển khoản trước.",
+      a: "30 phút giao toàn quốc. Quý khách thanh toán COD khi nhận hàng, hoặc chuyển khoản trước.",
     },
     {
       // Khách hỏi mạng trước cả khi hỏi giá; trang combo cũng nên trả lời được.

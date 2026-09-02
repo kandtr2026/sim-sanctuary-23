@@ -177,7 +177,7 @@ export default function SimPhongThuyPage() {
                   "Giá niêm yết công khai trên từng số, trong kho SIM Mobifone thật",
                   "Điểm phong thủy hiển thị theo 5 trụ cột để Quý khách tự đối chiếu",
                   "Sang tên chính chủ; Quý khách nhận SIM, kiểm tra rồi mới trả tiền",
-                  "Giao nội thành HCM 30 phút – 2h, các tỉnh thành khác 1–3 ngày",
+                  "30 phút giao toàn quốc",
                 ].map((item) => (
                   <div
                     key={item}

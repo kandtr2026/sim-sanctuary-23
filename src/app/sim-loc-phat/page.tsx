@@ -48,7 +48,7 @@ const faqItems = [
   },
   {
     q: "Giao sim lộc phát mất bao lâu?",
-    a: "Nội thành TP.HCM, số về tay Quý khách trong 30 phút – 2 giờ làm việc. Các tỉnh thành khác đi chuyển phát nhanh, 1–3 ngày làm việc. Thanh toán COD lúc nhận hoặc chuyển khoản trước, tùy Quý khách chọn.",
+    a: "30 phút giao toàn quốc. Quý khách nhận SIM, kiểm tra rồi mới thanh toán (COD).",
   },
 ];
 
@@ -87,7 +87,7 @@ export default async function SimLocPhatPage() {
               Sim Lộc Phát Mobifone — <span className="text-gold">đuôi 68, 86, 6868</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Đọc thử trước khi chọn: 68 là lộc phát, 86 là phát lộc. Giá công khai từng số, sang tên chính chủ, giao nội thành HCM trong 30 phút – 2 giờ.
+              Đọc thử trước khi chọn: 68 là lộc phát, 86 là phát lộc. Giá công khai từng số, sang tên chính chủ, 30 phút giao toàn quốc.
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a

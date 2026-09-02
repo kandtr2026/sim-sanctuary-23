@@ -169,7 +169,7 @@ export default async function SimDauSoPage({ params }: Props) {
     },
     {
       q: `Giao sim đầu số ${dauso} mất bao lâu?`,
-      a: "Nội thành TP.HCM: 30 phút – 2 giờ làm việc. Các tỉnh thành khác: 1–3 ngày làm việc qua chuyển phát nhanh. Quý khách thanh toán COD khi nhận hàng, hoặc chuyển khoản trước.",
+      a: "30 phút giao toàn quốc. Quý khách thanh toán COD khi nhận hàng, hoặc chuyển khoản trước.",
     },
   ];
 

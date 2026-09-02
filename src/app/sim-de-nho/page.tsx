@@ -58,7 +58,7 @@ const faqItems = [
   },
   {
     q: "Đặt sim dễ nhớ có mất phí giữ số không?",
-    a: "Không. Quý khách chốt số, đội ngũ giữ số và hẹn giao. Nội thành TP.HCM nhận trong 30 phút – 2 giờ làm việc, tỉnh thành khác 1–3 ngày qua chuyển phát nhanh, kiểm tra SIM rồi mới thanh toán.",
+    a: "Không. Quý khách chốt số, đội ngũ giữ số và hẹn giao. 30 phút nhận SIM toàn quốc, kiểm tra SIM rồi mới thanh toán.",
   },
 ];
 

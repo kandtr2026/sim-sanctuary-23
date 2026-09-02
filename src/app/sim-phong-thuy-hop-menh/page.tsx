@@ -48,7 +48,7 @@ const faqItems = [
   },
   {
     q: "Giao sim phong thủy mất bao lâu?",
-    a: "Nội thành TP.HCM: 30 phút – 2 giờ làm việc. Các tỉnh thành khác: 1–3 ngày làm việc qua chuyển phát nhanh. Thanh toán COD khi nhận hàng hoặc chuyển khoản trước.",
+    a: "30 phút giao toàn quốc. Quý khách nhận SIM, kiểm tra rồi mới thanh toán (COD).",
   },
 ];
 
@@ -91,7 +91,7 @@ export default async function SimPhongThuyHopMenhPage() {
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
               Quý khách chọn mệnh, chúng tôi lọc sẵn những số có đuôi tương sinh. Giá niêm yết công khai,
-              sang tên chính chủ, giao tận nơi nội thành HCM.
+              sang tên chính chủ, 30 phút giao toàn quốc.
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a
@@ -168,7 +168,7 @@ export default async function SimPhongThuyHopMenhPage() {
             <p className="leading-relaxed text-muted-foreground">
               Mua số hợp mệnh nên bắt đầu từ sự minh bạch. Mỗi số trong kho CHONSOMOBIFONE.COM đều niêm yết giá công
               khai, kèm bộ lọc theo mệnh để Quý khách tự đối chiếu trước khi cần tới tư vấn. Chúng tôi hỗ trợ sang tên
-              chính chủ và giao SIM tận nơi; Quý khách kiểm tra đúng số đã chọn rồi mới thanh toán.
+              chính chủ và giao SIM toàn quốc; Quý khách kiểm tra đúng số đã chọn rồi mới thanh toán.
             </p>
           </section>
 

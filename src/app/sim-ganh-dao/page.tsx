@@ -17,7 +17,7 @@ const TAG = "Gánh đảo";
 
 const TITLE = "Sim Gánh Đảo Là Gì? Kho Sim Gánh Đảo Mobifone";
 const DESCRIPTION =
-  "Sim gánh đảo có bốn số cuối đối xứng kiểu 3993, 4004 — cặp giữa được hai số giống nhau gánh hai bên. Kho Mobifone giá công khai, giao nội thành HCM.";
+  "Sim gánh đảo có bốn số cuối đối xứng kiểu 3993, 4004 — cặp giữa được hai số giống nhau gánh hai bên. Kho Mobifone giá công khai, 30 phút giao toàn quốc.";
 const CANONICAL = `${BASE_URL}/sim-ganh-dao`;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -58,7 +58,7 @@ const faqItems = [
   },
   {
     q: "Mua sim gánh đảo có sang tên chính chủ được không?",
-    a: "Được. Sim tại CHONSOMOBIFONE.COM đều sang tên chính chủ, Quý khách nhận SIM và kiểm tra trước khi thanh toán. Nội thành TP.HCM giao trong 30 phút – 2 giờ làm việc, tỉnh thành khác 1–3 ngày qua chuyển phát nhanh.",
+    a: "Được. Sim tại CHONSOMOBIFONE.COM đều sang tên chính chủ, Quý khách nhận SIM và kiểm tra trước khi thanh toán. 30 phút nhận SIM toàn quốc.",
   },
 ];
 

@@ -11,9 +11,9 @@ import { DAU_SO_PREFIXES } from "@/lib/simTaxonomy";
 // Cụm "sim giá rẻ" thuộc /mua-sim-gia-re (chủ dự án chốt 29/08). Title trang chủ
 // trước đây cũng chứa "giá rẻ" nên hai trang tranh nhau cùng một cụm; nay trang
 // chủ nhắm cụm thương hiệu + quy mô kho + cam kết, để cụm giá rẻ cho trang kia.
-const TITLE = "Kho SIM Mobifone 49.000 số – Nhận SIM rồi mới trả tiền";
+const TITLE = "SIM Mobifone số đẹp – 30 phút giao toàn quốc";
 const DESCRIPTION =
-  "Kho SIM Mobifone hơn 49.000 số: tứ quý, tam hoa, thần tài, lộc phát, phong thủy, năm sinh. Giá niêm yết công khai từng số, sang tên chính chủ, giao toàn quốc.";
+  "Kho SIM Mobifone hơn 49.000 số: tứ quý, tam hoa, thần tài, lộc phát, phong thủy, năm sinh. Giá niêm yết công khai, sang tên chính chủ, 30 phút giao toàn quốc.";
 const CANONICAL = "https://www.chonsomobifone.com/";
 
 // ISR: regenerate the static shell (incl. the server-rendered SIM grid +
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     type: "website",
     title: TITLE,
     description:
-      "Kho SIM số đẹp Mobifone: tứ quý, phong thủy, tài lộc, năm sinh. Giao SIM toàn quốc.",
+      "Kho SIM Mobifone hơn 49.000 số: tứ quý, tam hoa, tài lộc, năm sinh. Giá niêm yết công khai, 30 phút giao toàn quốc.",
     url: CANONICAL,
     images: [{ url: "https://www.chonsomobifone.com/share-banner.png?v=999", width: 1200, height: 630 }],
   },
@@ -126,10 +126,10 @@ export default async function HomePage() {
             tells a first-time visitor what the page is. It replaces the deleted hero
             banner as the first painted element, so it is the new LCP candidate. */}
         <h1 className="mb-2 text-lg font-bold leading-tight text-foreground md:text-2xl">
-          SIM Mobifone số đẹp — <span className="text-gold">nhận SIM rồi mới trả tiền</span>
+          SIM Mobifone số đẹp — <span className="text-gold">30 phút giao toàn quốc</span>
         </h1>
         <p className="mb-3 text-sm text-muted-foreground md:text-base">
-          Quý khách chọn số theo tuổi, theo mệnh hoặc theo đuôi số ưa thích: tứ quý, tam hoa, phong thủy, thần tài, lộc phát. Sang tên chính chủ, giao tận nơi toàn quốc.
+          Quý khách chọn số theo tuổi, theo mệnh hoặc theo đuôi số ưa thích: tứ quý, tam hoa, phong thủy, thần tài, lộc phát. Sang tên chính chủ, 30 phút nhận SIM.
         </p>
 
         {/* Client island: search + filters + SIM grid (SSG initialData + server fetch

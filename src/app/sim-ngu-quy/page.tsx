@@ -45,7 +45,7 @@ const faqItems = [
   },
   {
     q: "Giao sim ngũ quý mất bao lâu?",
-    a: "Trong nội thành TP.HCM, đội ngũ giao trong 30 phút – 2 giờ làm việc. Tỉnh thành khác nhận qua chuyển phát nhanh sau 1–3 ngày làm việc. Quý khách chọn thanh toán COD lúc nhận hoặc chuyển khoản trước.",
+    a: "30 phút giao toàn quốc. Quý khách chọn thanh toán COD lúc nhận hoặc chuyển khoản trước.",
   },
 ];
 

@@ -23,8 +23,8 @@ const COMMITMENTS = [
   },
   {
     icon: Truck,
-    title: "Giao nhanh toàn quốc",
-    text: "Nội thành HCM 30 phút–2 giờ; tỉnh khác 1–3 ngày.",
+    title: "30 phút giao toàn quốc",
+    text: "Giao SIM tận nơi trong 30 phút — COD, nhận kiểm tra rồi mới trả tiền.",
   },
   {
     icon: RefreshCw,

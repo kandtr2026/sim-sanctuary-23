@@ -51,7 +51,7 @@ const StickyCtaBottomBar = () => {
           style={{ backgroundColor: "#FFC107", minHeight: 44 }}
         >
           <MessageCircle className="w-4 h-4" />
-          <span>Chat Zalo - Giao ngay</span>
+          <span>Chat Zalo - 30 phút giao</span>
         </a>
       </div>
     </>
