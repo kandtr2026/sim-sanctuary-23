@@ -159,6 +159,10 @@ function ShopeeAdminContent() {
   // Biến thể được chọn để xoá: "item_id:model_id"
   const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
   const [disabling, setDisabling] = useState(false);
+  // Thêm số mới vào listing
+  const [addItemId, setAddItemId] = useState<number | null>(null);
+  const [addForm, setAddForm] = useState({ label: "", price: "" });
+  const [adding, setAdding] = useState(false);
 
   // Bộ lọc + chọn lô
   const [network, setNetwork] = useState<string>("all");
@@ -457,6 +461,39 @@ function ShopeeAdminContent() {
       toast.error((err as Error).message);
     } finally {
       setDisabling(false);
+    }
+  };
+
+  const handleAddModel = async () => {
+    if (!token || addItemId === null) return;
+    const price = Number(addForm.price.replace(/[^\d]/g, ""));
+    if (!addForm.label.trim() || !price || price <= 0) {
+      toast.error("Nhập đủ số SIM (dạng 0xxxxxxxxx) và giá.");
+      return;
+    }
+    setAdding(true);
+    try {
+      const result = await api<{ ok: boolean; totalModels: number; error?: string }>(
+        "/api/admin/shopee/items/add-model",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            itemId: addItemId,
+            label: addForm.label.trim(),
+            price,
+            stock: 1,
+          }),
+        },
+        token,
+      );
+      toast.success(`Đã thêm số ${addForm.label.trim()} vào listing. Tổng biến thể: ${result.totalModels}`);
+      setAddItemId(null);
+      setAddForm({ label: "", price: "" });
+      await handlePullFromShopee();
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setAdding(false);
     }
   };
 
@@ -1131,6 +1168,18 @@ function ShopeeAdminContent() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            className="gap-1 text-muted-foreground"
+                            onClick={() => {
+                              setAddItemId(row.item_id);
+                              setAddForm({ label: "", price: "" });
+                            }}
+                            title="Thêm số SIM mới vào biến thể"
+                          >
+                            <span className="text-base leading-none">+</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             className="text-muted-foreground"
                             onClick={() => void handleDiagnose(row.item_id)}
                             disabled={diagnosing}
@@ -1194,6 +1243,44 @@ function ShopeeAdminContent() {
             </>
           )}
         </section>
+
+        {/* ── Dialog thêm số mới vào biến thể ── */}
+        {addItemId !== null && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="w-full max-w-sm rounded-lg border border-border bg-card p-6 shadow-lg">
+              <h3 className="mb-3 text-sm font-semibold text-foreground">
+                Thêm số SIM vào Item #{addItemId}
+              </h3>
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <Label htmlFor="sim-label">Số SIM (10 số, dạng 0xxxxxxxxx)</Label>
+                  <Input
+                    id="sim-label"
+                    value={addForm.label}
+                    onChange={(e) => setAddForm({ ...addForm, label: e.target.value })}
+                    placeholder="0767777770"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="sim-price">Giá (VNĐ)</Label>
+                  <Input
+                    id="sim-price"
+                    value={addForm.price}
+                    onChange={(e) => setAddForm({ ...addForm, price: e.target.value })}
+                    placeholder="1100000"
+                  />
+                </div>
+              </div>
+              <div className="mt-4 flex justify-end gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setAddItemId(null)}>Huỷ</Button>
+                <Button size="sm" onClick={() => void handleAddModel()} disabled={adding}>
+                  {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  {adding ? "Đang thêm…" : "Thêm vào listing"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
     </>
