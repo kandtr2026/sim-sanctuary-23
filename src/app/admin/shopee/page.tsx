@@ -1273,31 +1273,75 @@ function ShopeeAdminContent() {
         {/* ── Dialog thêm số mới vào biến thể ── */}
         {addItemId !== null && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="w-full max-w-sm rounded-lg border border-border bg-card p-6 shadow-lg">
-              <h3 className="mb-3 text-sm font-semibold text-foreground">
-                Thêm số SIM vào Item #{addItemId}
-              </h3>
-              <div className="space-y-3">
-                <div className="space-y-1">
-                  <Label htmlFor="sim-label">Số SIM (10 số, dạng 0xxxxxxxxx)</Label>
-                  <Input
-                    id="sim-label"
-                    value={addForm.label}
-                    onChange={(e) => setAddForm({ ...addForm, label: e.target.value })}
-                    placeholder="0767777770"
-                  />
+            <div className="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-lg border border-border bg-card shadow-lg">
+              <div className="shrink-0 border-b border-border px-5 py-3">
+                <h3 className="text-sm font-semibold text-foreground">
+                  Thêm số SIM vào Item #{addItemId}
+                </h3>
+              </div>
+              <div className="flex-1 overflow-y-auto p-5">
+                {/* ── Nhập tay ── */}
+                <div className="mb-4 grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="sim-label">Số SIM (10 số)</Label>
+                    <Input
+                      id="sim-label"
+                      value={addForm.label}
+                      onChange={(e) => setAddForm({ ...addForm, label: e.target.value })}
+                      placeholder="0767777770"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="sim-price">Giá (VNĐ)</Label>
+                    <Input
+                      id="sim-price"
+                      value={addForm.price}
+                      onChange={(e) => setAddForm({ ...addForm, price: e.target.value })}
+                      placeholder="1100000"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <Label htmlFor="sim-price">Giá (VNĐ)</Label>
-                  <Input
-                    id="sim-price"
-                    value={addForm.price}
-                    onChange={(e) => setAddForm({ ...addForm, price: e.target.value })}
-                    placeholder="1100000"
-                  />
+
+                {/* ── Chọn từ kho số ── */}
+                <div className="rounded-lg border border-border bg-muted/20 p-3">
+                  <p className="mb-2 text-xs font-semibold text-foreground">
+                    Hoặc chọn từ kho số ({allSims.length} SIM)
+                  </p>
+                  <div className="mb-2 flex gap-2">
+                    <Input
+                      className="h-8 text-xs"
+                      placeholder="Tìm số..."
+                      value={addForm.label}
+                      onChange={(e) => setAddForm({ ...addForm, label: e.target.value })}
+                    />
+                  </div>
+                  <div className="max-h-48 space-y-1 overflow-y-auto">
+                    {allSims
+                      .filter((s) => {
+                        const q = addForm.label.replace(/\D/g, "");
+                        return !q || s.rawDigits.includes(q) || (s.displayNumber && s.displayNumber.includes(q));
+                      })
+                      .slice(0, 100)
+                      .map((s) => (
+                        <div
+                          key={s.id}
+                          className="flex cursor-pointer items-center justify-between rounded border border-border/60 px-2.5 py-1.5 text-xs transition-colors hover:bg-primary/10"
+                          onClick={() => setAddForm({ label: s.rawDigits, price: String(s.price) })}
+                        >
+                          <span className="font-medium text-foreground">{s.displayNumber || s.rawDigits}</span>
+                          <span className="text-muted-foreground">{s.price.toLocaleString("vi-VN")}₫</span>
+                        </div>
+                      ))}
+                    {allSims.filter((s) => {
+                      const q = addForm.label.replace(/\D/g, "");
+                      return !q || s.rawDigits.includes(q) || (s.displayNumber && s.displayNumber.includes(q));
+                    }).length === 0 && (
+                      <p className="py-4 text-center text-xs text-muted-foreground">Không tìm thấy SIM nào khớp.</p>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="mt-4 flex justify-end gap-2">
+              <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border px-5 py-3">
                 <Button variant="ghost" size="sm" onClick={() => setAddItemId(null)}>Huỷ</Button>
                 <Button size="sm" onClick={() => void handleAddModel()} disabled={adding}>
                   {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
