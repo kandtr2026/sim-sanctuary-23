@@ -279,6 +279,14 @@ export class ShopeeProductClient {
     });
   }
 
+  /** Set stock=0 cho một model cụ thể — xoá model khỏi danh sách mua được. */
+  async updateModelStock(itemId: number, modelId: number): Promise<void> {
+    await this.call(PATH_UPDATE_STOCK, {
+      item_id: itemId,
+      stock_list: [{ model_id: modelId, seller_stock: [{ stock: 0, location_id: "" }] }],
+    });
+  }
+
   async deleteItem(itemId: number, unlist = true): Promise<void> {
     await this.call(PATH_DELETE_ITEM, { item_id: itemId, unlist });
   }

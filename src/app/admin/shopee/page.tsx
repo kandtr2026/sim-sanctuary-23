@@ -156,6 +156,9 @@ function ShopeeAdminContent() {
   const [snapshotAt, setSnapshotAt] = useState<string | null>(null);
   const [snapshotStale, setSnapshotStale] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
+  // Biến thể được chọn để xoá: "item_id:model_id"
+  const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
+  const [disabling, setDisabling] = useState(false);
 
   // Bộ lọc + chọn lô
   const [network, setNetwork] = useState<string>("all");
@@ -396,6 +399,7 @@ function ShopeeAdminContent() {
     if (!token) return;
     setPulling(true);
     setPulled(null);
+    setSelectedModels(new Set());
     try {
       const result = await api<PullResult & { saved?: boolean; fetchedAt?: string }>(
         "/api/admin/shopee/items/from-shopee",
@@ -405,11 +409,54 @@ function ShopeeAdminContent() {
       setPulled(result);
       setSnapshotAt(result.fetchedAt ?? new Date().toISOString());
       setSnapshotStale(false);
+      // Tự tích sẵn các biến thể không còn trong kho
+      const init = new Set<string>();
+      for (const row of result.items) {
+        if (!row.variants) continue;
+        for (const v of row.variants) {
+          if (v.inKho === false && v.label) init.add(`${row.item_id}:${v.model_id}`);
+        }
+      }
+      setSelectedModels(init);
       toast.success(`Đã lấy ${result.fetched} sản phẩm từ Shopee (${result.pages} trang) và lưu lại.`);
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
       setPulling(false);
+    }
+  };
+
+  const toggleModel = (itemId: number, modelId: number) => {
+    setSelectedModels((prev) => {
+      const key = `${itemId}:${modelId}`;
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const handleDisableSelected = async () => {
+    if (!token || selectedModels.size === 0) return;
+    if (!window.confirm(`Tắt ${selectedModels.size} biến thể đã chọn trên Shopee (set kho = 0)?`)) return;
+    setDisabling(true);
+    try {
+      const models = Array.from(selectedModels).map((key) => {
+        const [itemId, modelId] = key.split(":");
+        return { item_id: Number(itemId), model_id: Number(modelId) };
+      });
+      const result = await api<{ ok: number; failed: number; errors: { error: string }[] }>(
+        "/api/admin/shopee/items/disable-models",
+        { method: "POST", body: JSON.stringify({ models }) },
+        token,
+      );
+      toast.success(`Đã tắt ${result.ok} biến thể. Lỗi: ${result.failed}`);
+      setSelectedModels(new Set());
+      await handlePullFromShopee();
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setDisabling(false);
     }
   };
 
@@ -979,10 +1026,20 @@ function ShopeeAdminContent() {
 
           {pulled && (
             <>
-              <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                <span>Tổng trên Shopee: <b className="text-foreground">{pulled.total}</b></span>
-                <span>Đã lấy: <b className="text-foreground">{pulled.fetched}</b></span>
-                <span>Số trang: <b className="text-foreground">{pulled.pages}</b></span>
+              <div className="mb-3 flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                  <span>Tổng trên Shopee: <b className="text-foreground">{pulled.total}</b></span>
+                  <span>Đã lấy: <b className="text-foreground">{pulled.fetched}</b></span>
+                  <span>Số trang: <b className="text-foreground">{pulled.pages}</b></span>
+                </div>
+                <div className="ml-auto flex items-center gap-2">
+                  {selectedModels.size > 0 && (
+                    <Button size="sm" variant="destructive" onClick={() => void handleDisableSelected()} disabled={disabling}>
+                      {disabling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                      {disabling ? "Đang tắt…" : `Tắt ${selectedModels.size} biến thể đã chọn`}
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
@@ -1100,10 +1157,17 @@ function ShopeeAdminContent() {
                                   {row.variants.map((v) => (
                                     <tr key={v.model_id} className="border-t border-border/40">
                                       <td className="px-3 py-1.5 font-medium text-foreground">
-                                        {v.label || <span className="text-muted-foreground italic">(không có nhãn)</span>}
-                                        {v.label && !tonTaiTrongKho(v) && (
-                                          <span className="ml-1.5 inline-block h-2 w-2 rounded-full sd-canh-bao" title="Không còn trong kho" />
-                                        )}
+                                        <label className="flex cursor-pointer items-center gap-2">
+                                          <input
+                                            type="checkbox"
+                                            checked={selectedModels.has(`${row.item_id}:${v.model_id}`)}
+                                            onChange={() => toggleModel(row.item_id, v.model_id)}
+                                          />
+                                          <span className="truncate">{v.label || "(không có nhãn)"}</span>
+                                          {v.label && !tonTaiTrongKho(v) && (
+                                            <span className="inline-block h-2 w-2 shrink-0 rounded-full sd-canh-bao" title="Không còn trong kho" />
+                                          )}
+                                        </label>
                                       </td>
                                       <td className="px-3 py-1.5 text-muted-foreground">{v.model_id}</td>
                                       <td className="px-3 py-1.5 text-gold">{v.price > 0 ? formatPrice(v.price) : <span className="text-muted-foreground">—</span>}</td>
