@@ -341,12 +341,13 @@ function ShopeeAdminContent() {
   const [diag, setDiag] = useState<Record<string, unknown> | null>(null);
   const [diagnosing, setDiagnosing] = useState(false);
 
-  const handleDiagnose = async () => {
+  const handleDiagnose = async (itemId?: number) => {
     if (!token) return;
     setDiagnosing(true);
     setDiag(null);
     try {
-      const result = await api<Record<string, unknown>>("/api/admin/shopee/diagnose", {}, token);
+      const qs = itemId ? `?itemId=${itemId}` : "";
+      const result = await api<Record<string, unknown>>(`/api/admin/shopee/diagnose${qs}`, {}, token);
       setDiag(result);
     } catch (err) {
       toast.error((err as Error).message);
@@ -893,7 +894,8 @@ function ShopeeAdminContent() {
                       <th className="py-2 pr-3 font-medium">Trạng thái</th>
                       <th className="py-2 pr-3 font-medium">Giá</th>
                       <th className="py-2 pr-3 font-medium">Kho</th>
-                      <th className="py-2 font-medium">SIM</th>
+                      <th className="py-2 pr-3 font-medium">SIM</th>
+                      <th className="py-2 font-medium"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -936,6 +938,18 @@ function ShopeeAdminContent() {
                           ) : (
                             <span className="text-xs text-muted-foreground">—</span>
                           )}
+                        </td>
+                        <td className="py-2 text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground"
+                            onClick={() => void handleDiagnose(row.item_id)}
+                            disabled={diagnosing}
+                            title="Soi raw JSON của sản phẩm này"
+                          >
+                            {diagnosing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                          </Button>
                         </td>
                       </tr>
                     ))}
