@@ -268,8 +268,12 @@ function ShopeeAdminContent() {
     [pulled],
   );
 
-  // Cảnh báo: số biến thể KHÔNG còn trong kho thật (server đã tính inKho),
-  // chỉ tính với label là số điện thoại (text ngẫu nhiên có chủ đích, ko hết hàng).
+  // Biến thể "đang bán nhưng hết kho" → chấm đỏ
+  const canhBaoHetKho = (v: ShopeeVariant): boolean =>
+    laSoDienThoai(v.label) && v.stock > 0 && v.inKho === false;
+
+  // Cảnh báo: biến thể đang bán (stock>0) nhưng không có trong kho thật.
+  // Biến thể stock=0 (đã tắt trên Shopee) → gạch ngang, không cảnh báo.
   const soBienTheKhongCo = useMemo(() => {
     const map = new Map<number, number>();
     if (!pulled) return map;
@@ -277,15 +281,14 @@ function ShopeeAdminContent() {
       if (!row.variants) continue;
       let n = 0;
       for (const v of row.variants) {
-        if (v.label && laSoDienThoai(v.label) && v.inKho === false) n++;
+        if (canhBaoHetKho(v)) n++;
       }
       map.set(row.item_id, n);
     }
     return map;
   }, [pulled]);
 
-  const tonTaiTrongKho = (v: ShopeeVariant): boolean =>
-    !laSoDienThoai(v.label) || v.inKho !== false;
+  const biTheTat = (v: ShopeeVariant): boolean => v.stock === 0;
 
   const toggle = (id: string) => {
     setSelected((prev) => {
@@ -424,12 +427,13 @@ function ShopeeAdminContent() {
       setPulled(result);
       setSnapshotAt(result.fetchedAt ?? new Date().toISOString());
       setSnapshotStale(false);
-      // Tự tích sẵn các biến thể không còn trong kho — chỉ tích label là số điện thoại
+      // Tự tích sẵn các biến thể đang bán (stock>0) nhưng không có trong kho
+      // — bỏ qua biến thể đã tắt (stock=0) vì chúng đã off trên Shopee rồi.
       const init = new Set<string>();
       for (const row of result.items) {
         if (!row.variants) continue;
         for (const v of row.variants) {
-          if (v.inKho === false && v.label && laSoDienThoai(v.label)) init.add(`${row.item_id}:${v.model_id}`);
+          if (v.stock > 0 && v.inKho === false && v.label && laSoDienThoai(v.label)) init.add(`${row.item_id}:${v.model_id}`);
         }
       }
       setSelectedModels(init);
@@ -1222,17 +1226,28 @@ function ShopeeAdminContent() {
                                             type="checkbox"
                                             checked={selectedModels.has(`${row.item_id}:${v.model_id}`)}
                                             onChange={() => toggleModel(row.item_id, v.model_id)}
+                                            disabled={biTheTat(v)}
                                           />
-                                          <span className="truncate">{v.label || "(không có nhãn)"}</span>
-                                          {v.label && !tonTaiTrongKho(v) && (
-                                            <span className="inline-block h-2 w-2 shrink-0 rounded-full sd-canh-bao" title="Không còn trong kho" />
+                                          <span className={`truncate ${biTheTat(v) ? "text-muted-foreground line-through" : ""}`}>
+                                            {v.label || "(không có nhãn)"}
+                                          </span>
+                                          {v.label && canhBaoHetKho(v) && (
+                                            <span className="inline-block h-2 w-2 shrink-0 rounded-full sd-canh-bao" title="Đang bán nhưng không có trong kho" />
                                           )}
                                         </label>
                                       </td>
                                       <td className="px-3 py-1.5 text-muted-foreground">{v.model_id}</td>
-                                      <td className="px-3 py-1.5 text-gold">{v.price > 0 ? formatPrice(v.price) : <span className="text-muted-foreground">—</span>}</td>
+                                      <td className="px-3 py-1.5 text-gold">
+                                        {v.price > 0 ? (
+                                          <span className={biTheTat(v) ? "text-muted-foreground line-through" : ""}>{formatPrice(v.price)}</span>
+                                        ) : (
+                                          <span className="text-muted-foreground">—</span>
+                                        )}
+                                      </td>
                                       <td className="px-3 py-1.5">
-                                        {v.stock > 0 ? (
+                                        {biTheTat(v) ? (
+                                          <Badge variant="outline" className="border-gray-500/40 bg-gray-500/10 text-gray-500">Đã tắt</Badge>
+                                        ) : v.stock > 0 ? (
                                           <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-700">{v.stock}</Badge>
                                         ) : (
                                           <Badge variant="outline" className="border-red-500/40 bg-red-500/10 text-red-700">Hết</Badge>
