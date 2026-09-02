@@ -221,7 +221,7 @@ function ShopeeAdminContent() {
     if (token) void loadSnapshot(token);
   }, [token, loadSnapshot]);
 
-  // ── Bộ lọc SIM ──
+  // Bộ lọc SIM
   const filtered = useMemo(() => {
     let list = allSims.filter((s) => s.price > 0);
     if (network !== "all") list = list.filter((s) => s.network === network);
@@ -242,6 +242,36 @@ function ShopeeAdminContent() {
     const set = new Set(allSims.map((s) => s.network));
     return Array.from(set);
   }, [allSims]);
+
+  // Tập số SIM hiện có trong kho (rawDigits 10 số) — để soi biến thể Shopee.
+  const khoDigits = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of allSims) {
+      const d = s.rawDigits.replace(/\D/g, "");
+      if (d.length >= 10) set.add(d.slice(-10));
+    }
+    return set;
+  }, [allSims]);
+
+  // Rút số SIM từ nhãn biến thể (bỏ ký tự, lấy 10 số cuối).
+  const simDigits = (label: string): string => label.replace(/\D/g, "").slice(-10);
+
+  // Cảnh báo: số biến thể KHÔNG có trong kho (bán nhưng hết/nhầm).
+  const soBienTheKhongCo = useMemo(() => {
+    const map = new Map<number, number>();
+    if (!pulled) return map;
+    for (const row of pulled.items) {
+      if (!row.variants) continue;
+      let n = 0;
+      for (const v of row.variants) {
+        if (v.label && !khoDigits.has(simDigits(v.label))) n++;
+      }
+      map.set(row.item_id, n);
+    }
+    return map;
+  }, [pulled, khoDigits]);
+
+  const tonTaiTrongKho = (label: string): boolean => khoDigits.has(simDigits(label));
 
   const toggle = (id: string) => {
     setSelected((prev) => {
@@ -417,6 +447,16 @@ function ShopeeAdminContent() {
   }
 
   return (
+    <>
+      <style>{`
+        @keyframes sd-blink {
+          0%, 100% { box-shadow: 0 0 4px 2px rgba(255,80,0,0.6); background: radial-gradient(circle at 40% 40%, #fff 0%, #ff6b35 40%, #dc2626 100%); }
+          50% { box-shadow: 0 0 12px 6px rgba(255,80,0,0.9); background: radial-gradient(circle at 40% 40%, #fff 0%, #ff4500 30%, #b91c1c 100%); }
+        }
+        .sd-canh-bao {
+          animation: sd-blink 0.8s ease-in-out infinite;
+        }
+      `}</style>
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-10 border-b border-border bg-card/80 backdrop-blur">
         <div className="container flex items-center justify-between gap-3 px-4 py-3">
@@ -960,7 +1000,15 @@ function ShopeeAdminContent() {
                       <Fragment key={row.item_id}>
                       <tr className="border-b border-border/60 last:border-0">
                         <td className="max-w-[280px] py-2 pr-3">
-                          <span className="block truncate font-medium text-foreground">{row.item_name}</span>
+                          <div className="flex items-center gap-1.5">
+                            {(soBienTheKhongCo.get(row.item_id) ?? 0) > 0 && (
+                              <span
+                                className="inline-block h-2.5 w-2.5 shrink-0 rounded-full sd-canh-bao"
+                                title={`${soBienTheKhongCo.get(row.item_id) ?? 0} biến thể không có trong kho số`}
+                              />
+                            )}
+                            <span className="block truncate font-medium text-foreground">{row.item_name}</span>
+                          </div>
                           {row.image && (
                             <img src={row.image} alt="" className="mt-1 h-8 w-8 rounded object-cover" />
                           )}
@@ -1050,6 +1098,9 @@ function ShopeeAdminContent() {
                                     <tr key={v.model_id} className="border-t border-border/40">
                                       <td className="px-3 py-1.5 font-medium text-foreground">
                                         {v.label || <span className="text-muted-foreground italic">(không có nhãn)</span>}
+                                        {v.label && !tonTaiTrongKho(v.label) && (
+                                          <span className="ml-1.5 inline-block h-2 w-2 rounded-full sd-canh-bao" title="Không có trong kho số" />
+                                        )}
                                       </td>
                                       <td className="px-3 py-1.5 text-muted-foreground">{v.model_id}</td>
                                       <td className="px-3 py-1.5 text-gold">{v.price > 0 ? formatPrice(v.price) : <span className="text-muted-foreground">—</span>}</td>
@@ -1078,6 +1129,7 @@ function ShopeeAdminContent() {
         </section>
       </main>
     </div>
+    </>
   );
 }
 
