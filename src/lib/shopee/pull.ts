@@ -14,6 +14,32 @@ import { getCreds, persistRefreshedTokens } from "./credentials";
 import { ShopeeProductClient } from "./client";
 import { ITEM_LIST_PAGE_SIZE } from "./config";
 
+/** Sheet ID kho sim rẻ (229.000đ) và gviz URL để lấy danh sách số. */
+const CHEAP_SHEET_ID = "1gwlG7hsd_na7XB3d4maI99nhMVRUEmAlpx9ueYOELL4";
+const CHEAP_GVIZ = (limit: number) =>
+  `https://docs.google.com/spreadsheets/d/${CHEAP_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Tongkho&tq=${encodeURIComponent(`select A, C, D, E where G = '0đ' limit ${limit}`)}`;
+
+/** Tải raw_digits của kho sim rẻ (chỉ số available, chưa bán). */
+async function layKhoReDigits(): Promise<Set<string>> {
+  const set = new Set<string>();
+  try {
+    const res = await fetch(CHEAP_GVIZ(50000)); // lấy hết (13k)
+    if (!res.ok) return set;
+    const text = await res.text();
+    const lines = text.trim().split("\n").filter(Boolean);
+    // lines[0] = header, mỗi dòng tiếp: SimID,STB1,PhanLoai,GiaBan
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].split(",").map((c) => c.replace(/^"|"$/g, "").trim());
+      const stb1 = cols[1] || "";
+      const d = stb1.replace(/\D/g, "").padStart(10, "0").slice(-10);
+      if (d.length === 10) set.add(d);
+    }
+  } catch {
+    // Không lấy được kho rẻ thì bỏ qua — không ảnh hưởng.
+  }
+  return set;
+}
+
 export interface ShopeeVariant {
   model_id: number;
   /** Số SIM (nhãn option từ tier_variation). */
@@ -231,6 +257,9 @@ export async function pullAllItems(): Promise<PullResult> {
       for (const r of (simRows ?? []) as { raw_digits: string }[]) {
         available.add(r.raw_digits);
       }
+      // Thêm số từ kho sim rẻ (229.000đ) — không nằm trong bảng sims chính.
+      const khoRe = await layKhoReDigits();
+      for (const d of khoRe) available.add(d);
       for (const it of items) {
         if (!it.variants) continue;
         for (const v of it.variants) {

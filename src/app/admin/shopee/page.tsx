@@ -33,6 +33,7 @@ import {
 import RequireAdmin from "@/components/admin/RequireAdmin";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useSimData } from "@/hooks/useSimData";
+import { useCheapSimData } from "@/hooks/useCheapSimData";
 import { formatPrice, PRICE_RANGES, type NormalizedSIM } from "@/lib/simUtils";
 import { toast } from "sonner";
 
@@ -135,6 +136,7 @@ function ShopeeAdminContent() {
   const { user, session, signOut } = useAdminAuth();
   const token = session?.access_token;
   const { allSims, isLoading: simsLoading } = useSimData();
+  const { sims: cheapSims } = useCheapSimData();
 
   const [cred, setCred] = useState<CredStatus | null>(null);
   const [settings, setSettings] = useState<ShopeeSettings | null>(null);
@@ -1340,32 +1342,54 @@ function ShopeeAdminContent() {
                     </Select>
                   </div>
                   <div className="max-h-48 space-y-1 overflow-y-auto">
-                    {allSims
-                      .filter((s) => {
-                        if (khoFilter.network !== "all" && s.network !== khoFilter.network) return false;
-                        if (khoFilter.priceMax !== "all" && s.price > Number(khoFilter.priceMax)) return false;
-                        const q = addForm.label.replace(/\D/g, "");
-                        return !q || s.rawDigits.includes(q) || (s.displayNumber && s.displayNumber.includes(q));
-                      })
-                      .slice(0, 100)
-                      .map((s) => (
-                        <div
-                          key={s.id}
-                          className="flex cursor-pointer items-center justify-between rounded border border-border/60 px-2.5 py-1.5 text-xs transition-colors hover:bg-primary/10"
-                          onClick={() => setAddForm({ label: s.rawDigits, price: String(s.price) })}
-                        >
-                          <span className="font-medium text-foreground">{s.displayNumber || s.rawDigits}</span>
-                          <span className="text-muted-foreground">{s.price.toLocaleString("vi-VN")}₫</span>
-                        </div>
-                      ))}
-                    {allSims.filter((s) => {
-                      if (khoFilter.network !== "all" && s.network !== khoFilter.network) return false;
-                      if (khoFilter.priceMax !== "all" && s.price > Number(khoFilter.priceMax)) return false;
+                    {(() => {
                       const q = addForm.label.replace(/\D/g, "");
-                      return !q || s.rawDigits.includes(q) || (s.displayNumber && s.displayNumber.includes(q));
-                    }).length === 0 && (
-                      <p className="py-4 text-center text-xs text-muted-foreground">Không tìm thấy SIM nào khớp.</p>
-                    )}
+                      const mainMatches = allSims
+                        .filter((s) => {
+                          if (khoFilter.network !== "all" && s.network !== khoFilter.network) return false;
+                          if (khoFilter.priceMax !== "all" && s.price > Number(khoFilter.priceMax)) return false;
+                          return !q || s.rawDigits.includes(q) || (s.displayNumber && s.displayNumber.includes(q));
+                        })
+                        .map((s) => ({
+                          key: s.id,
+                          number: s.displayNumber || s.rawDigits,
+                          price: s.price,
+                          tag: "kho",
+                          pick: () => setAddForm({ label: s.rawDigits, price: String(s.price) }),
+                        }));
+                      const cheapMatches = (cheapSims || [])
+                        .filter((s) => {
+                          if (khoFilter.network !== "all" && s.network !== khoFilter.network) return false;
+                          if (khoFilter.priceMax !== "all" && s.price > Number(khoFilter.priceMax)) return false;
+                          return !q || s.rawDigits.includes(q) || (s.displayNumber && s.displayNumber.includes(q));
+                        })
+                        .map((s) => ({
+                          key: s.id,
+                          number: s.displayNumber || s.rawDigits,
+                          price: s.price,
+                          tag: "rẻ",
+                          pick: () => setAddForm({ label: s.rawDigits, price: String(s.price) }),
+                        }));
+                      const rows = [...mainMatches, ...cheapMatches].slice(0, 100);
+                      if (rows.length === 0) {
+                        return <p className="py-4 text-center text-xs text-muted-foreground">Không tìm thấy SIM nào khớp.</p>;
+                      }
+                      return rows.map((r) => (
+                        <div
+                          key={r.key}
+                          className="flex cursor-pointer items-center justify-between gap-2 rounded border border-border/60 px-2.5 py-1.5 text-xs transition-colors hover:bg-primary/10"
+                          onClick={r.pick}
+                        >
+                          <span className="min-w-0 flex-1 truncate font-medium text-foreground">
+                            {r.number}
+                            {r.tag === "rẻ" && (
+                              <span className="ml-1.5 rounded bg-gold/15 px-1 py-0.5 text-[10px] font-normal text-gold">229k</span>
+                            )}
+                          </span>
+                          <span className="shrink-0 text-muted-foreground">{r.price.toLocaleString("vi-VN")}₫</span>
+                        </div>
+                      ));
+                    })()}
                   </div>
                 </div>
               </div>
