@@ -4,11 +4,13 @@ import { ShopeeProductClient } from "@/lib/shopee/client";
 import { errorResponse, jsonNoStore, parseIntSafe, requireAdmin } from "@/lib/shopee/http";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 120;
+
+const BATCH_SIZE = 50;
 
 /**
- * Tắt (set stock=0) các biến thể đã chọn trên Shopee — biến thể không còn bán
- * được nữa nhưng model vẫn giữ trong listing. Body: { models: [{ item_id, model_id }] }
+ * Tắt (set stock=0) các biến thể đã chọn trên Shopee. Tự động chia lô 50/lần
+ * (Shopee giới hạn mỗi lần gọi update_stock). Body: { models: [{ item_id, model_id }] }
  */
 export async function POST(req: NextRequest) {
   const gate = await requireAdmin(req);
@@ -18,9 +20,6 @@ export async function POST(req: NextRequest) {
     const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
     const list = Array.isArray(body?.models) ? body.models : [];
     if (list.length === 0) return jsonNoStore({ error: "Chưa chọn biến thể nào" }, 400);
-    if (list.length > 50) {
-      return jsonNoStore({ error: "Mỗi lần tối đa 50 biến thể" }, 400);
-    }
 
     const models = list.map((m) => ({
       itemId: parseIntSafe((m as Record<string, unknown>).item_id),
@@ -37,13 +36,17 @@ export async function POST(req: NextRequest) {
     const errors: { itemId: number; modelId: number; error: string }[] = [];
     let ok = 0;
 
-    for (const m of models) {
-      try {
-        await client.updateModelStock(m.itemId as number, m.modelId as number);
-        ok++;
-      } catch (err) {
-        const e = err as { message?: string };
-        errors.push({ itemId: m.itemId as number, modelId: m.modelId as number, error: e?.message || String(err) });
+    // Chia lô 50 và xử lý tuần tự
+    for (let i = 0; i < models.length; i += BATCH_SIZE) {
+      const batch = models.slice(i, i + BATCH_SIZE);
+      for (const m of batch) {
+        try {
+          await client.updateModelStock(m.itemId as number, m.modelId as number);
+          ok++;
+        } catch (err) {
+          const e = err as { message?: string };
+          errors.push({ itemId: m.itemId as number, modelId: m.modelId as number, error: e?.message || String(err) });
+        }
       }
     }
 
@@ -51,7 +54,7 @@ export async function POST(req: NextRequest) {
       await persistRefreshedTokens(client.refreshedTokens);
     }
 
-    return jsonNoStore({ ok, failed: errors.length, errors });
+    return jsonNoStore({ ok, failed: errors.length, total: models.length, errors });
   } catch (err) {
     return errorResponse(err);
   }
