@@ -66,6 +66,7 @@ const STORE_JSON_LD = {
     closes: "21:00",
   },
   sameAs: [
+    "https://www.google.com/maps/place/?q=place_id:ChIJV2BfBgAvdTERQ39odCHMHT0",
     "https://zalo.me/0933356666",
     "https://www.facebook.com/111745910591052",
   ],
