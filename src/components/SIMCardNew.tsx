@@ -328,9 +328,9 @@ const SIMCardNew = ({ sim, quyFilter, searchQuery = '', birthDateDisplay }: SIMC
           rel="noopener noreferrer"
           data-sim-number={searchDisplay || rawNumber}
           aria-label={`Chat Zalo mua sim ${searchDisplay}`}
-          className="mt-1.5 flex w-full items-center justify-center gap-1 rounded-md border border-sky-500/30 bg-sky-500/10 py-1.5 text-xs font-semibold text-sky-400 transition hover:bg-sky-500/20"
+          className="mt-1.5 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-md border border-sky-500/40 bg-sky-500/15 py-2.5 text-sm font-semibold text-sky-400 transition hover:bg-sky-500/25"
         >
-          <MessageCircle className="h-3.5 w-3.5" />
+          <MessageCircle className="h-4 w-4 shrink-0" />
           Chat Zalo
         </a>
       </div>
