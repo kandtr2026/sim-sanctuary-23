@@ -251,6 +251,15 @@ function ShopeeAdminContent() {
     return Array.from(set);
   }, [allSims]);
 
+  // Lọc: label nào là số điện thoại thật? (9-10 chữ số, không chứa chữ cái)
+  // Text random như "Sim Sảnh Tiến 789" có chủ đích, không bao giờ hết hàng.
+  const laSoDienThoai = (label: string): boolean => {
+    if (!label) return false;
+    if (/[a-zA-Zàáảãạăâêôơưủũúýỳỷỹỵđ]/i.test(label)) return false; // có chữ cái → text
+    const d = label.replace(/\D/g, "");
+    return d.length >= 9 && d.length <= 10;
+  };
+
   // Snapshot cũ (lưu trước khi server tính inKho) thì thiếu field → báo cần refresh.
   const isOldSnapshot = useMemo(
     () =>
@@ -259,7 +268,8 @@ function ShopeeAdminContent() {
     [pulled],
   );
 
-  // Cảnh báo: số biến thể KHÔNG còn trong kho thật (server đã tính inKho).
+  // Cảnh báo: số biến thể KHÔNG còn trong kho thật (server đã tính inKho),
+  // chỉ tính với label là số điện thoại (text ngẫu nhiên có chủ đích, ko hết hàng).
   const soBienTheKhongCo = useMemo(() => {
     const map = new Map<number, number>();
     if (!pulled) return map;
@@ -267,14 +277,15 @@ function ShopeeAdminContent() {
       if (!row.variants) continue;
       let n = 0;
       for (const v of row.variants) {
-        if (v.label && v.inKho === false) n++;
+        if (v.label && laSoDienThoai(v.label) && v.inKho === false) n++;
       }
       map.set(row.item_id, n);
     }
     return map;
   }, [pulled]);
 
-  const tonTaiTrongKho = (v: ShopeeVariant): boolean => v.inKho !== false;
+  const tonTaiTrongKho = (v: ShopeeVariant): boolean =>
+    !laSoDienThoai(v.label) || v.inKho !== false;
 
   const toggle = (id: string) => {
     setSelected((prev) => {
@@ -413,12 +424,12 @@ function ShopeeAdminContent() {
       setPulled(result);
       setSnapshotAt(result.fetchedAt ?? new Date().toISOString());
       setSnapshotStale(false);
-      // Tự tích sẵn các biến thể không còn trong kho
+      // Tự tích sẵn các biến thể không còn trong kho — chỉ tích label là số điện thoại
       const init = new Set<string>();
       for (const row of result.items) {
         if (!row.variants) continue;
         for (const v of row.variants) {
-          if (v.inKho === false && v.label) init.add(`${row.item_id}:${v.model_id}`);
+          if (v.inKho === false && v.label && laSoDienThoai(v.label)) init.add(`${row.item_id}:${v.model_id}`);
         }
       }
       setSelectedModels(init);
