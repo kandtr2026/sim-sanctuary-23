@@ -130,11 +130,35 @@ const api = async <T,>(path: string, init?: RequestInit, token?: string): Promis
   return body as T;
 };
 
+/**
+ * Khớp chuỗi tìm theo luật web chính (xem simFilter.ts): `*678` = đuôi 678,
+ * `090*` = đầu 090, `090*6666` = đầu+đuôi, gõ trần ngắn = chứa, 10 số = chính xác.
+ */
+const khopTim = (rawDigits: string, searchRaw: string): boolean => {
+  const search = searchRaw.trim().replace(/[^0-9*]/g, "");
+  const digitsOnly = search.replace(/\*/g, "");
+  const d = rawDigits.replace(/\D/g, "").padStart(10, "0").slice(-10);
+  if (!search || !digitsOnly) return true;
+  if (digitsOnly.length === 10 && !search.includes("*")) return d === digitsOnly;
+  if (search.includes("*")) {
+    const startsWithStar = search.startsWith("*");
+    const endsWithStar = search.endsWith("*");
+    const parts = search.split("*").filter(Boolean);
+    if (endsWithStar && !startsWithStar && parts.length >= 1) return d.startsWith(parts[0]);
+    if (startsWithStar && !endsWithStar && parts.length >= 1) return d.endsWith(parts[parts.length - 1]);
+    if (!startsWithStar && !endsWithStar && parts.length === 2) {
+      return d.startsWith(parts[0]) && d.endsWith(parts[1]);
+    }
+    if (digitsOnly.length >= 2) return d.includes(digitsOnly);
+    return true;
+  }
+  return d.includes(digitsOnly);
+};
+
 // ── Component chính ──────────────────────────────────────────────────────────
 
 function ShopeeAdminContent() {
-  const { user, session, signOut } = useAdminAuth();
-  const token = session?.access_token;
+  const { user, session, signOut } = useAdminAuth();  const token = session?.access_token;
   const { allSims, isLoading: simsLoading } = useSimData();
   const { sims: cheapSims } = useCheapSimData();
 
@@ -1343,12 +1367,11 @@ function ShopeeAdminContent() {
                   </div>
                   <div className="max-h-48 space-y-1 overflow-y-auto">
                     {(() => {
-                      const q = addForm.label.replace(/\D/g, "");
                       const mainMatches = allSims
                         .filter((s) => {
                           if (khoFilter.network !== "all" && s.network !== khoFilter.network) return false;
                           if (khoFilter.priceMax !== "all" && s.price > Number(khoFilter.priceMax)) return false;
-                          return !q || s.rawDigits.includes(q) || (s.displayNumber && s.displayNumber.includes(q));
+                          return khopTim(s.rawDigits, addForm.label);
                         })
                         .map((s) => ({
                           key: s.id,
@@ -1361,7 +1384,7 @@ function ShopeeAdminContent() {
                         .filter((s) => {
                           if (khoFilter.network !== "all" && s.network !== khoFilter.network) return false;
                           if (khoFilter.priceMax !== "all" && s.price > Number(khoFilter.priceMax)) return false;
-                          return !q || s.rawDigits.includes(q) || (s.displayNumber && s.displayNumber.includes(q));
+                          return khopTim(s.rawDigits, addForm.label);
                         })
                         .map((s) => ({
                           key: s.id,
