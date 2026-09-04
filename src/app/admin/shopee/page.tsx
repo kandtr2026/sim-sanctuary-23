@@ -189,6 +189,12 @@ function ShopeeAdminContent() {
   const [addItemId, setAddItemId] = useState<number | null>(null);
   const [addForm, setAddForm] = useState({ label: "", price: "" });
   const [adding, setAdding] = useState(false);
+  // Chọn nguồn khi chọn số: 'tong' (Sheet tổng, có Kho con) | 're' (Sheet giá rẻ)
+  const [nguonSo, setNguonSo] = useState<"tong" | "re">("tong");
+  const [khoTong, setKhoTong] = useState("all");
+  const [danhSachKho, setDanhSachKho] = useState<string[]>([]);
+  const [simsTong, setSimsTong] = useState<{ id: string; rawDigits: string; displayNumber: string; price: number }[]>([]);
+  const [dangTaiSims, setDangTaiSims] = useState(false);
   // Filter kho khi chọn số
   const [khoFilter, setKhoFilter] = useState({ network: "all", priceMax: "all" });
 
@@ -309,7 +315,7 @@ function ShopeeAdminContent() {
       if (!row.variants) continue;
       let n = 0;
       for (const v of row.variants) {
-        if (canhBaoHetKho(v)) n++;
+        if (laSoDienThoai(v.label) && v.stock > 0 && v.inKho === false) n++;
       }
       map.set(row.item_id, n);
     }
@@ -539,6 +545,37 @@ function ShopeeAdminContent() {
       setAdding(false);
     }
   };
+
+  // Nạp danh sách kho tổng (theo Kho + filter) từ server.
+  const taiSimsTong = useCallback(async () => {
+    if (!token || nguonSo !== "tong") return;
+    setDangTaiSims(true);
+    try {
+      const params = new URLSearchParams();
+      if (khoTong && khoTong !== "all") params.set("kho", khoTong);
+      if (khoFilter.network !== "all") params.set("network", khoFilter.network);
+      if (khoFilter.priceMax !== "all") params.set("priceMax", khoFilter.priceMax);
+      if (addForm.label.trim()) params.set("search", addForm.label.trim());
+      const data = await api<{
+        sims: { id: string; rawDigits: string; displayNumber: string; price: number }[];
+        danhSachKho: string[];
+      }>(`/api/admin/shopee/kho-sims?${params.toString()}`, {}, token);
+      setSimsTong(data.sims);
+      if (data.danhSachKho.length > 0) setDanhSachKho(data.danhSachKho);
+    } catch {
+      setSimsTong([]);
+    } finally {
+      setDangTaiSims(false);
+    }
+  }, [token, nguonSo, khoTong, khoFilter, addForm.label]);
+
+  // Load kho options lần đầu khi mở dialog
+  useEffect(() => {
+    if (addItemId !== null && nguonSo === "tong") {
+      const t = setTimeout(() => void taiSimsTong(), 250);
+      return () => clearTimeout(t);
+    }
+  }, [addItemId, nguonSo, taiSimsTong]);
 
   const [diag, setDiag] = useState<Record<string, unknown> | null>(null);
   const [diagnosing, setDiagnosing] = useState(false);
@@ -1332,88 +1369,146 @@ function ShopeeAdminContent() {
 
                 {/* ── Chọn từ kho số ── */}
                 <div className="rounded-lg border border-border bg-muted/20 p-3">
-                  <p className="mb-2 text-xs font-semibold text-foreground">
-                    Hoặc chọn từ kho số ({allSims.length} SIM)
-                  </p>
-                  <div className="mb-2 flex flex-wrap gap-2">
-                    <Input
-                      className="h-8 flex-1 text-xs"
-                      placeholder="Tìm số..."
-                      value={addForm.label}
-                      onChange={(e) => setAddForm({ ...addForm, label: e.target.value })}
-                    />
-                    <Select value={khoFilter.network} onValueChange={(v) => setKhoFilter((p) => ({ ...p, network: v }))}>
-                      <SelectTrigger className="h-8 w-[110px] text-xs">
-                        <SelectValue placeholder="Nhà mạng" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Mọi mạng</SelectItem>
-                        {networks.map((n) => (
-                          <SelectItem key={n} value={n}>{n}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Select value={khoFilter.priceMax} onValueChange={(v) => setKhoFilter((p) => ({ ...p, priceMax: v }))}>
-                      <SelectTrigger className="h-8 w-[130px] text-xs">
-                        <SelectValue placeholder="Giá tối đa" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Mọi giá</SelectItem>
-                        {PRICE_RANGES.map((r) => (
-                          <SelectItem key={r.max} value={String(r.max)}>Dưới {r.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold text-foreground">Chọn từ kho số</p>
+                    <div className="flex shrink-0 gap-1 rounded-md bg-border/50 p-0.5">
+                      <button
+                        type="button"
+                        onClick={() => setNguonSo("tong")}
+                        className={`rounded px-2 py-1 text-[11px] font-medium transition-colors ${
+                          nguonSo === "tong" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                        }`}
+                      >
+                        Sheet tổng
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNguonSo("re")}
+                        className={`rounded px-2 py-1 text-[11px] font-medium transition-colors ${
+                          nguonSo === "re" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                        }`}
+                      >
+                        Giá rẻ 229k
+                      </button>
+                    </div>
                   </div>
-                  <div className="max-h-48 space-y-1 overflow-y-auto">
-                    {(() => {
-                      const mainMatches = allSims
-                        .filter((s) => {
+
+                  {nguonSo === "tong" ? (
+                    <>
+                      <div className="mb-2 flex flex-wrap gap-2">
+                        <Input
+                          className="h-8 flex-1 text-xs"
+                          placeholder="Tìm số (*678, 090*, 090*6666)"
+                          value={addForm.label}
+                          onChange={(e) => setAddForm({ ...addForm, label: e.target.value })}
+                        />
+                      </div>
+                      <div className="mb-2 flex flex-wrap gap-2">
+                        <Select value={khoTong} onValueChange={setKhoTong}>
+                          <SelectTrigger className="h-8 w-full text-xs sm:w-[180px]">
+                            <SelectValue placeholder="Kho" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Tất cả kho</SelectItem>
+                            {danhSachKho.map((k) => (
+                              <SelectItem key={k} value={k}>{k}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Select value={khoFilter.network} onValueChange={(v) => setKhoFilter((p) => ({ ...p, network: v }))}>
+                          <SelectTrigger className="h-8 w-[110px] text-xs">
+                            <SelectValue placeholder="Nhà mạng" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Mọi mạng</SelectItem>
+                            {networks.map((n) => (
+                              <SelectItem key={n} value={n}>{n}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Select value={khoFilter.priceMax} onValueChange={(v) => setKhoFilter((p) => ({ ...p, priceMax: v }))}>
+                          <SelectTrigger className="h-8 w-[130px] text-xs">
+                            <SelectValue placeholder="Giá tối đa" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Mọi giá</SelectItem>
+                            {PRICE_RANGES.map((r) => (
+                              <SelectItem key={r.max} value={String(r.max)}>Dưới {r.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="max-h-48 space-y-1 overflow-y-auto">
+                        {dangTaiSims ? (
+                          <p className="py-4 text-center text-xs text-muted-foreground">Đang tải…</p>
+                        ) : simsTong.length === 0 ? (
+                          <p className="py-4 text-center text-xs text-muted-foreground">
+                            Không tìm thấy SIM nào khớp. (Bấm vào ô tìm/đổi Kho để nạp)
+                          </p>
+                        ) : (
+                          simsTong.map((s) => (
+                            <div
+                              key={s.id}
+                              className="flex cursor-pointer items-center justify-between gap-2 rounded border border-border/60 px-2.5 py-1.5 text-xs transition-colors hover:bg-primary/10"
+                              onClick={() => setAddForm({ label: s.rawDigits, price: String(s.price) })}
+                            >
+                              <span className="min-w-0 flex-1 truncate font-medium text-foreground">{s.displayNumber}</span>
+                              <span className="shrink-0 text-muted-foreground">{s.price.toLocaleString("vi-VN")}₫</span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="mb-2 flex flex-wrap gap-2">
+                        <Input
+                          className="h-8 flex-1 text-xs"
+                          placeholder="Tìm số (*678, 090*, 090*6666)"
+                          value={addForm.label}
+                          onChange={(e) => setAddForm({ ...addForm, label: e.target.value })}
+                        />
+                        <Select value={khoFilter.network} onValueChange={(v) => setKhoFilter((p) => ({ ...p, network: v }))}>
+                          <SelectTrigger className="h-8 w-[110px] text-xs">
+                            <SelectValue placeholder="Nhà mạng" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Mọi mạng</SelectItem>
+                            {networks.map((n) => (
+                              <SelectItem key={n} value={n}>{n}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="max-h-48 space-y-1 overflow-y-auto">
+                        {(cheapSims || [])
+                          .filter((s) => {
+                            if (khoFilter.network !== "all" && s.network !== khoFilter.network) return false;
+                            return khopTim(s.rawDigits, addForm.label);
+                          })
+                          .slice(0, 100)
+                          .map((s) => (
+                            <div
+                              key={s.id}
+                              className="flex cursor-pointer items-center justify-between gap-2 rounded border border-border/60 px-2.5 py-1.5 text-xs transition-colors hover:bg-primary/10"
+                              onClick={() => setAddForm({ label: s.rawDigits, price: String(s.price) })}
+                            >
+                              <span className="min-w-0 flex-1 truncate font-medium text-foreground">
+                                {s.displayNumber || s.rawDigits}
+                                <span className="ml-1.5 rounded bg-gold/15 px-1 py-0.5 text-[10px] font-normal text-gold">229k</span>
+                              </span>
+                              <span className="shrink-0 text-muted-foreground">{s.price.toLocaleString("vi-VN")}₫</span>
+                            </div>
+                          ))}
+                        {(cheapSims || []).filter((s) => {
                           if (khoFilter.network !== "all" && s.network !== khoFilter.network) return false;
-                          if (khoFilter.priceMax !== "all" && s.price > Number(khoFilter.priceMax)) return false;
                           return khopTim(s.rawDigits, addForm.label);
-                        })
-                        .map((s) => ({
-                          key: s.id,
-                          number: s.displayNumber || s.rawDigits,
-                          price: s.price,
-                          tag: "kho",
-                          pick: () => setAddForm({ label: s.rawDigits, price: String(s.price) }),
-                        }));
-                      const cheapMatches = (cheapSims || [])
-                        .filter((s) => {
-                          if (khoFilter.network !== "all" && s.network !== khoFilter.network) return false;
-                          if (khoFilter.priceMax !== "all" && s.price > Number(khoFilter.priceMax)) return false;
-                          return khopTim(s.rawDigits, addForm.label);
-                        })
-                        .map((s) => ({
-                          key: s.id,
-                          number: s.displayNumber || s.rawDigits,
-                          price: s.price,
-                          tag: "rẻ",
-                          pick: () => setAddForm({ label: s.rawDigits, price: String(s.price) }),
-                        }));
-                      const rows = [...mainMatches, ...cheapMatches].slice(0, 100);
-                      if (rows.length === 0) {
-                        return <p className="py-4 text-center text-xs text-muted-foreground">Không tìm thấy SIM nào khớp.</p>;
-                      }
-                      return rows.map((r) => (
-                        <div
-                          key={r.key}
-                          className="flex cursor-pointer items-center justify-between gap-2 rounded border border-border/60 px-2.5 py-1.5 text-xs transition-colors hover:bg-primary/10"
-                          onClick={r.pick}
-                        >
-                          <span className="min-w-0 flex-1 truncate font-medium text-foreground">
-                            {r.number}
-                            {r.tag === "rẻ" && (
-                              <span className="ml-1.5 rounded bg-gold/15 px-1 py-0.5 text-[10px] font-normal text-gold">229k</span>
-                            )}
-                          </span>
-                          <span className="shrink-0 text-muted-foreground">{r.price.toLocaleString("vi-VN")}₫</span>
-                        </div>
-                      ));
-                    })()}
-                  </div>
+                        }).length === 0 && (
+                          <p className="py-4 text-center text-xs text-muted-foreground">Không tìm thấy SIM nào khớp.</p>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border px-5 py-3">
