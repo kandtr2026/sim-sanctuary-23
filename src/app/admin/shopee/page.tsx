@@ -196,7 +196,7 @@ function ShopeeAdminContent() {
   const [simsTong, setSimsTong] = useState<{ id: string; rawDigits: string; displayNumber: string; price: number }[]>([]);
   const [dangTaiSims, setDangTaiSims] = useState(false);
   // Filter kho khi chọn số
-  const [khoFilter, setKhoFilter] = useState({ network: "all", priceMax: "all" });
+  const [khoFilter, setKhoFilter] = useState({ network: "all", priceMin: "", priceMax: "" });
 
   // Bộ lọc + chọn lô
   const [network, setNetwork] = useState<string>("all");
@@ -554,7 +554,10 @@ function ShopeeAdminContent() {
       const params = new URLSearchParams();
       if (khoTong && khoTong !== "all") params.set("kho", khoTong);
       if (khoFilter.network !== "all") params.set("network", khoFilter.network);
-      if (khoFilter.priceMax !== "all") params.set("priceMax", khoFilter.priceMax);
+      const priceMin = Number(khoFilter.priceMin.replace(/[^\d]/g, ""));
+      const priceMax = Number(khoFilter.priceMax.replace(/[^\d]/g, ""));
+      if (priceMin > 0) params.set("priceMin", String(priceMin));
+      if (priceMax > 0) params.set("priceMax", String(priceMax));
       if (addForm.label.trim()) params.set("search", addForm.label.trim());
       const data = await api<{
         sims: { id: string; rawDigits: string; displayNumber: string; price: number }[];
@@ -1398,7 +1401,7 @@ function ShopeeAdminContent() {
                       <div className="mb-2 flex flex-wrap gap-2">
                         <Input
                           className="h-8 flex-1 text-xs"
-                          placeholder="Tìm số (*678, 090*, 090*6666)"
+                          placeholder="Tìm số: *77777* (chứa), *678 (đuôi), 090* (đầu)"
                           value={addForm.label}
                           onChange={(e) => setAddForm({ ...addForm, label: e.target.value })}
                         />
@@ -1426,17 +1429,21 @@ function ShopeeAdminContent() {
                             ))}
                           </SelectContent>
                         </Select>
-                        <Select value={khoFilter.priceMax} onValueChange={(v) => setKhoFilter((p) => ({ ...p, priceMax: v }))}>
-                          <SelectTrigger className="h-8 w-[130px] text-xs">
-                            <SelectValue placeholder="Giá tối đa" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">Mọi giá</SelectItem>
-                            {PRICE_RANGES.map((r) => (
-                              <SelectItem key={r.max} value={String(r.max)}>Dưới {r.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="flex items-center gap-1">
+                          <Input
+                            className="h-8 w-[110px] text-xs"
+                            placeholder="Giá từ (đ)"
+                            value={khoFilter.priceMin}
+                            onChange={(e) => setKhoFilter((p) => ({ ...p, priceMin: e.target.value }))}
+                          />
+                          <span className="text-[10px] text-muted-foreground">→</span>
+                          <Input
+                            className="h-8 w-[110px] text-xs"
+                            placeholder="Giá đến (đ)"
+                            value={khoFilter.priceMax}
+                            onChange={(e) => setKhoFilter((p) => ({ ...p, priceMax: e.target.value }))}
+                          />
+                        </div>
                       </div>
                       <div className="max-h-48 space-y-1 overflow-y-auto">
                         {dangTaiSims ? (
