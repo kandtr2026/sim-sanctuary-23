@@ -15,6 +15,7 @@ import {
   PATH_GET_MODEL_LIST,
   PATH_GET_LOGISTICS,
   PATH_INIT_TIER_VARIATION,
+  PATH_UPDATE_TIER_VARIATION,
   PATH_TOKEN_REFRESH,
   PATH_UPDATE_ITEM,
   PATH_UPDATE_STOCK,
@@ -274,20 +275,22 @@ export class ShopeeProductClient {
     return this.call(PATH_GET_MODEL_LIST, {}, { item_id: itemId }, "GET");
   }
 
-  /** Thêm model (biến thể) mới vào item. */
-  async addModel(itemId: number, model: Record<string, unknown>): Promise<{ model_id: number }> {
-    const resp = await this.call(PATH_ADD_MODEL, {
+  /**
+   * Thêm model (biến thể) mới vào item ĐÃ có tier_variation.
+   * Option tương ứng phải được đăng ký trước qua updateTierVariation.
+   */
+  async addModel(itemId: number, model: Record<string, unknown>): Promise<void> {
+    await this.call(PATH_ADD_MODEL, {
       item_id: itemId,
       model_list: [model],
     });
-    const modelId = Number(resp?.model_id || 0);
-    if (!modelId) {
-      throw new ShopeeApiError("missing_model_id", "Shopee không trả model_id", PATH_ADD_MODEL);
-    }
-    return { model_id: modelId };
   }
 
-  /** Dựng lại toàn bộ cây biến thể (tier_variation + model) — dùng để thêm/xoá biến thể. */
+  /**
+   * Khởi tạo biến thể LẦN ĐẦU cho item chưa có biến thể (standard → tiered).
+   * Item đã có biến thể mà gọi lại sẽ bị Shopee chặn "The level of tier-variation
+   * not change" — trường hợp đó dùng updateTierVariation + addModel.
+   */
   async initTierVariation(payload: {
     item_id: number;
     tier_variation: Record<string, unknown>[];
@@ -295,6 +298,19 @@ export class ShopeeProductClient {
   }): Promise<{ error: string | null }> {
     await this.call(PATH_INIT_TIER_VARIATION, payload);
     return { error: null };
+  }
+
+  /**
+   * Cập nhật cây biến thể của item đã có biến thể: thêm/sửa option trong
+   * tier_variation, đồng thời khai lại map model_id ↔ tier_index của các model
+   * hiện có (Shopee bắt buộc). KHÔNG tạo model mới — model mới thêm qua addModel.
+   */
+  async updateTierVariation(payload: {
+    item_id: number;
+    tier_variation: Record<string, unknown>[];
+    model: Record<string, unknown>[];
+  }): Promise<void> {
+    await this.call(PATH_UPDATE_TIER_VARIATION, payload);
   }
 
   async updateStock(itemId: number, stock: number): Promise<void> {

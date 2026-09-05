@@ -52,43 +52,46 @@ export async function POST(req: NextRequest) {
     }
 
     if (currentTier.length === 0) {
-      // Item không có tier → dùng add_item? Hoặc không hỗ trợ.
+      // Item chưa có biến thể (standard product) → không chèn số lẻ vào đây được.
       return jsonNoStore({ error: "Listing này không có biến thể (no model) — dùng Đồng bộ lên Shopee để tạo item mới" }, 400);
     }
 
-    // Bước 3: xây dựng tier_variation mới (thêm option mới vào tier đầu tiên)
-    const newOption = { option: label, image: null };
+    // ⚠️ init_tier_variation CHỈ dùng để khởi tạo biến thể lần đầu. Item đã có biến
+    // thể mà gọi lại init sẽ bị Shopee chặn: "The level of tier-variation not change".
+    // Đúng cách với item đã có biến thể: update_tier_variation (đăng ký option mới,
+    // giữ nguyên map model cũ) → add_model (thêm 1 model trỏ vào option vừa thêm).
+
+    // Bước 3: thêm option mới vào tier đầu; option cũ giữ nguyên chỉ số → index
+    // của option mới = số option hiện có.
+    const firstTierOptions = (currentTier[0]?.option_list ?? []) as Record<string, unknown>[];
+    const newOptionIndex = firstTierOptions.length;
     const newTier = currentTier.map((tv, ti) => {
-      const opts = [...((tv?.option_list ?? []) as Record<string, unknown>[])];
-      if (ti === 0) opts.push(newOption); // thêm vào tier đầu (thường là "Chọn số")
-      return { name: tv?.name ?? "", option_list: opts };
+      const opts = ((tv?.option_list ?? []) as Record<string, unknown>[]).map((o) => ({
+        option: String(o?.option ?? ""),
+      }));
+      if (ti === 0) opts.push({ option: label }); // tier đầu thường là "Chọn số"
+      return { name: String(tv?.name ?? ""), option_list: opts };
     });
 
-    // Bước 4: xây dựng model list mới (giữ nguyên cũ + thêm model mới)
-    const newModels: Record<string, unknown>[] = currentModels.map((m) => {
-      const pi = (m?.price_info ?? []) as Record<string, unknown>[];
-      return {
-        tier_index: m?.tier_index,
-        original_price: Number(pi[0]?.original_price ?? 0) || Number(pi[0]?.current_price ?? 0),
-        model_sku: m?.model_sku ?? undefined,
-        seller_stock: [{ stock: Number((m as Record<string, unknown>)?.stock ?? 1), location_id: "" }],
-      };
+    // Model cũ phải khai lại model_id ↔ tier_index (Shopee bắt buộc, giữ nguyên).
+    const modelMap = currentModels.map((m) => ({
+      model_id: m?.model_id,
+      tier_index: m?.tier_index,
+    }));
+
+    // Bước 4: cập nhật cây biến thể — đăng ký option mới, chưa tạo model.
+    await client.updateTierVariation({
+      item_id: itemIdNum,
+      tier_variation: newTier,
+      model: modelMap,
     });
 
-    // Thêm model mới
-    const newModelTierIndex = [currentModels.length]; // index = số lượng model hiện tại
-    newModels.push({
-      tier_index: newModelTierIndex,
+    // Bước 5: thêm model mới trỏ vào option vừa đăng ký (kèm giá + kho).
+    await client.addModel(itemIdNum, {
+      tier_index: [newOptionIndex],
       original_price: price,
       model_sku: label,
       seller_stock: [{ stock, location_id: "" }],
-    });
-
-    // Bước 5: gọi init_tier_variation
-    await client.initTierVariation({
-      item_id: itemIdNum,
-      tier_variation: newTier,
-      model: newModels,
     });
 
     if (client.refreshedTokens) {
@@ -100,7 +103,7 @@ export async function POST(req: NextRequest) {
       itemId: itemIdNum,
       label,
       price,
-      totalModels: newModels.length,
+      totalModels: currentModels.length + 1,
     });
   } catch (err) {
     return errorResponse(err);
