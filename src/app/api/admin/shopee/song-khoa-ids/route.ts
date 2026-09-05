@@ -6,39 +6,75 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /**
- * Trả về DANH SÁCH SỐ (raw_digits) thuộc kho "Song Khoa" và còn hàng.
+ * Danh sách kho + tập số (raw_digits còn hàng) của 1 kho — cho dropdown "Kho nguồn".
  *
- * Shopee chỉ bán SIM của kho Song Khoa, nhưng màn "Chọn lô" đọc từ Google Sheet
- * (không có cột kho). Endpoint này đọc thẳng bảng `sims` (đã có cột `kho`) để
- * client lọc danh sách chỉ còn số Song Khoa. Khớp kho theo ILIKE '%song khoa%'
- * nên không lệ thuộc cách viết hoa/thường của tên kho.
+ * Màn "Chọn lô" đọc từ Google Sheet (không có cột kho). Endpoint này đọc thẳng
+ * bảng `sims` (có cột `kho`) để client (1) đổ dropdown chọn kho và (2) lọc danh
+ * sách chỉ còn số của kho đang chọn.
  *
- * GET /api/admin/shopee/song-khoa-ids  →  { digits: string[], count }
+ * - Không có ?kho: quét 1 lượt toàn kho → trả khoList + tự chọn kho khớp "song khoa"
+ *   (Shopee bán kho này) + digits của kho đó.
+ * - Có ?kho=<tên chính xác>: chỉ trả digits của kho đó (khoList rỗng, client giữ list cũ).
+ *
+ * GET /api/admin/shopee/song-khoa-ids[?kho=...] → { khoList, selectedKho, digits, count }
  */
 export async function GET(req: NextRequest) {
   const gate = await requireAdmin(req);
   if ("response" in gate) return gate.response;
 
   try {
+    const { searchParams } = new URL(req.url);
+    const khoParam = (searchParams.get("kho") ?? "").trim();
     const db = createAdminClient();
-    const digits: string[] = [];
     const PAGE = 1000;
 
-    // PostgREST giới hạn số dòng/response → phải phân trang bằng range() để lấy hết.
+    // ── Có chỉ định kho: chỉ lấy digits của kho đó (khỏi quét toàn bảng) ──
+    if (khoParam) {
+      const digits: string[] = [];
+      for (let from = 0; from <= 100000; from += PAGE) {
+        const { data, error } = await db
+          .from("sims")
+          .select("raw_digits")
+          .eq("status", "available")
+          .eq("kho", khoParam)
+          .range(from, from + PAGE - 1);
+        if (error) throw new Error(`Không đọc được kho ${khoParam}: ${error.message}`);
+        const rows = (data ?? []) as { raw_digits: string | null }[];
+        for (const r of rows) if (r.raw_digits) digits.push(r.raw_digits);
+        if (rows.length < PAGE) break;
+      }
+      return jsonNoStore({ khoList: [], selectedKho: khoParam, digits, count: digits.length });
+    }
+
+    // ── Không chỉ định: quét 1 lượt, gom digits theo từng kho ──
+    const byKho = new Map<string, string[]>();
     for (let from = 0; from <= 100000; from += PAGE) {
       const { data, error } = await db
         .from("sims")
-        .select("raw_digits")
+        .select("kho, raw_digits")
         .eq("status", "available")
-        .ilike("kho", "%song khoa%")
+        .not("kho", "is", null)
         .range(from, from + PAGE - 1);
-      if (error) throw new Error(`Không đọc được kho Song Khoa: ${error.message}`);
-      const rows = (data ?? []) as { raw_digits: string | null }[];
-      for (const r of rows) if (r.raw_digits) digits.push(r.raw_digits);
+      if (error) throw new Error(`Không đọc được kho: ${error.message}`);
+      const rows = (data ?? []) as { kho: string | null; raw_digits: string | null }[];
+      for (const r of rows) {
+        if (!r.kho || !r.raw_digits) continue;
+        let arr = byKho.get(r.kho);
+        if (!arr) {
+          arr = [];
+          byKho.set(r.kho, arr);
+        }
+        arr.push(r.raw_digits);
+      }
       if (rows.length < PAGE) break;
     }
 
-    return jsonNoStore({ digits, count: digits.length });
+    const khoList = Array.from(byKho.keys()).sort();
+    // Mặc định chọn kho khớp "song khoa"; không có thì kho đầu tiên.
+    const selectedKho = khoList.find((k) => /song\s*khoa/i.test(k)) ?? khoList[0] ?? "";
+    const digits = selectedKho ? (byKho.get(selectedKho) ?? []) : [];
+
+    return jsonNoStore({ khoList, selectedKho, digits, count: digits.length });
   } catch (err) {
     return errorResponse(err);
   }

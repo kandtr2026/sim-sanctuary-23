@@ -234,7 +234,9 @@ function ShopeeAdminContent() {
   const [items, setItems] = useState<ItemRow[]>([]);
   const [loading, setLoading] = useState(true);
   // Shopee chỉ bán kho Song Khoa → tập raw_digits của kho này (đọc từ bảng sims).
-  const [songKhoaDigits, setSongKhoaDigits] = useState<Set<string> | null>(null);
+  const [khoDigits, setKhoDigits] = useState<Set<string> | null>(null);
+  const [khoList, setKhoList] = useState<string[]>([]);
+  const [selectedKho, setSelectedKho] = useState<string>("");
 
   // Trạng thái UI
   const [showConfig, setShowConfig] = useState(false);
@@ -342,26 +344,34 @@ function ShopeeAdminContent() {
     if (token) void loadSnapshot(token);
   }, [token, loadSnapshot]);
 
-  // Nạp tập số kho Song Khoa (Shopee chỉ bán kho này).
-  const loadSongKhoa = useCallback(async (tk?: string) => {
+  // Nạp danh sách kho + tập số của kho đang chọn (mặc định Song Khoa).
+  const loadKho = useCallback(async (tk?: string, kho?: string) => {
     if (!tk) return;
+    setKhoDigits(null);
     try {
-      const data = await api<{ digits: string[] }>("/api/admin/shopee/song-khoa-ids", {}, tk);
-      setSongKhoaDigits(new Set(data.digits));
+      const qs = kho ? `?kho=${encodeURIComponent(kho)}` : "";
+      const data = await api<{ khoList: string[]; selectedKho: string; digits: string[] }>(
+        `/api/admin/shopee/song-khoa-ids${qs}`,
+        {},
+        tk,
+      );
+      if (data.khoList.length > 0) setKhoList(data.khoList);
+      if (data.selectedKho) setSelectedKho(data.selectedKho);
+      setKhoDigits(new Set(data.digits));
     } catch (err) {
-      toast.error(`Không lấy được kho Song Khoa: ${(err as Error).message}`);
-      setSongKhoaDigits(new Set());
+      toast.error(`Không lấy được kho: ${(err as Error).message}`);
+      setKhoDigits(new Set());
     }
   }, []);
 
   useEffect(() => {
-    if (token) void loadSongKhoa(token);
-  }, [token, loadSongKhoa]);
+    if (token) void loadKho(token);
+  }, [token, loadKho]);
 
   // Bộ lọc SIM — CHỈ số thuộc kho Song Khoa (Shopee chỉ bán kho này).
   const filtered = useMemo(() => {
-    if (!songKhoaDigits) return [];
-    let list = allSims.filter((s) => s.price > 0 && songKhoaDigits.has(s.rawDigits));
+    if (!khoDigits) return [];
+    let list = allSims.filter((s) => s.price > 0 && khoDigits.has(s.rawDigits));
     if (network !== "all") list = list.filter((s) => s.network === network);
     if (tagFilter !== "all") list = list.filter((s) => s.tags?.includes(tagFilter));
     if (priceMax !== "all") {
@@ -377,7 +387,7 @@ function ShopeeAdminContent() {
     if (sortBy === "price-asc") list = [...list].sort((a, b) => a.price - b.price);
     else if (sortBy === "price-desc") list = [...list].sort((a, b) => b.price - a.price);
     return list;
-  }, [allSims, songKhoaDigits, network, tagFilter, priceMax, search, selected, showOnlySelected, sortBy]);
+  }, [allSims, khoDigits, network, tagFilter, priceMax, search, selected, showOnlySelected, sortBy]);
 
   // Các loại số đẹp có trong kho (để lọc: Ngũ quý, Tứ quý, …)
   const allTags = useMemo(() => {
@@ -639,7 +649,7 @@ function ShopeeAdminContent() {
         display: sim?.displayNumber || d,
         price: sim && sim.price > 0 ? String(sim.price) : "",
         inKho: !!sim,
-        inSongKhoa: songKhoaDigits ? songKhoaDigits.has(d) : false,
+        inSongKhoa: khoDigits ? khoDigits.has(d) : false,
       });
     }
     if (rows.length === 0) {
@@ -1148,9 +1158,6 @@ function ShopeeAdminContent() {
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <ShoppingCart className="h-4 w-4 text-gold" /> Chọn lô SIM để đồng bộ
-              <Badge variant="outline" className="ml-1 border-gold/40 bg-gold/10 text-gold">
-                Kho Song Khoa{songKhoaDigits ? ` · ${songKhoaDigits.size.toLocaleString("vi-VN")} số` : ""}
-              </Badge>
               <Badge variant="outline" className="ml-1 text-primary">
                 {selected.size} đã chọn
               </Badge>
@@ -1166,6 +1173,32 @@ function ShopeeAdminContent() {
                 </Button>
               )}
             </div>
+          </div>
+
+          {/* Kho nguồn: chỉ lấy số của kho này (mặc định Song Khoa — Shopee bán kho này) */}
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="shrink-0 text-xs text-muted-foreground">Kho nguồn:</span>
+            <Select
+              value={selectedKho}
+              onValueChange={(v) => {
+                setSelectedKho(v);
+                void loadKho(token, v);
+              }}
+            >
+              <SelectTrigger className="h-9 w-full sm:w-[280px]">
+                <SelectValue placeholder="Chọn kho…" />
+              </SelectTrigger>
+              <SelectContent>
+                {khoList.map((k) => (
+                  <SelectItem key={k} value={k}>
+                    {k}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Badge variant="outline" className="border-gold/40 bg-gold/10 text-gold">
+              {khoDigits ? `${khoDigits.size.toLocaleString("vi-VN")} số còn hàng` : "đang tải…"}
+            </Badge>
           </div>
 
           {/* Listing đích: các số đã chọn sẽ thành biến thể trong listing này */}
@@ -1239,8 +1272,8 @@ function ShopeeAdminContent() {
                           <td className="whitespace-nowrap px-2 py-1 font-medium text-foreground">
                             {r.digits}
                             {!r.inSongKhoa && (
-                              <span className="ml-1 rounded bg-amber-500/15 px-1 text-[10px] text-amber-600" title="Không thuộc kho Song Khoa">
-                                ≠Song Khoa
+                              <span className="ml-1 rounded bg-amber-500/15 px-1 text-[10px] text-amber-600" title={`Không thuộc kho đang chọn${selectedKho ? ` (${selectedKho})` : ""}`}>
+                                ≠kho
                               </span>
                             )}
                             {!r.inKho && (
@@ -1408,7 +1441,7 @@ function ShopeeAdminContent() {
             </label>
           </div>
 
-          {simsLoading || !songKhoaDigits ? (
+          {simsLoading || !khoDigits ? (
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="h-16 animate-pulse rounded-lg bg-muted" />
