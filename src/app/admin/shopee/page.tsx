@@ -74,6 +74,14 @@ interface BulkSyncResult {
   itemName: string;
 }
 
+interface PasteRow {
+  digits: string;      // số thật (10 chữ số) — value
+  display: string;     // nhãn hiển thị (có chấm) — duyệt/sửa tay
+  price: string;       // giá (chuỗi để nhập)
+  inKho: boolean;      // có trong kho (Sheet) không → auto điền giá/nhãn
+  inSongKhoa: boolean; // có thuộc kho Song Khoa không
+}
+
 interface ShopeeListing {
   item_id: number;
   item_name: string;
@@ -112,6 +120,23 @@ const HIEN_THI_TRANG_THAI: Record<string, string> = {
 };
 
 const VISIBLE_LIMIT = 300;
+
+// Chuẩn hoá 1 số về 10 chữ số bắt đầu bằng 0 (bỏ chấm/space, xử 84.., 9 số).
+const normSimDigits = (raw: string): string => {
+  let d = String(raw ?? "").replace(/\D/g, "");
+  if (d.length === 11 && d.startsWith("84")) d = "0" + d.slice(2);
+  if (d.length === 9) d = "0" + d;
+  return d;
+};
+
+// Nhãn giá của 1 listing để hiện trong dropdown (khoảng giá các biến thể).
+const listingPriceLabel = (it: ShopeeListing): string => {
+  const prices = (it.variants ?? []).map((v) => v.price).filter((p) => p > 0);
+  if (prices.length === 0) return it.price > 0 ? formatPrice(it.price) : "";
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  return min === max ? formatPrice(min) : `${formatPrice(min)}–${formatPrice(max)}`;
+};
 
 const api = async <T,>(path: string, init?: RequestInit, token?: string): Promise<T> => {
   const res = await fetch(path, {
@@ -219,6 +244,10 @@ function ShopeeAdminContent() {
   const [syncing, setSyncing] = useState(false);
   const [syncTargetItemId, setSyncTargetItemId] = useState<string>("");
   const [bulkResult, setBulkResult] = useState<BulkSyncResult | null>(null);
+  // Dán số → duyệt (chấm + giá) → submit
+  const [pasteText, setPasteText] = useState("");
+  const [pasteRows, setPasteRows] = useState<PasteRow[]>([]);
+  const [pasteSubmitting, setPasteSubmitting] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
 
   // Kéo toàn bộ listing từ Shopee
@@ -371,6 +400,12 @@ function ShopeeAdminContent() {
   );
 
   const visibleSims = useMemo(() => filtered.slice(0, VISIBLE_LIMIT), [filtered]);
+  // Tra số theo chữ số (để dán số → lấy giá/nhãn từ kho).
+  const simByDigits = useMemo(() => {
+    const m = new Map<string, NormalizedSIM>();
+    for (const s of allSims) if (s.rawDigits) m.set(s.rawDigits, s);
+    return m;
+  }, [allSims]);
   const itemBySimId = useMemo(() => {
     const m = new Map<string, ItemRow>();
     for (const it of items) m.set(it.sim_id, it);
@@ -587,6 +622,72 @@ function ShopeeAdminContent() {
       toast.error((err as Error).message);
     } finally {
       setSyncing(false);
+    }
+  };
+
+  // ── Dán số → duyệt (chấm + giá) → đẩy ──
+  const handleParsePaste = () => {
+    const tokens = pasteText.split(/[\s,;]+/).map((t) => normSimDigits(t)).filter((d) => d.length >= 10);
+    const seen = new Set<string>();
+    const rows: PasteRow[] = [];
+    for (const d of tokens) {
+      if (seen.has(d)) continue;
+      seen.add(d);
+      const sim = simByDigits.get(d);
+      rows.push({
+        digits: d,
+        display: sim?.displayNumber || d,
+        price: sim && sim.price > 0 ? String(sim.price) : "",
+        inKho: !!sim,
+        inSongKhoa: songKhoaDigits ? songKhoaDigits.has(d) : false,
+      });
+    }
+    if (rows.length === 0) {
+      toast.error("Không đọc được số nào (mỗi số cần đủ 10 chữ số).");
+      return;
+    }
+    setPasteRows(rows);
+  };
+
+  const updatePasteRow = (i: number, patch: Partial<PasteRow>) => {
+    setPasteRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+  };
+  const removePasteRow = (i: number) => setPasteRows((prev) => prev.filter((_, idx) => idx !== i));
+
+  const handlePasteSubmit = async () => {
+    if (!token) return;
+    const targetId = Number(syncTargetItemId);
+    if (!targetId) {
+      toast.error("Chọn listing đích trước khi đẩy.");
+      return;
+    }
+    const targetName = pulled?.items.find((it) => it.item_id === targetId)?.item_name ?? `#${targetId}`;
+    const sims = pasteRows
+      .map((r) => ({ label: r.digits, display: r.display.trim() || r.digits, price: Number(r.price.replace(/\D/g, "")) }))
+      .filter((s) => s.label && s.price > 0);
+    if (sims.length === 0) {
+      toast.error("Chưa có số nào đủ giá để đẩy.");
+      return;
+    }
+    setPasteSubmitting(true);
+    setBulkResult(null);
+    try {
+      const result = await api<{ added: number; failed?: number; skipped: number; total: number }>(
+        "/api/admin/shopee/items/add-models-bulk",
+        { method: "POST", body: JSON.stringify({ itemId: targetId, sims }) },
+        token,
+      );
+      const failed = result.failed ?? 0;
+      setBulkResult({ added: result.added, failed, skipped: result.skipped, total: result.total, itemName: targetName });
+      if (failed > 0) toast.warning(`Thêm ${result.added} số vào "${targetName}" · lỗi ${failed} · bỏ qua ${result.skipped} trùng.`);
+      else toast.success(`Đã thêm ${result.added} số vào "${targetName}" · bỏ qua ${result.skipped} trùng.`);
+      setPasteRows([]);
+      setPasteText("");
+      await handlePullFromShopee();
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setPasteSubmitting(false);
     }
   };
 
@@ -1079,7 +1180,7 @@ function ShopeeAdminContent() {
                   .filter((it) => it.variants && it.variants.length > 0)
                   .map((it) => (
                     <SelectItem key={it.item_id} value={String(it.item_id)}>
-                      {it.item_name} ({it.variants?.length} số)
+                      {it.item_name}{listingPriceLabel(it) ? ` · ${listingPriceLabel(it)}` : ""} ({it.variants?.length} số)
                     </SelectItem>
                   ))}
               </SelectContent>
@@ -1088,6 +1189,105 @@ function ShopeeAdminContent() {
               <span className="text-xs text-gold">
                 Chưa có danh sách listing — bấm "Lấy danh sách từ Shopee" ở mục dưới trước.
               </span>
+            )}
+          </div>
+
+          {/* ── Dán số nhanh → duyệt chấm + giá → đẩy ── */}
+          <div className="mb-4 rounded-lg border border-primary/30 bg-primary/5 p-3">
+            <p className="mb-2 text-xs font-semibold text-foreground">⚡ Dán số nhanh</p>
+            {pasteRows.length === 0 ? (
+              <>
+                <textarea
+                  value={pasteText}
+                  onChange={(e) => setPasteText(e.target.value)}
+                  rows={3}
+                  placeholder="Dán số vào đây — mỗi số 1 dòng hoặc cách nhau dấu phẩy/space. VD: 0777774526, 0777776946…"
+                  className="w-full rounded-md border border-border bg-background p-2 text-sm text-foreground outline-none focus:border-primary/50"
+                />
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <Button size="sm" onClick={handleParsePaste} disabled={!pasteText.trim()}>
+                    Duyệt số <ArrowRight className="h-4 w-4" />
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    Tự lấy giá + nhãn có chấm từ kho; A Khoa duyệt lại rồi đẩy.
+                  </span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    {pasteRows.length} số — duyệt chấm &amp; giá rồi đẩy vào listing đã chọn ở trên.
+                  </span>
+                  <Button size="sm" variant="ghost" onClick={() => setPasteRows([])}>
+                    Dán lại
+                  </Button>
+                </div>
+                <div className="max-h-80 overflow-y-auto rounded-md border border-border">
+                  <table className="w-full text-left text-xs">
+                    <thead className="sticky top-0 bg-card">
+                      <tr className="text-muted-foreground">
+                        <th className="px-2 py-1.5 font-medium">Số</th>
+                        <th className="px-2 py-1.5 font-medium">Hiển thị (có chấm)</th>
+                        <th className="px-2 py-1.5 font-medium">Giá</th>
+                        <th className="px-2 py-1.5 font-medium"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pasteRows.map((r, i) => (
+                        <tr key={r.digits} className="border-t border-border/50">
+                          <td className="whitespace-nowrap px-2 py-1 font-medium text-foreground">
+                            {r.digits}
+                            {!r.inSongKhoa && (
+                              <span className="ml-1 rounded bg-amber-500/15 px-1 text-[10px] text-amber-600" title="Không thuộc kho Song Khoa">
+                                ≠Song Khoa
+                              </span>
+                            )}
+                            {!r.inKho && (
+                              <span className="ml-1 rounded bg-red-500/15 px-1 text-[10px] text-red-600" title="Không có trong kho">
+                                ≠kho
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-2 py-1">
+                            <Input
+                              value={r.display}
+                              onChange={(e) => updatePasteRow(i, { display: e.target.value })}
+                              className="h-7 text-xs"
+                              placeholder="vd 076.55555.94"
+                            />
+                          </td>
+                          <td className="px-2 py-1">
+                            <Input
+                              value={r.price}
+                              onChange={(e) => updatePasteRow(i, { price: e.target.value })}
+                              className="h-7 w-28 text-xs"
+                              placeholder="giá"
+                            />
+                          </td>
+                          <td className="px-2 py-1 text-right">
+                            <button
+                              type="button"
+                              onClick={() => removePasteRow(i)}
+                              className="px-1 text-muted-foreground hover:text-red-600"
+                              title="Bỏ số này"
+                            >
+                              ✕
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <Button size="sm" onClick={() => void handlePasteSubmit()} disabled={pasteSubmitting || !syncTargetItemId}>
+                    {pasteSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                    {pasteSubmitting ? "Đang đẩy…" : `Đẩy ${pasteRows.length} số vào listing`}
+                  </Button>
+                  {!syncTargetItemId && <span className="text-xs text-gold">Chọn listing đích ở trên trước.</span>}
+                </div>
+              </>
             )}
           </div>
 
