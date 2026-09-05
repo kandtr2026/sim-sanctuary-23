@@ -23,11 +23,18 @@ export async function POST(req: NextRequest) {
 
     const itemId = parseIntSafe(body.itemId);
     const label = String(body.label ?? "").trim();
+    const display = String(body.display ?? "").trim();
     const price = Number(body.price ?? 0);
     const stock = Math.max(0, Number(body.stock ?? 1));
 
+    // Chữ số sạch = GIÁ TRỊ THẬT của SIM: dùng để khớp kho, làm model_sku, chống trùng.
+    // Dấu chấm chỉ được nằm ở nhãn hiển thị (optionLabel), tuyệt đối không lọt vào đây.
+    const rawDigits = (label || display).replace(/\D/g, "");
+    // Nhãn hiển thị trên Shopee: ưu tiên bản có chấm A Khoa nhập; không có thì dùng số đã nhập.
+    const optionLabel = display || label;
+
     if (!itemId) return jsonNoStore({ error: "Thiếu itemId" }, 400);
-    if (!label) return jsonNoStore({ error: "Thiếu label (số SIM)" }, 400);
+    if (!rawDigits) return jsonNoStore({ error: "Thiếu số SIM" }, 400);
     if (price <= 0) return jsonNoStore({ error: "Giá phải > 0" }, 400);
 
     const creds = await getCreds();
@@ -41,12 +48,12 @@ export async function POST(req: NextRequest) {
     const currentTier = (current?.tier_variation ?? []) as Record<string, unknown>[];
     const currentModels = (current?.model ?? []) as Record<string, unknown>[];
 
-    // Bước 2: nếu label đã tồn tại → báo lỗi trước
+    // Bước 2: nếu số (theo chữ số, bỏ qua chấm) đã tồn tại → báo lỗi trước
     for (const tv of currentTier) {
       const opts = (tv?.option_list ?? []) as Record<string, unknown>[];
       for (const o of opts) {
-        if (String(o?.option ?? "") === label) {
-          return jsonNoStore({ error: `Số "${label}" đã tồn tại trong biến thể của listing này` }, 400);
+        if (String(o?.option ?? "").replace(/\D/g, "") === rawDigits) {
+          return jsonNoStore({ error: `Số "${optionLabel}" đã tồn tại trong biến thể của listing này` }, 400);
         }
       }
     }
@@ -69,7 +76,7 @@ export async function POST(req: NextRequest) {
       const opts = ((tv?.option_list ?? []) as Record<string, unknown>[]).map((o) => ({
         option: String(o?.option ?? ""),
       }));
-      if (ti === 0) opts.push({ option: label }); // tier đầu thường là "Chọn số"
+      if (ti === 0) opts.push({ option: optionLabel }); // tier đầu thường là "Chọn số" — nhãn có chấm để dễ đọc
       return { name: String(tv?.name ?? ""), option_list: opts };
     });
 
@@ -90,7 +97,7 @@ export async function POST(req: NextRequest) {
     await client.addModel(itemIdNum, {
       tier_index: [newOptionIndex],
       original_price: price,
-      model_sku: label,
+      model_sku: rawDigits, // SKU dùng chữ số sạch, không dính chấm
       seller_stock: [{ stock, location_id: "" }],
     });
 

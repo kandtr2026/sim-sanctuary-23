@@ -231,7 +231,7 @@ function ShopeeAdminContent() {
   const [disabling, setDisabling] = useState(false);
   // Thêm số mới vào listing
   const [addItemId, setAddItemId] = useState<number | null>(null);
-  const [addForm, setAddForm] = useState({ label: "", price: "" });
+  const [addForm, setAddForm] = useState({ label: "", display: "", price: "" });
   const [adding, setAdding] = useState(false);
   // Chọn nguồn khi chọn số: 'tong' (Sheet tổng, có Kho con) | 're' (Sheet giá rẻ)
   const [nguonSo, setNguonSo] = useState<"tong" | "re">("tong");
@@ -567,7 +567,8 @@ function ShopeeAdminContent() {
   const handleAddModel = async () => {
     if (!token || addItemId === null) return;
     const price = Number(addForm.price.replace(/[^\d]/g, ""));
-    if (!addForm.label.trim() || !price || price <= 0) {
+    const digits = (addForm.label || addForm.display).replace(/\D/g, "");
+    if (!digits || !price || price <= 0) {
       toast.error("Nhập đủ số SIM (dạng 0xxxxxxxxx) và giá.");
       return;
     }
@@ -580,15 +581,16 @@ function ShopeeAdminContent() {
           body: JSON.stringify({
             itemId: addItemId,
             label: addForm.label.trim(),
+            display: addForm.display.trim(),
             price,
             stock: 1,
           }),
         },
         token,
       );
-      toast.success(`Đã thêm số ${addForm.label.trim()} vào listing. Tổng biến thể: ${result.totalModels}`);
+      toast.success(`Đã thêm số ${addForm.display.trim() || addForm.label.trim()} vào listing. Tổng biến thể: ${result.totalModels}`);
       setAddItemId(null);
-      setAddForm({ label: "", price: "" });
+      setAddForm({ label: "", display: "", price: "" });
       await handlePullFromShopee();
     } catch (err) {
       toast.error((err as Error).message);
@@ -1280,7 +1282,7 @@ function ShopeeAdminContent() {
                             className="gap-1 text-muted-foreground"
                             onClick={() => {
                               setAddItemId(row.item_id);
-                              setAddForm({ label: "", price: "" });
+                              setAddForm({ label: "", display: "", price: "" });
                             }}
                             title="Thêm số SIM mới vào biến thể"
                           >
@@ -1375,7 +1377,7 @@ function ShopeeAdminContent() {
               </div>
               <div className="flex-1 overflow-y-auto p-5">
                 {/* ── Nhập tay ── */}
-                <div className="mb-4 grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1">
                     <Label htmlFor="sim-label">Số SIM (10 số)</Label>
                     <Input
@@ -1383,6 +1385,15 @@ function ShopeeAdminContent() {
                       value={addForm.label}
                       onChange={(e) => setAddForm({ ...addForm, label: e.target.value })}
                       placeholder="0767777770"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="sim-display">Số hiển thị (có chấm)</Label>
+                    <Input
+                      id="sim-display"
+                      value={addForm.display}
+                      onChange={(e) => setAddForm({ ...addForm, display: e.target.value })}
+                      placeholder="076.55555.94 — để trống = dùng số bên trái"
                     />
                   </div>
                   <div className="space-y-1">
@@ -1395,6 +1406,9 @@ function ShopeeAdminContent() {
                     />
                   </div>
                 </div>
+                <p className="mb-4 mt-1.5 text-xs text-muted-foreground">
+                  Dấu chấm chỉ để hiển thị cho dễ đọc số đẹp — số thật (khớp kho, mã SKU trên Shopee) vẫn tính theo chữ số nên không làm sai giá trị SIM.
+                </p>
 
                 {/* ── Chọn từ kho số ── */}
                 <div className="rounded-lg border border-border bg-muted/20 p-3">
@@ -1483,7 +1497,7 @@ function ShopeeAdminContent() {
                             <div
                               key={s.id}
                               className="flex cursor-pointer items-center justify-between gap-2 rounded border border-border/60 px-2.5 py-1.5 text-xs transition-colors hover:bg-primary/10"
-                              onClick={() => setAddForm({ label: s.rawDigits, price: String(s.price) })}
+                              onClick={() => setAddForm({ label: s.rawDigits, display: s.displayNumber || s.rawDigits, price: String(s.price) })}
                             >
                               <span className="min-w-0 flex-1 truncate font-medium text-foreground">{s.displayNumber}</span>
                               <span className="shrink-0 text-muted-foreground">{s.price.toLocaleString("vi-VN")}₫</span>
@@ -1524,7 +1538,7 @@ function ShopeeAdminContent() {
                             <div
                               key={s.id}
                               className="flex cursor-pointer items-center justify-between gap-2 rounded border border-border/60 px-2.5 py-1.5 text-xs transition-colors hover:bg-primary/10"
-                              onClick={() => setAddForm({ label: s.rawDigits, price: String(s.price) })}
+                              onClick={() => setAddForm({ label: s.rawDigits, display: s.displayNumber || s.rawDigits, price: String(s.price) })}
                             >
                               <span className="min-w-0 flex-1 truncate font-medium text-foreground">
                                 {s.displayNumber || s.rawDigits}
