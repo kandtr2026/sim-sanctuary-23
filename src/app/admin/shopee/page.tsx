@@ -207,6 +207,8 @@ function ShopeeAdminContent() {
   const [settings, setSettings] = useState<ShopeeSettings | null>(null);
   const [items, setItems] = useState<ItemRow[]>([]);
   const [loading, setLoading] = useState(true);
+  // Shopee chỉ bán kho Song Khoa → tập raw_digits của kho này (đọc từ bảng sims).
+  const [songKhoaDigits, setSongKhoaDigits] = useState<Set<string> | null>(null);
 
   // Trạng thái UI
   const [showConfig, setShowConfig] = useState(false);
@@ -310,9 +312,26 @@ function ShopeeAdminContent() {
     if (token) void loadSnapshot(token);
   }, [token, loadSnapshot]);
 
-  // Bộ lọc SIM
+  // Nạp tập số kho Song Khoa (Shopee chỉ bán kho này).
+  const loadSongKhoa = useCallback(async (tk?: string) => {
+    if (!tk) return;
+    try {
+      const data = await api<{ digits: string[] }>("/api/admin/shopee/song-khoa-ids", {}, tk);
+      setSongKhoaDigits(new Set(data.digits));
+    } catch (err) {
+      toast.error(`Không lấy được kho Song Khoa: ${(err as Error).message}`);
+      setSongKhoaDigits(new Set());
+    }
+  }, []);
+
+  useEffect(() => {
+    if (token) void loadSongKhoa(token);
+  }, [token, loadSongKhoa]);
+
+  // Bộ lọc SIM — CHỈ số thuộc kho Song Khoa (Shopee chỉ bán kho này).
   const filtered = useMemo(() => {
-    let list = allSims.filter((s) => s.price > 0);
+    if (!songKhoaDigits) return [];
+    let list = allSims.filter((s) => s.price > 0 && songKhoaDigits.has(s.rawDigits));
     if (network !== "all") list = list.filter((s) => s.network === network);
     if (tagFilter !== "all") list = list.filter((s) => s.tags?.includes(tagFilter));
     if (priceMax !== "all") {
@@ -328,7 +347,7 @@ function ShopeeAdminContent() {
     if (sortBy === "price-asc") list = [...list].sort((a, b) => a.price - b.price);
     else if (sortBy === "price-desc") list = [...list].sort((a, b) => b.price - a.price);
     return list;
-  }, [allSims, network, tagFilter, priceMax, search, selected, showOnlySelected, sortBy]);
+  }, [allSims, songKhoaDigits, network, tagFilter, priceMax, search, selected, showOnlySelected, sortBy]);
 
   // Các loại số đẹp có trong kho (để lọc: Ngũ quý, Tứ quý, …)
   const allTags = useMemo(() => {
@@ -1022,6 +1041,9 @@ function ShopeeAdminContent() {
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <ShoppingCart className="h-4 w-4 text-gold" /> Chọn lô SIM để đồng bộ
+              <Badge variant="outline" className="ml-1 border-gold/40 bg-gold/10 text-gold">
+                Kho Song Khoa{songKhoaDigits ? ` · ${songKhoaDigits.size.toLocaleString("vi-VN")} số` : ""}
+              </Badge>
               <Badge variant="outline" className="ml-1 text-primary">
                 {selected.size} đã chọn
               </Badge>
@@ -1180,7 +1202,7 @@ function ShopeeAdminContent() {
             </label>
           </div>
 
-          {simsLoading ? (
+          {simsLoading || !songKhoaDigits ? (
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="h-16 animate-pulse rounded-lg bg-muted" />
