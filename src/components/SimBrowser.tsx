@@ -504,11 +504,15 @@ const SimBrowser = ({
               </div>
             </div>
 
-            {/* Search guide */}
-            <div className="mb-4 space-y-1 text-xs leading-relaxed text-muted-foreground">
-              <p>Tìm sim có số 6789, Quý khách gõ <code className="rounded bg-muted px-1">6789</code></p>
-              <p>Tìm sim có đầu 090 đuôi 6666 hãy gõ <code className="rounded bg-muted px-1">090*6666</code></p>
-              <p>Tìm sim bắt đầu bằng 0909 đuôi bất kỳ, hãy gõ: <code className="rounded bg-muted px-1">0909*</code></p>
+            {/* Search guide — gõ mẫu chia 2 cột cho gọn, dấu * = phần bất kỳ */}
+            <div className="mb-4 text-xs leading-relaxed text-muted-foreground">
+              <p className="mb-1 font-medium text-foreground/80">Mẹo gõ nhanh <span className="font-normal">(dấu <code className="rounded bg-muted px-1">*</code> = phần bất kỳ)</span></p>
+              <div className="grid grid-cols-1 gap-x-5 gap-y-1 sm:grid-cols-2">
+                <p><code className="rounded bg-muted px-1">6789</code> — sim chứa số 6789</p>
+                <p><code className="rounded bg-muted px-1">0909*</code> — bắt đầu bằng 0909</p>
+                <p><code className="rounded bg-muted px-1">090*6666</code> — đầu 090, đuôi 6666</p>
+                <p><code className="rounded bg-muted px-1">07*555*</code> — đầu 07, giữa có 555</p>
+              </div>
             </div>
 
             <ActiveFilterChips
