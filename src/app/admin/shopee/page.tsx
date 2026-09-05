@@ -345,8 +345,26 @@ function ShopeeAdminContent() {
   }, [token, loadSnapshot]);
 
   // Nạp danh sách kho + tập số của kho đang chọn (mặc định Song Khoa).
-  const loadKho = useCallback(async (tk?: string, kho?: string) => {
+  // Cache ở sessionStorage (10 phút) để vào lại/đổi kho là tức thì, khỏi quét lại.
+  const loadKho = useCallback(async (tk?: string, kho?: string, force = false) => {
     if (!tk) return;
+    const cacheKey = `sd_kho_${kho ?? "__default__"}`;
+    if (!force && typeof window !== "undefined") {
+      try {
+        const raw = sessionStorage.getItem(cacheKey);
+        if (raw) {
+          const c = JSON.parse(raw) as { t: number; khoList: string[]; selectedKho: string; digits: string[] };
+          if (Date.now() - c.t < 10 * 60 * 1000) {
+            if (c.khoList.length > 0) setKhoList(c.khoList);
+            if (c.selectedKho) setSelectedKho(c.selectedKho);
+            setKhoDigits(new Set(c.digits));
+            return;
+          }
+        }
+      } catch {
+        /* cache hỏng thì bỏ qua, tải lại */
+      }
+    }
     setKhoDigits(null);
     try {
       const qs = kho ? `?kho=${encodeURIComponent(kho)}` : "";
@@ -358,6 +376,11 @@ function ShopeeAdminContent() {
       if (data.khoList.length > 0) setKhoList(data.khoList);
       if (data.selectedKho) setSelectedKho(data.selectedKho);
       setKhoDigits(new Set(data.digits));
+      try {
+        sessionStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), ...data }));
+      } catch {
+        /* hết quota thì thôi */
+      }
     } catch (err) {
       toast.error(`Không lấy được kho: ${(err as Error).message}`);
       setKhoDigits(new Set());
@@ -951,7 +974,10 @@ function ShopeeAdminContent() {
               variant="outline"
               size="sm"
               className="px-2.5 sm:px-3"
-              onClick={() => void loadStatus(token)}
+              onClick={() => {
+                void loadStatus(token);
+                void loadKho(token, selectedKho || undefined, true);
+              }}
             >
               <RefreshCw className="h-4 w-4" />
               <span className="hidden sm:inline">Làm mới</span>
