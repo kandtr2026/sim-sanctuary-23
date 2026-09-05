@@ -246,6 +246,8 @@ function ShopeeAdminContent() {
   // Bộ lọc + chọn lô
   const [network, setNetwork] = useState<string>("all");
   const [priceMax, setPriceMax] = useState<string>("all");
+  const [tagFilter, setTagFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">("default");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showOnlySelected, setShowOnlySelected] = useState(false);
@@ -312,6 +314,7 @@ function ShopeeAdminContent() {
   const filtered = useMemo(() => {
     let list = allSims.filter((s) => s.price > 0);
     if (network !== "all") list = list.filter((s) => s.network === network);
+    if (tagFilter !== "all") list = list.filter((s) => s.tags?.includes(tagFilter));
     if (priceMax !== "all") {
       const max = Number(priceMax);
       list = list.filter((s) => s.price <= max);
@@ -322,8 +325,30 @@ function ShopeeAdminContent() {
       if (digits) list = list.filter((s) => s.rawDigits.includes(digits));
     }
     if (showOnlySelected) list = list.filter((s) => selected.has(s.id));
+    if (sortBy === "price-asc") list = [...list].sort((a, b) => a.price - b.price);
+    else if (sortBy === "price-desc") list = [...list].sort((a, b) => b.price - a.price);
     return list;
-  }, [allSims, network, priceMax, search, selected, showOnlySelected]);
+  }, [allSims, network, tagFilter, priceMax, search, selected, showOnlySelected, sortBy]);
+
+  // Các loại số đẹp có trong kho (để lọc: Ngũ quý, Tứ quý, …)
+  const allTags = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of allSims) for (const t of s.tags ?? []) set.add(t);
+    return Array.from(set);
+  }, [allSims]);
+
+  // Chọn N số RẺ NHẤT trong danh sách đang lọc (không phụ thuộc kiểu sắp xếp).
+  const selectCheapest = useCallback(
+    (n: number) => {
+      const cheapest = [...filtered].sort((a, b) => a.price - b.price).slice(0, n);
+      setSelected((prev) => {
+        const next = new Set(prev);
+        for (const s of cheapest) next.add(s.id);
+        return next;
+      });
+    },
+    [filtered],
+  );
 
   const visibleSims = useMemo(() => filtered.slice(0, VISIBLE_LIMIT), [filtered]);
   const itemBySimId = useMemo(() => {
@@ -1102,10 +1127,33 @@ function ShopeeAdminContent() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={tagFilter} onValueChange={setTagFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Loại số đẹp" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Mọi loại số</SelectItem>
+                {allTags.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sắp xếp" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Sắp xếp: mặc định</SelectItem>
+                <SelectItem value="price-asc">Giá: rẻ → đắt</SelectItem>
+                <SelectItem value="price-desc">Giá: đắt → rẻ</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Danh sách SIM */}
-          <div className="mb-3 flex items-center gap-3 text-xs text-muted-foreground">
+          <div className="mb-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
             <label className="flex cursor-pointer items-center gap-1.5">
               <input
                 type="checkbox"
@@ -1114,6 +1162,14 @@ function ShopeeAdminContent() {
               />
               Chọn tất cả ({filtered.length} SIM khớp bộ lọc)
             </label>
+            <button
+              type="button"
+              onClick={() => selectCheapest(30)}
+              disabled={filtered.length === 0}
+              className="rounded border border-primary/40 bg-primary/5 px-2 py-1 font-medium text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
+            >
+              + Chọn 30 rẻ nhất
+            </button>
             <label className="flex cursor-pointer items-center gap-1.5">
               <input
                 type="checkbox"
