@@ -619,16 +619,12 @@ export const searchSIM = (sim: NormalizedSIM, query: string): boolean => {
     return sim.rawDigits.startsWith(prefix);
   }
 
-  // Prefix + Suffix (prefix*suffix)
+  // Wildcard tổng quát: '*' khớp mọi ký tự (kể cả rỗng), NEO HAI ĐẦU — khớp y hệt
+  // LIKE của nhánh DB (querySimsFromDb) để hai nhánh không bao giờ lệch kết quả.
+  // Xử lý đúng mọi pattern: `090*6666`, `0909*`, `*6666` lẫn nhiều sao `07*555*`.
   if (cleanQuery.includes('*')) {
-    const parts = cleanQuery.split('*').filter(Boolean);
-    if (parts.length === 2) {
-      return sim.rawDigits.startsWith(parts[0]) && sim.rawDigits.endsWith(parts[1]);
-    }
-    // Multiple wildcards - try best effort
-    if (parts.length > 2) {
-      return parts.every(part => sim.rawDigits.includes(part));
-    }
+    const digits = cleanQuery.replace(/[^\d*]/g, '');
+    return new RegExp('^' + digits.split('*').join('.*') + '$').test(sim.rawDigits);
   }
 
   // Contains (default)

@@ -396,19 +396,13 @@ export async function querySimsFromDb(
     if (digitsOnly.length === 10 && !search.includes('*')) {
       and.push(`raw_digits=eq.${digitsOnly}`);
     } else if (search.includes('*')) {
-      const startsWithStar = search.startsWith('*');
-      const endsWithStar = search.endsWith('*');
-      const parts = search.split('*').filter(Boolean);
-
-      if (endsWithStar && !startsWithStar && parts.length >= 1) {
-        and.push(`raw_digits=like.${parts[0]}*`);
-      } else if (startsWithStar && !endsWithStar && parts.length >= 1) {
-        and.push(`raw_digits=like.*${parts[parts.length - 1]}`);
-      } else if (!startsWithStar && !endsWithStar && parts.length === 2) {
-        and.push(`raw_digits=like.${parts[0]}*${parts[1]}`);
-      } else {
-        and.push(`raw_digits=like.*${digitsOnly}*`);
-      }
+      // '*' là wildcard của PostgREST LIKE (thay cho '%'), NEO HAI ĐẦU như SQL
+      // LIKE. Giữ nguyên thứ tự mọi cụm số và mọi vị trí sao nên xử lý ĐÚNG cả
+      // pattern nhiều sao như `07*555*` (đầu 07, có 555 ở giữa, đuôi bất kỳ) —
+      // bản cũ chỉ lấy cụm đầu "07" rồi bỏ luôn "555", trả về mọi số 07xx. Gộp
+      // sao liền nhau để không sinh `**`; `search` đã lọc còn [0-9*] nên an toàn
+      // với logic tree của PostgREST.
+      and.push(`raw_digits=like.${search.replace(/\*{2,}/g, '*')}`);
     } else {
       and.push(`raw_digits=like.*${digitsOnly}*`);
     }
