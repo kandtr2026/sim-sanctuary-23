@@ -232,7 +232,7 @@ function ShopeeAdminContent() {
   const [addForm, setAddForm] = useState({ label: "", display: "", price: "" });
   const [adding, setAdding] = useState(false);
   // Sửa biến thể tại chỗ (đổi nhãn hiển thị / đổi value / đổi giá)
-  const [editForm, setEditForm] = useState<{ itemId: number; modelId: number; label: string; display: string; price: string } | null>(null);
+  const [editForm, setEditForm] = useState<{ itemId: number; modelId: number; originalLabel: string; label: string; display: string; price: string } | null>(null);
   const [editing, setEditing] = useState(false);
   // Chọn nguồn khi chọn số: 'tong' (Sheet tổng, có Kho con) | 're' (Sheet giá rẻ)
   const [nguonSo, setNguonSo] = useState<"tong" | "re">("tong");
@@ -676,6 +676,7 @@ function ShopeeAdminContent() {
           body: JSON.stringify({
             itemId: editForm.itemId,
             modelId: editForm.modelId,
+            currentLabel: editForm.originalLabel,
             label: editForm.label.trim(),
             display: editForm.display.trim(),
             price: price > 0 ? price : 0,
@@ -1488,6 +1489,7 @@ function ShopeeAdminContent() {
                                             setEditForm({
                                               itemId: row.item_id,
                                               modelId: v.model_id,
+                                              originalLabel: (v.label || "").replace(/\D/g, ""),
                                               label: (v.label || "").replace(/\D/g, ""),
                                               display: v.label || "",
                                               price: v.price > 0 ? String(v.price) : "",

@@ -29,6 +29,9 @@ export async function POST(req: NextRequest) {
     const label = String(body.label ?? "").trim();
     const display = String(body.display ?? "").trim();
     const price = Number(body.price ?? 0);
+    // Số CŨ (đang sửa) — dùng để dò lại model_id live khi snapshot của UI đã cũ.
+    const currentLabel = String(body.currentLabel ?? "").trim();
+    const currentDigits = currentLabel.replace(/\D/g, "");
 
     // Chữ số sạch = GIÁ TRỊ THẬT của SIM. Dấu chấm chỉ ở nhãn hiển thị, không lọt vào đây.
     const rawDigits = (label || display).replace(/\D/g, "");
@@ -55,10 +58,29 @@ export async function POST(req: NextRequest) {
     }
 
     // Bước 2: tìm model cần sửa để biết nó nằm ở option index nào (tier đầu).
-    const target = currentModels.find((m) => Number(m?.model_id ?? 0) === modelIdNum);
-    if (!target) {
-      return jsonNoStore({ error: `Không tìm thấy biến thể model_id=${modelIdNum} trong listing` }, 400);
+    // Ưu tiên model_id; nếu snapshot của UI đã cũ (model_id không còn trên Shopee)
+    // thì dò lại theo dãy số CŨ để lấy đúng model_id live → khỏi lỗi "không tìm thấy".
+    const firstOptList = (currentTier[0]?.option_list ?? []) as Record<string, unknown>[];
+    const optionDigitsOf = (m: Record<string, unknown>): string => {
+      const ti = (m?.tier_index ?? []) as number[];
+      const idx = Number(ti[0] ?? -1);
+      if (idx < 0) return "";
+      return String(firstOptList[idx]?.option ?? "").replace(/\D/g, "");
+    };
+
+    let target = currentModels.find((m) => Number(m?.model_id ?? 0) === modelIdNum);
+    if (!target && currentDigits) {
+      target = currentModels.find((m) => optionDigitsOf(m) === currentDigits);
     }
+    if (!target) {
+      return jsonNoStore(
+        {
+          error: `Không tìm thấy biến thể model_id=${modelIdNum} trong listing. Danh sách có thể đã cũ — bấm "Lấy danh sách từ Shopee" để làm mới rồi thử lại.`,
+        },
+        400,
+      );
+    }
+    const resolvedModelId = Number(target?.model_id ?? 0);
     const targetTierIndex = (target?.tier_index ?? []) as number[];
     const optionIndex = Number(targetTierIndex[0] ?? -1);
     if (optionIndex < 0) {
@@ -66,10 +88,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Bước 3: chống trùng — số mới không được đụng option KHÁC (khác index đang sửa).
-    const firstOpts = (currentTier[0]?.option_list ?? []) as Record<string, unknown>[];
-    for (let i = 0; i < firstOpts.length; i++) {
+    for (let i = 0; i < firstOptList.length; i++) {
       if (i === optionIndex) continue;
-      if (String(firstOpts[i]?.option ?? "").replace(/\D/g, "") === rawDigits) {
+      if (String(firstOptList[i]?.option ?? "").replace(/\D/g, "") === rawDigits) {
         return jsonNoStore({ error: `Số "${optionLabel}" đã tồn tại ở biến thể khác của listing này` }, 400);
       }
     }
@@ -97,7 +118,7 @@ export async function POST(req: NextRequest) {
 
     // Bước 6: đổi giá nếu có nhập.
     if (price > 0) {
-      await client.updatePrice(itemIdNum, modelIdNum, price);
+      await client.updatePrice(itemIdNum, resolvedModelId, price);
     }
 
     if (client.refreshedTokens) {
@@ -107,7 +128,7 @@ export async function POST(req: NextRequest) {
     return jsonNoStore({
       ok: true,
       itemId: itemIdNum,
-      modelId: modelIdNum,
+      modelId: resolvedModelId,
       label: optionLabel,
       rawDigits,
       price: price > 0 ? price : null,
