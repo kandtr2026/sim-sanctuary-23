@@ -68,6 +68,7 @@ interface ItemRow {
 
 interface BulkSyncResult {
   added: number;
+  failed: number;
   skipped: number;
   total: number;
   itemName: string;
@@ -558,7 +559,7 @@ function ShopeeAdminContent() {
     setSyncing(true);
     setBulkResult(null);
     try {
-      const result = await api<{ added: number; skipped: number; total: number }>(
+      const result = await api<{ added: number; failed?: number; skipped: number; total: number; errors?: { number: string; error: string }[] }>(
         "/api/admin/shopee/items/add-models-bulk",
         {
           method: "POST",
@@ -573,8 +574,13 @@ function ShopeeAdminContent() {
         },
         token,
       );
-      setBulkResult({ ...result, itemName: targetName });
-      toast.success(`Đã thêm ${result.added} số vào "${targetName}" · bỏ qua ${result.skipped} số trùng.`);
+      const failed = result.failed ?? 0;
+      setBulkResult({ added: result.added, failed, skipped: result.skipped, total: result.total, itemName: targetName });
+      if (failed > 0) {
+        toast.warning(`Thêm ${result.added} số vào "${targetName}" · lỗi ${failed} · bỏ qua ${result.skipped} trùng.`);
+      } else {
+        toast.success(`Đã thêm ${result.added} số vào "${targetName}" · bỏ qua ${result.skipped} số trùng.`);
+      }
       setSelected(new Set());
       await handlePullFromShopee();
     } catch (err) {
@@ -1242,6 +1248,7 @@ function ShopeeAdminContent() {
               </p>
               <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs">
                 <span className="text-emerald-700">Thêm mới: {bulkResult.added}</span>
+                {bulkResult.failed > 0 && <span className="text-red-700">Lỗi: {bulkResult.failed}</span>}
                 <span className="text-muted-foreground">Bỏ qua (trùng): {bulkResult.skipped}</span>
                 <span className="text-muted-foreground">Tổng chọn: {bulkResult.total}</span>
               </div>
