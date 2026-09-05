@@ -332,6 +332,48 @@ function ShopeeAdminContent() {
     return m;
   }, [items]);
 
+  // Kiểm tra số trùng: selected SIMs đã tồn tại ở listing KHÁC (trừ listing đích)
+  interface DuplicateSim {
+    simId: string;
+    displayNumber: string;
+    rawDigits: string;
+    existingListingId: number;
+    existingListingName: string;
+  }
+  const duplicateSims = useMemo((): DuplicateSim[] => {
+    if (!pulled || selected.size === 0) return [];
+    const targetId = Number(syncTargetItemId) || 0;
+    // Build map: rawDigits → { item_id, item_name } cho TẤT CẢ variants (trừ listing đích)
+    const existMap = new Map<string, { itemId: number; itemName: string }>();
+    for (const row of pulled.items) {
+      if (row.item_id === targetId) continue;
+      if (!row.variants) continue;
+      for (const v of row.variants) {
+        const d = v.label.replace(/\D/g, "").padStart(10, "0").slice(-10);
+        if (d.length === 10 && !existMap.has(d)) {
+          existMap.set(d, { itemId: row.item_id, itemName: row.item_name });
+        }
+      }
+    }
+    if (existMap.size === 0) return [];
+    // So sánh selected SIMs
+    const dupes: DuplicateSim[] = [];
+    for (const sim of allSims) {
+      if (!selected.has(sim.id)) continue;
+      const hit = existMap.get(sim.rawDigits);
+      if (hit) {
+        dupes.push({
+          simId: sim.id,
+          displayNumber: sim.displayNumber || sim.rawDigits,
+          rawDigits: sim.rawDigits,
+          existingListingId: hit.itemId,
+          existingListingName: hit.itemName,
+        });
+      }
+    }
+    return dupes;
+  }, [pulled, selected, syncTargetItemId, allSims]);
+
   const networks = useMemo(() => {
     const set = new Set(allSims.map((s) => s.network));
     return Array.from(set);
@@ -990,10 +1032,30 @@ function ShopeeAdminContent() {
             </Select>
             {!pulled && (
               <span className="text-xs text-gold">
-                Chưa có danh sách listing — bấm “Lấy danh sách từ Shopee” ở mục dưới trước.
+                Chưa có danh sách listing — bấm "Lấy danh sách từ Shopee" ở mục dưới trước.
               </span>
             )}
           </div>
+
+          {/* Cảnh báo số trùng giữa các listing */}
+          {duplicateSims.length > 0 && (
+            <div className="mb-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+              <p className="font-semibold text-amber-700">
+                <span className="mr-1">⚠</span>
+                {duplicateSims.length} số trùng giữa các listing
+              </p>
+              <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto text-xs text-amber-600">
+                {duplicateSims.map((d) => (
+                  <li key={d.simId}>
+                    <span className="font-semibold">{d.displayNumber}</span>
+                    {" — đã có trong \""}
+                    <span className="font-medium">{d.existingListingName}</span>
+                    {"\""}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {!cred?.authorized && (
             <div className="mb-3 rounded-lg border border-gold/40 bg-gold/5 p-3 text-sm text-gold">
