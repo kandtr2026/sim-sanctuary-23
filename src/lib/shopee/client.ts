@@ -19,6 +19,7 @@ import {
   PATH_TOKEN_REFRESH,
   PATH_UPDATE_ITEM,
   PATH_UPDATE_STOCK,
+  PATH_UPDATE_PRICE,
 } from "./config";
 
 /** Error code Shopee trả về khi access_token hết hạn/sai. */
@@ -311,6 +312,14 @@ export class ShopeeProductClient {
     model: Record<string, unknown>[];
   }): Promise<void> {
     await this.call(PATH_UPDATE_TIER_VARIATION, payload);
+  }
+
+  /** Đổi giá gốc của một model (biến thể) cụ thể. */
+  async updatePrice(itemId: number, modelId: number, originalPrice: number): Promise<void> {
+    await this.call(PATH_UPDATE_PRICE, {
+      item_id: itemId,
+      price_list: [{ model_id: modelId, original_price: originalPrice }],
+    });
   }
 
   async updateStock(itemId: number, stock: number): Promise<void> {

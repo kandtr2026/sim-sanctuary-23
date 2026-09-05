@@ -233,6 +233,9 @@ function ShopeeAdminContent() {
   const [addItemId, setAddItemId] = useState<number | null>(null);
   const [addForm, setAddForm] = useState({ label: "", display: "", price: "" });
   const [adding, setAdding] = useState(false);
+  // Sửa biến thể tại chỗ (đổi nhãn hiển thị / đổi value / đổi giá)
+  const [editForm, setEditForm] = useState<{ itemId: number; modelId: number; label: string; display: string; price: string } | null>(null);
+  const [editing, setEditing] = useState(false);
   // Chọn nguồn khi chọn số: 'tong' (Sheet tổng, có Kho con) | 're' (Sheet giá rẻ)
   const [nguonSo, setNguonSo] = useState<"tong" | "re">("tong");
   const [khoTong, setKhoTong] = useState("all");
@@ -596,6 +599,40 @@ function ShopeeAdminContent() {
       toast.error((err as Error).message);
     } finally {
       setAdding(false);
+    }
+  };
+
+  const handleEditModel = async () => {
+    if (!token || !editForm) return;
+    const price = Number(editForm.price.replace(/[^\d]/g, ""));
+    const digits = (editForm.label || editForm.display).replace(/\D/g, "");
+    if (!digits) {
+      toast.error("Nhập số SIM (dạng 0xxxxxxxxx).");
+      return;
+    }
+    setEditing(true);
+    try {
+      await api<{ ok: boolean }>(
+        "/api/admin/shopee/items/edit-model",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            itemId: editForm.itemId,
+            modelId: editForm.modelId,
+            label: editForm.label.trim(),
+            display: editForm.display.trim(),
+            price: price > 0 ? price : 0,
+          }),
+        },
+        token,
+      );
+      toast.success(`Đã sửa biến thể ${editForm.display.trim() || editForm.label.trim()}. Đang đồng bộ lại…`);
+      setEditForm(null);
+      await handlePullFromShopee();
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setEditing(false);
     }
   };
 
@@ -1311,6 +1348,7 @@ function ShopeeAdminContent() {
                                     <th className="px-3 py-1.5 font-medium">Model ID</th>
                                     <th className="px-3 py-1.5 font-medium">Giá</th>
                                     <th className="px-3 py-1.5 font-medium">Kho</th>
+                                    <th className="px-3 py-1.5 font-medium"></th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -1348,6 +1386,25 @@ function ShopeeAdminContent() {
                                         ) : (
                                           <Badge variant="outline" className="border-red-500/40 bg-red-500/10 text-red-700">Hết</Badge>
                                         )}
+                                      </td>
+                                      <td className="px-3 py-1.5 text-right">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-7 px-2 text-xs text-muted-foreground hover:text-primary"
+                                          onClick={() =>
+                                            setEditForm({
+                                              itemId: row.item_id,
+                                              modelId: v.model_id,
+                                              label: (v.label || "").replace(/\D/g, ""),
+                                              display: v.label || "",
+                                              price: v.price > 0 ? String(v.price) : "",
+                                            })
+                                          }
+                                          title="Sửa số hiển thị / đổi số / đổi giá"
+                                        >
+                                          Sửa
+                                        </Button>
                                       </td>
                                     </tr>
                                   ))}
@@ -1563,6 +1620,61 @@ function ShopeeAdminContent() {
                 <Button size="sm" onClick={() => void handleAddModel()} disabled={adding}>
                   {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   {adding ? "Đang thêm…" : "Thêm vào listing"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Dialog sửa biến thể (đổi hiển thị / đổi số / đổi giá) ── */}
+        {editForm !== null && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="w-full max-w-lg rounded-lg border border-border bg-card shadow-lg">
+              <div className="border-b border-border px-5 py-3">
+                <h3 className="text-sm font-semibold text-foreground">
+                  Sửa biến thể (Model #{editForm.modelId})
+                </h3>
+              </div>
+              <div className="p-5">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="edit-label">Số SIM (10 số)</Label>
+                    <Input
+                      id="edit-label"
+                      value={editForm.label}
+                      onChange={(e) => setEditForm((p) => (p ? { ...p, label: e.target.value } : p))}
+                      placeholder="0767777770"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="edit-display">Số hiển thị (có chấm)</Label>
+                    <Input
+                      id="edit-display"
+                      value={editForm.display}
+                      onChange={(e) => setEditForm((p) => (p ? { ...p, display: e.target.value } : p))}
+                      placeholder="076.55555.94 — để trống = dùng số bên trái"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="edit-price">Giá (VNĐ)</Label>
+                    <Input
+                      id="edit-price"
+                      value={editForm.price}
+                      onChange={(e) => setEditForm((p) => (p ? { ...p, price: e.target.value } : p))}
+                      placeholder="Để trống = giữ giá cũ"
+                    />
+                  </div>
+                </div>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Sửa tại chỗ, giữ nguyên listing. Muốn đổi hẳn value sang số khác thì nhập số mới ở đây.
+                  Dấu chấm chỉ để hiển thị — khớp kho vẫn tính theo chữ số, không làm sai giá trị.
+                </p>
+              </div>
+              <div className="flex items-center justify-end gap-2 border-t border-border px-5 py-3">
+                <Button variant="ghost" size="sm" onClick={() => setEditForm(null)}>Huỷ</Button>
+                <Button size="sm" onClick={() => void handleEditModel()} disabled={editing}>
+                  {editing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  {editing ? "Đang lưu…" : "Lưu & đồng bộ"}
                 </Button>
               </div>
             </div>
