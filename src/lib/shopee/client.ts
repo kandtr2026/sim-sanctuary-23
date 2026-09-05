@@ -287,6 +287,14 @@ export class ShopeeProductClient {
     });
   }
 
+  /** Thêm NHIỀU model (biến thể) trong một lần gọi — dùng cho đồng bộ lô. */
+  async addModels(itemId: number, modelList: Record<string, unknown>[]): Promise<void> {
+    await this.call(PATH_ADD_MODEL, {
+      item_id: itemId,
+      model_list: modelList,
+    });
+  }
+
   /**
    * Khởi tạo biến thể LẦN ĐẦU cho item chưa có biến thể (standard → tiered).
    * Item đã có biến thể mà gọi lại sẽ bị Shopee chặn "The level of tier-variation

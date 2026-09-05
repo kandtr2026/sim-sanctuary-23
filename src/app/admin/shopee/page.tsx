@@ -66,14 +66,11 @@ interface ItemRow {
   last_error: string | null;
 }
 
-interface SyncResult {
-  batchId: string;
-  total: number;
-  created: number;
-  updated: number;
-  failed: number;
+interface BulkSyncResult {
+  added: number;
   skipped: number;
-  errors: { simId: string; number: string; error: string }[];
+  total: number;
+  itemName: string;
 }
 
 interface ShopeeListing {
@@ -217,7 +214,8 @@ function ShopeeAdminContent() {
   const [configSaving, setConfigSaving] = useState(false);
 
   const [syncing, setSyncing] = useState(false);
-  const [lastResult, setLastResult] = useState<SyncResult | null>(null);
+  const [syncTargetItemId, setSyncTargetItemId] = useState<string>("");
+  const [bulkResult, setBulkResult] = useState<BulkSyncResult | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
 
   // Kéo toàn bộ listing từ Shopee
@@ -465,17 +463,34 @@ function ShopeeAdminContent() {
       toast.error("Chưa chọn SIM nào để đồng bộ.");
       return;
     }
+    const targetId = Number(syncTargetItemId);
+    if (!targetId) {
+      toast.error("Chọn listing đích để đẩy các số đã chọn vào (dạng biến thể).");
+      return;
+    }
+    const targetName = pulled?.items.find((it) => it.item_id === targetId)?.item_name ?? `#${targetId}`;
     setSyncing(true);
-    setLastResult(null);
+    setBulkResult(null);
     try {
-      const result = await api<SyncResult>("/api/admin/shopee/sync", {
-        method: "POST",
-        body: JSON.stringify({ sims }),
-      }, token);
-      setLastResult(result);
-      toast.success(`Đồng bộ xong: ${result.created} tạo mới · ${result.updated} cập nhật · ${result.failed} lỗi.`);
-      await loadStatus(token);
+      const result = await api<{ added: number; skipped: number; total: number }>(
+        "/api/admin/shopee/items/add-models-bulk",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            itemId: targetId,
+            sims: sims.map((s) => ({
+              label: s.rawDigits,
+              display: s.displayNumber || s.rawDigits,
+              price: s.price,
+            })),
+          }),
+        },
+        token,
+      );
+      setBulkResult({ ...result, itemName: targetName });
+      toast.success(`Đã thêm ${result.added} số vào "${targetName}" · bỏ qua ${result.skipped} số trùng.`);
       setSelected(new Set());
+      await handlePullFromShopee();
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
@@ -944,9 +959,9 @@ function ShopeeAdminContent() {
               </Badge>
             </h2>
             <div className="flex items-center gap-2">
-              <Button size="sm" onClick={() => void handleSync()} disabled={syncing || selected.size === 0}>
+              <Button size="sm" onClick={() => void handleSync()} disabled={syncing || selected.size === 0 || !syncTargetItemId}>
                 {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-                {syncing ? "Đang đồng bộ…" : "Đồng bộ lên Shopee"}
+                {syncing ? "Đang đẩy…" : "Đẩy vào listing"}
               </Button>
               {selected.size > 0 && (
                 <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
@@ -954,6 +969,30 @@ function ShopeeAdminContent() {
                 </Button>
               )}
             </div>
+          </div>
+
+          {/* Listing đích: các số đã chọn sẽ thành biến thể trong listing này */}
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="shrink-0 text-xs text-muted-foreground">Đẩy vào listing:</span>
+            <Select value={syncTargetItemId} onValueChange={setSyncTargetItemId}>
+              <SelectTrigger className="h-9 w-full sm:w-[380px]">
+                <SelectValue placeholder="Chọn listing biến thể đích (vd 'Số VIP')" />
+              </SelectTrigger>
+              <SelectContent>
+                {(pulled?.items ?? [])
+                  .filter((it) => it.variants && it.variants.length > 0)
+                  .map((it) => (
+                    <SelectItem key={it.item_id} value={String(it.item_id)}>
+                      {it.item_name} ({it.variants?.length} số)
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            {!pulled && (
+              <span className="text-xs text-gold">
+                Chưa có danh sách listing — bấm “Lấy danh sách từ Shopee” ở mục dưới trước.
+              </span>
+            )}
           </div>
 
           {!cred?.authorized && (
@@ -1055,25 +1094,16 @@ function ShopeeAdminContent() {
             </>
           )}
 
-          {lastResult && (
+          {bulkResult && (
             <div className="mt-3 rounded-lg border border-border bg-muted/30 p-3 text-sm">
               <p className="font-semibold text-foreground">
-                Kết quả lô {lastResult.batchId}
+                Đã đẩy vào “{bulkResult.itemName}”
               </p>
               <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                <span className="text-emerald-700">Tạo mới: {lastResult.created}</span>
-                <span className="text-blue-700">Cập nhật: {lastResult.updated}</span>
-                <span className="text-red-700">Lỗi: {lastResult.failed}</span>
+                <span className="text-emerald-700">Thêm mới: {bulkResult.added}</span>
+                <span className="text-muted-foreground">Bỏ qua (trùng): {bulkResult.skipped}</span>
+                <span className="text-muted-foreground">Tổng chọn: {bulkResult.total}</span>
               </div>
-              {lastResult.errors.length > 0 && (
-                <div className="mt-2 max-h-40 space-y-1 overflow-y-auto text-xs">
-                  {lastResult.errors.map((e, i) => (
-                    <p key={i} className="break-words text-red-700">
-                      {e.number}: {e.error}
-                    </p>
-                  ))}
-                </div>
-              )}
             </div>
           )}
         </section>
