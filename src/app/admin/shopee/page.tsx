@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -113,6 +113,8 @@ const HIEN_THI_TRANG_THAI: Record<string, string> = {
   UNLISTED: "Ngừng bán",
 };
 
+const VISIBLE_LIMIT = 300;
+
 const api = async <T,>(path: string, init?: RequestInit, token?: string): Promise<T> => {
   const res = await fetch(path, {
     ...init,
@@ -156,6 +158,48 @@ const khopTim = (rawDigits: string, searchRaw: string): boolean => {
 };
 
 // ── Component chính ──────────────────────────────────────────────────────────
+
+const SimRow = memo(function SimRow({
+  sim, selected: isSel, synced, onToggle,
+}: {
+  sim: NormalizedSIM;
+  selected: boolean;
+  synced: ItemRow | undefined;
+  onToggle: (id: string) => void;
+}) {
+  return (
+    <div
+      onClick={() => onToggle(sim.id)}
+      className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg border px-3 py-2 transition-colors ${
+        isSel ? "border-primary/50 bg-primary/5" : "border-border bg-background hover:border-primary/30"
+      }`}
+    >
+      <div className="flex min-w-0 items-center gap-3">
+        <input type="checkbox" checked={isSel} onChange={() => onToggle(sim.id)} readOnly />
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-foreground">{sim.displayNumber}</p>
+          <p className="truncate text-xs text-muted-foreground">
+            {sim.network} · {sim.tags?.slice(0, 3).join(" · ") || "—"}
+          </p>
+        </div>
+      </div>
+      <div className="flex shrink-0 items-center gap-2">
+        {synced ? (
+          synced.status === "live" ? (
+            <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-700">
+              <CheckCircle2 className="mr-1 h-3 w-3" /> Đã đăng
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="border-red-500/40 bg-red-500/10 text-red-700">
+              <XCircle className="mr-1 h-3 w-3" /> Lỗi
+            </Badge>
+          )
+        ) : null}
+        <span className="text-sm font-bold text-gold">{formatPrice(sim.price)}</span>
+      </div>
+    </div>
+  );
+});
 
 function ShopeeAdminContent() {
   const { user, session, signOut } = useAdminAuth();  const token = session?.access_token;
@@ -280,6 +324,13 @@ function ShopeeAdminContent() {
     return list;
   }, [allSims, network, priceMax, search, selected, showOnlySelected]);
 
+  const visibleSims = useMemo(() => filtered.slice(0, VISIBLE_LIMIT), [filtered]);
+  const itemBySimId = useMemo(() => {
+    const m = new Map<string, ItemRow>();
+    for (const it of items) m.set(it.sim_id, it);
+    return m;
+  }, [items]);
+
   const networks = useMemo(() => {
     const set = new Set(allSims.map((s) => s.network));
     return Array.from(set);
@@ -324,14 +375,14 @@ function ShopeeAdminContent() {
 
   const biTheTat = (v: ShopeeVariant): boolean => v.stock === 0;
 
-  const toggle = (id: string) => {
+  const toggle = useCallback((id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  };
+  }, []);
 
   const toggleAll = (checked: boolean) => {
     setSelected((prev) => {
@@ -920,7 +971,7 @@ function ShopeeAdminContent() {
                 checked={filtered.length > 0 && filtered.every((s) => selected.has(s.id))}
                 onChange={(e) => toggleAll(e.target.checked)}
               />
-              Chọn tất cả ({filtered.length} SIM đang hiện)
+              Chọn tất cả ({filtered.length} SIM khớp bộ lọc)
             </label>
             <label className="flex cursor-pointer items-center gap-1.5">
               <input
@@ -939,55 +990,30 @@ function ShopeeAdminContent() {
               ))}
             </div>
           ) : (
+            <>
             <div className="max-h-[520px] space-y-1.5 overflow-y-auto pr-1">
               {filtered.length === 0 ? (
                 <p className="py-8 text-center text-sm text-muted-foreground">
                   Không có SIM nào khớp bộ lọc.
                 </p>
               ) : (
-                filtered.map((s) => {
-                  const isSel = selected.has(s.id);
-                  const synced = items.find((i) => i.sim_id === s.id);
-                  return (
-                    <div
-                      key={s.id}
-                      onClick={() => toggle(s.id)}
-                      className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg border px-3 py-2 transition-colors ${
-                        isSel
-                          ? "border-primary/50 bg-primary/5"
-                          : "border-border bg-background hover:border-primary/30"
-                      }`}
-                    >
-                      <div className="flex min-w-0 items-center gap-3">
-                        <input type="checkbox" checked={isSel} onChange={() => toggle(s.id)} readOnly />
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-foreground">
-                            {s.displayNumber}
-                          </p>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {s.network} · {s.tags?.slice(0, 3).join(" · ") || "—"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-2">
-                        {synced ? (
-                          synced.status === "live" ? (
-                            <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-700">
-                              <CheckCircle2 className="mr-1 h-3 w-3" /> Đã đăng
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="border-red-500/40 bg-red-500/10 text-red-700">
-                              <XCircle className="mr-1 h-3 w-3" /> Lỗi
-                            </Badge>
-                          )
-                        ) : null}
-                        <span className="text-sm font-bold text-gold">{formatPrice(s.price)}</span>
-                      </div>
-                    </div>
-                  );
-                })
+                visibleSims.map((s) => (
+                  <SimRow
+                    key={s.id}
+                    sim={s}
+                    selected={selected.has(s.id)}
+                    synced={itemBySimId.get(s.id)}
+                    onToggle={toggle}
+                  />
+                ))
               )}
             </div>
+            {filtered.length > VISIBLE_LIMIT && (
+              <p className="mt-2 text-center text-xs text-muted-foreground">
+                Đang hiện {VISIBLE_LIMIT}/{filtered.length} số khớp bộ lọc — gõ tìm số hoặc lọc nhà mạng/giá để thu hẹp.
+              </p>
+            )}
+            </>
           )}
 
           {lastResult && (
