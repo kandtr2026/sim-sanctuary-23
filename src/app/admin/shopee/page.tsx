@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
+  Download,
   ExternalLink,
   KeyRound,
   Loader2,
@@ -244,6 +245,8 @@ function ShopeeAdminContent() {
   const [configSaving, setConfigSaving] = useState(false);
 
   const [syncing, setSyncing] = useState(false);
+  // Xuất Excel toàn bộ SIM tồn (mọi kho) — bấm 1 phát
+  const [exporting, setExporting] = useState(false);
   const [syncTargetItemId, setSyncTargetItemId] = useState<string>("");
   const [bulkResult, setBulkResult] = useState<BulkSyncResult | null>(null);
   // Dán số → duyệt (chấm + giá) → submit
@@ -608,6 +611,44 @@ function ShopeeAdminContent() {
       toast.success("Đã lưu cài đặt đăng bán.");
     } catch (err) {
       toast.error((err as Error).message);
+    }
+  };
+
+  // Xuất Excel toàn bộ SIM tồn (mọi kho) — tải file .xlsx về máy, bấm 1 phát.
+  const handleExportTon = async () => {
+    if (!token) {
+      toast.error("Chưa đăng nhập.");
+      return;
+    }
+    setExporting(true);
+    const t = toast.loading("Đang gom SIM tồn của tất cả kho…");
+    try {
+      const res = await fetch("/api/admin/shopee/export-ton", {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body?.error || `HTTP ${res.status}`);
+      }
+      const count = res.headers.get("X-Sim-Count") ?? "";
+      const cd = res.headers.get("Content-Disposition") ?? "";
+      const m = /filename="?([^"]+)"?/.exec(cd);
+      const filename = m?.[1] || `sim-ton_all-kho_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success(count ? `Đã xuất ${Number(count).toLocaleString("vi-VN")} SIM tồn ra Excel` : "Đã xuất Excel SIM tồn", { id: t });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Xuất Excel thất bại", { id: t });
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -1189,6 +1230,16 @@ function ShopeeAdminContent() {
               </Badge>
             </h2>
             <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => void handleExportTon()}
+                disabled={exporting}
+                title="Tải file Excel toàn bộ SIM còn hàng của tất cả kho"
+              >
+                {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                {exporting ? "Đang xuất…" : "Xuất Excel SIM tồn (all kho)"}
+              </Button>
               <Button size="sm" onClick={() => void handleSync()} disabled={syncing || selected.size === 0 || !syncTargetItemId}>
                 {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
                 {syncing ? "Đang đẩy…" : "Đẩy vào listing"}
