@@ -91,7 +91,7 @@ const FloatingContactButtons = () => {
         {/* CALL Button */}
         <a
           href={CALL_URL}
-          aria-label="Gọi điện tư vấn"
+          aria-label="Gọi tư vấn hotline 0938.868.868"
           className="floating-contact-btn flex items-center justify-center bg-green-500 hover:bg-green-600 rounded-full"
           style={{
             width: "clamp(48px, 4.5vw, 60px)",
@@ -112,7 +112,7 @@ const FloatingContactButtons = () => {
           href={ZALO_URL}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Chat Zalo"
+          aria-label="Chat Zalo tư vấn 0933.356.666"
           className="floating-contact-btn flex items-center bg-white hover:bg-gray-50 shadow-lg focus:outline-none focus:ring-2 focus:ring-[#0068ff] focus:ring-offset-2"
           style={{
             height: "clamp(48px, 4.5vw, 60px)",

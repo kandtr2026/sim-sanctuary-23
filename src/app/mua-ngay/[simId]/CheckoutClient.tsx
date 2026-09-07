@@ -636,19 +636,26 @@ const CheckoutClient = () => {
                 href={zaloQuoteUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Chat Zalo tư vấn 0933.356.666"
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-500 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-600"
               >
                 <span className="font-bold">Z</span>
-                Nhắn Zalo 0933356666
+                Nhắn Zalo 0933.356.666
               </a>
               <a
                 href="tel:0938868868"
+                aria-label="Gọi tư vấn hotline 0938.868.868"
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 <Phone className="w-4 h-4" />
                 Gọi 0938.868.868
               </a>
             </div>
+
+            {/* Trấn an: hai số khác nhau (Zalo vs gọi) nhưng cùng một đội bán số. */}
+            <p className="text-center text-xs text-muted-foreground">
+              Gọi hay nhắn Zalo đều gặp đúng người bán số.
+            </p>
 
             <Button variant="ghost" onClick={() => router.push('/')} className="w-full gap-2">
               <ArrowLeft className="w-4 h-4" />

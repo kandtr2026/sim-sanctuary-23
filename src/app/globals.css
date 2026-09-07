@@ -82,7 +82,7 @@
        bar 5px underneath the nav at any scroll position. See the lg override
        below, and keep both in sync with Navigation.tsx.                        */
     --nav-height: 65px;      /* sticky <Navigation /> bar, mobile two-row */
-    --sticky-cta-height: 72px; /* mobile <StickyCtaBottomBar /> */
+    --sticky-cta-height: 92px; /* mobile <StickyCtaBottomBar />: micro-trust line + 2 nút xếp label 2 dòng */
     --cta-stack-height: 220px; /* desktop <FloatingContactButtons /> stack: 3 × clamp(48→60px) buttons + 2 × clamp(10→14px) gaps ≈ 181–208px; 220px is the safe ceiling so the messenger panel clears it */
 
     /* Header */

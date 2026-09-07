@@ -321,18 +321,27 @@ const SIMCardNew = ({ sim, quyFilter, searchQuery = '', birthDateDisplay }: SIMC
         </div>
 
         {/* Chat Zalo — pre-filled đúng số này. data-sim-number để listener (A6)
-            tự chèn "[Mã: campaign]" vào tin nhắn; KHÔNG tự dựng text ở đây. */}
+            tự chèn "[Mã: campaign]" vào tin nhắn; KHÔNG tự dựng text ở đây.
+            aria-label động kèm số + giá để screen reader đọc đủ ngữ cảnh. */}
         <a
           href="https://zalo.me/0933356666"
           target="_blank"
           rel="noopener noreferrer"
           data-sim-number={searchDisplay || rawNumber}
-          aria-label={`Chat Zalo mua sim ${searchDisplay}`}
+          aria-label={`Chat Zalo tư vấn số ${searchDisplay} giá ${formatPrice(sim.price)}`}
           className="mt-1.5 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-md border border-sky-500/40 bg-sky-500/15 py-2.5 text-sm font-semibold text-sky-400 transition hover:bg-sky-500/25"
         >
           <MessageCircle className="h-4 w-4 shrink-0" />
           Chat Zalo
         </a>
+
+        {/* Micro-trust cạnh CTA: nhắc cam kết chính chủ + giao nhanh ngay dưới nút. */}
+        <p
+          className="mt-1 text-center font-medium text-muted-foreground"
+          style={{ fontSize: 'clamp(10px, 1.8vw, 12px)', lineHeight: 1.3 }}
+        >
+          Sang tên chính chủ · Giao 30 phút
+        </p>
       </div>
     </>
   );

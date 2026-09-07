@@ -26,7 +26,7 @@ const StickyCtaBottomBar = () => {
       <div className="block md:hidden" style={{ height: "var(--sticky-cta-height)" }} />
       <div
         id="sticky-cta-bottom"
-        className="fixed bottom-0 left-0 right-0 z-[70] flex items-center gap-2 px-3 md:hidden"
+        className="fixed bottom-0 left-0 right-0 z-[70] flex flex-col gap-1.5 px-3 md:hidden"
         style={{
           backgroundColor: "hsl(var(--header-bg))",
           paddingTop: 8,
@@ -35,24 +35,43 @@ const StickyCtaBottomBar = () => {
           minHeight: 56,
         }}
       >
-        <a
-          href="tel:+84938868868"
-          className="flex-1 flex items-center justify-center gap-2 rounded-md text-white font-semibold text-sm py-3"
-          style={{ backgroundColor: "#E31E24", minHeight: 44 }}
+        {/* Micro-trust: một dòng nhỏ trấn an trước khi khách bấm gọi/Zalo. */}
+        <p
+          className="text-center font-medium text-white/70"
+          style={{ fontSize: 11, lineHeight: 1.2 }}
         >
-          <Phone className="w-4 h-4" />
-          <span>Tư vấn chọn số</span>
-        </a>
-        <a
-          href="https://zalo.me/0933356666"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex-1 flex items-center justify-center gap-2 rounded-md text-black font-semibold text-sm py-3"
-          style={{ backgroundColor: "#FFC107", minHeight: 44 }}
-        >
-          <MessageCircle className="w-4 h-4" />
-          <span>Chat Zalo - 30 phút giao</span>
-        </a>
+          Sang tên chính chủ · Giao 30 phút
+        </p>
+        <div className="flex items-center gap-2">
+          {/* Số gọi = hotline 0938.868.868 (khác số Zalo bên cạnh — ghi rõ vai trò). */}
+          <a
+            href="tel:+84938868868"
+            aria-label="Gọi tư vấn chọn số qua hotline 0938.868.868"
+            className="flex-1 flex items-center justify-center gap-2 rounded-md text-white py-2.5"
+            style={{ backgroundColor: "#E31E24", minHeight: 44 }}
+          >
+            <Phone className="w-4 h-4 shrink-0" />
+            <span className="flex flex-col items-start leading-tight">
+              <span className="text-sm font-semibold">Gọi tư vấn</span>
+              <span className="font-normal opacity-90" style={{ fontSize: 11 }}>chọn số</span>
+            </span>
+          </a>
+          {/* Số Zalo = 0933.356.666 (khác số gọi). */}
+          <a
+            href="https://zalo.me/0933356666"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Chat Zalo tư vấn, phản hồi trong 5 phút — 0933.356.666"
+            className="flex-1 flex items-center justify-center gap-2 rounded-md text-black py-2.5"
+            style={{ backgroundColor: "#FFC107", minHeight: 44 }}
+          >
+            <MessageCircle className="w-4 h-4 shrink-0" />
+            <span className="flex flex-col items-start leading-tight">
+              <span className="text-sm font-semibold">Chat Zalo</span>
+              <span className="font-normal opacity-90" style={{ fontSize: 11 }}>rep trong 5 phút</span>
+            </span>
+          </a>
+        </div>
       </div>
     </>
   );

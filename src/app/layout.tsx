@@ -117,6 +117,7 @@ export const metadata: Metadata = {
   manifest: "/site.webmanifest",
   openGraph: {
     type: "website",
+    locale: "vi_VN",
     url: "/",
     siteName: SITE_NAME,
     title: DEFAULT_TITLE,
@@ -124,7 +125,10 @@ export const metadata: Metadata = {
       "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh. 30 phút giao toàn quốc, sang tên chính chủ.",
     images: [
       {
-        url: "/share-banner.png?v=999",
+        // URL tuyệt đối: metadataBase đã tự nối absolute cho path tương đối, nhưng
+        // khai thẳng absolute để thẻ og:image trong HTML thô luôn đầy đủ domain
+        // (một số scraper social đọc raw không áp metadataBase).
+        url: `${BASE_URL}/share-banner.png?v=999`,
         type: "image/png",
         width: 1200,
         height: 630,

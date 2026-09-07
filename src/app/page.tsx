@@ -26,6 +26,10 @@ export const metadata: Metadata = {
   alternates: { canonical: CANONICAL },
   openGraph: {
     type: "website",
+    // Next (App Router) thay NGUYÊN object openGraph của route con, không merge
+    // field từ layout gốc — nên locale phải khai lại ở đây để trang chủ (surface
+    // chia sẻ chính) vẫn có og:locale=vi_VN.
+    locale: "vi_VN",
     title: TITLE,
     description:
       "Kho SIM Mobifone hơn 49.000 số: tứ quý, tam hoa, tài lộc, năm sinh. Giá niêm yết công khai, 30 phút giao toàn quốc.",

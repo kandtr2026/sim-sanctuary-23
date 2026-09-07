@@ -47,6 +47,10 @@ export const buildSimItemListJsonLd = (
       item: {
         "@type": "Product",
         name: `SIM ${sim.formattedNumber}`,
+        // Shop bán SIM MobiFone — brand cố định "MobiFone" (cách viết chuẩn dùng
+        // khắp site: TrustBar, trang đầu số). Không thêm aggregateRating vì không
+        // có số liệu đánh giá thật.
+        brand: { "@type": "Brand", name: "MobiFone" },
         description: `SIM số đẹp ${sim.formattedNumber} — ${detectCarrier(sim.formattedNumber)}. Giá niêm yết ${formatPrice(sim.price)}.`,
         ...(pageUrl ? { url: pageUrl } : {}),
         offers,
