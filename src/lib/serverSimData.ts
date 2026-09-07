@@ -20,6 +20,17 @@ import {
   SUPABASE_PUBLISHABLE_KEY,
   EDGE_FUNCTIONS_URL,
 } from "@/integrations/supabase/config";
+import { SIM_CACHE_TAG, SIM_DATA_REVALIDATE } from "@/lib/cacheTags";
+
+// Cấu hình cache Data Cache của Next cho crawl TOÀN KHO (count + các trang). Tag
+// `SIM_CACHE_TAG` để `revalidateTag('sim')` sau mỗi lần `sync-sims` bust sạch,
+// SIM đã bán không kịp hiện "còn"; `revalidate` là lưới an toàn theo thời gian.
+// KHÔNG áp cho `querySimsFromDb` (truy vấn theo bộ lọc, cardinality cao) — chỗ đó
+// đã có CDN cache qua header của /api/sims và không được để phình Data Cache.
+const SIM_FETCH_CACHE = {
+  revalidate: SIM_DATA_REVALIDATE,
+  tags: [SIM_CACHE_TAG],
+};
 
 // ── Module-level cache (có hạn dùng) ────────────────────────────────────────
 // Nhiều lần render trong CÙNG một build worker / ISR worker chia sẻ một lần
@@ -154,7 +165,9 @@ const fetchCsv = async (): Promise<string> => {
         },
         // Cache the CSV for 300s (matches /api/sims `revalidate = 300`) → the
         // consuming routes become statically prerendered + ISR instead of SSR.
-        next: { revalidate: 300 },
+        // Gắn tag `sim` để `revalidateTag` sau mỗi lần đồng bộ kho bust luôn cả
+        // nhánh fallback CSV (không chỉ nhánh Supabase).
+        next: SIM_FETCH_CACHE,
       }),
       timeout,
     ]);
@@ -310,7 +323,7 @@ const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
     // lấy count trước, rồi bắn toàn bộ trang cùng lúc với độ đồng thời giới hạn.
     const countRes = await fetchWithTimeout(
       `${SUPABASE_REST}/sims?select=id&${SELLABLE_STATUS}&limit=0`,
-      { headers: { ...authHeaders, Prefer: 'count=exact' } },
+      { headers: { ...authHeaders, Prefer: 'count=exact' }, next: SIM_FETCH_CACHE },
       FETCH_TIMEOUT_MS,
     );
     if (!countRes.ok) return null;
@@ -330,7 +343,7 @@ const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
         const pageIdx = next++;
         const res = await fetchWithTimeout(
           `${SUPABASE_REST}/sims?select=${SIMS_SELECT}&${SELLABLE_STATUS}&limit=${SUPABASE_SIMS_PAGE}&offset=${pageIdx * SUPABASE_SIMS_PAGE}`,
-          { headers: authHeaders },
+          { headers: authHeaders, next: SIM_FETCH_CACHE },
           FETCH_TIMEOUT_MS,
         );
         if (!res.ok) {

@@ -23,6 +23,29 @@ import {
   stripQuotes,
   type CheapSim,
 } from "@/lib/cheapSimSheet";
+import { SIM_CACHE_TAG, SIM_DATA_REVALIDATE } from "@/lib/cacheTags";
+
+// Cùng nhãn `sim` với kho chính → một lần `revalidateTag('sim')` làm tươi cả hai
+// kho. Kho khuyến mãi đọc từ Google Sheet (không do `sync-sims` ghi), nên nhánh
+// làm tươi chính của nó là `/api/revalidate` (gọi tay/n8n khi sheet đổi) + lưới
+// ISR 300s. Truyền qua `next` của fetch (không dùng signal) để lần fetch được
+// cache ở Data Cache và tag được.
+const CHEAP_FETCH_CACHE = {
+  revalidate: SIM_DATA_REVALIDATE,
+  tags: [SIM_CACHE_TAG],
+};
+
+// Bỏ AbortSignal (signal vô hiệu hoá cache Next) → tự bọc timeout ở tầng gọi.
+const CHEAP_FETCH_TIMEOUT_MS = 15_000;
+const withTimeout = <T>(p: Promise<T>, ms: number, label: string): Promise<T> => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label}: timeout after ${ms}ms`)), ms);
+  });
+  return Promise.race([p, timeout]).finally(() => {
+    if (timer) clearTimeout(timer);
+  }) as Promise<T>;
+};
 
 // Same queries the client hook uses: promo stock only (Kho = '0đ'), and the
 // full sold list so already-sold numbers are never shown.
@@ -93,8 +116,16 @@ export const getCheapSims = async (): Promise<CheapSim[]> => {
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const [mainCsv, soldCsv] = await Promise.all([
-          fetchSheetCsv(gvizUrl("Tongkho", TONGKHO_QUERY), AbortSignal.timeout(15_000)),
-          fetchSheetCsv(gvizUrl("Sim_Sold", SOLD_QUERY), AbortSignal.timeout(15_000)),
+          withTimeout(
+            fetchSheetCsv(gvizUrl("Tongkho", TONGKHO_QUERY), undefined, CHEAP_FETCH_CACHE),
+            CHEAP_FETCH_TIMEOUT_MS,
+            "cheap Tongkho",
+          ),
+          withTimeout(
+            fetchSheetCsv(gvizUrl("Sim_Sold", SOLD_QUERY), undefined, CHEAP_FETCH_CACHE),
+            CHEAP_FETCH_TIMEOUT_MS,
+            "cheap Sim_Sold",
+          ),
         ]);
 
         const soldIds = parseSoldIds(soldCsv);

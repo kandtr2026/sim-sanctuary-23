@@ -1,5 +1,7 @@
 import { NextRequest } from "next/server";
+import { revalidateTag } from "next/cache";
 import { SUPABASE_URL } from "@/integrations/supabase/config";
+import { SIM_CACHE_TAG } from "@/lib/cacheTags";
 
 /**
  * Cron đồng bộ kho SIM: Vercel gọi route này theo lịch trong `vercel.json`, route
@@ -59,6 +61,20 @@ export async function GET(req: NextRequest) {
       signal: AbortSignal.timeout(280_000),
     });
     const body = await res.text();
+
+    // Đồng bộ xong thì bảng `sims` vừa đổi (nhập/bán/sửa/xoá số) → bust Data Cache
+    // của kho SIM NGAY để trang chủ + các trang danh mục làm tươi trong lần tải kế
+    // tiếp, không phải chờ hết cửa sổ ISR 5 phút. `{ expire: 0 }`: webhook cần hết
+    // hạn tức thì. Bọc try/catch để một lỗi revalidate không biến lần sync thành
+    // công thành thất bại (dữ liệu đã ghi rồi).
+    if (res.ok) {
+      try {
+        revalidateTag(SIM_CACHE_TAG, { expire: 0 });
+      } catch (e) {
+        console.warn("[cron/sync-sims] revalidateTag lỗi (bỏ qua):", e);
+      }
+    }
+
     // Trả nguyên phản hồi của job để log cron của Vercel có cái đọc được khi hỏng.
     return new Response(body, {
       status: res.ok ? 200 : 502,

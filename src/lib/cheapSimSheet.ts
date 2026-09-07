@@ -47,11 +47,24 @@ export const gvizUrl = (sheet: string, query: string) =>
 /** Expected projected headers of `select A, C, D, E`, normalised. */
 export const CHEAP_HEADER_GUARD = ['simid', 'stb1', 'phanloai', 'giaban'];
 
-/** Google blocks direct browser requests to gviz; everything goes via the proxy. */
-export const fetchSheetCsv = async (url: string, signal?: AbortSignal): Promise<string> => {
+/**
+ * Google blocks direct browser requests to gviz; everything goes via the proxy.
+ *
+ * `next` (server-only, tuỳ chọn): khi truyền `{ revalidate, tags }` thì lần fetch
+ * này vào Data Cache của Next và tag được để `revalidateTag` bust. LƯU Ý: truyền
+ * `signal` sẽ VÔ HIỆU HOÁ cache của Next (fetch có signal không được memo/cache),
+ * nên phía server muốn cache thì bỏ `signal` và tự bọc timeout bằng Promise.race
+ * (xem `serverCheapSims.getCheapSims`). Client hooks vẫn truyền `signal` như cũ và
+ * không bị ảnh hưởng vì chúng chạy ở trình duyệt (không có Data Cache).
+ */
+export const fetchSheetCsv = async (
+  url: string,
+  signal?: AbortSignal,
+  next?: { revalidate?: number | false; tags?: string[] },
+): Promise<string> => {
   const response = await fetch(
     `${EDGE_FUNCTIONS_URL}/sheet-proxy?url=${encodeURIComponent(url)}`,
-    { headers: { apikey: SUPABASE_PUBLISHABLE_KEY }, signal },
+    { headers: { apikey: SUPABASE_PUBLISHABLE_KEY }, signal, next },
   );
   if (!response.ok) throw new Error(`sheet-proxy HTTP ${response.status}`);
   return response.text();
