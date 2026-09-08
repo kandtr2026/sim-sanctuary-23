@@ -11,7 +11,7 @@ import { getCategorySnapshot } from "@/lib/serverSimData";
 
 export const revalidate = 300;
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 const TITLE = "Sim Thần Tài 39 79 | Kho Sim Thần Tài Mobifone";
 const DESCRIPTION =
@@ -315,7 +315,7 @@ export default async function SimThanTaiPage() {
           <CategorySimGrid
             title="Sim Thần Tài Đuôi 39, 79 Mới Cập Nhật"
             searchPlaceholder="Nhập số cần tìm, hoặc *39 / *79 để xem đuôi thần tài"
-            emptyText="Kho tạm hết số khớp yêu cầu này. Quý khách thử tìm *39 hoặc *79, hoặc gọi 0938.868.868 để đội ngũ tư vấn lọc số theo đúng ngân sách."
+            emptyText="Kho tạm hết số khớp yêu cầu này. Quý khách thử tìm *39 hoặc *79, hoặc gọi 0933.686.666 để đội ngũ tư vấn lọc số theo đúng ngân sách."
             matchSuffixes={["39", "79"]}
           />
 

@@ -47,11 +47,11 @@ export default function NotFound() {
             Về trang chủ
           </Link>
           <a
-            href="tel:0938868868"
+            href="tel:0933686666"
             className="inline-flex items-center gap-2 rounded-lg bg-gold px-5 py-2.5 text-sm font-semibold text-header-bg transition-colors hover:bg-gold/90"
           >
             <Phone className="h-4 w-4" />
-            Gọi 0938.868.868
+            Gọi 0933.686.666
           </a>
         </div>
 

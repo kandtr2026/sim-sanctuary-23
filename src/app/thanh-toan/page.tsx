@@ -41,10 +41,10 @@ export default function ThanhToanPage() {
                 <p className="font-semibold text-gold">Bước 1: ĐẶT SIM</p>
                 <p className="mt-1">Quý khách chọn số sim và đặt hàng trên web hoặc gọi điện đến số hotline{' '}
                   <a
-                    href="tel:0938868868"
+                    href="tel:0933686666"
                     className="font-semibold text-primary underline decoration-primary/40 underline-offset-2 hover:text-primary/80"
                   >
-                    0938.868.868
+                    0933.686.666
                   </a>{' '}
                   để được hỗ trợ.</p>
               </div>

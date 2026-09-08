@@ -6,7 +6,7 @@ import { BASE_URL, buildBreadcrumb } from "@/lib/seo";
 import { HANH_SLUGS, hanhFromSlug } from "@/app/sim-hop-menh/_lib/menhSimRanking";
 import { ALL_YEARS, getYearInfo, YEAR_FROM, YEAR_TO } from "./_lib/yearContent";
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 const TITLE = "Sim Hợp Tuổi Theo Năm Sinh 1950–2010 | Mobifone";
 const DESCRIPTION =

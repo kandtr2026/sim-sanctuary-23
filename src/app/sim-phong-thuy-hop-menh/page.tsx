@@ -10,7 +10,7 @@ import { getCategorySnapshot } from "@/lib/serverSimData";
 // cached page instead of forcing SSR (ƒ) on every request.
 export const revalidate = 300;
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 // Title 59 ký tự (khung SERP ~60): bản cũ 67 ký tự bị Google cắt mất phần
 // "Thủy, Hỏa, Thổ", và nó lặp "Hợp Mệnh" hai lần. Bỏ đúng phần lặp — cụm khoá

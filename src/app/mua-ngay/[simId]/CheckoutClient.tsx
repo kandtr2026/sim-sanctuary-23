@@ -544,7 +544,7 @@ const CheckoutClient = () => {
               Xem số khác trong kho
             </Button>
             <a
-              href="https://zalo.me/0933356666"
+              href="https://zalo.me/0933686666"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center rounded-lg border border-border px-5 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary/50"
@@ -570,7 +570,7 @@ const CheckoutClient = () => {
   // Trước đây trang vẫn dựng đủ form với giá "Liên hệ", khách điền xong mới đụng
   // guard `priceVnd > 0` của webhook và chỉ thấy toast lỗi chung.
   if (!isOrderablePrice(displayPrice)) {
-    const zaloQuoteUrl = `https://zalo.me/0933356666?text=${encodeURIComponent(
+    const zaloQuoteUrl = `https://zalo.me/0933686666?text=${encodeURIComponent(
       `Xin chào, tôi muốn nhận báo giá SIM ${checkoutDisplay || simWithTags.simId}`,
     )}`;
 
@@ -636,23 +636,23 @@ const CheckoutClient = () => {
                 href={zaloQuoteUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Chat Zalo tư vấn 0933.356.666"
+                aria-label="Chat Zalo tư vấn 0933.686.666"
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-500 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-600"
               >
                 <span className="font-bold">Z</span>
-                Nhắn Zalo 0933.356.666
+                Nhắn Zalo 0933.686.666
               </a>
               <a
-                href="tel:0938868868"
-                aria-label="Gọi tư vấn hotline 0938.868.868"
+                href="tel:0933686666"
+                aria-label="Gọi tư vấn hotline 0933.686.666"
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 <Phone className="w-4 h-4" />
-                Gọi 0938.868.868
+                Gọi 0933.686.666
               </a>
             </div>
 
-            {/* Trấn an: hai số khác nhau (Zalo vs gọi) nhưng cùng một đội bán số. */}
+            {/* Trấn an: gọi hay nhắn Zalo đều về cùng một số, cùng đội bán số. */}
             <p className="text-center text-xs text-muted-foreground">
               Gọi hay nhắn Zalo đều gặp đúng người bán số.
             </p>

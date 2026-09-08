@@ -42,7 +42,7 @@ describe("tagZaloHref", () => {
   it("utm_campaign có → chèn [Mã: …] vào link chưa có text", async () => {
     mockAttribution.mockReturnValue({ utm_campaign: "gg-search-tuquy" });
     const { tagZaloHref } = await import("@/lib/zaloCampaignTag");
-    const a = zaloAnchor("https://zalo.me/0933356666");
+    const a = zaloAnchor("https://zalo.me/0933686666");
     const href = tagZaloHref(a);
     expect(href).toBeTruthy();
     const text = new URL(href!).searchParams.get("text");
@@ -53,7 +53,7 @@ describe("tagZaloHref", () => {
     mockAttribution.mockReturnValue({ utm_campaign: "gg-search-tuquy" });
     const { tagZaloHref } = await import("@/lib/zaloCampaignTag");
     const a = zaloAnchor(
-      `https://zalo.me/0933356666?text=${encodeURIComponent("Xin chào, tôi muốn nhận báo giá SIM 0933686666")}`,
+      `https://zalo.me/0933686666?text=${encodeURIComponent("Xin chào, tôi muốn nhận báo giá SIM 0933686666")}`,
     );
     const href = tagZaloHref(a);
     const text = new URL(href!).searchParams.get("text");
@@ -65,7 +65,7 @@ describe("tagZaloHref", () => {
     mockAttribution.mockReturnValue({ utm_campaign: "gg-search-tuquy" });
     const { tagZaloHref } = await import("@/lib/zaloCampaignTag");
     const a = zaloAnchor(
-      `https://zalo.me/0933356666?text=${encodeURIComponent("Em quan tâm sim số đẹp. [Mã: gg-search-tuquy]")}`,
+      `https://zalo.me/0933686666?text=${encodeURIComponent("Em quan tâm sim số đẹp. [Mã: gg-search-tuquy]")}`,
     );
     const href = tagZaloHref(a);
     expect(href).toBeUndefined();
@@ -74,7 +74,7 @@ describe("tagZaloHref", () => {
   it("không utm_campaign nhưng có gclid → mã 'ads'", async () => {
     mockAttribution.mockReturnValue({ gclid: "abc123" });
     const { tagZaloHref } = await import("@/lib/zaloCampaignTag");
-    const a = zaloAnchor("https://zalo.me/0933356666");
+    const a = zaloAnchor("https://zalo.me/0933686666");
     const href = tagZaloHref(a);
     const text = new URL(href!).searchParams.get("text");
     expect(text).toContain("[Mã: ads]");
@@ -84,7 +84,7 @@ describe("tagZaloHref", () => {
     mockAttribution.mockReturnValue({});
     mockClassify.mockReturnValue({ referrer: "https://www.chonsomobifone.com/", source: "internal" });
     const { tagZaloHref } = await import("@/lib/zaloCampaignTag");
-    const a = zaloAnchor("https://zalo.me/0933356666");
+    const a = zaloAnchor("https://zalo.me/0933686666");
     const href = tagZaloHref(a);
     expect(href).toBeUndefined();
   });
@@ -92,7 +92,7 @@ describe("tagZaloHref", () => {
   it("SIM từ data-sim-number → text có 'SIM {sim}'", async () => {
     mockAttribution.mockReturnValue({ utm_campaign: "gg-search-tuquy" });
     const { tagZaloHref } = await import("@/lib/zaloCampaignTag");
-    const a = zaloAnchor("https://zalo.me/0933356666", { "data-sim-number": "0933686666" });
+    const a = zaloAnchor("https://zalo.me/0933686666", { "data-sim-number": "0933686666" });
     const href = tagZaloHref(a);
     const text = new URL(href!).searchParams.get("text");
     expect(text).toContain("SIM 0933686666");
@@ -102,7 +102,7 @@ describe("tagZaloHref", () => {
   it("trang /mua-ngay/<simId> → dùng simId làm SIM", async () => {
     mockAttribution.mockReturnValue({ utm_campaign: "gg-search-tuquy" });
     const { detectSimNumber } = await import("@/lib/zaloCampaignTag");
-    const a = zaloAnchor("https://zalo.me/0933356666");
+    const a = zaloAnchor("https://zalo.me/0933686666");
     expect(detectSimNumber(a, "/mua-ngay/SIM036227")).toBe("SIM036227");
   });
 });

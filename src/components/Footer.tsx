@@ -43,9 +43,9 @@ const Footer = () => {
             <p className="text-header-foreground/70 text-sm leading-relaxed mb-4 break-words">
               Chuyên SIM Mobifone số đẹp: phong thủy, tài lộc, tứ quý. Giá niêm yết công khai, sang tên chính chủ, 30 phút giao toàn quốc.
             </p>
-            <a href="tel:0938868868" className="inline-flex items-center gap-2 text-gold hover:text-gold-light transition-colors">
+            <a href="tel:0933686666" className="inline-flex items-center gap-2 text-gold hover:text-gold-light transition-colors">
               <Phone className="w-4 h-4 flex-shrink-0" />
-              <span className="font-bold">0938.868.868</span>
+              <span className="font-bold">0933.686.666</span>
             </a>
           </div>
 
@@ -120,8 +120,8 @@ const Footer = () => {
                 <Phone className="w-4 h-4 text-gold flex-shrink-0" />
                 <span>
                   Hotline:{" "}
-                  <a href="tel:0938868868" className="hover:text-gold transition-colors">
-                    0938.868.868
+                  <a href="tel:0933686666" className="hover:text-gold transition-colors">
+                    0933.686.666
                   </a>
                 </span>
               </li>

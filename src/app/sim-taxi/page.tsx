@@ -10,7 +10,7 @@ import { getTagInventory, formatTrieu, MIN_INDEXABLE_INVENTORY } from "@/lib/sim
 
 export const revalidate = 300;
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 // Chuỗi tag đúng như trong ALL_SIM_TAGS (src/lib/simUtils.ts).
 const TAG = "Taxi";
@@ -58,7 +58,7 @@ const faqItems = [
   },
   {
     q: "Kho sim taxi có nhiều số không?",
-    a: "Nhóm này khan hơn hẳn tam hoa hay gánh đảo vì cần tới sáu chữ số xếp đúng dạng. Danh sách trên trang cập nhật theo kho mỗi 5 phút; nếu chưa thấy cụm Quý khách muốn, đội ngũ tư vấn sẽ báo khi có dãy mới qua Zalo 0933356666.",
+    a: "Nhóm này khan hơn hẳn tam hoa hay gánh đảo vì cần tới sáu chữ số xếp đúng dạng. Danh sách trên trang cập nhật theo kho mỗi 5 phút; nếu chưa thấy cụm Quý khách muốn, đội ngũ tư vấn sẽ báo khi có dãy mới qua Zalo 0933686666.",
   },
 ];
 
@@ -225,7 +225,7 @@ export default async function SimTaxiPage() {
           <CategorySimGrid
             title="Sim Taxi Mới Cập Nhật"
             searchPlaceholder="Nhập số cần tìm, hoặc *686868 / *979979 để thử một cụm"
-            emptyText="Nhóm taxi khan hàng nên kho có lúc trống. Quý khách nhắn Zalo 0933356666 kèm cụm số muốn tìm, đội ngũ tư vấn sẽ báo ngay khi có."
+            emptyText="Nhóm taxi khan hàng nên kho có lúc trống. Quý khách nhắn Zalo 0933686666 kèm cụm số muốn tìm, đội ngũ tư vấn sẽ báo ngay khi có."
             matchTags={[TAG]}
           />
 

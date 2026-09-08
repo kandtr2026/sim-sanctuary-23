@@ -13,7 +13,7 @@ import { getCategorySnapshot } from "@/lib/serverSimData";
 // cached page instead of forcing SSR (ƒ) on every request.
 export const revalidate = 300;
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 const TITLE = "Sim Lộc Phát 68 86 | Kho Sim Lộc Phát Mobifone Đẹp";
 const DESCRIPTION =
@@ -142,7 +142,7 @@ export default async function SimLocPhatPage() {
           <CategorySimGrid
             title="Sim Lộc Phát Đuôi 68, 86 Mới Cập Nhật"
             searchPlaceholder="Nhập số cần tìm, hoặc *68 / *86 để xem đuôi lộc phát"
-            emptyText="Chưa có số nào khớp yêu cầu này. Quý khách thử *68, *86 hoặc 6868, hoặc gọi 0938.868.868 để đội ngũ tư vấn lọc kho theo ngân sách."
+            emptyText="Chưa có số nào khớp yêu cầu này. Quý khách thử *68, *86 hoặc 6868, hoặc gọi 0933.686.666 để đội ngũ tư vấn lọc kho theo ngân sách."
             matchSuffixes={["68", "86"]}
           />
 

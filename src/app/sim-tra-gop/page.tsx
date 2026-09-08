@@ -10,7 +10,7 @@ import { getCategorySnapshot } from "@/lib/serverSimData";
 // cached page instead of forcing SSR (ƒ) on every request.
 export const revalidate = 300;
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 const TITLE = "Mua Sim Trả Góp | Chọn SIM Số Đẹp Trả Góp Lãi Suất Tốt";
 const DESCRIPTION =

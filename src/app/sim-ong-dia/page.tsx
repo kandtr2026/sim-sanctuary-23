@@ -10,7 +10,7 @@ import { getCategorySnapshot } from "@/lib/serverSimData";
 // cached page instead of forcing SSR (ƒ) on every request.
 export const revalidate = 300;
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 const TITLE = "Sim Ông Địa 38 78 | Kho Sim Ông Địa Mobifone Đẹp";
 const DESCRIPTION =
@@ -147,7 +147,7 @@ export default async function SimOngDiaPage() {
           <CategorySimGrid
             title="Sim Ông Địa Đuôi 38, 78 Mới Cập Nhật"
             searchPlaceholder="Nhập số cần tìm, hoặc *38 / *78 để xem đuôi ông địa"
-            emptyText="Kho chưa có số khớp yêu cầu này. Quý khách thử *38, *78 hoặc 7838; cần gấp thì nhắn Zalo 0933356666, đội ngũ tư vấn sẽ lọc kho theo ngân sách của Quý khách."
+            emptyText="Kho chưa có số khớp yêu cầu này. Quý khách thử *38, *78 hoặc 7838; cần gấp thì nhắn Zalo 0933686666, đội ngũ tư vấn sẽ lọc kho theo ngân sách của Quý khách."
             matchSuffixes={["38", "78"]}
           />
 

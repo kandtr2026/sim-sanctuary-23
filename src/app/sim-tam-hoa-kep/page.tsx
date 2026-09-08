@@ -10,7 +10,7 @@ import { getTagInventory, formatTrieu, MIN_INDEXABLE_INVENTORY } from "@/lib/sim
 
 export const revalidate = 300;
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 // Chuỗi tag đúng như trong ALL_SIM_TAGS (src/lib/simUtils.ts).
 const TAG = "Tam hoa kép";
@@ -247,7 +247,7 @@ export default async function SimTamHoaKepPage() {
           <CategorySimGrid
             title="Sim Tam Hoa Kép Mới Cập Nhật"
             searchPlaceholder="Nhập số cần tìm, hoặc *888999 để thử một cặp cụ thể"
-            emptyText="Nhóm này về lẻ và đi rất nhanh nên kho có lúc trống. Quý khách nhắn Zalo 0933356666, đội ngũ tư vấn sẽ báo ngay khi có dãy phù hợp."
+            emptyText="Nhóm này về lẻ và đi rất nhanh nên kho có lúc trống. Quý khách nhắn Zalo 0933686666, đội ngũ tư vấn sẽ báo ngay khi có dãy phù hợp."
             matchTags={[TAG]}
           />
 

@@ -60,7 +60,7 @@ const PhongThuyMenhTool = () => {
       <CategorySimGrid
         title={menh ? `Kho Sim Hợp ${MENH_LABEL[menh]}` : 'Kho Sim Hợp Mệnh Cập Nhật'}
         searchPlaceholder="Nhập số cần tìm, hoặc *đuôi để tìm theo số cuối..."
-        emptyText="Kho hiện chưa có số hợp mệnh phù hợp. Quý khách vui lòng xem lại sau hoặc liên hệ 0938.868.868 để được tư vấn."
+        emptyText="Kho hiện chưa có số hợp mệnh phù hợp. Quý khách vui lòng xem lại sau hoặc liên hệ 0933.686.666 để được tư vấn."
         matchLastDigits={menh ? MENH_DIGITS[menh] : undefined}
       />
     </section>

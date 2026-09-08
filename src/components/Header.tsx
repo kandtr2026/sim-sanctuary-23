@@ -16,28 +16,28 @@ const Header = () => {
           </Link>
         </div>
 
-        {/* Contact — hai kênh, hai số khác nhau nên ghi rõ vai trò cạnh mỗi số:
-            số gọi (hotline 0938.868.868) và số Zalo (0933.356.666). */}
+        {/* Contact — một số duy nhất 0933.686.666 cho cả hai kênh:
+            nút Gọi bấm là quay số, nút Zalo mở khung chat. */}
         <div className="flex items-center gap-4">
   <a
-  href="tel:+84938868868"
-  aria-label="Gọi tư vấn hotline 0938.868.868"
+  href="tel:+84933686666"
+  aria-label="Gọi tư vấn hotline 0933.686.666"
   className="flex items-center gap-2 hover:opacity-80 transition"
 >
   <Phone className="w-5 h-5 shrink-0 text-gold" />
   <span className="flex flex-col leading-tight">
     <span className="text-[10px] font-medium uppercase tracking-wide text-header-foreground/60">Gọi tư vấn</span>
-    <span className="text-lg font-bold text-primary">0938.868.868</span>
+    <span className="text-lg font-bold text-primary">0933.686.666</span>
   </span>
 </a>
 
 
 
   <a
-    href="https://zalo.me/0933356666"
+    href="https://zalo.me/0933686666"
     target="_blank"
     rel="noopener noreferrer"
-    aria-label="Chat Zalo tư vấn 0933.356.666"
+    aria-label="Chat Zalo tư vấn 0933.686.666"
     className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-primary-foreground px-4 py-2 rounded"
   >
     <MessageCircle className="w-4 h-4 shrink-0" />

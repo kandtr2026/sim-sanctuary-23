@@ -1,7 +1,7 @@
 import { MessageCircle, Phone } from "lucide-react";
 
-const ZALO_URL = "https://zalo.me/0933356666";
-const CALL_URL = "tel:+84938868868";
+const ZALO_URL = "https://zalo.me/0933686666";
+const CALL_URL = "tel:+84933686666";
 
 /**
  * Băng CTA nhắc lại cuối trang — đặt sau kho SIM trên các trang đích đón Ads.

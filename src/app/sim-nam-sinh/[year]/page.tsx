@@ -19,7 +19,7 @@ import {
   BIRTH_YEAR_MIN_INVENTORY,
 } from "@/lib/serverSimData";
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 // ISR: prerender các năm có tồn kho + revalidate 300s (khớp /api/sims).
 // dynamicParams = true: năm nằm trong khoảng hợp lệ nhưng CHƯA prerender (vd

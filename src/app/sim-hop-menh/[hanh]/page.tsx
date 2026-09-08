@@ -22,7 +22,7 @@ import { HANH_COPY, hanhKhacNo, hanhSinhRaNo } from "../_lib/menhContent";
 import { HANH_META, SAMPLE_YEARS_PER_HANH } from "../_lib/hanhMeta";
 import { YEAR_FROM, YEAR_TO } from "@/app/sim-hop-tuoi/_lib/yearContent";
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 // ISR: 5 trang prerender + revalidate 300s (khớp /api/sims và các trang danh mục).
 // dynamicParams = false: slug lạ trả 404 chứ không dựng trang rỗng.

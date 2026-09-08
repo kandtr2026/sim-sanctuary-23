@@ -35,7 +35,7 @@ import {
 export const revalidate = 300;
 export const dynamicParams = true;
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 const BASE_URL = "https://www.chonsomobifone.com";
 
 type Props = {
@@ -247,7 +247,7 @@ export default async function SimDauSoLoaiPage({ params }: Props) {
           <CategorySimGrid
             title={`Kho Sim ${label} Đầu Số ${dauso} Cập Nhật`}
             searchPlaceholder={`Nhập số, hoặc ${loaiInfo.searchHint} để tìm theo đuôi...`}
-            emptyText={`Kho hiện chưa có số ${label} đầu ${dauso} khớp yêu cầu. Quý khách thử đuôi khác, hoặc liên hệ 0938.868.868 để được tư vấn.`}
+            emptyText={`Kho hiện chưa có số ${label} đầu ${dauso} khớp yêu cầu. Quý khách thử đuôi khác, hoặc liên hệ 0933.686.666 để được tư vấn.`}
             matchPrefixes={[dauso]}
             matchSuffixes={[...loaiInfo.suffixes]}
           />

@@ -22,7 +22,7 @@ const BASE_URL = "https://www.chonsomobifone.com";
 const STORE_PLACE_ID = "ChIJV2BfBgAvdTERQ39odCHMHT0";
 const DEFAULT_TITLE = "CHONSOMOBIFONE.COM — Kho SIM số đẹp Mobifone uy tín";
 const DEFAULT_DESCRIPTION =
-  "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh. 30 phút giao toàn quốc, sang tên chính chủ. Hotline 0938.868.868.";
+  "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh. 30 phút giao toàn quốc, sang tên chính chủ. Hotline 0933.686.666.";
 
 // LocalBusiness schema (P1-3). The old index.html only had a bare Organization;
 // the business has a physical TPHCM storefront, so `Store` (a LocalBusiness
@@ -36,7 +36,7 @@ const STORE_JSON_LD = {
   legalName: "CÔNG TY TNHH TM DV VIỄN THÔNG NAM KHANG",
   url: `${BASE_URL}/`,
   logo: `${BASE_URL}/brand-logo.png`,
-  telephone: "+84938868868",
+  telephone: "+84933686666",
   email: "hotro@chonsomobifone.com",
   priceRange: "$$$",
   hasMap: `https://www.google.com/maps/place/?q=place_id:${STORE_PLACE_ID}`,
@@ -67,12 +67,12 @@ const STORE_JSON_LD = {
   },
   sameAs: [
     "https://www.google.com/maps/place/?q=place_id:ChIJV2BfBgAvdTERQ39odCHMHT0",
-    "https://zalo.me/0933356666",
+    "https://zalo.me/0933686666",
     "https://www.facebook.com/111745910591052",
   ],
   contactPoint: {
     "@type": "ContactPoint",
-    telephone: "+84938868868",
+    telephone: "+84933686666",
     contactType: "customer service",
     areaServed: "VN",
     availableLanguage: ["Vietnamese"],

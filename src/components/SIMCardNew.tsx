@@ -324,7 +324,7 @@ const SIMCardNew = ({ sim, quyFilter, searchQuery = '', birthDateDisplay }: SIMC
             tự chèn "[Mã: campaign]" vào tin nhắn; KHÔNG tự dựng text ở đây.
             aria-label động kèm số + giá để screen reader đọc đủ ngữ cảnh. */}
         <a
-          href="https://zalo.me/0933356666"
+          href="https://zalo.me/0933686666"
           target="_blank"
           rel="noopener noreferrer"
           data-sim-number={searchDisplay || rawNumber}

@@ -10,7 +10,7 @@ _Cập nhật: 2026-09-02. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone 
   - **Ma sát chính**:
     1. Mobile mất nút Zalo nổi (floating stack `hidden md:flex`).
     2. Nút Zalo trên card quá nhỏ (`text-xs py-1.5` ~30px, dưới chuẩn 44px).
-    3. Bấm Zalo thiếu context (link mở `zalo.me/0933356666` trống, không prefill số SIM).
+    3. Bấm Zalo thiếu context (link mở `zalo.me/0933686666` trống, không prefill số SIM).
     4. FAQ hướng dẫn "nhấn MUA NGAY" nhưng UI không có nút MUA NGAY (trong SSR).
     5. Messenger floating mập mờ (button không href).
   - **Phát hiện sau khi có source**: source ĐÃ có StickyCtaBottomBar (CTA Zalo dưới mobile) + A6 tag Zalo tự chèn số SIM (useConversionTracker + zaloCampaignTag) + BuyNowDialog có "MUA NGAY" real. Audit live chỉ thấy SSR desktop → không phát hiện các client component này.

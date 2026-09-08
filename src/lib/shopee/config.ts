@@ -51,7 +51,7 @@ export const ITEM_NAME_TEMPLATE = "Sim số đẹp {number}";
 export const ITEM_DESCRIPTION =
   "SIM số đẹp chính hãng — miễn phí giao hàng toàn quốc, hỗ trợ đăng ký chính chủ. " +
   "Khách nhận sim kiểm tra đúng số rồi mới thanh toán (COD). " +
-  "Shop CHONSOMOBIFONE.COM — 0938.868.868.";
+  "Shop CHONSOMOBIFONE.COM — 0933.686.666.";
 
 /** Trọng lượng mặc định (gram) cho SIM. */
 export const ITEM_WEIGHT = 10;

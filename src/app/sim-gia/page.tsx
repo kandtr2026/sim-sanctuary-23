@@ -5,7 +5,7 @@ import { formatTrieu, PRICE_BAND_SLUGS, resolvePriceBand, getBandInventory } fro
 
 export const revalidate = 300;
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 const TITLE = "Sim Số Đẹp Theo Giá | Chọn Đúng Ngân Sách";
 const DESCRIPTION =

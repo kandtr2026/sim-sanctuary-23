@@ -176,7 +176,7 @@ export default function BatCucLinhSoPage() {
       <ol>
         <li>
           <strong>Viết dãy số liền nhau</strong>, bỏ dấu chấm và khoảng trắng. Ví dụ:
-          0933356666.
+          0933686666.
         </li>
         <li>
           <strong>Tách cặp chồng lấn</strong> — mỗi số ghép với số kế tiếp: 09, 93, 33, 33, 35,

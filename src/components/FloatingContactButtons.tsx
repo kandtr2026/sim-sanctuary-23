@@ -3,8 +3,8 @@
 import { Phone } from "lucide-react";
 
 const ZALO_URL =
-  "https://zalo.me/0933356666?text=%F0%9F%91%8B%20Xin%20ch%C3%A0o%2C%20t%C3%B4i%20%C4%91ang%20quan%20t%C3%A2m%20%C4%91%E1%BA%BFn%20sim%20s%E1%BB%91%20%C4%91%E1%BA%B9p%20tr%C3%AAn%20website%20v%C3%A0%20mu%E1%BB%91n%20%C4%91%C6%B0%E1%BB%A3c%20t%C6%B0%20v%E1%BA%A5n.";
-const CALL_URL = "tel:+84938868868";
+  "https://zalo.me/0933686666?text=%F0%9F%91%8B%20Xin%20ch%C3%A0o%2C%20t%C3%B4i%20%C4%91ang%20quan%20t%C3%A2m%20%C4%91%E1%BA%BFn%20sim%20s%E1%BB%91%20%C4%91%E1%BA%B9p%20tr%C3%AAn%20website%20v%C3%A0%20mu%E1%BB%91n%20%C4%91%C6%B0%E1%BB%A3c%20t%C6%B0%20v%E1%BA%A5n.";
+const CALL_URL = "tel:+84933686666";
 
 const MESSENGER_FALLBACK_URL =
   "https://m.me/111745910591052?ref=Ch%C3%A0o%20shop%2C%20t%C3%B4i%20c%E1%BA%A7n%20t%C6%B0%20v%E1%BA%A5n%20sim%20s%E1%BB%91%20%C4%91%E1%BA%B9p";
@@ -91,7 +91,7 @@ const FloatingContactButtons = () => {
         {/* CALL Button */}
         <a
           href={CALL_URL}
-          aria-label="Gọi tư vấn hotline 0938.868.868"
+          aria-label="Gọi tư vấn hotline 0933.686.666"
           className="floating-contact-btn flex items-center justify-center bg-green-500 hover:bg-green-600 rounded-full"
           style={{
             width: "clamp(48px, 4.5vw, 60px)",
@@ -112,7 +112,7 @@ const FloatingContactButtons = () => {
           href={ZALO_URL}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Chat Zalo tư vấn 0933.356.666"
+          aria-label="Chat Zalo tư vấn 0933.686.666"
           className="floating-contact-btn flex items-center bg-white hover:bg-gray-50 shadow-lg focus:outline-none focus:ring-2 focus:ring-[#0068ff] focus:ring-offset-2"
           style={{
             height: "clamp(48px, 4.5vw, 60px)",

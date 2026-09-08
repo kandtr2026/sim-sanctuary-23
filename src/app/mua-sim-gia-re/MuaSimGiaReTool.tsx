@@ -19,7 +19,7 @@ import {
   type CheapFacet,
 } from '@/lib/cheapSimFacets';
 
-const ZALO_URL = 'https://zalo.me/0933356666';
+const ZALO_URL = 'https://zalo.me/0933686666';
 const PRICE_LABEL = formatPrice(CHEAP_PRICE);
 
 /**

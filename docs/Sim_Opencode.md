@@ -204,7 +204,7 @@ Web nền đen (`--background #0F0F0F`, `--card #1A1A1A`), nhấn **đỏ Mobifo
 
 **Mục tiêu:** khách lạ từ Ads chỉ bấm Zalo/gọi khi TIN. Dựng sẵn 3 component để Task 5 gắn vào các trang đích (thay vì sửa lẻ). **Chỉ tạo component, chưa gắn vào trang** (Task 5 mới gắn).
 
-**Hằng số liên hệ dùng chung** (bám repo): `ZALO_URL = "https://zalo.me/0933356666"`, `CALL = "tel:+84938868868"`. Lưu ý: mọi thẻ `<a href="tel:…">` hoặc `href="https://zalo.me…">` **tự động bắn `generate_lead`** qua listener toàn cục (`useConversionTracker`) — KHÔNG cần thêm onClick tracking.
+**Hằng số liên hệ dùng chung** (bám repo): `ZALO_URL = "https://zalo.me/0933686666"`, `CALL = "tel:+84933686666"`. Lưu ý: mọi thẻ `<a href="tel:…">` hoặc `href="https://zalo.me…">` **tự động bắn `generate_lead`** qua listener toàn cục (`useConversionTracker`) — KHÔNG cần thêm onClick tracking.
 
 ### 1. `src/components/TrustCommitments.tsx` (Server Component, không cần "use client")
 Khối "Cam kết khi mua" — 5 cam kết xoá rủi ro, mỗi cái: icon `lucide-react` + tiêu đề đậm + 1 dòng mô tả. **Thứ tự đúng như dưới** (cái xoá rủi ro mạnh nhất lên đầu):
@@ -371,7 +371,7 @@ Băng CTA nhắc-lại (đặt ngay sau lưới kho ở Task 5):
 - **`generateStaticParams`**: `PREFIXES × Object.keys(LOAI)` = 24 trang, trả `{ dauso, loai }`.
 - **`generateMetadata`**: title `Sim ${label} đầu số ${dauso} Mobifone | Giá tốt, chính chủ`, description theo combo, `alternates.canonical = /sim-dau-so/${dauso}/${loai}`, og:image `/share-banner.png?v=999`. Validate `dauso∈PREFIXES && loai∈LOAI`, sai → `notFound()` (đừng render trang rỗng).
 - **Nội dung trang (bám mẫu than-tai):**
-  - Hero: H1 `Sim ${label} đầu số ${dauso} Mobifone`, phụ đề dùng `LOAI[loai].y`, 2 nút: `#kho-sim` (gold) + Zalo `https://zalo.me/0933356666`.
+  - Hero: H1 `Sim ${label} đầu số ${dauso} Mobifone`, phụ đề dùng `LOAI[loai].y`, 2 nút: `#kho-sim` (gold) + Zalo `https://zalo.me/0933686666`.
   - `SimSnapshot` (server): `getCategorySnapshot({ prefixes:[dauso], suffixes: LOAI[loai].suffixes }, 8)` — hàm này ĐÃ hỗ trợ lọc kết hợp (xem `src/lib/serverSimData.ts`).
   - `CategorySimGrid` (client island) với `matchPrefixes={[dauso]}` + `matchSuffixes={LOAI[loai].suffixes}` (cả 2 filter được AND sẵn trong component).
   - `<TrustCommitments />` + `<LeadMagnetCta />` (component Task 4) — đặt cam kết trước, CTA nhắc-lại sau kho.

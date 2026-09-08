@@ -21,7 +21,7 @@ import { BAND_COPY, TAG_HREF } from "./copy";
 export const revalidate = 300;
 export const dynamicParams = false;
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 type Props = { params: Promise<{ dai: string }> };
 

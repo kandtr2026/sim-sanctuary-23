@@ -119,7 +119,7 @@ const CLOSERS: string[] = [
   "30 phút giao toàn quốc.",
   "Anh Chị lọc theo đuôi hoặc ngân sách.",
   "Sang tên chính chủ.",
-  "Tư vấn qua 0938.868.868.",
+  "Tư vấn qua 0933.686.666.",
   "Giao toàn quốc.",
 ];
 

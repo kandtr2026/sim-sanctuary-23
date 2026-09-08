@@ -88,7 +88,7 @@ const EmptyStateHelper = ({
               <span className="text-xs text-amber-700">Quý khách tham khảo các số gợi ý bên dưới, hoặc gọi hotline để được tư vấn riêng.</span>
               <span className="text-xs text-amber-600 flex items-center gap-1 ml-auto">
                 <Phone className="w-3 h-3" />
-                Hotline: <strong className="text-primary">0938.868.868</strong>
+                Hotline: <strong className="text-primary">0933.686.666</strong>
               </span>
             </div>
           </div>
@@ -183,7 +183,7 @@ const EmptyStateHelper = ({
                 <div className="flex items-center gap-2 text-sm text-amber-800">
                   <Phone className="w-4 h-4" />
                   <span>
-                    Quý khách có thể gọi <strong className="text-primary">Hotline: 0938.868.868</strong> để được tư vấn
+                    Quý khách có thể gọi <strong className="text-primary">Hotline: 0933.686.666</strong> để được tư vấn
                   </span>
                 </div>
               </div>

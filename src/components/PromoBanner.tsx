@@ -16,7 +16,7 @@ import PromoBannerClient from "./PromoBannerClient";
  */
 
 // Site-wide Zalo CTA, used when a campaign does not set its own cta_url.
-const DEFAULT_ZALO_CTA = "https://zalo.me/0933356666";
+const DEFAULT_ZALO_CTA = "https://zalo.me/0933686666";
 
 /** flash_sale (soonest-ending) wins; otherwise the first active one by `sort`. */
 function pickCampaign(campaigns: SiteCampaign[]): SiteCampaign | null {

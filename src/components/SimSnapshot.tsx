@@ -4,7 +4,7 @@ import type { NormalizedSIM } from "@/lib/simUtils";
 import { formatPrice } from "@/lib/simUtils";
 import { formatSimQuyAware } from "@/lib/simDisplay";
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 const detectCarrier = (number: string): string => {
   const digits = (number || "").replace(/\D/g, "");
@@ -134,7 +134,7 @@ const SimSnapshot = ({
           <a href={ZALO_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline-offset-2 hover:underline">
             Nhắn Zalo tư vấn
           </a>{" "}
-          (0933.356.666).
+          (0933.686.666).
         </p>
       </section>
 

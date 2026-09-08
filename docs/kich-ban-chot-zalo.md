@@ -5,7 +5,7 @@
 > viết câu trang trọng). TUYỆT ĐỐI không dùng "mình", "bạn", "tụi mình", "shop mình". Không emoji.
 > Chuyên nghiệp, ấm áp nhưng đúng mực — khách vừa đọc web xong sẽ nhận ra cùng một giọng.
 >
-> Thông tin thật: Zalo 0933.356.666 · Hotline 0938.868.868 · COD nội thành HCM 30 phút–2 giờ,
+> Thông tin thật: Zalo 0933.686.666 · Hotline 0933.686.666 · COD nội thành HCM 30 phút–2 giờ,
 > tỉnh 1–3 ngày · **nhận SIM, kiểm tra rồi mới trả tiền** · sang tên chính chủ · đổi/hoàn nếu SIM lỗi.
 
 ## 5 nguyên tắc quyết định 80% kết quả

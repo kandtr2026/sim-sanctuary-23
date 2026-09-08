@@ -216,7 +216,7 @@ var get_sim_details_default = defineTool2({
   title: "Chi ti\u1EBFt SIM",
   description: "Look up one SIM number in the public inventory and return its price, network, tags, feng-shui digit sum and order link.",
   inputSchema: {
-    number: z2.string().describe("The SIM number, digits only or formatted (e.g. 0938.868.868).")
+    number: z2.string().describe("The SIM number, digits only or formatted (e.g. 0933.686.666).")
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ number }) => {
@@ -234,7 +234,7 @@ var get_sim_details_default = defineTool2({
           content: [
             {
               type: "text",
-              text: `SIM ${digits} hi\u1EC7n kh\xF4ng c\xF3 trong kho. M\u1EA1ng: ${detectNetwork(digits)}. T\u1ED5ng n\xFAt: ${sumDigits}. Li\xEAn h\u1EC7 hotline 0938.868.868 \u0111\u1EC3 t\xECm s\u1ED1 t\u01B0\u01A1ng t\u1EF1.`
+              text: `SIM ${digits} hi\u1EC7n kh\xF4ng c\xF3 trong kho. M\u1EA1ng: ${detectNetwork(digits)}. T\u1ED5ng n\xFAt: ${sumDigits}. Li\xEAn h\u1EC7 hotline 0933.686.666 \u0111\u1EC3 t\xECm s\u1ED1 t\u01B0\u01A1ng t\u1EF1.`
             }
           ],
           structuredContent: {
@@ -290,8 +290,8 @@ var get_shop_info_default = defineTool3({
     const shop = {
       name: "CHONSOMOBIFONE",
       website: "https://www.chonsomobifone.com",
-      hotline: "0938.868.868",
-      zalo: "https://zalo.me/0933356666",
+      hotline: "0933.686.666",
+      zalo: "https://zalo.me/0933686666",
       address: "43A \u0110\u01B0\u1EDDng s\u1ED1 9, Ph\u01B0\u1EDDng T\xE2n H\u01B0ng, TP.HCM",
       payment: {
         bank: "TECHCOMBANK",

@@ -10,7 +10,7 @@ import { getTagInventory, formatTrieu, MIN_INDEXABLE_INVENTORY } from "@/lib/sim
 
 export const revalidate = 300;
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 // Chuỗi tag đúng như trong ALL_SIM_TAGS (src/lib/simUtils.ts).
 const TAG = "Lặp kép";
@@ -256,7 +256,7 @@ export default async function SimLapKepPage() {
           <CategorySimGrid
             title="Sim Lặp Kép Mới Cập Nhật"
             searchPlaceholder="Nhập số cần tìm, hoặc *6688 / *2288 để thử một đuôi cụ thể"
-            emptyText="Kho tạm hết số khớp yêu cầu này. Quý khách thử đuôi khác như *5500, hoặc gọi 0938.868.868 để đội ngũ tư vấn lọc theo ngân sách."
+            emptyText="Kho tạm hết số khớp yêu cầu này. Quý khách thử đuôi khác như *5500, hoặc gọi 0933.686.666 để đội ngũ tư vấn lọc theo ngân sách."
             matchTags={[TAG]}
           />
 

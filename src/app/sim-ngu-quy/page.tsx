@@ -10,7 +10,7 @@ import { getCategorySnapshotMix } from "@/lib/serverSimData";
 // cached page instead of forcing SSR (ƒ) on every request.
 export const revalidate = 300;
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 const TITLE = "Sim Ngũ Quý 88888 99999 | Kho Sim Ngũ Quý Mobifone";
 const DESCRIPTION =
@@ -127,7 +127,7 @@ export default async function SimNguQuyPage() {
           <CategorySimGrid
             title="Sim Ngũ Quý, Lục Quý Mới Cập Nhật"
             searchPlaceholder="Nhập số cần tìm, hoặc *88888 / *99999 để xem đuôi ngũ quý"
-            emptyText="Kho đang trống ở nhóm này — ngũ quý về lẻ và đi rất nhanh. Quý khách để lại yêu cầu qua Zalo 0933356666, đội ngũ tư vấn sẽ báo khi có dãy phù hợp."
+            emptyText="Kho đang trống ở nhóm này — ngũ quý về lẻ và đi rất nhanh. Quý khách để lại yêu cầu qua Zalo 0933686666, đội ngũ tư vấn sẽ báo khi có dãy phù hợp."
             matchTags={["Ngũ quý", "Lục quý"]}
             quyFilter="Ngũ quý"
           />

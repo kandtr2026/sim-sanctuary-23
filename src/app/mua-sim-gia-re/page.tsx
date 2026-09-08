@@ -9,7 +9,7 @@ import { getCheapSnapshot } from "@/lib/serverCheapSims";
 import { normalizeSIM } from "@/lib/simUtils";
 import { buildBreadcrumb } from "@/lib/seo";
 
-const ZALO_URL = 'https://zalo.me/0933356666';
+const ZALO_URL = 'https://zalo.me/0933686666';
 const PRICE_LABEL = `${CHEAP_PRICE.toLocaleString('vi-VN')}đ`;
 
 const TITLE = `Mua SIM Giá Rẻ – SIM MobiFone Đồng Giá ${PRICE_LABEL}`;

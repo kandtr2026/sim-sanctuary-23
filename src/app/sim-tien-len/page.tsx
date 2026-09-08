@@ -10,7 +10,7 @@ import { getTagInventory, formatTrieu, MIN_INDEXABLE_INVENTORY } from "@/lib/sim
 
 export const revalidate = 300;
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 // Chuỗi tag đúng như trong ALL_SIM_TAGS (src/lib/simUtils.ts).
 const TAG = "Tiến lên";
@@ -58,7 +58,7 @@ const faqItems = [
   },
   {
     q: "Kho có sẵn đuôi tiến lên trên đầu số 090, 093 không?",
-    a: "Có, nhưng nhóm này ít hàng nên đầu số cổ thường hết trước. Danh sách trên trang cập nhật theo kho mỗi 5 phút. Quý khách muốn giữ chỗ cho một đuôi cụ thể thì nhắn Zalo 0933356666, đội ngũ tư vấn sẽ báo khi có số về.",
+    a: "Có, nhưng nhóm này ít hàng nên đầu số cổ thường hết trước. Danh sách trên trang cập nhật theo kho mỗi 5 phút. Quý khách muốn giữ chỗ cho một đuôi cụ thể thì nhắn Zalo 0933686666, đội ngũ tư vấn sẽ báo khi có số về.",
   },
 ];
 
@@ -237,7 +237,7 @@ export default async function SimTienLenPage() {
           <CategorySimGrid
             title="Sim Tiến Lên Mới Cập Nhật"
             searchPlaceholder="Nhập số cần tìm, hoặc *6789 / *3456 để thử một đuôi"
-            emptyText="Nhóm này chỉ có bảy dãy đuôi nên kho hết nhanh. Quý khách nhắn Zalo 0933356666 kèm đuôi muốn tìm, đội ngũ tư vấn sẽ báo khi có số về."
+            emptyText="Nhóm này chỉ có bảy dãy đuôi nên kho hết nhanh. Quý khách nhắn Zalo 0933686666 kèm đuôi muốn tìm, đội ngũ tư vấn sẽ báo khi có số về."
             matchTags={[TAG]}
           />
 

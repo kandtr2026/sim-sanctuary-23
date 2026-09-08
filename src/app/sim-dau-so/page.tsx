@@ -9,7 +9,7 @@ import { groupThousands, moneyShort } from "./meta";
 // `revalidate` của các trang con và `/api/sims`.
 export const revalidate = 300;
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 const TITLE = "Sim Theo Đầu Số Mobifone | 090, 093, 07x, 089";
 const DESCRIPTION =

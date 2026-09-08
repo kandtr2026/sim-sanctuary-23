@@ -6,7 +6,7 @@
 > Khách đọc bài xong bấm vào web phải nhận ra cùng một giọng.
 >
 > Mỗi bài luôn có đủ 3 phần: (1) ý nghĩa số, (2) một điểm tạo niềm tin, (3) lời mời hành động kèm
-> Zalo **0933.356.666** hoặc **chonsomobifone.com**.
+> Zalo **0933.686.666** hoặc **chonsomobifone.com**.
 >
 > Nhịp đăng gợi ý: Facebook 1 bài/ngày, TikTok 1 video/ngày (giờ vàng 11–13h và 19–22h).
 > Hashtag: #simsodep #simmobifone #simthantai #simphongthuy #sohoptuoi
@@ -36,7 +36,7 @@ người buôn bán hỏi nhiều nhất. Hiện có hơn 8.800 số để Anh/C
 - Anh/Chị nhận SIM, kiểm tra rồi mới thanh toán
 - Nội thành HCM giao trong 30 phút – 2 giờ
 
-Xem giá từng số: chonsomobifone.com/sim-than-tai — hoặc nhắn Zalo 0933.356.666, Anh/Chị gửi năm sinh
+Xem giá từng số: chonsomobifone.com/sim-than-tai — hoặc nhắn Zalo 0933.686.666, Anh/Chị gửi năm sinh
 để đội ngũ tư vấn lọc số hợp tuổi.
 
 **Bài 2 — Lộc phát**
@@ -47,7 +47,7 @@ săn nhiều hơn vì dễ nhớ và nhấn ý nghĩa hai lần.
 Mua xe, mua nhà, khai trương cửa hàng — đây là nhóm số Quý khách hay chọn để đánh dấu dịp mới.
 Kho đang có hơn 8.100 số, mỗi số hiện giá công khai.
 
-Xem tại chonsomobifone.com/sim-loc-phat hoặc Zalo 0933.356.666.
+Xem tại chonsomobifone.com/sim-loc-phat hoặc Zalo 0933.686.666.
 
 **Bài 3 — Tứ quý và tam hoa**
 
@@ -60,7 +60,7 @@ Tứ quý là hàng hiếm, mỗi số một chủ. Nếu Anh/Chị muốn dãy 
 - Tứ quý: chonsomobifone.com/mua-sim-tu-quy
 - Tam hoa: chonsomobifone.com/sim-tam-hoa
 
-Anh/Chị muốn xem giá số nào, nhắn Zalo 0933.356.666, đội ngũ tư vấn báo ngay.
+Anh/Chị muốn xem giá số nào, nhắn Zalo 0933.686.666, đội ngũ tư vấn báo ngay.
 
 **Bài 4 — Sim hợp tuổi (bài lấy tương tác)**
 
@@ -69,7 +69,7 @@ Anh/Chị sinh năm bao nhiêu? Để lại năm sinh dưới bình luận, đ�
 Chọn số hợp mệnh không tốn thêm tiền — chỉ là chọn đúng nhóm số Quý khách vốn hợp. Công cụ trên web
 chấm điểm toàn bộ kho theo mệnh, ngũ hành và quẻ dịch, nên luôn có số phù hợp.
 
-Tra ngay theo tuổi: chonsomobifone.com/sim-hop-tuoi — hoặc nhắn Zalo 0933.356.666.
+Tra ngay theo tuổi: chonsomobifone.com/sim-hop-tuoi — hoặc nhắn Zalo 0933.686.666.
 
 **Bài 5 — Vì sao mua tại đây (xoá lo lắng)**
 
@@ -81,7 +81,7 @@ lo lắng hợp lý. Cách CHONSOMOBIFONE làm:
 - Hỗ trợ sang tên chính chủ; SIM lỗi kỹ thuật thì đổi hoặc hoàn
 - Cửa hàng thật: 43A Đường số 9, Phường Tân Hưng, TP. Hồ Chí Minh
 
-Chọn số tại chonsomobifone.com hoặc Zalo 0933.356.666.
+Chọn số tại chonsomobifone.com hoặc Zalo 0933.686.666.
 
 ---
 

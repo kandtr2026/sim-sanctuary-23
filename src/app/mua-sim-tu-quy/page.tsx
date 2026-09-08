@@ -6,7 +6,7 @@ import FaqAccordion from "@/components/FaqAccordion";
 import { buildBreadcrumb } from "@/lib/seo";
 import { getCategorySnapshotMix } from "@/lib/serverSimData";
 
-const ZALO_URL = 'https://zalo.me/0933356666';
+const ZALO_URL = 'https://zalo.me/0933686666';
 
 const TITLE = "Mua Sim Tứ Quý | Kho Sim Tứ Quý Đẹp Toàn Quốc";
 const DESCRIPTION =

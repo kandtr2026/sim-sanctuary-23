@@ -34,7 +34,7 @@ export const faqData = [
   {
     question: 'Làm sao để khiếu nại / góp ý?',
     answer:
-      'Quý khách vui lòng gọi hotline 0938.868.868 (8:00 – 21:00 hàng ngày), nhắn Zalo 0933.356.666 hoặc gửi email hotro@chonsomobifone.com.',
+      'Quý khách vui lòng gọi hotline 0933.686.666 (8:00 – 21:00 hàng ngày), nhắn Zalo 0933.686.666 hoặc gửi email hotro@chonsomobifone.com.',
   },
   {
     question: 'Địa chỉ cửa hàng ở đâu?',

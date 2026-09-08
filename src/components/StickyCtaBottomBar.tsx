@@ -43,10 +43,10 @@ const StickyCtaBottomBar = () => {
           Sang tên chính chủ · Giao 30 phút
         </p>
         <div className="flex items-center gap-2">
-          {/* Số gọi = hotline 0938.868.868 (khác số Zalo bên cạnh — ghi rõ vai trò). */}
+          {/* Cùng một số 0933.686.666: nút này quay số gọi trực tiếp. */}
           <a
-            href="tel:+84938868868"
-            aria-label="Gọi tư vấn chọn số qua hotline 0938.868.868"
+            href="tel:+84933686666"
+            aria-label="Gọi tư vấn chọn số qua hotline 0933.686.666"
             className="flex-1 flex items-center justify-center gap-2 rounded-md text-white py-2.5"
             style={{ backgroundColor: "#E31E24", minHeight: 44 }}
           >
@@ -56,12 +56,12 @@ const StickyCtaBottomBar = () => {
               <span className="font-normal opacity-90" style={{ fontSize: 11 }}>chọn số</span>
             </span>
           </a>
-          {/* Số Zalo = 0933.356.666 (khác số gọi). */}
+          {/* Cùng một số 0933.686.666: nút này mở khung chat Zalo. */}
           <a
-            href="https://zalo.me/0933356666"
+            href="https://zalo.me/0933686666"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Chat Zalo tư vấn, phản hồi trong 5 phút — 0933.356.666"
+            aria-label="Chat Zalo tư vấn, phản hồi trong 5 phút — 0933.686.666"
             className="flex-1 flex items-center justify-center gap-2 rounded-md text-black py-2.5"
             style={{ backgroundColor: "#FFC107", minHeight: 44 }}
           >

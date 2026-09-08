@@ -11,7 +11,7 @@ import { getTagInventory, formatTrieu, MIN_INDEXABLE_INVENTORY } from "@/lib/sim
 // ISR như các trang danh mục khác (khớp revalidate của /api/sims).
 export const revalidate = 300;
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 // Tên tag lấy ĐÚNG chuỗi trong ALL_SIM_TAGS (src/lib/simUtils.ts) — sai một dấu
 // là snapshot rỗng và cả bảng giá + Product/Offer biến mất mà build vẫn xanh.
@@ -258,7 +258,7 @@ export default async function SimTamHoaPage() {
           <CategorySimGrid
             title="Sim Tam Hoa Mới Cập Nhật"
             searchPlaceholder="Nhập số cần tìm, hoặc *888 / *999 để xem đuôi tam hoa"
-            emptyText="Kho tạm hết số khớp yêu cầu này. Quý khách thử tìm *888 hoặc *222, hoặc gọi 0938.868.868 để đội ngũ tư vấn lọc số theo đúng ngân sách."
+            emptyText="Kho tạm hết số khớp yêu cầu này. Quý khách thử tìm *888 hoặc *222, hoặc gọi 0933.686.666 để đội ngũ tư vấn lọc số theo đúng ngân sách."
             matchTags={[TAG]}
           />
 

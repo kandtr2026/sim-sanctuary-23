@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { buildBreadcrumb, type BreadcrumbItem } from "@/lib/seo";
 
-const HOTLINE = "0938.868.868";
+const HOTLINE = "0933.686.666";
 const EMAIL = "hotro@chonsomobifone.com";
 const ADDRESS = "43A Đường số 9, Phường Tân Hưng, TP. Hồ Chí Minh";
 

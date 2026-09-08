@@ -134,7 +134,7 @@ describe('LỖI 3 — SIM trắng giá không được mở form đặt hàng', 
     expect(guardAt).toBeGreaterThan(-1);
     expect(formAt).toBeGreaterThan(guardAt);
     // Và đường liên hệ phải có mặt trong nhánh đó.
-    expect(src).toContain('zalo.me/0933356666');
-    expect(src).toContain('tel:0938868868');
+    expect(src).toContain('zalo.me/0933686666');
+    expect(src).toContain('tel:0933686666');
   });
 });

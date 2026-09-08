@@ -26,7 +26,7 @@ import {
   type YearInfo,
 } from "../_lib/yearContent";
 
-const ZALO_URL = "https://zalo.me/0933356666";
+const ZALO_URL = "https://zalo.me/0933686666";
 
 // ISR: prerender cả 61 năm 1950–2010 + revalidate 300s (khớp /api/sims và các
 // trang danh mục khác). generateStaticParams ở đây KHÔNG phụ thuộc dữ liệu —

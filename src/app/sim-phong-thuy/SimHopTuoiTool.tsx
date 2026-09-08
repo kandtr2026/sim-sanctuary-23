@@ -712,7 +712,7 @@ const SimHopTuoiTool = () => {
           {result.sims.length === 0 ? (
             <div className="text-center py-8">
               <p style={{ color: "rgba(237,237,237,0.7)" }}>
-                Kho chưa có số khớp bộ tiêu chí này. Quý khách thử nới bộ lọc Bát Cực, hoặc gọi 0938.868.868
+                Kho chưa có số khớp bộ tiêu chí này. Quý khách thử nới bộ lọc Bát Cực, hoặc gọi 0933.686.666
                 để đội ngũ tư vấn tìm số riêng.
               </p>
             </div>

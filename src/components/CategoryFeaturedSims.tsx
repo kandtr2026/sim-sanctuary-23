@@ -5,7 +5,7 @@ import { formatPrice } from "@/lib/simUtils";
 import { formatSimQuyAware } from "@/lib/simDisplay";
 import { buildSimItemListJsonLd } from "@/components/SimSnapshot";
 
-const ZALO_BASE = "https://zalo.me/0933356666";
+const ZALO_BASE = "https://zalo.me/0933686666";
 
 /**
  * Server-rendered dải "Nổi bật" — SỐ + GIÁ + 2 nút hành động (Đặt mua + Chat Zalo)
