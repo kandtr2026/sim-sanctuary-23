@@ -1,10 +1,11 @@
 import type { NormalizedSIM } from "@/lib/simUtils";
 
 /**
- * Ý nghĩa từng DẠNG SỐ dùng cho trang riêng `/sim/[digits]`. Câu chữ bám đúng
- * cách các trang danh mục đang mô tả (thần tài 39/79, lộc phát 68/86…), KHÔNG
- * thêm lời "bói" hay hứa hẹn — chỉ nêu quy ước đọc số và lý do dân trong nghề
- * chuộng. `path` trỏ về trang danh mục tương ứng để nối link nội bộ.
+ * Ý nghĩa từng DẠNG SỐ, dùng chung cho trang riêng `/sim/[digits]` và trang
+ * `/tra-cuu-sim`. Câu chữ bám đúng cách các trang danh mục đang mô tả (thần tài
+ * 39/79, lộc phát 68/86…), KHÔNG thêm lời "bói" hay hứa hẹn — chỉ nêu quy ước
+ * đọc số và lý do dân trong nghề chuộng. `path` trỏ về trang danh mục để nối
+ * link nội bộ.
  */
 export interface TagMeta {
   label: string;
@@ -103,11 +104,15 @@ const TAG_PRIORITY = [
   "Năm sinh",
 ] as const;
 
-/** Các dạng của số này, đã sắp theo độ hiếm/đẹp, kèm meta để dựng nội dung + link. */
-export const describeSimTags = (sim: NormalizedSIM): TagMeta[] => {
-  const tags = new Set(sim.tags);
-  return TAG_PRIORITY.filter((t) => tags.has(t)).map((t) => TAG_META[t]);
+/** Map danh sách tag thô → meta, đã sắp theo độ hiếm/đẹp. Dùng chung cho trang
+ *  số (từ sim.tags) lẫn trang tra cứu (từ detectSimTags trên digits bất kỳ). */
+export const metasForTags = (tags: string[]): TagMeta[] => {
+  const set = new Set(tags);
+  return TAG_PRIORITY.filter((t) => set.has(t)).map((t) => TAG_META[t]);
 };
+
+/** Các dạng của số này, đã sắp theo độ hiếm/đẹp, kèm meta để dựng nội dung + link. */
+export const describeSimTags = (sim: NormalizedSIM): TagMeta[] => metasForTags(sim.tags);
 
 /** Dạng "chính" (đẹp nhất) của số — dùng cho breadcrumb + số cùng nhóm. */
 export const primaryTagMeta = (sim: NormalizedSIM): TagMeta | null =>

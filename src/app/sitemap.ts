@@ -33,6 +33,8 @@ const ROUTES: StaticRoute[] = [
   // Hub "sim theo đầu số" (Front dựng trang này).
   { path: "/sim-dau-so", changeFrequency: "weekly", priority: 0.7, dynamic: true },
   { path: "/sim-phong-thuy", changeFrequency: "weekly", priority: 0.8 },
+  // Công cụ tra cứu ý nghĩa + giá một số bất kỳ (đợt-2).
+  { path: "/tra-cuu-sim", changeFrequency: "monthly", priority: 0.7 },
   // Hub "sim năm sinh". Trước đây chỉ 38 trang con /sim-nam-sinh/<năm> có trong
   // sitemap còn trang hub thì không, dù nó có trong Navigation — tức một trang
   // money page vô hình với sitemap.

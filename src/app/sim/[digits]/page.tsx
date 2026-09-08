@@ -19,7 +19,7 @@ import {
   getCategorySnapshot,
 } from "@/lib/serverSimData";
 import { BASE_URL, buildBreadcrumb } from "@/lib/seo";
-import { describeSimTags, primaryTagMeta } from "./_lib/simMeta";
+import { describeSimTags, primaryTagMeta } from "@/lib/simMeta";
 import TrustCommitments from "@/components/TrustCommitments";
 
 // ISR: mỗi trang số làm tươi mỗi 5 phút. Số đã bán → lần regenerate kế tiếp
@@ -370,6 +370,7 @@ export default async function SimDetailPage({ params }: Props) {
               <li><Link href="/sim-nam-sinh" className="font-medium text-primary underline-offset-2 hover:underline">Sim năm sinh</Link></li>
               <li><Link href={`/sim-dau-so/${sim.prefix3}`} className="font-medium text-primary underline-offset-2 hover:underline">Sim đầu {sim.prefix3}</Link></li>
               <li><Link href="/mua-sim-gia-re" className="font-medium text-primary underline-offset-2 hover:underline">Sim giá rẻ</Link></li>
+              <li><Link href="/tra-cuu-sim" className="font-medium text-primary underline-offset-2 hover:underline">Tra cứu sim</Link></li>
             </ul>
           </section>
         </div>
