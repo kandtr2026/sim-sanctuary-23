@@ -95,7 +95,18 @@ export default function CategorySimPriceList({
               {rows.map((sim, index) => (
                 <tr key={sim.id} className={index % 2 === 1 ? "bg-secondary/20" : undefined}>
                   <td className="whitespace-nowrap border-b border-border/60 px-2 py-2.5 font-semibold tracking-wide text-foreground sm:px-3">
-                    {formatSimQuyAware(sim.rawDigits || sim.formattedNumber)}
+                    {/^0\d{9,10}$/.test(sim.rawDigits) ? (
+                      // Link tới trang riêng của số (indexable) — nguồn link nội
+                      // bộ chính dẫn crawler vào các trang /sim/*.
+                      <Link
+                        href={`/sim/${sim.rawDigits}`}
+                        className="underline-offset-2 hover:text-primary hover:underline"
+                      >
+                        {formatSimQuyAware(sim.rawDigits)}
+                      </Link>
+                    ) : (
+                      formatSimQuyAware(sim.rawDigits || sim.formattedNumber)
+                    )}
                   </td>
                   <td className="whitespace-nowrap border-b border-border/60 px-2 py-2.5 text-right font-semibold text-primary sm:px-3">
                     {formatPrice(sim.price)}

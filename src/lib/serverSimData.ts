@@ -944,3 +944,56 @@ export const getInStockBirthYears = async (
     .map(([year]) => year)
     .sort();
 };
+
+// ── Trang riêng từng số `/sim/[digits]` ──────────────────────────────────────
+//
+// Mỗi số có một landing SEO riêng (khác trang đặt hàng `/mua-ngay/[id]` đang
+// noindex). Chỉ số "giá trị cao" mới được index + vào sitemap — số thường vẫn có
+// trang (render on-demand cho khách bấm từ thẻ/Zalo) nhưng gắn noindex để không
+// làm phình chỉ mục bằng hàng chục nghìn trang mỏng. Ngưỡng + tập số nằm CHUNG ở
+// đây để `generateStaticParams`, `sitemap.ts` và metadata robots không bao giờ
+// lệch nhau (cùng khuôn với getInStockBirthYears ở trên).
+
+/** Beauty score tối thiểu để một số đủ "đẹp" mà mở trang index riêng (Tam hoa+). */
+export const SIM_PAGE_MIN_BEAUTY = 40;
+/** Giá tối thiểu (VND) để một số coi là giá trị cao dù ít pattern. */
+export const SIM_PAGE_MIN_PRICE = 20_000_000;
+/** Trần số URL `/sim/*` đưa vào sitemap — số đẹp nhất trước. */
+export const SIM_PAGE_SITEMAP_CAP = 5000;
+
+/** Một SIM đủ điều kiện có trang index riêng (đang bán + đủ đẹp/đắt/VIP). */
+export const isIndexableSim = (s: NormalizedSIM): boolean =>
+  s.price > 0 &&
+  (s.isVIP || s.beautyScore >= SIM_PAGE_MIN_BEAUTY || s.price >= SIM_PAGE_MIN_PRICE);
+
+/**
+ * Tra đúng 1 SIM đang bán theo dãy số sạch (10 chữ số, VD "0938686868").
+ * Trả null khi định dạng sai hoặc số không còn trong kho — caller gọi notFound().
+ */
+export const findSimByDigits = async (digits: string): Promise<NormalizedSIM | null> => {
+  const clean = (digits || "").replace(/\D/g, "");
+  if (!/^0\d{9,10}$/.test(clean)) return null;
+  const all = await getServerSims();
+  return all.find((s) => getDigits(s) === clean && s.price > 0) ?? null;
+};
+
+/**
+ * Dãy số (rawDigits) của các SIM ĐÁNG INDEX, số đẹp nhất trước, cắt trần
+ * `cap`. Dùng CHUNG cho sitemap.ts và generateStaticParams của trang
+ * `/sim/[digits]` nên tập prerender + sitemap luôn khớp. Trả [] khi dữ liệu lỗi
+ * (không bao giờ ném) để build không gãy.
+ */
+export const getIndexableSimDigits = async (
+  cap = SIM_PAGE_SITEMAP_CAP,
+): Promise<string[]> => {
+  const all = await getServerSims();
+  if (all.length === 0) return [];
+  const eligible = all.filter(isIndexableSim);
+  eligible.sort((a, b) => b.beautyScore - a.beautyScore || b.price - a.price);
+  if (eligible.length > cap) {
+    console.log(
+      `[serverSimData] ${eligible.length} SIM đủ điều kiện index, cắt còn ${cap} trong sitemap`,
+    );
+  }
+  return eligible.slice(0, cap).map((s) => getDigits(s));
+};

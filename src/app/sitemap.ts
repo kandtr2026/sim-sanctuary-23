@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getPublishedPosts } from "@/lib/blogPosts";
-import { getInStockBirthYears } from "@/lib/serverSimData";
+import { getInStockBirthYears, getIndexableSimDigits } from "@/lib/serverSimData";
 import { TIN_TUC_ARTICLES } from "@/content/tinTucArticles";
 import { getDauSoSitemapEntries } from "@/app/sim-dau-so/inventory";
 import { ALL_YEARS } from "@/app/sim-hop-tuoi/_lib/yearContent";
@@ -150,6 +150,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
+  // Trang riêng từng số — CHỈ số giá trị cao (isIndexableSim), số đẹp nhất trước,
+  // cắt trần SIM_PAGE_SITEMAP_CAP. Dùng CHUNG helper với generateStaticParams của
+  // /sim/[digits] nên tập index + sitemap khớp nhau. Degrade [] khi dữ liệu lỗi.
+  const simDigits = await getIndexableSimDigits();
+  const simEntries = simDigits.map((d) => ({
+    url: `${BASE_URL}/sim/${d}`,
+    lastModified,
+    changeFrequency: "weekly" as const,
+    priority: 0.5,
+  }));
+
   return [
     ...staticEntries,
     ...dauSoAllEntries,
@@ -159,5 +170,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...hopTuoiEntries,
     ...hopMenhEntries,
     ...giaEntries,
+    ...simEntries,
   ];
 }
