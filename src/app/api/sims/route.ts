@@ -10,7 +10,7 @@ import type { QuyType, SortOption } from "@/lib/simUtils";
 export const revalidate = 300;
 
 const QUY_TYPES: QuyType[] = ["Tứ quý", "Ngũ quý", "Lục quý"];
-const SORT_OPTIONS: SortOption[] = ["default", "price_asc", "price_desc", "beauty", "suffix_beauty"];
+const SORT_OPTIONS: SortOption[] = ["mix", "default", "price_asc", "price_desc", "beauty", "suffix_beauty"];
 const MAX_LIMIT = 200;
 
 const splitParam = (value: string | null): string[] | undefined => {
@@ -88,7 +88,13 @@ export async function GET(req: NextRequest) {
     sortBy: criteria.sortBy,
     mobifoneFirst: criteria.mobifoneFirst,
   };
+  // `mix` (trộn phổ giá) chia kho thành ba rổ theo phân vị giá rồi rải xen kẽ —
+  // một thứ tự chỉ tính được khi cầm CẢ TẬP đã lọc, không diễn đạt nổi bằng
+  // `order=` của PostgREST. Đẩy xuống DB sẽ âm thầm ra giá tăng dần (nhánh else
+  // của querySimsFromDb), tức đúng cái mặt tiền toàn số rẻ mà `mix` sinh ra để
+  // sửa. Nên buộc đi nhánh in-memory (getServerSims đã cache 5 phút).
   const canPushToDb =
+    criteria.sortBy !== "mix" &&
     !includeFacets &&
     !criteria.quyType &&
     !criteria.birthDateOnly &&

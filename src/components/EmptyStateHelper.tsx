@@ -1,10 +1,55 @@
 import { useState } from "react";
-import { AlertCircle, Eraser, XCircle, Sparkles, Phone, ChevronDown, Lightbulb } from "lucide-react";
+import { AlertCircle, Eraser, XCircle, Sparkles, Phone, ChevronDown, Lightbulb, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SIMCardNew from "@/components/SIMCardNew";
 import type { NormalizedSIM } from "@/lib/simUtils";
 import { getSuggestionHighlightDigits } from "@/lib/highlightUtils";
 import type { FilterState } from "@/hooks/useSimData";
+
+const CALL_NUMBER = "0933686666";
+const CALL_DISPLAY = "0933.686.666";
+
+/**
+ * Cụm hành động cho màn "không tìm thấy" — khoảnh khắc ý định mua CAO NHẤT trên
+ * cả site: khách vừa gõ hẳn một dãy số cụ thể, tức đã biết mình muốn gì.
+ *
+ * Trước đây khối này chỉ VIẾT RA số hotline dưới dạng chữ thường, không bấm được,
+ * và không có nút Zalo nào — ba nút duy nhất là "Bỏ 1 bộ lọc" / "Nới lỏng tất cả"
+ * / "Xóa toàn bộ", đều là thao tác kỹ thuật. Khách trên điện thoại phải tự bôi
+ * đen số rồi copy sang app gọi. Thanh CTA đáy màn hình vẫn còn, nhưng nút ở đó
+ * chung chung — không mang theo con số khách vừa tìm, nên chuyên viên nhận tin
+ * vẫn phải hỏi lại từ đầu.
+ *
+ * Tin nhắn Zalo được điền sẵn kèm đúng dãy số đó. `tagZaloHref` (A6) thấy `text=`
+ * có sẵn thì GIỮ nguyên và chỉ nối thêm "[Mã: campaign]", nên không đè mất.
+ */
+const askZaloHref = (query: string): string =>
+  `https://zalo.me/${CALL_NUMBER}?text=${encodeURIComponent(
+    query
+      ? `Em tìm sim ${query} trên web mà không thấy, shop còn số nào gần giống không ạ?`
+      : "Em cần shop tư vấn giúp chọn sim ạ.",
+  )}`;
+
+const AskForHelpActions = ({ query, compact }: { query: string; compact?: boolean }) => (
+  <div className={`flex flex-wrap items-center gap-2 ${compact ? "mt-2" : "mt-3"}`}>
+    <a
+      href={askZaloHref(query)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex min-h-11 items-center gap-1.5 rounded-md bg-sky-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-600"
+    >
+      <MessageCircle className="h-4 w-4 shrink-0" />
+      {query ? "Nhắn Zalo nhờ tìm số này" : "Nhắn Zalo nhờ tư vấn"}
+    </a>
+    <a
+      href={`tel:${CALL_NUMBER}`}
+      className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20"
+    >
+      <Phone className="h-4 w-4 shrink-0" />
+      Gọi {CALL_DISPLAY}
+    </a>
+  </div>
+);
 
 interface Constraint {
   key: string;
@@ -85,12 +130,9 @@ const EmptyStateHelper = ({
                   : "Không tìm thấy SIM phù hợp với bộ lọc"}
               </span>
               <span className="text-xs text-amber-700">—</span>
-              <span className="text-xs text-amber-700">Quý khách tham khảo các số gợi ý bên dưới, hoặc gọi hotline để được tư vấn riêng.</span>
-              <span className="text-xs text-amber-600 flex items-center gap-1 ml-auto">
-                <Phone className="w-3 h-3" />
-                Hotline: <strong className="text-primary">0933.686.666</strong>
-              </span>
+              <span className="text-xs text-amber-700">Quý khách tham khảo các số gợi ý bên dưới, hoặc nhắn shop tìm riêng.</span>
             </div>
+            <AskForHelpActions query={displayQuery} compact />
           </div>
 
           {/* Compact filter actions */}
@@ -180,12 +222,10 @@ const EmptyStateHelper = ({
                     ? "Quý khách vui lòng thử một số khác, hoặc để đội ngũ tư vấn tìm số tương đương."
                     : "Các bộ lọc đang chọn không khớp SIM nào trong kho. Quý khách vui lòng bỏ bớt một điều kiện để mở rộng kết quả."}
                 </p>
-                <div className="flex items-center gap-2 text-sm text-amber-800">
-                  <Phone className="w-4 h-4" />
-                  <span>
-                    Quý khách có thể gọi <strong className="text-primary">Hotline: 0933.686.666</strong> để được tư vấn
-                  </span>
-                </div>
+                <p className="text-sm text-amber-800">
+                  Kho còn nhiều số chưa lên web — nhắn cho shop, có số gần giống sẽ báo lại ngay.
+                </p>
+                <AskForHelpActions query={displayQuery} />
               </div>
             </div>
           </div>

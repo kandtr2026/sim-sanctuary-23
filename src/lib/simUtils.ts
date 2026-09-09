@@ -648,21 +648,71 @@ export const PRICE_RANGES = [
 export const QUICK_SUFFIXES = ['68', '86', '39', '79', '38', '78', '888', '999', '6666', '8888'];
 
 // Sorting options
-export type SortOption = 'default' | 'price_asc' | 'price_desc' | 'beauty' | 'suffix_beauty';
+export type SortOption = 'mix' | 'default' | 'price_asc' | 'price_desc' | 'beauty' | 'suffix_beauty';
 
+// Nhãn 'default' trước đây ghi "Mới nhất" — SAI SỰ THẬT: bảng `sims` không có cột
+// thời gian nào, và thứ tự thực thi là `effective_price.asc` (xem `querySimsFromDb`).
+// Khách chọn "Mới nhất" tưởng được xem hàng vừa về, thực ra đang xem hàng rẻ nhất.
 export const SORT_OPTIONS: { value: SortOption; label: string }[] = [
-  { value: 'default', label: 'Mới nhất' },
+  { value: 'mix', label: 'Đề xuất' },
+  { value: 'default', label: 'Giá thấp đến cao' },
   { value: 'price_asc', label: 'Giá tăng dần' },
   { value: 'price_desc', label: 'Giá giảm dần' },
   { value: 'beauty', label: 'Đẹp nhất' },
   { value: 'suffix_beauty', label: 'Đuôi đẹp' }
 ];
 
+/**
+ * "Đề xuất" — trộn phổ giá thay vì xếp toàn số rẻ lên trước.
+ *
+ * Mặt tiền cũ (giá tăng dần) bày ra 8 số đầu đều 800k–990k, điểm đẹp 0–25, trong
+ * khi kho có 2.250 số VIP và 1.108 ngũ quý — khách mới vào tưởng shop chỉ bán số
+ * thường. Ở đây chia kho thành ba rổ theo phân vị giá rồi rải theo chu kỳ 10 số:
+ * **6 rổ rẻ + 3 rổ tầm trung + 1 rổ cao cấp**. Trong mỗi rổ vẫn là giá tăng dần.
+ *
+ * Quan trọng: đây là một thứ tự XÁC ĐỊNH trên toàn tập, không phải mẹo chỉ đẹp ở
+ * trang đầu — nhờ vậy `limit`/`offset` vẫn phân trang đúng và "xem thêm" không
+ * lặp hay nhảy cóc số. Cùng ý đồ với `getCategorySnapshotMix` (dải Nổi bật của
+ * trang danh mục), chỉ khác là áp cho cả lưới.
+ */
+const mixByPriceSpectrum = (sims: NormalizedSIM[]): NormalizedSIM[] => {
+  const byPrice = [...sims].sort((a, b) => a.price - b.price || b.beautyScore - a.beautyScore);
+  // Kho quá nhỏ thì trộn chẳng còn nghĩa gì — giữ nguyên giá tăng dần.
+  if (byPrice.length < 10) return byPrice;
+
+  const cheapEnd = Math.floor(byPrice.length * 0.6);
+  const midEnd = Math.floor(byPrice.length * 0.9);
+  const buckets = [
+    byPrice.slice(0, cheapEnd),
+    byPrice.slice(cheapEnd, midEnd),
+    byPrice.slice(midEnd),
+  ];
+  // 6 rẻ / 3 trung / 1 cao trong mỗi chu kỳ 10 số.
+  const pattern = [0, 0, 1, 0, 0, 1, 0, 2, 0, 1];
+
+  const taken = [0, 0, 0];
+  const out: NormalizedSIM[] = [];
+  let step = 0;
+
+  while (out.length < byPrice.length) {
+    let b = pattern[step % pattern.length];
+    step++;
+    // Rổ theo mẫu đã cạn → mượn rổ kế tiếp, để đuôi danh sách không bị hụt.
+    for (let t = 0; t < 3 && taken[b] >= buckets[b].length; t++) b = (b + 1) % 3;
+    if (taken[b] >= buckets[b].length) break; // cả ba rổ đã hết
+    out.push(buckets[b][taken[b]++]);
+  }
+
+  return out;
+};
+
 // Sort SIMs
 export const sortSIMs = (sims: NormalizedSIM[], sortBy: SortOption): NormalizedSIM[] => {
   const sorted = [...sims];
 
   switch (sortBy) {
+    case 'mix':
+      return mixByPriceSpectrum(sorted);
     case 'price_asc':
       return sorted.sort((a, b) => a.price - b.price);
     case 'price_desc':

@@ -77,7 +77,9 @@ const CATEGORY_LINKS: { href: string; label: string }[] = [
  */
 const DISCOVERY_LINKS: { href: string; label: string }[] = [
   { href: "/sim-hop-tuoi", label: "Sim hợp tuổi theo năm sinh" },
-  { href: "/sim-hop-menh", label: "Sim hợp mệnh" },
+  // Trỏ thẳng hub, không qua /sim-hop-menh (trang đó `permanentRedirect` 308 sang
+  // đây) — khách bấm từ trang chủ khỏi tốn thêm một vòng round-trip.
+  { href: "/sim-phong-thuy-hop-menh", label: "Sim hợp mệnh" },
   { href: "/sim-nam-sinh", label: "Sim có năm sinh" },
   { href: "/sim-gia", label: "Sim theo tầm giá" },
   { href: "/sim-tam-hoa", label: "Sim tam hoa" },
@@ -95,7 +97,12 @@ export default async function HomePage() {
   // refetch nền cho dữ liệu luôn tươi. getServerSims đã cache module scope + trả
   // [] khi lỗi (build không vỡ, client tự retry).
   const sims = await getServerSims();
-  const catalogue = filterSims(sims, {});
+  // `mix` = trộn phổ giá (xem `sortSIMs`). Trước đây chỗ này để trống criteria nên
+  // rơi vào nhánh mặc định "giá tăng dần": 40 thẻ đầu — thứ khách nhìn thấy trước
+  // tiên khi mở web — đều là số 800k–990k điểm đẹp 0–25, giấu mất 2.250 số VIP
+  // trong kho. Phải khớp với sort mặc định của SimBrowser, nếu không trang vừa
+  // hiện xong sẽ tự nhảy sang một thứ tự khác ngay khi react-query trả về.
+  const catalogue = filterSims(sims, { sortBy: "mix" });
   const initialData = catalogue.slice(0, 40);
   const initialTotal = catalogue.length;
   const initialFacets = (() => {

@@ -47,7 +47,11 @@ const ROUTES: StaticRoute[] = [
   { path: "/sim-tra-gop", changeFrequency: "monthly", priority: 0.7 },
   // Hub của 3 cụm trang programmatic mới (29/08/2026).
   { path: "/sim-hop-tuoi", changeFrequency: "weekly", priority: 0.8, dynamic: true },
-  { path: "/sim-hop-menh", changeFrequency: "weekly", priority: 0.8, dynamic: true },
+  // KHÔNG khai "/sim-hop-menh": trang đó chỉ `permanentRedirect` sang
+  // /sim-phong-thuy-hop-menh (đã có ở trên). Khai một URL 308 trong sitemap là tự
+  // gửi cho Google một địa chỉ nó phải bỏ đi — tốn crawl budget và làm nhiễu tín
+  // hiệu canonical giữa hai URL cùng chủ đề. Trang redirect vẫn giữ nguyên để bot
+  // cắt bớt URL giữa cụm /sim-hop-menh/<mệnh> không ăn 404.
   { path: "/sim-gia", changeFrequency: "weekly", priority: 0.8, dynamic: true },
   // Trang theo DẠNG SỐ — tag đã gắn sẵn cho cả kho, mỗi trang là một cụm từ khoá
   // riêng mà trước đây site không có trang nào phủ (đối thủ có ~60 trang dạng này).

@@ -22,6 +22,17 @@ import type { NormalizedSIM, QuyType } from "@/lib/simUtils";
 
 const ITEMS_PER_PAGE = 100;
 
+/**
+ * Bộ lọc khởi điểm của TRANG CHỦ: y hệt `defaultFilterState`, chỉ khác thứ tự sắp
+ * xếp là `mix` (trộn phổ giá — xem `sortSIMs`) thay vì `default` (giá tăng dần).
+ *
+ * Phải khớp với `filterSims(sims, { sortBy: "mix" })` bên `app/page.tsx`, nếu
+ * không lưới SSG vừa vẽ xong sẽ tự đảo thứ tự ngay khi react-query trả về.
+ * `defaultFilterState` giữ nguyên vì còn dùng cho `neutralFilterValue` /
+ * `isFilterActive` — nơi "sắp xếp" không phải một ràng buộc để nới lỏng.
+ */
+const HOME_DEFAULTS: FilterState = { ...defaultFilterState, sortBy: "mix" };
+
 // ── Port from useSimData: relax order + neutral helpers (thuần, không đọc browser) ──
 const RELAX_ORDER: (keyof FilterState)[] = [
   "customSuffix",
@@ -69,7 +80,7 @@ const SimBrowser = ({
     priceCounts: number[];
   };
 }) => {
-  const [filters, setFilters] = useState<FilterState>(defaultFilterState);
+  const [filters, setFilters] = useState<FilterState>(HOME_DEFAULTS);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [hashProcessed, setHashProcessed] = useState(false);
   const [urlQuerySeeded, setUrlQuerySeeded] = useState(false);
@@ -117,7 +128,9 @@ const SimBrowser = ({
   }, []);
 
   const resetFilters = useCallback(() => {
-    setFilters(defaultFilterState);
+    // Về đúng trạng thái lúc mới mở trang (gồm cả sort "Đề xuất"), chứ không phải
+    // về `defaultFilterState` — "đặt lại" mà ra một thứ tự khác lúc vào là lạ.
+    setFilters(HOME_DEFAULTS);
     toast.info("Đã đặt lại bộ lọc");
   }, []);
 
