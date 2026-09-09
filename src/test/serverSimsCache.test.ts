@@ -14,7 +14,13 @@ import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
  *      lần — nếu mất, build 117 trang sẽ kéo kho SIM 117 lần.
  *   2. Quá TTL: fetch lại.
  */
-const TTL_MS = 300_000;
+// Lấy từ chính hằng số nguồn, không chép tay: TTL của cache module bám theo cửa
+// sổ Data Cache của kho (`CACHE_TTL_MS = SIM_CATALOGUE_REVALIDATE * 1000`). Bản
+// cũ ghi cứng 300_000 nên khi cửa sổ nới lên 1 giờ để cắt egress Supabase, test
+// này đỏ vì lệch hằng số chứ không phải vì hành vi sai.
+import { SIM_CATALOGUE_REVALIDATE } from '@/lib/cacheTags';
+
+const TTL_MS = SIM_CATALOGUE_REVALIDATE * 1000;
 
 const jsonResponse = (body: unknown, headers: Record<string, string> = {}) =>
   ({

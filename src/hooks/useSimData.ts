@@ -175,9 +175,23 @@ const getSimDigitsRobust = (sim: NormalizedSIM | null | undefined) => {
 // Storage keys
 const STORAGE_KEY = 'chonsomobifone_sim_cache';
 
-const AUTO_REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes
 const MAX_CACHE_AGE = 60 * 60 * 1000; // 1 hour
-const STALE_TIME = 5 * 60 * 1000; // 5 minutes stale-while-revalidate
+
+/**
+ * Bao lâu thì coi kho là cũ và tải lại.
+ *
+ * Hook này nay CHỈ còn hai trang admin dùng (`/admin/dashboard`,
+ * `/admin/shopee`) — phần khách hàng đã chuyển hết sang dữ liệu render sẵn ở
+ * server. Nhưng mỗi lần nó tải là **931 KB** gzip qua edge function
+ * `fetch-sim-data` (đo 09/09/2026), và trước đây còn kèm `refetchInterval` 10
+ * phút: mở tab admin 8 tiếng là 48 lượt ≈ **44 MB egress Supabase mỗi ngày mỗi
+ * tab**, cho một kho chỉ đổi 2 lần/ngày (cron `sync-sims` 01:17 và 13:17).
+ *
+ * Bỏ hẳn nhịp tự động và kéo cửa sổ "còn tươi" lên 30 phút. Nút "Tải lại" trên
+ * dashboard gọi `forceReload` → `invalidateQueries`, không bị `staleTime` chặn,
+ * nên khi thật sự cần số mới vẫn lấy được ngay.
+ */
+const STALE_TIME = 30 * 60 * 1000;
 
 // Module-level promotional data storage (keyed by SIM id)
 let promotionalDataStore = new Map<string, PromotionalData>();
@@ -688,8 +702,10 @@ export const useSimData = () => {
     staleTime: STALE_TIME,
     gcTime: 30 * 60 * 1000,
     retry: 1,
-    refetchInterval: AUTO_REFRESH_INTERVAL,
-    refetchIntervalInBackground: false,
+    // Không có nhịp tự động, và không tải lại chỉ vì người dùng bấm qua tab
+    // khác rồi quay lại — mỗi lượt là 931 KB (xem STALE_TIME). Làm tươi là việc
+    // của nút "Tải lại".
+    refetchOnWindowFocus: false,
     placeholderData: INITIAL_PLACEHOLDER
   });
 

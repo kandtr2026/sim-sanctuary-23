@@ -20,7 +20,7 @@ import {
   SUPABASE_PUBLISHABLE_KEY,
   EDGE_FUNCTIONS_URL,
 } from "@/integrations/supabase/config";
-import { SIM_CACHE_TAG, SIM_DATA_REVALIDATE } from "@/lib/cacheTags";
+import { SIM_CACHE_TAG, SIM_CATALOGUE_REVALIDATE } from "@/lib/cacheTags";
 
 // Cấu hình cache Data Cache của Next cho crawl TOÀN KHO (count + các trang). Tag
 // `SIM_CACHE_TAG` để `revalidateTag('sim')` sau mỗi lần `sync-sims` bust sạch,
@@ -28,7 +28,7 @@ import { SIM_CACHE_TAG, SIM_DATA_REVALIDATE } from "@/lib/cacheTags";
 // KHÔNG áp cho `querySimsFromDb` (truy vấn theo bộ lọc, cardinality cao) — chỗ đó
 // đã có CDN cache qua header của /api/sims và không được để phình Data Cache.
 const SIM_FETCH_CACHE = {
-  revalidate: SIM_DATA_REVALIDATE,
+  revalidate: SIM_CATALOGUE_REVALIDATE,
   tags: [SIM_CACHE_TAG],
 };
 
@@ -41,9 +41,10 @@ const SIM_FETCH_CACHE = {
 // mảng đã đóng băng, nên dữ liệu cũ bằng TUỔI CỦA TIẾN TRÌNH lambda (giá, SIM đã
 // bán, facet, JSON-LD Offer) chứ không phải 5 phút như comment ngụ ý.
 //
-// TTL 300s cho khớp `revalidate = 300` của các route tiêu thụ. Cùng khuôn với
-// `simInventorySheet.ts` (cachedInventory + cacheTimestamp + CACHE_DURATION).
-const CACHE_TTL_MS = 300_000;
+// TTL bám theo `SIM_CATALOGUE_REVALIDATE` (cửa sổ Data Cache của chính kho này)
+// để ba tầng cache cùng một nhịp. Cùng khuôn với `simInventorySheet.ts`
+// (cachedInventory + cacheTimestamp + CACHE_DURATION).
+const CACHE_TTL_MS = SIM_CATALOGUE_REVALIDATE * 1000;
 let cachedPromise: Promise<NormalizedSIM[]> | null = null;
 let cachedResult: NormalizedSIM[] | null = null;
 let cachedAt = 0;
@@ -1005,8 +1006,21 @@ export const getInStockBirthYears = async (
 export const SIM_PAGE_MIN_BEAUTY = 40;
 /** Giá tối thiểu (VND) để một số coi là giá trị cao dù ít pattern. */
 export const SIM_PAGE_MIN_PRICE = 20_000_000;
-/** Trần số URL `/sim/*` đưa vào sitemap — số đẹp nhất trước. */
-export const SIM_PAGE_SITEMAP_CAP = 5000;
+/**
+ * Trần số URL `/sim/*` đưa vào sitemap — số đẹp nhất trước.
+ *
+ * Trần này từng là 5.000 và đang CẮT THẬT chứ không còn là lưới an toàn: đếm
+ * trên Supabase ngày 09/09/2026 có **5.754** số đủ điều kiện (2.249 VIP + số
+ * beauty ≥ 40 + 735 số ≥ 20 triệu), tức 754 trang đã dựng sẵn, đã cho index,
+ * có link nội bộ — nhưng không được khai trong sitemap. Trần cũ đặt hồi server
+ * mới thấy 9.800/48.964 SIM (trần max-rows 200), lúc đó 5.000 nghe rất rộng.
+ *
+ * Nâng lên 10.000 để trần trở lại đúng vai lưới an toàn: phủ hết số đủ điều
+ * kiện hiện nay và còn chỗ cho kho lớn thêm, mà vẫn xa mức Google giới hạn
+ * (50.000 URL / 50 MB mỗi file sitemap — hiện ~6.000 URL ≈ 1,05 MB).
+ * Điều kiện lọc KHÔNG đổi: nới trần không hạ chuẩn "đáng index".
+ */
+export const SIM_PAGE_SITEMAP_CAP = 10_000;
 
 /** Một SIM đủ điều kiện có trang index riêng (đang bán + đủ đẹp/đắt/VIP). */
 export const isIndexableSim = (s: NormalizedSIM): boolean =>
@@ -1014,12 +1028,75 @@ export const isIndexableSim = (s: NormalizedSIM): boolean =>
   (s.isVIP || s.beautyScore >= SIM_PAGE_MIN_BEAUTY || s.price >= SIM_PAGE_MIN_PRICE);
 
 /**
+ * Bảng `sims` có dữ liệu hay không — nhớ trong module, dò tối đa một lần mỗi
+ * tiến trình và CHỈ khi một lần tra số không thấy gì.
+ *
+ * Cần nó để phân biệt hai chuyện rất khác nhau mà cùng cho ra "0 hàng":
+ *   • Kho có dữ liệu, số này không còn bán  → 404 dứt khoát.
+ *   • Kho rỗng/chưa sync, site đang chạy nhánh CSV → phải rơi về quét toàn kho,
+ *     nếu không thì MỌI trang `/sim/*` đều 404 mà không một dòng lỗi nào.
+ */
+let dbCatalogueHasRows: boolean | null = null;
+
+const probeDbCatalogue = async (authHeaders: Record<string, string>): Promise<boolean> => {
+  if (dbCatalogueHasRows !== null) return dbCatalogueHasRows;
+  try {
+    const res = await fetchWithTimeout(
+      `${SUPABASE_REST}/sims?select=id&${SELLABLE_STATUS}&limit=1`,
+      { headers: authHeaders, next: SIM_FETCH_CACHE },
+      FETCH_TIMEOUT_MS,
+    );
+    if (!res.ok) return false; // Không kết luận được → KHÔNG nhớ, lần sau dò lại.
+    const rows = (await res.json()) as unknown[];
+    dbCatalogueHasRows = rows.length > 0;
+    return dbCatalogueHasRows;
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Tra đúng 1 SIM đang bán theo dãy số sạch (10 chữ số, VD "0938686868").
  * Trả null khi định dạng sai hoặc số không còn trong kho — caller gọi notFound().
+ *
+ * Hỏi thẳng PostgREST đúng MỘT hàng thay vì kéo cả kho về rồi `.find()`. Đo
+ * 09/09/2026: một lượt tra là **174 B** gzip, còn crawl toàn kho là 49 request
+ * ≈ **890 KB** — chênh hơn 5.000 lần. Chênh lệch đó quan trọng vì hai chỗ gọi
+ * hàm này đều là đường đi TỰ DO của người lạ: `/tra-cuu-sim` (khách gõ số bất
+ * kỳ) và `/sim/[digits]` (5.754 URL trong sitemap, `dynamicParams` mở nên số
+ * ngoài tập prerender dựng on-demand). Trước đây mỗi lượt render nguội ở đó
+ * kéo về 49k hàng chỉ để lấy một dòng.
  */
 export const findSimByDigits = async (digits: string): Promise<NormalizedSIM | null> => {
   const clean = (digits || "").replace(/\D/g, "");
   if (!/^0\d{9,10}$/.test(clean)) return null;
+
+  const authHeaders = {
+    apikey: SUPABASE_PUBLISHABLE_KEY,
+    Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+  };
+
+  try {
+    const res = await fetchWithTimeout(
+      `${SUPABASE_REST}/sims?select=${SIMS_SELECT}&${SELLABLE_STATUS}&raw_digits=eq.${clean}&limit=1`,
+      { headers: authHeaders, next: SIM_FETCH_CACHE },
+      FETCH_TIMEOUT_MS,
+    );
+    if (res.ok) {
+      const rows = (await res.json()) as SimsDbRow[];
+      if (rows.length > 0) {
+        const sim = simsDbRowToNormalized(rows[0]);
+        return sim.price > 0 ? sim : null;
+      }
+      // Không có hàng nào. Chỉ coi là "hết hàng thật" khi bảng có dữ liệu —
+      // nếu không, một lần sync hỏng sẽ âm thầm hoá 404 toàn bộ `/sim/*`.
+      if (await probeDbCatalogue(authHeaders)) return null;
+    }
+  } catch (e) {
+    console.warn('[serverSimData] findSimByDigits qua DB lỗi, quét toàn kho:', e);
+  }
+
+  // Nhánh dự phòng: kho đang chạy bằng CSV (hoặc DB vừa lỗi) — quét như cũ.
   const all = await getServerSims();
   return all.find((s) => getDigits(s) === clean && s.price > 0) ?? null;
 };

@@ -570,3 +570,36 @@ Sửa trong `src/lib/serverSimData.ts`: `fetchSimsFromDb` nay dò kích thước
 
 ### Việc của A Khoa (song song, không chặn)
 Vào **Supabase Dashboard → project `xhlpawjvtqvtdkhjanwl` → Settings → API → "Max rows"**, đổi **200 → 1000**. Không đổi thì code sau khi sửa vẫn ĐÚNG nhưng phải bắn **245 request** mỗi lần nạp kho thay vì 49 → trang lạnh chậm hơn nhiều.
+
+## Task 15 — ✅ ĐÃ LÀM (Claude tự code 09/09/2026) · [P1 · MẶT TIỀN] Sort "Đề xuất" trộn phổ giá + vá màn "không tìm thấy"
+
+Commit `cb1e68e`. Trang chủ trước đây sắp theo giá tăng dần dưới nhãn "Mới nhất" (nhãn sai — kho không có cột thời gian), nên 40 thẻ đầu toàn số 800k–990k, giấu mất 2.250 số VIP. Thêm `sortBy: 'mix'` (`mixByPriceSpectrum` trong `simUtils`): chia kho ba rổ theo phân vị giá (60% / 30% / 10%) rồi rải theo chu kỳ 10 số. Là hoán vị xác định trên toàn tập đã lọc nên `limit/offset` không trùng/sót; `canPushToDb` phải loại `mix` vì PostgREST `order=` không diễn đạt được. Màn "không tìm thấy" nay có nút Zalo mang sẵn dãy số khách vừa gõ + nút `tel:`. Gỡ URL 308 `/sim-hop-menh` khỏi sitemap, link trang chủ trỏ thẳng đích. Test `src/test/sortMix.test.ts`.
+
+## Task 16 — ✅ ĐÃ LÀM (Claude tự code 09/09/2026) · [P0 · QUOTA] Cắt egress Supabase + sitemap `/sim/*` hết bị trần cắt
+
+### Bối cảnh
+Banner đỏ trên dashboard: organization vượt quota chu kỳ trước, project bị hạn chế từ **05/10/2026** nếu còn vượt. Đo thật ngày 09/09/2026 (gzip):
+
+| Việc | Dung lượng |
+|---|---|
+| Crawl toàn kho (`getServerSims`) | 49 request × 18.165 B = **890 KB**/lượt |
+| Tra 1 số qua PostgREST | **174 B** |
+| CSV `fetch-sim-data` (edge function) | **931 KB** |
+
+Cron `sync-sims` chạy **2 lần/ngày** (01:17, 13:17 — `vercel.json`) và gọi `revalidateTag('sim')` ngay sau đó. Nhưng cửa sổ Data Cache của kho đặt **300s** → tối đa 288 lượt crawl/ngày ≈ **250 MB/ngày ≈ 7,5 GB/tháng**, trong đó 287/288 lượt tải lại đúng bộ dữ liệu vừa tải.
+
+### Đã sửa
+1. **`cacheTags.ts`** — tách `SIM_CATALOGUE_REVALIDATE = 3600` (kho chính, Supabase) khỏi `SIM_DATA_REVALIDATE = 300` (kho khuyến mãi, đọc Google Sheet, KHÔNG tính quota Supabase và không có mutation nào bust tag → phải giữ ngắn). `CACHE_TTL_MS` của cache module bám theo hằng số mới.
+2. **`findSimByDigits`** — hỏi thẳng `raw_digits=eq.<số>` (174 B) thay vì kéo 49k hàng về rồi `.find()`. Hai chỗ gọi đều là đường người lạ đi tự do: `/tra-cuu-sim` và `/sim/[digits]` (`dynamicParams` mở). "0 hàng" chỉ coi là 404 khi bảng `sims` thật sự có dữ liệu — có phép dò nhớ trong module, chạy tối đa 1 lần/tiến trình — nếu không, một lần sync hỏng sẽ âm thầm hoá 404 toàn bộ `/sim/*`.
+3. **`useSimData`** — hook nay chỉ còn 2 trang admin dùng. Bỏ `refetchInterval` 10 phút và `refetchOnWindowFocus`, `staleTime` 5 → 30 phút. Trước đây mở tab admin 8 tiếng = 48 lượt × 931 KB ≈ **44 MB/ngày/tab** cho kho đổi 2 lần/ngày. Nút "Tải lại" (`forceReload` → `invalidateQueries`) không bị `staleTime` chặn nên vẫn lấy được số mới ngay.
+4. **`SIM_PAGE_SITEMAP_CAP` 5.000 → 10.000** — đếm trên Supabase có **5.754** số đủ điều kiện index, tức trần cũ đang cắt thật 754 trang đã dựng sẵn, đã cho index, đã có link nội bộ. Điều kiện lọc KHÔNG đổi.
+
+### Kết quả đo
+- Sitemap sau build: **6.061 URL**, trong đó **5.754** `/sim/*` (trước: 5.307 / 5.000 — đúng trần).
+- Egress crawl kho: ~7,5 GB/tháng → **~0,6 GB/tháng** (giảm 12 lần).
+- Test `src/test/findSimByDigits.test.ts` (5 case) khoá: tìm thấy/không thấy đều không chạm đường crawl; dò bảng đúng 1 lần; bảng rỗng thì rơi về CSV chứ không 404 oan.
+- 174 test xanh, `tsc --noEmit` sạch, `next build` xanh.
+
+### Còn nợ (chưa làm, có chủ ý)
+- Hai trang admin vẫn tải CSV 931 KB mỗi lần mở (chỉ là không còn tự tải lại). Chuyển hẳn sang đọc `sims` trên Supabase là việc riêng, đụng UI admin.
+- `CheckoutClient` vẫn giữ nhánh dự phòng tải CSV khi `fetch-sim-by-id` lỗi — hiếm khi chạy, giữ làm lưới an toàn.
