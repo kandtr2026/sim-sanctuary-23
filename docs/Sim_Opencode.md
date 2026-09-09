@@ -504,3 +504,65 @@ Homepage `SimBrowser` + `AdvancedFilterSidebar`/`MobileFilterDrawer` (đủ bộ
 
 ### Phase 2b (ghi để nhớ — chưa làm)
 Tool pages `mua-sim-tu-quy`/`mua-sim-gia-re`/`dinh-gia-sim` + admin dashboard chuyển nốt sang `/api/sims`, gỡ hẳn `useSimData` (client 49k) khỏi repo.
+
+---
+
+## Task 14 — [P0 · BÁN HÀNG] Server chỉ "thấy" 9.800/48.964 số — sửa phân trang Supabase (max-rows 200)
+
+**Bối cảnh (Claude verify LIVE 09/09/2026 — số liệu thật, không suy đoán):**
+
+- Kho THẬT đang bán: **48.964 số** (`sims` với `status=eq.available`, 100% có `effective_price > 0`). Nguồn CSV cũng ra đúng 48.964 (+302 dòng `ẩn`).
+- Nhưng `getServerSims()` trên production chỉ trả về **9.800 số** — verify bằng `GET /api/sims?limit=1&includeFacets=1` → `total: 9800`, `priceCounts` cộng lại đúng 9.800.
+- **Nguyên nhân đã chốt:** project Supabase `xhlpawjvtqvtdkhjanwl` đang đặt **PostgREST "Max rows" = 200**. Verify: `GET /rest/v1/sims?select=id&status=eq.available&limit=1000` → **chỉ trả 200 hàng**. Trong khi `fetchSimsFromDb` (`src/lib/serverSimData.ts`) phân trang bằng hằng số `SUPABASE_SIMS_PAGE = 1000`:
+  - `pageCount = ceil(48964 / 1000) = 49`
+  - mỗi trang xin `limit=1000&offset=i*1000` nhưng **chỉ nhận về 200 hàng** → lấy hàng 0–199, 1000–1199, 2000–2199, … **bỏ sót 800 hàng mỗi block**
+  - `49 × 200 = 9.800` — khớp CHÍNH XÁC con số đang chạy live. Code không hề báo lỗi vì response vẫn `200 OK`.
+- Nói cách khác: server đang bán **một mẫu rải rác 20% kho**, và không ai biết vì không có lỗi nào bắn ra.
+
+**Hậu quả đo được trên live:**
+
+| Chỗ | Đang hiện | Thật |
+|---|---|---|
+| Dưới 1 triệu | 3 | **375** |
+| 1 – 3 triệu | 4.645 | **22.814** |
+| 3 – 5 triệu | 4.020 | **19.495** |
+| 5 – 10 triệu | 500 | **4.150** |
+| 10 – 50 triệu | 620 | **2.013** |
+| 50 – 100 triệu | 12 | **74** |
+| 100 – 200 triệu | 0 | **22** |
+| 200 – 500 triệu | 0 | **18** |
+| Trên 500 triệu | 0 | **3** |
+| VIP | 510 | **2.250** |
+
+- Bộ lọc **tag / quý** (`tags=`, `quyType=`) KHÔNG đẩy xuống DB được (cột `tags` trong DB rỗng, tag tính bằng JS) → chạy nhánh in-memory ⇒ cũng chỉ soi 9.800 số. Live: `Tứ quý → 37`, `Ngũ quý → 210`, `Lục quý → 7`, `Thần tài → 1.786`. Đều thiếu ~5 lần.
+- **Trang riêng từng số `/sim/[digits]` trả 404 cho ~80% kho.** Verify: `0931833123` và `0932633123` là số ĐANG BÁN, tìm ở trang chủ vẫn ra, nhưng `GET /sim/0931833123` → **404** (vì `findSimByDigits` dò trong mảng 9.800). Sitemap `/sim/*` cũng chỉ sinh từ mẫu 20% này.
+- Cùng lỗi ảnh hưởng: `getCategorySnapshot` (10+ trang danh mục), `countBirthYearSims` / `getInStockBirthYears` (sim năm sinh), `getIndexableSimDigits` (sitemap), `/tra-cuu-sim`, `/api/sim-hop-tuoi`, `/api/admin/stats`, `serverCheapSims` — **36 file** import `getServerSims`.
+- Ngược lại, nhánh nhanh `querySimsFromDb` (search / giá / mạng / đầu-đuôi số) **vẫn ĐÚNG toàn kho** (`GET /api/sims?limit=1` → `total: 48964`) vì `MAX_LIMIT = 200` vô tình nằm dưới trần. Nên bug này rất dễ bị bỏ qua: ô tìm kiếm thì đúng, cột đếm bên trái thì sai.
+
+### Việc — sửa 1 chỗ: `src/lib/serverSimData.ts` → `fetchSimsFromDb`
+
+1. **Đừng tin hằng số `SUPABASE_SIMS_PAGE`. Tự dò kích thước trang thật.**
+   - Gọi trang đầu (offset 0, `limit=SUPABASE_SIMS_PAGE`, kèm `Prefer: count=exact`) → đọc header `content-range` dạng `0-199/48964`: lấy **`total`** VÀ **số hàng thực nhận** (`rows.length`).
+   - `effectivePage = rows.length` (guard `> 0`, và `Math.min(effectivePage, SUPABASE_SIMS_PAGE)`).
+   - `pageCount = Math.ceil(total / effectivePage)`; các trang sau dùng `offset = i * effectivePage`. Tái dùng luôn hàng của trang đầu, đừng fetch lại.
+   - Cách này tự đúng dù trần là 200, 1000 hay 5000 — không phải sửa code lần nữa khi ai đó chỉnh dashboard.
+2. **Thêm `order=id.asc` vào MỌI request phân trang.** PostgREST không đảm bảo thứ tự khi không có `ORDER BY`; `limit/offset` trên tập không sắp xếp có thể **trùng hàng này và bỏ sót hàng kia** giữa các trang chạy song song. Đây là bug thứ hai đang ẩn dưới bug thứ nhất.
+3. **Không được im lặng khi thiếu hàng.** Sau khi gom xong: nếu `sims.length < total`, `console.warn` rõ ràng (`[serverSimData] chỉ nạp X/Y SIM — kiểm tra trần max-rows của PostgREST`). Vẫn trả dữ liệu (đừng làm sập trang), nhưng phải để lại dấu vết trong log Vercel.
+4. Giữ nguyên phần còn lại: chạy song song tối đa 12 luồng, `next: SIM_FETCH_CACHE`, timeout 15s, một trang lỗi (`!res.ok`) → `return null` để rơi về CSV.
+5. **Test** (`src/test/`, cùng khuôn `serverSimsCache.test.ts` — mock `fetch`): dựng mock trả `content-range: 0-199/450` và **chỉ 200 hàng** cho mỗi request dù xin `limit=1000` → khẳng định `getServerSims()` gom đủ **450** SIM (3 trang: offset 0/200/400) chứ không phải 200×1 hay 200×3-có-lỗ. Đây chính là bug đang chạy production, phải có test khoá lại.
+
+### KHÔNG làm trong task này
+- Không đụng `querySimsFromDb`, `/api/sims` route, `simFilter.ts`, hay bất kỳ component nào — bug nằm gọn trong một hàm.
+- Không đổi `MAX_LIMIT = 200` của route.
+- Không đụng nhánh CSV fallback.
+
+### Nghiệm thu
+1. `npm run build` xanh + `npx vitest run` xanh (gồm test mới).
+2. Sau khi deploy: `GET https://www.chonsomobifone.com/api/sims?limit=1&includeFacets=1` → **`total` ≈ 48.964** (không còn 9.800), `priceCounts` xấp xỉ `[375, 22814, 19495, 4150, 2013, 74, 22, 18, 3]`.
+3. `GET https://www.chonsomobifone.com/sim/0931833123` → **200**, không còn 404.
+4. Trang chủ: cột trái "SIM THEO GIÁ" hiện số hàng chục nghìn; bấm "Tứ quý"/"Ngũ quý" ra nhiều số hơn hẳn trước.
+5. Log Vercel không có dòng `chỉ nạp X/Y SIM`.
+6. Build xanh mới commit, `git push origin main` để Vercel project `sim-sanctuary-23` deploy, rồi đánh dấu Task 14 = ✅ và báo Claude verify live.
+
+### Việc của A Khoa (song song, không chặn opencode)
+Vào **Supabase Dashboard → project `xhlpawjvtqvtdkhjanwl` → Settings → API → "Max rows"**, đổi **200 → 1000**. Không đổi thì code sau khi sửa vẫn ĐÚNG nhưng phải bắn **245 request** mỗi lần nạp kho thay vì 49 → trang lạnh chậm hơn nhiều.
