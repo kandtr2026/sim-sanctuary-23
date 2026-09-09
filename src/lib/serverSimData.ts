@@ -232,7 +232,10 @@ const parseAndNormalize = (csvText: string): NormalizedSIM[] => {
 // Ưu tiên hơn CSV: không tải 5.5MB mỗi lần build/request. Chỉ đọc status khác
 // 'sold'/'reserved'/'ẩn' (đã lọc sẵn ở sync). Cần 1 + N request phân trang.
 const SUPABASE_REST = `${SUPABASE_URL}/rest/v1`;
-// PostgREST trên Supabase cap 1000 rows/response → phân trang bằng limit+offset.
+// Kích thước trang MONG MUỐN. Trần thật do PostgREST quyết ("Max rows" trong
+// Settings → API): project này đang đặt 200, nên `limit=1000` vẫn chỉ trả 200
+// hàng — và trả `200 OK`, không lỗi gì. Vì vậy `fetchSimsFromDb` KHÔNG được coi
+// hằng số này là kích thước trang thật; xem chú thích ở đó.
 const SUPABASE_SIMS_PAGE = 1000;
 
 const SIMS_SELECT = 'id,raw_digits,display_number,original_price,final_price,effective_price,network,tags,beauty_score,is_vip';
@@ -311,55 +314,99 @@ const fetchWithTimeout = (url: string, opts: RequestInit, ms: number): Promise<R
   return Promise.race([fetch(url, opts), timeout]).finally(() => { if (timer) clearTimeout(timer); }) as Promise<Response>;
 };
 
+/**
+ * URL một trang của bảng `sims`.
+ *
+ * `order=id.asc` là BẮT BUỘC, không phải để cho đẹp: PostgREST không đảm bảo thứ
+ * tự khi thiếu `ORDER BY`, nên `limit/offset` trên một tập không sắp xếp có thể
+ * trả trùng hàng ở trang này và bỏ sót hàng ở trang kia — càng dễ xảy ra khi các
+ * trang chạy song song. `id` là khoá chính (text, duy nhất) nên đủ làm mốc.
+ */
+const simsPageUrl = (limit: number, offset: number): string =>
+  `${SUPABASE_REST}/sims?select=${SIMS_SELECT}&${SELLABLE_STATUS}&order=id.asc&limit=${limit}&offset=${offset}`;
+
+/**
+ * Đọc toàn kho từ bảng `sims`, phân trang theo kích thước trang **thật sự nhận
+ * được** chứ không phải kích thước mình xin.
+ *
+ * Bản cũ tin `SUPABASE_SIMS_PAGE = 1000` rồi nhảy `offset += 1000`. Nhưng project
+ * Supabase này đặt "Max rows" = 200, nên mỗi request `limit=1000` chỉ trả về 200
+ * hàng — với status `200 OK`, không một lỗi nào. Kết quả: lấy hàng 0–199, rồi
+ * 1000–1199, rồi 2000–2199… tức **bỏ sót 800 hàng mỗi block**. Verify live
+ * 09/09/2026: 49 trang × 200 = **9.800 trên tổng 48.964 SIM**. Hệ quả là cột đếm
+ * theo giá/tag sai ~5 lần, `/sim/[digits]` trả 404 cho ~80% số đang bán, và
+ * sitemap thiếu URL — suốt thời gian đó không có lấy một dòng log.
+ *
+ * Nay trang đầu kiêm luôn việc đếm (`Prefer: count=exact`), rồi kích thước trang
+ * được suy ra từ SỐ HÀNG THỰC NHẬN. Cách này tự đúng dù trần là 200, 1000 hay
+ * 5000 — nâng trần trên dashboard chỉ làm nó nhanh hơn, không phải sửa code.
+ */
 const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
   try {
     const authHeaders = {
       apikey: SUPABASE_PUBLISHABLE_KEY,
       Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
     };
-    // Lấy toàn bộ sim hợp lệ (status != sold) theo trang 1000. PostgREST cap
-    // 1000 rows/response (Range header bị bỏ qua) → dùng limit+offset.
-    // Chạy song song thay vì tuần tự để không kéo 50 request nối tiếp (~20s):
-    // lấy count trước, rồi bắn toàn bộ trang cùng lúc với độ đồng thời giới hạn.
-    const countRes = await fetchWithTimeout(
-      `${SUPABASE_REST}/sims?select=id&${SELLABLE_STATUS}&limit=0`,
+
+    // Trang đầu vừa lấy dữ liệu vừa lấy `count` — bản cũ tốn thêm một round-trip
+    // `limit=0` chỉ để đếm.
+    const firstRes = await fetchWithTimeout(
+      simsPageUrl(SUPABASE_SIMS_PAGE, 0),
       { headers: { ...authHeaders, Prefer: 'count=exact' }, next: SIM_FETCH_CACHE },
       FETCH_TIMEOUT_MS,
     );
-    if (!countRes.ok) return null;
-    const cr = countRes.headers.get('content-range') || '';
+    if (!firstRes.ok) return null;
+
+    const cr = firstRes.headers.get('content-range') || '';
     const totalMatch = cr.match(/\/(\d+)$/);
     if (!totalMatch) return null;
     const total = Number(totalMatch[1]);
     if (!Number.isFinite(total) || total <= 0) return null;
 
-    const pageCount = Math.ceil(total / SUPABASE_SIMS_PAGE);
+    const firstRows = (await firstRes.json()) as SimsDbRow[];
+    // Kích thước trang THẬT = số hàng server chịu trả, không phải số mình xin.
+    const effectivePage = Math.min(firstRows.length, SUPABASE_SIMS_PAGE);
+    if (effectivePage <= 0) return null;
 
-    // ── Chạy song song có giới hạn (12 luồng) ──
-    const results: (SimsDbRow[] | null)[] = new Array(pageCount).fill(null);
-    let next = 0;
-    const workers = Array.from({ length: Math.min(12, pageCount) }, async () => {
+    const pageCount = Math.ceil(total / effectivePage);
+    const restCount = Math.max(0, pageCount - 1);
+
+    // ── Các trang còn lại, chạy song song có giới hạn (12 luồng) ──
+    // Tuần tự thì 245 request nối tiếp là vài chục giây; song song không giới hạn
+    // thì bắn cả 245 request cùng lúc vào PostgREST.
+    const rest: (SimsDbRow[] | null)[] = new Array(restCount).fill(null);
+    let next = 1;
+    const workers = Array.from({ length: Math.min(12, restCount) }, async () => {
       while (next < pageCount) {
         const pageIdx = next++;
         const res = await fetchWithTimeout(
-          `${SUPABASE_REST}/sims?select=${SIMS_SELECT}&${SELLABLE_STATUS}&limit=${SUPABASE_SIMS_PAGE}&offset=${pageIdx * SUPABASE_SIMS_PAGE}`,
+          simsPageUrl(effectivePage, pageIdx * effectivePage),
           { headers: authHeaders, next: SIM_FETCH_CACHE },
           FETCH_TIMEOUT_MS,
         );
         if (!res.ok) {
-          results[pageIdx] = null;
+          rest[pageIdx - 1] = null;
           continue;
         }
-        results[pageIdx] = (await res.json()) as SimsDbRow[];
+        rest[pageIdx - 1] = (await res.json()) as SimsDbRow[];
       }
     });
     await Promise.all(workers);
 
-    const sims: NormalizedSIM[] = [];
-    for (const rows of results) {
+    const sims: NormalizedSIM[] = firstRows.map(simsDbRowToNormalized);
+    for (const rows of rest) {
       if (!rows) return null;
       for (const r of rows) sims.push(simsDbRowToNormalized(r));
     }
+
+    // Thiếu hàng thì PHẢI để lại dấu vết. Chính vì im lặng mà bug 9.800/48.964
+    // sống được lâu: mọi response đều 200, mảng ngắn đi mà không ai hay.
+    if (sims.length < total) {
+      console.warn(
+        `[serverSimData] chỉ nạp ${sims.length}/${total} SIM — kiểm tra trần max-rows của PostgREST`,
+      );
+    }
+
     return sims;
   } catch (e) {
     console.warn('[serverSimData] Supabase read failed, falling back to CSV:', e);

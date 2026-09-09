@@ -507,7 +507,7 @@ Tool pages `mua-sim-tu-quy`/`mua-sim-gia-re`/`dinh-gia-sim` + admin dashboard ch
 
 ---
 
-## Task 14 — [P0 · BÁN HÀNG] Server chỉ "thấy" 9.800/48.964 số — sửa phân trang Supabase (max-rows 200)
+## Task 14 — ✅ ĐÃ LÀM (Claude tự code 09/09/2026) · [P0 · BÁN HÀNG] Server chỉ "thấy" 9.800/48.964 số — sửa phân trang Supabase (max-rows 200)
 
 **Bối cảnh (Claude verify LIVE 09/09/2026 — số liệu thật, không suy đoán):**
 
@@ -564,5 +564,9 @@ Tool pages `mua-sim-tu-quy`/`mua-sim-gia-re`/`dinh-gia-sim` + admin dashboard ch
 5. Log Vercel không có dòng `chỉ nạp X/Y SIM`.
 6. Build xanh mới commit, `git push origin main` để Vercel project `sim-sanctuary-23` deploy, rồi đánh dấu Task 14 = ✅ và báo Claude verify live.
 
-### Việc của A Khoa (song song, không chặn opencode)
+### Kết quả
+
+Sửa trong `src/lib/serverSimData.ts`: `fetchSimsFromDb` nay dò kích thước trang thật từ số hàng nhận được ở trang đầu (trang đầu kiêm luôn `Prefer: count=exact`, bỏ request `limit=0` riêng), thêm `order=id.asc` cho mọi trang, và `console.warn` khi gom được ít hơn `total`. Test mới `src/test/serverSimsPagination.test.ts` mô phỏng trần 200 < page size 1000 → khoá lại đúng bug này. Chạy thật với Supabase production: `limit=1000 → nhận 200 ⇒ effectivePage=200, 245 trang`, gom **48.964/48.964** hàng, id duy nhất, hết 4 giây. Full suite 164 test xanh, `tsc --noEmit` sạch, `npm run build` xanh.
+
+### Việc của A Khoa (song song, không chặn)
 Vào **Supabase Dashboard → project `xhlpawjvtqvtdkhjanwl` → Settings → API → "Max rows"**, đổi **200 → 1000**. Không đổi thì code sau khi sửa vẫn ĐÚNG nhưng phải bắn **245 request** mỗi lần nạp kho thay vì 49 → trang lạnh chậm hơn nhiều.

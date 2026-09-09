@@ -38,25 +38,26 @@ const dbRow = (id: string) => ({
   is_vip: true,
 });
 
-/** Stub bảng `sims`: 1 request đếm (limit=0) + 1 request trang dữ liệu. */
+/**
+ * Stub bảng `sims`: kho 1 hàng → đúng MỘT request (trang đầu kiêm luôn `count`,
+ * xem `fetchSimsFromDb`; bản cũ tốn thêm một request `limit=0` chỉ để đếm).
+ */
 const stubDb = () => {
   let generation = 0;
   const urls: string[] = [];
   const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input);
     urls.push(url);
-    if (url.includes('limit=0')) {
-      generation++;
-      return jsonResponse([], { 'content-range': '0-0/1' });
-    }
+    // Trang đầu = một lần đi lấy kho.
+    if (url.includes('offset=0')) generation++;
     return jsonResponse([dbRow(`sim-gen-${generation}`)], { 'content-range': '0-0/1' });
   });
   vi.stubGlobal('fetch', fetchMock);
   return { fetchMock, urls };
 };
 
-/** Số lần thực sự đi lấy kho (đếm request đếm `limit=0`). */
-const loadCount = (urls: string[]): number => urls.filter((u) => u.includes('limit=0')).length;
+/** Số lần thực sự đi lấy kho (đếm request trang đầu). */
+const loadCount = (urls: string[]): number => urls.filter((u) => u.includes('offset=0')).length;
 
 let now = 1_700_000_000_000;
 
