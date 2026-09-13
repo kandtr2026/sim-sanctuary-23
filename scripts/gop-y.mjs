@@ -11,6 +11,10 @@
  *   node scripts/gop-y.mjs --tat-ca   # kể cả đã xử
  *   node scripts/gop-y.mjs --xong 3 5 # đánh dấu #3 và #5 là đã xử
  *   node scripts/gop-y.mjs --dem      # chỉ in số góp ý chưa xử (cho watcher)
+ *   node scripts/gop-y.mjs --canh [N] # WATCHER: chờ tới khi có góp ý MỚI (quá
+ *                                     # mốc N tổng dòng, mặc định = tổng hiện tại)
+ *                                     # rồi in dòng mới và THOÁT. Chạy nền để
+ *                                     # harness gọi Claude dậy bắt việc.
  */
 import { execSync } from "node:child_process";
 import { writeFileSync, unlinkSync } from "node:fs";
@@ -71,6 +75,37 @@ try {
   } else if (co("--dem")) {
     const r = chay("select count(*)::int as n from public.sim_gop_y where da_xu = false");
     console.log(r[0]?.n ?? 0);
+  } else if (co("--canh")) {
+    const demTong = () => chay("select count(*)::int as n from public.sim_gop_y")[0]?.n ?? 0;
+    const arg = Number(argv[argv.indexOf("--canh") + 1]);
+    let moc = Number.isInteger(arg) && arg >= 0 ? arg : demTong();
+    console.log(`[canh] đang canh sim_gop_y — mốc ${moc} dòng, poll mỗi 30s…`);
+    for (;;) {
+      await new Promise((r) => setTimeout(r, 30000));
+      let n;
+      try {
+        n = demTong();
+      } catch (e) {
+        // Blip mạng/CLI: bỏ qua vòng này, canh tiếp — đừng để watcher chết oan.
+        console.error("[canh] lỗi poll, thử lại:", e?.message || e);
+        continue;
+      }
+      if (n > moc) {
+        const moi = chay(
+          `select id, luc, nguoi, duong_dan, tieu_de, phien_ban, noi_dung
+             from public.sim_gop_y order by id desc limit ${n - moc}`,
+        ).reverse();
+        console.log(`=== CÓ GÓP Ý MỚI: ${n} dòng (mốc ${moc}) ===`);
+        for (const d of moi) {
+          const gio = new Date(d.luc).toLocaleString("vi-VN");
+          const ban = d.phien_ban ? `  bản ${d.phien_ban}` : "";
+          console.log(`#${d.id}  ${gio}  ${d.nguoi}${ban}`);
+          console.log(`   màn: ${d.duong_dan}${d.tieu_de ? `  (${d.tieu_de})` : ""}`);
+          console.log(`   ${String(d.noi_dung).replace(/\n/g, "\n   ")}\n`);
+        }
+        process.exit(0);
+      }
+    }
   } else {
     const dieuKien = co("--tat-ca") ? "" : "where da_xu = false";
     const r = chay(

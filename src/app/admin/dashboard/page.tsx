@@ -32,7 +32,7 @@ function AdminDashboardContent() {
   // uses, so "how many numbers of what kind are in stock" always matches
   // what a visitor actually sees on the site — no separate data pipeline to
   // keep in sync.
-  const { allSims, isLoading: simsLoading, isFetching, forceReload, tagCounts, prefixes } = useSimData();
+  const { allSims, isLoading: simsLoading, tagCounts, prefixes } = useSimData();
 
   // Server-side stats: total SIM + inventory value (authoritative ~49k, không
   // bị fallback cache 14k của useSimData). Fetch 1 lần, cache 5 phút.
@@ -179,8 +179,6 @@ function AdminDashboardContent() {
         lastUpdate={lastUpdateLabel}
         simCount={stats.total}
         isCache={lastUpdate.isCache}
-        isFetching={isFetching}
-        onRefresh={() => forceReload()}
         onSignOut={() => void signOut()}
       />
 

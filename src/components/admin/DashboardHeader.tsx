@@ -1,15 +1,12 @@
-import { ExternalLink, LogOut, RefreshCw } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 interface DashboardHeaderProps {
   email: string;
   lastUpdate: string;
   simCount: number;
   isCache: boolean;
-  isFetching: boolean;
-  onRefresh: () => void;
   onSignOut: () => void;
 }
 
@@ -18,8 +15,6 @@ export function DashboardHeader({
   lastUpdate,
   simCount,
   isCache,
-  isFetching,
-  onRefresh,
   onSignOut,
 }: DashboardHeaderProps) {
   return (
@@ -41,23 +36,6 @@ export function DashboardHeader({
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <Button asChild variant="outline" size="sm" className="px-2.5 sm:px-3">
-            <a href="/" target="_blank" rel="noopener noreferrer" aria-label="Xem website">
-              <ExternalLink className="h-4 w-4" />
-              <span className="hidden sm:inline">Xem website</span>
-            </a>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="px-2.5 sm:px-3"
-            onClick={onRefresh}
-            disabled={isFetching}
-            aria-label="Làm mới kho"
-          >
-            <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
-            <span className="hidden sm:inline">Làm mới kho</span>
-          </Button>
           <Button
             variant="outline"
             size="sm"
