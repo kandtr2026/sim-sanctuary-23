@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, BadgePercent, Crown, FileText, ShoppingCart, Smartphone, TrendingUp, Wallet } from "lucide-react";
+import { ArrowRight, Crown, FileText, ShoppingCart, Smartphone, TrendingUp, Wallet } from "lucide-react";
 import { BarList } from "@/components/admin/BarList";
 import { DashboardHeader } from "@/components/admin/DashboardHeader";
 import { PostsTable, type PostRow } from "@/components/admin/PostsTable";
@@ -13,7 +13,7 @@ import { ConversionsSection } from "@/components/admin/ConversionsSection";
 import { CampaignPerformanceSection } from "@/components/admin/CampaignPerformanceSection";
 import { TikTokShopSection } from "@/components/admin/TikTokShopSection";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { getLastUpdateInfo, getPromotionalData, useSimData } from "@/hooks/useSimData";
+import { getLastUpdateInfo, useSimData } from "@/hooks/useSimData";
 import { formatPrice, PRICE_RANGES } from "@/lib/simUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -76,17 +76,12 @@ function AdminDashboardContent() {
     // Ưu tiên số liệu server (đủ ~49k) — nếu chưa tải xong dùng allSims tạm.
     const total = serverStats?.total ?? allSims.length;
     const inventoryValue = serverStats?.totalValue ?? allSims.reduce((sum, sim) => sum + (sim.price || 0), 0);
-    const discountedCount = allSims.filter((sim) => {
-      const promo = getPromotionalData(sim.id);
-      return promo?.finalPrice && promo.originalPrice > 0 && promo.finalPrice < promo.originalPrice;
-    }).length;
     return {
       total,
       inventoryValue,
       avgPrice: total > 0 ? inventoryValue / total : 0,
       maxPrice: Math.max(0, ...allSims.map((sim) => sim.price || 0)),
       vipCount: allSims.filter((sim) => sim.isVIP).length,
-      discountedCount,
     };
   }, [allSims, serverStats]);
 
@@ -159,7 +154,6 @@ function AdminDashboardContent() {
 
   const publishedCount = posts.filter((post) => post.published).length;
   const draftCount = posts.length - publishedCount;
-  const discountPct = stats.total > 0 ? Math.round((stats.discountedCount / stats.total) * 100) : 0;
 
   const handleDeletePost = async (post: PostRow) => {
     if (!window.confirm(`Xoá bài viết "${post.title}"? Không thể hoàn tác.`)) return;
@@ -231,14 +225,6 @@ function AdminDashboardContent() {
                   icon={Wallet}
                   iconClass="bg-gold/15 text-gold"
                   valueClass="text-gold"
-                />
-                <StatCard
-                  label="SIM đang giảm giá"
-                  value={stats.discountedCount.toLocaleString("vi-VN")}
-                  sub={`${discountPct}% tổng kho`}
-                  icon={BadgePercent}
-                  iconClass="bg-primary/15 text-primary"
-                  valueClass="text-primary"
                 />
                 <StatCard
                   label="SIM VIP"
