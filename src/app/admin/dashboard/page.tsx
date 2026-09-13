@@ -253,13 +253,6 @@ function AdminDashboardContent() {
                   iconClass="bg-gold/15 text-gold"
                   valueClass="text-gold"
                 />
-                <StatCard
-                  label="SIM VIP"
-                  value={stats.vipCount.toLocaleString("vi-VN")}
-                  icon={Crown}
-                  iconClass="bg-gold/15 text-gold"
-                  valueClass="text-gold"
-                />
                 <StatCard label="Giá trung bình" value={formatPrice(stats.avgPrice)} icon={TrendingUp} />
                 <StatCard
                   label="Bài viết"
