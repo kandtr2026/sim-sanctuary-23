@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Crown, Download, FileText, Loader2, ShoppingCart, Smartphone, TrendingUp, Wallet } from "lucide-react";
+import { ArrowRight, Crown, Download, ExternalLink, FileText, Loader2, ShoppingCart, Smartphone, TrendingUp, Wallet } from "lucide-react";
 import { BarList } from "@/components/admin/BarList";
 import { DashboardHeader } from "@/components/admin/DashboardHeader";
 import { PostsTable, type PostRow } from "@/components/admin/PostsTable";
@@ -12,11 +12,21 @@ import { PageVisitsSection } from "@/components/admin/PageVisitsSection";
 import { ConversionsSection } from "@/components/admin/ConversionsSection";
 import { CampaignPerformanceSection } from "@/components/admin/CampaignPerformanceSection";
 import { TikTokShopSection } from "@/components/admin/TikTokShopSection";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { getLastUpdateInfo, useSimData } from "@/hooks/useSimData";
 import { formatPrice, PRICE_RANGES } from "@/lib/simUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+/** Một dòng SIM rút gọn trả từ /api/admin/vip-sims để liệt kê trong dialog. */
+interface VipSimLite {
+  id: string;
+  digits: string;
+  number: string;
+  price: number;
+  network: string;
+}
 
 const formatCompactVnd = (n: number) =>
   n >= 1_000_000_000
@@ -29,6 +39,12 @@ function AdminDashboardContent() {
   const { user, session, signOut } = useAdminAuth();
   const token = session?.access_token;
   const [exportingSims, setExportingSims] = useState(false);
+  // Danh sách SIM VIP theo nhóm — tải LƯỜI (chỉ khi A Khoa bấm vào 1 chip
+  // breakdown lần đầu), rồi giữ lại cho các lần bấm sau (góp ý #13).
+  const [vipGroups, setVipGroups] = useState<Record<string, VipSimLite[]> | null>(null);
+  const [vipLoading, setVipLoading] = useState(false);
+  const [vipError, setVipError] = useState<string | null>(null);
+  const [selectedVipCat, setSelectedVipCat] = useState<string | null>(null);
   // Reuses the exact same live-inventory feed (Google Sheet -> fetch-sim-data
   // edge function -> normalized SIMs) that the public storefront already
   // uses, so "how many numbers of what kind are in stock" always matches
@@ -195,6 +211,22 @@ function AdminDashboardContent() {
     toast.success("Đã xoá bài viết.");
   };
 
+  // Bấm 1 chip breakdown → mở dialog liệt kê SIM của nhóm đó. Lần đầu mới tải
+  // /api/admin/vip-sims (gom theo nhóm), sau đó dùng lại (góp ý #13).
+  const openVipCat = (cat: string) => {
+    setSelectedVipCat(cat);
+    if (vipGroups || vipLoading) return;
+    setVipLoading(true);
+    setVipError(null);
+    fetch("/api/admin/vip-sims")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((d: { groups: Record<string, VipSimLite[]> }) => setVipGroups(d.groups ?? {}))
+      .catch((e) => setVipError(e instanceof Error ? e.message : "Không tải được danh sách"))
+      .finally(() => setVipLoading(false));
+  };
+
+  const selectedVipSims = selectedVipCat ? (vipGroups?.[selectedVipCat] ?? []) : [];
+
   // Xuất Excel toàn bộ SIM đang bán, đủ trường (bảng sims + join Sheet1). Chỉ
   // admin — route requireAdmin, tải về bằng token phiên (góp ý #12).
   const handleExportSims = async () => {
@@ -312,29 +344,31 @@ function AdminDashboardContent() {
                 <StatCard label="Giá trung bình" value={formatPrice(stats.avgPrice)} icon={TrendingUp} />
               </div>
 
-              {/* SIM VIP là gì — định nghĩa + phân rã thành phần (góp ý #8) */}
+              {/* SIM VIP là gì — định nghĩa + phân rã thành phần, bấm chip xem
+                  list SIM tương ứng (góp ý #8, #13) */}
               <div className="mt-6 rounded-xl border border-border bg-card p-4 shadow-card">
                 <div className="flex flex-wrap items-center gap-2">
                   <Crown className="h-4 w-4 text-gold" />
                   <h3 className="text-sm font-semibold text-foreground">SIM VIP là gì?</h3>
-                  <span className="ml-auto text-sm font-bold text-gold">
-                    {stats.vipCount.toLocaleString("vi-VN")} SIM VIP
-                  </span>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
                   SIM VIP = có 1 trong 4 dạng cao cấp (Lục quý · Ngũ quý · Tứ quý · Tam hoa kép)
                   {" "}<span className="font-semibold text-foreground">hoặc</span> giá từ 50 triệu trở lên.
+                  {" "}<span className="text-foreground">Bấm từng loại để xem danh sách SIM.</span>
                 </p>
                 {vipBreakdownItems.length > 0 ? (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {vipBreakdownItems.map(([label, count]) => (
-                      <span
+                      <button
                         key={label}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/5 px-3 py-1.5 text-xs"
+                        type="button"
+                        onClick={() => openVipCat(label)}
+                        title={`Xem ${count.toLocaleString("vi-VN")} SIM ${label}`}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/5 px-3 py-1.5 text-xs transition-colors hover:border-gold hover:bg-gold/10"
                       >
                         <span className="font-medium text-foreground">{label}</span>
                         <span className="font-bold text-gold">{count.toLocaleString("vi-VN")}</span>
-                      </span>
+                      </button>
                     ))}
                   </div>
                 ) : (
@@ -350,6 +384,59 @@ function AdminDashboardContent() {
             </>
           )}
         </section>
+
+        {/* Danh sách SIM của nhóm VIP đang chọn (góp ý #13) */}
+        <Dialog open={!!selectedVipCat} onOpenChange={(open) => (open ? null : setSelectedVipCat(null))}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>SIM {selectedVipCat ?? ""}</DialogTitle>
+            </DialogHeader>
+            {vipLoading ? (
+              <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" /> Đang tải danh sách…
+              </div>
+            ) : vipError ? (
+              <div className="flex flex-col items-center gap-2 py-8 text-center">
+                <p className="text-sm text-destructive">{vipError}</p>
+                <button
+                  type="button"
+                  onClick={() => selectedVipCat && openVipCat(selectedVipCat)}
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  Thử lại
+                </button>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-muted-foreground">
+                  {selectedVipSims.length.toLocaleString("vi-VN")} SIM · bấm số để mở trang SIM
+                </p>
+                {selectedVipSims.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-muted-foreground">Không có SIM trong nhóm này.</p>
+                ) : (
+                  <div className="max-h-[60vh] divide-y divide-border overflow-y-auto">
+                    {selectedVipSims.map((sim) => (
+                      <a
+                        key={sim.id}
+                        href={`/sim/${sim.digits}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex items-center justify-between gap-3 py-2 text-sm transition-colors hover:bg-muted/40"
+                      >
+                        <span className="flex items-center gap-1.5 font-medium tabular-nums text-foreground">
+                          {sim.number}
+                          <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                        </span>
+                        <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">{sim.network}</span>
+                        <span className="shrink-0 font-semibold text-gold">{formatPrice(sim.price)}</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
 
         <SalesChart />
 
