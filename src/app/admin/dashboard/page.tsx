@@ -257,12 +257,6 @@ function AdminDashboardContent() {
                   valueClass="text-gold"
                 />
                 <StatCard label="Giá trung bình" value={formatPrice(stats.avgPrice)} icon={TrendingUp} />
-                <StatCard
-                  label="Bài viết"
-                  value={posts.length.toLocaleString("vi-VN")}
-                  sub={postsLoading ? "Đang tải…" : `${publishedCount} đăng · ${draftCount} nháp`}
-                  icon={FileText}
-                />
               </div>
 
               {/* SIM VIP là gì — định nghĩa + phân rã thành phần (góp ý #8) */}
@@ -314,7 +308,31 @@ function AdminDashboardContent() {
 
         <TikTokShopSection />
 
-        <PostsTable posts={posts} loading={postsLoading} onDelete={(post) => void handleDeletePost(post)} />
+        {/* Zone thống kê bài viết — tách riêng khỏi thống kê kho số (góp ý #11) */}
+        <section className="rounded-2xl border border-border bg-muted/20 p-4 sm:p-5">
+          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-foreground">
+            <FileText className="h-4 w-4 text-primary" />
+            Thống kê bài viết
+          </h2>
+          <div className="mb-4 grid grid-cols-3 gap-4">
+            <StatCard label="Tổng bài viết" value={posts.length.toLocaleString("vi-VN")} icon={FileText} />
+            <StatCard
+              label="Đã đăng"
+              value={publishedCount.toLocaleString("vi-VN")}
+              icon={FileText}
+              iconClass="bg-primary/15 text-primary"
+              valueClass="text-primary"
+            />
+            <StatCard
+              label="Nháp"
+              value={draftCount.toLocaleString("vi-VN")}
+              icon={FileText}
+              iconClass="bg-gold/15 text-gold"
+              valueClass="text-gold"
+            />
+          </div>
+          <PostsTable posts={posts} loading={postsLoading} onDelete={(post) => void handleDeletePost(post)} />
+        </section>
       </main>
     </div>
   );
