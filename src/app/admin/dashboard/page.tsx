@@ -226,8 +226,11 @@ function AdminDashboardContent() {
           </a>
         </div>
 
-        <section>
-          <h2 className="mb-4 text-base font-semibold text-foreground">Thống kê kho số (đang bán)</h2>
+        <section className="rounded-2xl border border-border bg-muted/20 p-4 sm:p-5">
+          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-foreground">
+            <Smartphone className="h-4 w-4 text-primary" />
+            Thống kê kho số (đang bán)
+          </h2>
 
           {simsLoading ? (
             <>
