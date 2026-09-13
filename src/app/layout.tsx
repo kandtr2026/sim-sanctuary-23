@@ -8,6 +8,7 @@ import TrustBar from "@/components/TrustBar";
 import Navigation from "@/components/Navigation";
 import PromoBanner from "@/components/PromoBanner";
 import Footer from "@/components/Footer";
+import HideOnAdmin from "@/components/HideOnAdmin";
 import FloatingContactButtons from "@/components/FloatingContactButtons";
 import MessengerQuickTemplates from "@/components/MessengerQuickTemplates";
 import StickyCtaBottomBar from "@/components/StickyCtaBottomBar";
@@ -202,23 +203,32 @@ export default function RootLayout({
         />
 
         <Providers>
-          <Header />
-          <TrustBar />
-          <Navigation />
-          {/* Admin-driven promo / flash-sale bar. Server-fetches the active
-              campaign; renders null when there is none. Hides itself on /admin
-              (client, via usePathname). Suspense keeps a slow campaign query
-              from blocking the page shell. */}
-          <Suspense fallback={null}>
-            <PromoBanner />
-          </Suspense>
+          {/* Chrome cho KHÁCH — ẩn hết ở /admin (góp ý #21). Admin có
+              DashboardHeader riêng, không cần header/nav/footer/nút liên hệ nổi
+              của storefront. */}
+          <HideOnAdmin>
+            <Header />
+            <TrustBar />
+            <Navigation />
+            {/* Admin-driven promo / flash-sale bar. Server-fetches the active
+                campaign; renders null when there is none. Suspense keeps a slow
+                campaign query from blocking the page shell. */}
+            <Suspense fallback={null}>
+              <PromoBanner />
+            </Suspense>
+          </HideOnAdmin>
           {children}
-          <Footer />
+          <HideOnAdmin>
+            <Footer />
+          </HideOnAdmin>
+          {/* Toast dùng cả ở /admin (vd nút Xuất data) → giữ ngoài HideOnAdmin. */}
           <Toaster />
           <Sonner />
-          <FloatingContactButtons />
-          <MessengerQuickTemplates />
-          <StickyCtaBottomBar />
+          <HideOnAdmin>
+            <FloatingContactButtons />
+            <MessengerQuickTemplates />
+            <StickyCtaBottomBar />
+          </HideOnAdmin>
           <BuildBadge />
         </Providers>
       </body>
