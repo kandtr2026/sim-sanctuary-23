@@ -78,7 +78,21 @@ try {
   } else if (co("--canh")) {
     const demTong = () => chay("select count(*)::int as n from public.sim_gop_y")[0]?.n ?? 0;
     const arg = Number(argv[argv.indexOf("--canh") + 1]);
-    let moc = Number.isInteger(arg) && arg >= 0 ? arg : demTong();
+    // Mốc: tham số, hoặc tổng hiện tại — thử vài lần cho CLI ấm máy (cold start
+    // ~3-5s), đừng để watcher chết oan ngay lúc khởi động.
+    let moc = Number.isInteger(arg) && arg >= 0 ? arg : null;
+    for (let i = 0; moc === null && i < 5; i++) {
+      try {
+        moc = demTong();
+      } catch (e) {
+        console.error("[canh] chưa lấy được mốc, thử lại:", e?.message || e);
+        await new Promise((r) => setTimeout(r, 5000));
+      }
+    }
+    if (moc === null) {
+      console.error("[canh] không lấy được mốc sau 5 lần — thoát.");
+      process.exit(1);
+    }
     console.log(`[canh] đang canh sim_gop_y — mốc ${moc} dòng, poll mỗi 30s…`);
     for (;;) {
       await new Promise((r) => setTimeout(r, 30000));
