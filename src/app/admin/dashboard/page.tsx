@@ -13,6 +13,7 @@ import { PageVisitsSection } from "@/components/admin/PageVisitsSection";
 import { ConversionsSection } from "@/components/admin/ConversionsSection";
 import { CampaignPerformanceSection } from "@/components/admin/CampaignPerformanceSection";
 import { TikTokShopSection } from "@/components/admin/TikTokShopSection";
+import { PostReadsSection } from "@/components/admin/PostReadsSection";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { getLastUpdateInfo, useSimData } from "@/hooks/useSimData";
@@ -36,10 +37,11 @@ interface VipSimLite {
  * Shopee đứng riêng. Đổi tab chỉ mount đúng phần đang xem — các section tự fetch
  * data khi mở nên trang không nặng ngay từ đầu.
  */
-type TabId = "tong-quan" | "traffic" | "doanh-thu";
+type TabId = "tong-quan" | "traffic" | "bai-viet" | "doanh-thu";
 const TABS: { id: TabId; label: string; icon: LucideIcon }[] = [
   { id: "tong-quan", label: "Tổng quan", icon: LayoutDashboard },
   { id: "traffic", label: "Traffic", icon: Globe },
+  { id: "bai-viet", label: "Bài viết", icon: FileText },
   { id: "doanh-thu", label: "Doanh thu", icon: Wallet },
 ];
 
@@ -422,8 +424,12 @@ function AdminDashboardContent() {
             <PageVisitsSection />
             <ConversionsSection />
             <CampaignPerformanceSection />
+          </div>
+        )}
 
-            {/* Thống kê bài viết — content SEO/organic, gom về Traffic (góp ý #11, #16) */}
+        {/* ─── Tab BÀI VIẾT: thống kê + hiệu quả đọc, tab riêng (góp ý #18, #19) ─── */}
+        {tab === "bai-viet" && (
+          <div className="space-y-6">
             <section className="rounded-2xl border border-border bg-muted/20 p-4 sm:p-5">
               <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-foreground">
                 <FileText className="h-4 w-4 text-primary" />
@@ -446,8 +452,10 @@ function AdminDashboardContent() {
                   valueClass="text-gold"
                 />
               </div>
-              <PostsTable posts={posts} loading={postsLoading} onDelete={(post) => void handleDeletePost(post)} />
+              <PostReadsSection posts={posts} token={token} />
             </section>
+
+            <PostsTable posts={posts} loading={postsLoading} onDelete={(post) => void handleDeletePost(post)} />
           </div>
         )}
 
