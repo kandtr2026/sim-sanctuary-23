@@ -2,31 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { BookOpen, ExternalLink, RefreshCw } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { PostRow } from "@/components/admin/PostsTable";
-
-type Period = "day" | "month";
+import { DailyBars, PeriodToggle } from "@/components/admin/dailyBars";
+import { buildDailyBars, type DailyPeriod, type DailyPoint } from "@/lib/dailyBars";
 
 interface ReadsData {
   total: number;
-  daily: { day: string; count: number }[];
+  daily: DailyPoint[];
   byPost: { slug: string; count: number }[];
   truncated: boolean;
-}
-
-const PERIOD_OPTIONS: { value: Period; label: string }[] = [
-  { value: "day", label: "14 ngày" },
-  { value: "month", label: "6 tháng" },
-];
-
-/** "Hôm nay" theo giờ VN, biểu diễn bằng một Date mà các trường UTC = giờ VN. */
-const nowVn = () => new Date(Date.now() + 7 * 3600 * 1000);
-
-interface Bar {
-  key: string;
-  count: number;
-  label: string;
-  height: number;
 }
 
 /**
@@ -38,7 +22,7 @@ export function PostReadsSection({ posts, token }: { posts: PostRow[]; token?: s
   const [data, setData] = useState<ReadsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [period, setPeriod] = useState<Period>("day");
+  const [period, setPeriod] = useState<DailyPeriod>("day");
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
@@ -68,45 +52,7 @@ export function PostReadsSection({ posts, token }: { posts: PostRow[]; token?: s
     return m;
   }, [posts]);
 
-  const bars = useMemo<Bar[]>(() => {
-    const daily = data?.daily ?? [];
-    const byDay = new Map(daily.map((d) => [d.day, d.count]));
-    const base = nowVn();
-
-    if (period === "day") {
-      const anchors: string[] = [];
-      for (let i = 13; i >= 0; i--) {
-        const d = new Date(base);
-        d.setUTCDate(d.getUTCDate() - i);
-        anchors.push(d.toISOString().slice(0, 10));
-      }
-      const counts = anchors.map((a) => byDay.get(a) ?? 0);
-      const max = Math.max(1, ...counts);
-      return anchors.map((a, i) => ({
-        key: a,
-        count: counts[i],
-        label: `${a.slice(8, 10)}/${a.slice(5, 7)}`,
-        height: counts[i] === 0 ? 2 : Math.max(8, Math.round((counts[i] / max) * 85)),
-      }));
-    }
-
-    const anchors: string[] = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth() - i, 1));
-      anchors.push(d.toISOString().slice(0, 7));
-    }
-    const counts = anchors.map((m) =>
-      daily.filter((d) => d.day.startsWith(m)).reduce((s, d) => s + d.count, 0),
-    );
-    const max = Math.max(1, ...counts);
-    return anchors.map((m, i) => ({
-      key: m,
-      count: counts[i],
-      label: `${m.slice(5, 7)}/${m.slice(2, 4)}`,
-      height: counts[i] === 0 ? 2 : Math.max(8, Math.round((counts[i] / max) * 85)),
-    }));
-  }, [data, period]);
-
+  const bars = useMemo(() => buildDailyBars(data?.daily ?? [], period), [data, period]);
   const topPosts = (data?.byPost ?? []).slice(0, 10);
   const total = data?.total ?? 0;
 
@@ -127,22 +73,7 @@ export function PostReadsSection({ posts, token }: { posts: PostRow[]; token?: s
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex rounded-lg border border-border bg-muted p-0.5">
-            {PERIOD_OPTIONS.map((o) => (
-              <button
-                key={o.value}
-                type="button"
-                onClick={() => setPeriod(o.value)}
-                aria-pressed={period === o.value}
-                className={cn(
-                  "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
-                  period === o.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
+          <PeriodToggle period={period} onChange={setPeriod} />
           <button
             type="button"
             onClick={() => setReloadKey((k) => k + 1)}
@@ -173,34 +104,7 @@ export function PostReadsSection({ posts, token }: { posts: PostRow[]; token?: s
         </p>
       ) : (
         <>
-          <div className="flex h-40 items-end gap-1" role="img" aria-label={`Lượt đọc bài viết theo ${period === "day" ? "ngày" : "tháng"}`}>
-            {bars.map((bar) => (
-              <div key={bar.key} className="relative flex-1 self-end" style={{ height: `${bar.height}%` }}>
-                {bar.count > 0 ? (
-                  <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] font-semibold text-foreground">
-                    {bar.count}
-                  </span>
-                ) : null}
-                <div
-                  title={`${bar.label}: ${bar.count} lượt đọc`}
-                  className={cn("h-full w-full rounded-t-md", bar.count === 0 ? "bg-muted" : "bg-primary")}
-                />
-              </div>
-            ))}
-          </div>
-          <div className="mt-1.5 flex gap-1">
-            {bars.map((bar, i) => (
-              <span
-                key={bar.key}
-                className={cn(
-                  "flex-1 truncate text-center text-[9px] text-muted-foreground",
-                  period === "day" && i % 2 === 1 && "invisible",
-                )}
-              >
-                {bar.label}
-              </span>
-            ))}
-          </div>
+          <DailyBars bars={bars} period={period} />
 
           {topPosts.length > 0 ? (
             <div className="mt-6">

@@ -14,6 +14,7 @@ import { ConversionsSection } from "@/components/admin/ConversionsSection";
 import { CampaignPerformanceSection } from "@/components/admin/CampaignPerformanceSection";
 import { TikTokShopSection } from "@/components/admin/TikTokShopSection";
 import { PostReadsSection } from "@/components/admin/PostReadsSection";
+import { VisitTrendSection } from "@/components/admin/VisitTrendSection";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { getLastUpdateInfo, useSimData } from "@/hooks/useSimData";
@@ -421,6 +422,7 @@ function AdminDashboardContent() {
         {/* ─── Tab TRAFFIC: SEO + lượt truy cập (góp ý #16) ─── */}
         {tab === "traffic" && (
           <div className="space-y-10">
+            <VisitTrendSection token={token} />
             <PageVisitsSection />
             <ConversionsSection />
             <CampaignPerformanceSection />
