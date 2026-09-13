@@ -36,12 +36,11 @@ interface VipSimLite {
  * Shopee đứng riêng. Đổi tab chỉ mount đúng phần đang xem — các section tự fetch
  * data khi mở nên trang không nặng ngay từ đầu.
  */
-type TabId = "tong-quan" | "traffic" | "doanh-thu" | "shopee";
+type TabId = "tong-quan" | "traffic" | "doanh-thu";
 const TABS: { id: TabId; label: string; icon: LucideIcon }[] = [
   { id: "tong-quan", label: "Tổng quan", icon: LayoutDashboard },
   { id: "traffic", label: "Traffic", icon: Globe },
   { id: "doanh-thu", label: "Doanh thu", icon: Wallet },
-  { id: "shopee", label: "Shopee", icon: ShoppingCart },
 ];
 
 const formatCompactVnd = (n: number) =>
@@ -317,6 +316,15 @@ function AdminDashboardContent() {
               </button>
             );
           })}
+          {/* Shopee: bấm vào đi thẳng trang quản lý, khỏi phải click thêm (góp ý #17) */}
+          <a
+            href="/admin/shopee"
+            className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            Shopee
+            <ArrowRight className="h-3.5 w-3.5" />
+          </a>
         </nav>
 
         {/* ─── Tab TỔNG QUAN: kho số ─── */}
@@ -448,34 +456,6 @@ function AdminDashboardContent() {
           <div className="space-y-10">
             <SalesChart />
             <TikTokShopSection />
-          </div>
-        )}
-
-        {/* ─── Tab SHOPEE ─── */}
-        {tab === "shopee" && (
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Đồng bộ lô SIM lên Shopee và quản lý sản phẩm đã đăng ở trang riêng bên dưới.
-            </p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <a
-                href="/admin/shopee"
-                className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-colors hover:border-primary/40 hover:bg-card/70"
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-500/15 text-orange-600">
-                    <ShoppingCart className="h-5 w-5" />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-foreground">Shopee bán hàng</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      Đồng bộ lô SIM lên Shopee · quản lý sản phẩm đã đăng
-                    </p>
-                  </div>
-                </div>
-                <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-              </a>
-            </div>
           </div>
         )}
 
