@@ -282,10 +282,17 @@ export const calculateBeautyScore = (tags: string[], price: number, vipThreshold
   return score;
 };
 
+/**
+ * SIM VIP = có 1 trong 4 DẠNG CAO CẤP dưới đây, HOẶC giá ≥ ngưỡng VIP.
+ * Đây là nguồn định nghĩa DUY NHẤT (dashboard hiển thị đúng bộ này).
+ * 4 dạng cao cấp loại trừ nhau trong detectSimTags nên dùng để phân rã sạch.
+ */
+export const VIP_TAGS = ['Lục quý', 'Ngũ quý', 'Tứ quý', 'Tam hoa kép'] as const;
+export const VIP_PRICE_THRESHOLD = 50_000_000;
+
 // Determine if SIM is VIP
-export const isVIPSim = (tags: string[], price: number, vipThreshold: number = 50000000): boolean => {
-  const vipTags = ['Lục quý', 'Ngũ quý', 'Tứ quý', 'Tam hoa kép'];
-  return vipTags.some(t => tags.includes(t)) || price >= vipThreshold;
+export const isVIPSim = (tags: string[], price: number, vipThreshold: number = VIP_PRICE_THRESHOLD): boolean => {
+  return VIP_TAGS.some((t) => tags.includes(t)) || price >= vipThreshold;
 };
 
 // Số ngày trong tháng (1-based index). Dùng để loại "31.11" ra khỏi sim năm sinh.

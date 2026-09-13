@@ -42,6 +42,7 @@ function AdminDashboardContent() {
     total: number;
     totalValue: number;
     vipCount: number;
+    vipBreakdown: Record<string, number>;
     networkCounts: Record<string, number>;
     priceCounts: number[];
     tagCounts: Record<string, number>;
@@ -164,6 +165,15 @@ function AdminDashboardContent() {
     [topTags],
   );
 
+  // Phân rã SIM VIP theo từng nhóm (từ server, toàn kho) — hiện count>0, nhiều nhất trước.
+  const vipBreakdownItems = useMemo(() => {
+    const b = serverStats?.vipBreakdown;
+    if (!b) return [] as [string, number][];
+    return Object.entries(b)
+      .filter(([, n]) => n > 0)
+      .sort((x, y) => y[1] - x[1]);
+  }, [serverStats]);
+
   const lastUpdate = getLastUpdateInfo();
   const lastUpdateLabel = lastUpdate.timestamp
     ? new Date(lastUpdate.timestamp).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
@@ -257,6 +267,36 @@ function AdminDashboardContent() {
                   sub={postsLoading ? "Đang tải…" : `${publishedCount} đăng · ${draftCount} nháp`}
                   icon={FileText}
                 />
+              </div>
+
+              {/* SIM VIP là gì — định nghĩa + phân rã thành phần (góp ý #8) */}
+              <div className="mt-6 rounded-xl border border-border bg-card p-4 shadow-card">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Crown className="h-4 w-4 text-gold" />
+                  <h3 className="text-sm font-semibold text-foreground">SIM VIP là gì?</h3>
+                  <span className="ml-auto text-sm font-bold text-gold">
+                    {stats.vipCount.toLocaleString("vi-VN")} SIM VIP
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  SIM VIP = có 1 trong 4 dạng cao cấp (Lục quý · Ngũ quý · Tứ quý · Tam hoa kép)
+                  {" "}<span className="font-semibold text-foreground">hoặc</span> giá từ 50 triệu trở lên.
+                </p>
+                {vipBreakdownItems.length > 0 ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {vipBreakdownItems.map(([label, count]) => (
+                      <span
+                        key={label}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/5 px-3 py-1.5 text-xs"
+                      >
+                        <span className="font-medium text-foreground">{label}</span>
+                        <span className="font-bold text-gold">{count.toLocaleString("vi-VN")}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-3 text-xs text-muted-foreground">Đang tải phân loại VIP…</p>
+                )}
               </div>
 
               <div className="mt-6 grid gap-4 md:grid-cols-3">
