@@ -3,6 +3,8 @@ import { BarChart3, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fetchSheetCsv, normalizeHeader, parseCSVLine, stripQuotes } from "@/lib/cheapSimSheet";
 import { MAIN_SHEET_ID } from "@/lib/recentOrdersSheet";
+import { formatPrice } from "@/lib/simUtils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 /**
  * Tab SIM_SOLD của chính spreadsheet mà storefront đọc (xem
@@ -16,20 +18,22 @@ import { MAIN_SHEET_ID } from "@/lib/recentOrdersSheet";
  * 87.547 byte, giảm 77%.
  *
  * Chữ cái cột trong gviz là theo VỊ TRÍ, cùng hợp đồng đã ghi ở
- * `recentOrdersSheet.ts`: A SoldID · B SoThueBao · C GiaThu · D NgayBan.
+ * `recentOrdersSheet.ts`: A SoldID · B SoThueBao (giữ SimID) · C GiaThu ·
+ * D NgayBan · I "STB chuan" (SỐ THUÊ BAO THẬT). Lấy thêm cột I để bấm vào cột
+ * biểu đồ thì liệt kê được từng số đã bán (góp ý A Khoa 13/09).
  *
  * `year(D), month(D), day(D)` thay vì `D`: gviz xuất ô ngày theo định dạng hiển
  * thị của sheet (hiện `m/d/yyyy`) và bỏ qua mệnh đề `format` khi ra CSV, nên
  * ngày 1/2 với 2/1 không thể phân biệt lại được nếu ai đó đổi định dạng cột.
  * `month()` của gviz đếm từ 0.
  */
-const SOLD_QUERY = "select A, C, year(D), month(D), day(D) where D is not null";
+const SOLD_QUERY = "select A, C, I, year(D), month(D), day(D) where D is not null";
 
 const SOLD_CSV_URL =
   `https://docs.google.com/spreadsheets/d/${MAIN_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=SIM_SOLD&tq=${encodeURIComponent(SOLD_QUERY)}`;
 
 /** Header kỳ vọng của projection trên, đã chuẩn hoá. Cột lệch là hỏng to tiếng. */
-const SOLD_HEADER_GUARD = ["soldid", "giathu", "year(ngayban)", "month(ngayban)", "day(ngayban)"];
+const SOLD_HEADER_GUARD = ["soldid", "giathu", "stbchuan", "year(ngayban)", "month(ngayban)", "day(ngayban)"];
 
 type Period = "day" | "month";
 type Metric = "count" | "value";
@@ -58,6 +62,21 @@ const parseGiaThu = (value: string | undefined): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
+/**
+ * Số thuê bao thật ("STB chuan"). gviz rớt số 0 đầu vì đây là cột số → 9 chữ số
+ * thì thêm lại "0"; nhóm 4-3-3 cho dễ đọc (0767 133 133). Trống thì trả "".
+ */
+const formatSoldPhone = (value: string | undefined): string => {
+  const d = String(value ?? "").replace(/\D/g, "");
+  if (!d) return "";
+  const full = d.length === 9 ? `0${d}` : d;
+  return full.length === 10 ? `${full.slice(0, 4)} ${full.slice(4, 7)} ${full.slice(7)}` : full;
+};
+
+/** Ngày bán dạng dd/mm/yyyy. */
+const formatSaleDate = (date: Date): string =>
+  `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+
 /** gviz trả year/month/day là số nguyên; `month()` của gviz đếm từ 0. */
 const toSaleDate = (yearRaw?: string, monthRaw?: string, dayRaw?: string): Date | null => {
   const year = Number(yearRaw);
@@ -77,6 +96,7 @@ const getAnchor = (date: Date, period: Period): Date => {
 interface SaleRecord {
   date: Date;
   value: number;
+  sim: string;
 }
 
 interface ChartBar {
@@ -113,14 +133,14 @@ const parseSoldCsv = (csv: string): SaleRecord[] => {
   // 10/2.264 SoldID xuất hiện hai lần (bán lại sau khi khách trả), giữ dòng đầu.
   const seen = new Set<string>();
   for (let i = 1; i < lines.length; i++) {
-    const [soldId, giaThu, yearRaw, monthRaw, dayRaw] = parseCSVLine(lines[i]).map(stripQuotes);
+    const [soldId, giaThu, stbChuan, yearRaw, monthRaw, dayRaw] = parseCSVLine(lines[i]).map(stripQuotes);
     if (soldId) {
       if (seen.has(soldId)) continue;
       seen.add(soldId);
     }
     const date = toSaleDate(yearRaw, monthRaw, dayRaw);
     if (!date) continue;
-    records.push({ date, value: parseGiaThu(giaThu) });
+    records.push({ date, value: parseGiaThu(giaThu), sim: formatSoldPhone(stbChuan) });
   }
   return records;
 };
@@ -167,6 +187,8 @@ export function SalesChart() {
   const [reloadKey, setReloadKey] = useState(0);
   const [sales, setSales] = useState<SaleRecord[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Cột đang mở chi tiết (danh sách SIM đã bán trong kỳ đó).
+  const [selected, setSelected] = useState<{ key: number; fullLabel: string } | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -192,6 +214,24 @@ export function SalesChart() {
   }, [reloadKey]);
 
   const reload = () => setReloadKey((key) => key + 1);
+
+  // Đổi kỳ (ngày/tháng) hay tải lại thì key cột không còn nghĩa cũ → đóng chi tiết.
+  useEffect(() => {
+    setSelected(null);
+  }, [period, reloadKey]);
+
+  // Gom bản ghi theo mốc cột để bấm vào là có ngay danh sách của kỳ đó.
+  const recordsByAnchor = useMemo(() => {
+    const m = new Map<number, SaleRecord[]>();
+    if (!sales) return m;
+    for (const rec of sales) {
+      const key = getAnchor(rec.date, period).getTime();
+      const arr = m.get(key);
+      if (arr) arr.push(rec);
+      else m.set(key, [rec]);
+    }
+    return m;
+  }, [sales, period]);
 
   const bars = useMemo((): ChartBar[] => {
     if (!sales || sales.length === 0) return [];
@@ -255,6 +295,13 @@ export function SalesChart() {
       ? `Tổng ${formatCompactVnd(totalValue)} · cao nhất ${formatCompactVnd(maxValue)}/${periodNoun}`
       : `Tổng ${totalCount.toLocaleString("vi-VN")} SIM · cao nhất ${maxCount.toLocaleString("vi-VN")}/${periodNoun}`;
 
+  const selectedRecords = selected
+    ? (recordsByAnchor.get(selected.key) ?? [])
+        .slice()
+        .sort((a, b) => b.date.getTime() - a.date.getTime() || b.value - a.value)
+    : [];
+  const selectedTotal = selectedRecords.reduce((sum, r) => sum + r.value, 0);
+
   return (
     <section className="rounded-xl border border-border bg-card p-4 shadow-card">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -264,7 +311,9 @@ export function SalesChart() {
           </span>
           <div>
             <h3 className="text-sm font-semibold text-foreground">SIM đã bán</h3>
-            <p className="text-xs text-muted-foreground">{sales ? summaryLine : "Đang tải…"}</p>
+            <p className="text-xs text-muted-foreground">
+              {sales ? `${summaryLine} · bấm cột xem chi tiết` : "Đang tải…"}
+            </p>
           </div>
         </div>
 
@@ -315,15 +364,19 @@ export function SalesChart() {
                       {bar.display}
                     </span>
                   ) : null}
-                  <div
+                  <button
+                    type="button"
+                    disabled={bar.count === 0}
+                    onClick={() => setSelected({ key: bar.key, fullLabel: bar.fullLabel })}
                     title={`${bar.fullLabel}: ${bar.count.toLocaleString("vi-VN")} SIM · ${formatCompactVnd(bar.value)}`}
+                    aria-label={`${bar.fullLabel}: ${bar.count} SIM đã bán — bấm để xem danh sách`}
                     className={cn(
                       "h-full w-full rounded-t-md transition-colors",
                       bar.count === 0
-                        ? "bg-muted"
+                        ? "cursor-default bg-muted"
                         : isLatest
-                          ? "bg-primary"
-                          : "bg-[hsl(var(--gold-soft))] hover:bg-[hsl(var(--gold))]",
+                          ? "cursor-pointer bg-primary hover:opacity-90"
+                          : "cursor-pointer bg-[hsl(var(--gold-soft))] hover:bg-[hsl(var(--gold))]",
                     )}
                   />
                 </div>
@@ -345,6 +398,30 @@ export function SalesChart() {
           </div>
         </>
       )}
+
+      <Dialog open={!!selected} onOpenChange={(open) => (open ? null : setSelected(null))}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>SIM đã bán · {selected?.fullLabel ?? ""}</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground">
+            {selectedRecords.length.toLocaleString("vi-VN")} SIM · tổng {formatPrice(selectedTotal)}
+          </p>
+          {selectedRecords.length === 0 ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">Không có dữ liệu.</p>
+          ) : (
+            <div className="max-h-[60vh] divide-y divide-border overflow-y-auto">
+              {selectedRecords.map((rec, i) => (
+                <div key={i} className="flex items-center justify-between gap-3 py-2 text-sm">
+                  <span className="font-medium tabular-nums text-foreground">{rec.sim || "—"}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">{formatSaleDate(rec.date)}</span>
+                  <span className="shrink-0 font-semibold text-primary">{formatPrice(rec.value)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
