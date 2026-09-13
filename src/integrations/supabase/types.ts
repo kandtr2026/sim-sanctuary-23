@@ -95,6 +95,7 @@ export type Database = {
           referrer: string | null
           source: string | null
           user_agent: string | null
+          ip: string | null
           visited_at: string
           utm_source: string | null
           utm_medium: string | null
@@ -110,6 +111,7 @@ export type Database = {
           referrer?: string | null
           source?: string | null
           user_agent?: string | null
+          ip?: string | null
           visited_at?: string
           utm_source?: string | null
           utm_medium?: string | null
@@ -125,6 +127,7 @@ export type Database = {
           referrer?: string | null
           source?: string | null
           user_agent?: string | null
+          ip?: string | null
           visited_at?: string
           utm_source?: string | null
           utm_medium?: string | null

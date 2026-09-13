@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Globe, RefreshCw } from "lucide-react";
+import { ChevronRight, Globe, RefreshCw } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -41,6 +42,8 @@ export function PageVisitsSection() {
   const [visits, setVisits] = useState<PageVisitRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // IP đang mở xem chi tiết các màn khách đó đã lướt.
+  const [expandedIp, setExpandedIp] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -50,7 +53,7 @@ export function PageVisitsSection() {
         .from("page_visits")
         .select("*")
         .order("visited_at", { ascending: false })
-        .limit(50);
+        .limit(200);
 
       if (err) {
         setError(err.message);
@@ -75,6 +78,28 @@ export function PageVisitsSection() {
       counts[key] = (counts[key] ?? 0) + 1;
     }
     return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  }, [visits]);
+
+  // Gom theo IP: mỗi IP = 1 khách. Đếm lượt xem + số màn khác nhau, khách xem
+  // nhiều nhất lên đầu — để A Khoa thấy ai đang lướt nhiều số mà tư vấn.
+  const visitorsByIp = useMemo(() => {
+    const map = new Map<string, PageVisitRow[]>();
+    for (const v of visits) {
+      const key = v.ip || "";
+      const arr = map.get(key);
+      if (arr) arr.push(v);
+      else map.set(key, [v]);
+    }
+    return Array.from(map.entries())
+      .map(([ip, vs]) => ({
+        ip,
+        visits: vs, // đã sắp mới→cũ theo fetch
+        count: vs.length,
+        screens: new Set(vs.map((x) => x.path)).size,
+        lastAt: vs[0]?.visited_at ?? "",
+        source: vs[0]?.source || "other",
+      }))
+      .sort((a, b) => b.count - a.count || b.screens - a.screens);
   }, [visits]);
 
   const total = visits.length;
@@ -123,7 +148,62 @@ export function PageVisitsSection() {
         </div>
       ) : (
         <>
-          {/* Khách đến từ đâu — aggregated over the last 50 visits */}
+          {/* Khách theo IP — mỗi IP = 1 khách, xem nhiều màn nhất lên đầu */}
+          <div className="mb-4 rounded-xl border border-border bg-card p-4 shadow-card">
+            <h3 className="mb-1 text-sm font-semibold text-foreground">Khách theo IP</h3>
+            <p className="mb-3 text-xs text-muted-foreground">
+              {visitorsByIp.length.toLocaleString("vi-VN")} khách · bấm để xem khách đã lướt màn nào (tư vấn)
+            </p>
+            <div className="divide-y divide-border">
+              {visitorsByIp.slice(0, 20).map((vtr) => {
+                const meta = SOURCE_LABELS[vtr.source] ?? SOURCE_LABELS.other;
+                const open = expandedIp === (vtr.ip || "unknown");
+                return (
+                  <div key={vtr.ip || "unknown"}>
+                    <button
+                      type="button"
+                      onClick={() => setExpandedIp(open ? null : vtr.ip || "unknown")}
+                      className="flex w-full items-center gap-2 py-2 text-left"
+                    >
+                      <ChevronRight
+                        className={cn(
+                          "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                          open && "rotate-90",
+                        )}
+                      />
+                      <span className="truncate font-mono text-xs text-foreground">
+                        {vtr.ip || "Chưa rõ IP"}
+                      </span>
+                      <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold ${meta.color}`}>
+                        {meta.label}
+                      </span>
+                      <span className="ml-auto shrink-0 text-xs text-muted-foreground">{vtr.screens} màn</span>
+                      <span className="w-16 shrink-0 text-right text-sm font-bold text-primary">
+                        {vtr.count} lượt
+                      </span>
+                    </button>
+                    {open ? (
+                      <ul className="mb-2 ml-6 space-y-1 border-l border-border pl-3">
+                        {vtr.visits.map((v) => (
+                          <li key={v.id} className="flex items-center justify-between gap-3 text-xs">
+                            <span className="truncate font-mono text-foreground">{v.path}</span>
+                            <span className="shrink-0 text-muted-foreground">
+                              {new Date(v.visited_at).toLocaleString("vi-VN")}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+            {visitorsByIp.length === 0 ? (
+              <p className="py-2 text-xs text-muted-foreground">Chưa có dữ liệu IP (lượt xem mới sẽ có).</p>
+            ) : null}
+          </div>
+
+          {/* Khách đến từ đâu — aggregated over the last visits */}
           <div className="mb-4 rounded-xl border border-border bg-card p-4 shadow-card">
             <h3 className="mb-3 text-sm font-semibold text-foreground">Khách đến từ đâu</h3>
             <div className="flex flex-wrap gap-2">
@@ -157,7 +237,7 @@ export function PageVisitsSection() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {visits.map((visit) => {
+                {visits.slice(0, 50).map((visit) => {
                   const srcMeta = SOURCE_LABELS[visit.source || "other"] ?? SOURCE_LABELS.other;
                   return (
                     <tr key={visit.id} className="transition-colors hover:bg-muted/30">
@@ -181,7 +261,7 @@ export function PageVisitsSection() {
               </tbody>
             </table>
             <div className="border-t border-border px-4 py-2 text-xs text-muted-foreground">
-              {visits.length} lượt gần nhất — tự động ghi khi khách đổi trang.
+              Hiển thị {Math.min(visits.length, 50)}/{visits.length} lượt gần nhất — tự động ghi khi khách đổi trang.
             </div>
           </div>
         </>

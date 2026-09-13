@@ -69,13 +69,19 @@ export function usePageVisitTracker() {
       };
 
       if (cancelled) return;
-      await supabase
-        .from("page_visits")
-        .insert(payload)
-        .then(({ error }) => {
-          // Quietly ignore failures (RLS, network, anonymous insert blocked...)
-          if (error) console.debug("[page_visit] not logged:", error.message);
+      // Đi qua route để SERVER đọc IP khách (x-forwarded-for) rồi mới ghi —
+      // client không biết IP công cộng của mình. keepalive để request sống sót
+      // khi khách vừa bấm sang trang khác. Mọi lỗi nuốt êm.
+      try {
+        await fetch("/api/track/visit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          keepalive: true,
         });
+      } catch {
+        // best-effort: theo dõi không bao giờ làm hỏng trang
+      }
     })();
 
     return () => {
