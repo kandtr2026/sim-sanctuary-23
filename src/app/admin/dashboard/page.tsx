@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Crown, FileText, ShoppingCart, Smartphone, TrendingUp, Wallet } from "lucide-react";
+import { ArrowRight, Crown, Download, FileText, Loader2, ShoppingCart, Smartphone, TrendingUp, Wallet } from "lucide-react";
 import { BarList } from "@/components/admin/BarList";
 import { DashboardHeader } from "@/components/admin/DashboardHeader";
 import { PostsTable, type PostRow } from "@/components/admin/PostsTable";
@@ -26,7 +26,9 @@ const formatCompactVnd = (n: number) =>
       : n.toLocaleString("vi-VN");
 
 function AdminDashboardContent() {
-  const { user, signOut } = useAdminAuth();
+  const { user, session, signOut } = useAdminAuth();
+  const token = session?.access_token;
+  const [exportingSims, setExportingSims] = useState(false);
   // Reuses the exact same live-inventory feed (Google Sheet -> fetch-sim-data
   // edge function -> normalized SIMs) that the public storefront already
   // uses, so "how many numbers of what kind are in stock" always matches
@@ -193,6 +195,45 @@ function AdminDashboardContent() {
     toast.success("Đã xoá bài viết.");
   };
 
+  // Xuất Excel toàn bộ SIM đang bán, đủ trường (bảng sims + join Sheet1). Chỉ
+  // admin — route requireAdmin, tải về bằng token phiên (góp ý #12).
+  const handleExportSims = async () => {
+    if (!token) {
+      toast.error("Chưa đăng nhập.");
+      return;
+    }
+    setExportingSims(true);
+    const t = toast.loading("Đang gom dữ liệu SIM (bảng số + Sheet)…");
+    try {
+      const res = await fetch("/api/admin/export-sims", {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body?.error || `HTTP ${res.status}`);
+      }
+      const count = res.headers.get("X-Sim-Count") ?? "";
+      const cd = res.headers.get("Content-Disposition") ?? "";
+      const m = /filename="?([^"]+)"?/.exec(cd);
+      const filename = m?.[1] || `sim-data_day-du_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success(count ? `Đã xuất ${Number(count).toLocaleString("vi-VN")} SIM ra Excel` : "Đã xuất Excel", { id: t });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Xuất thất bại", { id: t });
+    } finally {
+      setExportingSims(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader
@@ -227,10 +268,22 @@ function AdminDashboardContent() {
         </div>
 
         <section className="rounded-2xl border border-border bg-muted/20 p-4 sm:p-5">
-          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-foreground">
-            <Smartphone className="h-4 w-4 text-primary" />
-            Thống kê kho số (đang bán)
-          </h2>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+              <Smartphone className="h-4 w-4 text-primary" />
+              Thống kê kho số (đang bán)
+            </h2>
+            <button
+              type="button"
+              onClick={() => void handleExportSims()}
+              disabled={exportingSims}
+              title="Tải Excel toàn bộ SIM đang bán, đủ trường (kèm giá thu về từ Sheet)"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/40 disabled:opacity-50"
+            >
+              {exportingSims ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+              {exportingSims ? "Đang xuất…" : "Xuất data SIM"}
+            </button>
+          </div>
 
           {simsLoading ? (
             <>
