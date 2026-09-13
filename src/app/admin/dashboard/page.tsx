@@ -32,7 +32,7 @@ function AdminDashboardContent() {
   // uses, so "how many numbers of what kind are in stock" always matches
   // what a visitor actually sees on the site — no separate data pipeline to
   // keep in sync.
-  const { allSims, isLoading: simsLoading, tagCounts, prefixes } = useSimData();
+  const { allSims, isLoading: simsLoading, tagCounts } = useSimData();
 
   // Server-side stats: total SIM + inventory value (authoritative ~49k, không
   // bị fallback cache 14k của useSimData). Fetch 1 lần, cache 5 phút.
@@ -259,25 +259,7 @@ function AdminDashboardContent() {
               <div className="mt-6 grid gap-4 md:grid-cols-3">
                 <BarList title="Phân bố theo mạng" items={networkItems} />
                 <BarList title="Theo khoảng giá" items={priceItems} />
-                <BarList
-                  title="Loại số phổ biến nhất"
-                  items={tagItems}
-                  footer={
-                    <div className="border-t border-border pt-3">
-                      <p className="mb-2 text-xs font-medium text-muted-foreground">Đầu số phổ biến</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {prefixes.prefix3.slice(0, 10).map((prefix) => (
-                          <span
-                            key={prefix}
-                            className="rounded-full border border-border bg-muted px-2 py-0.5 text-xs text-foreground"
-                          >
-                            {prefix}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  }
-                />
+                <BarList title="Loại số phổ biến nhất" items={tagItems} />
               </div>
             </>
           )}
