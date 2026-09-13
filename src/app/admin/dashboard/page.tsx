@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Crown, Download, ExternalLink, FileText, Loader2, ShoppingCart, Smartphone, TrendingUp, Wallet } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { ArrowRight, Crown, Download, ExternalLink, FileText, Globe, LayoutDashboard, Loader2, ShoppingCart, Smartphone, TrendingUp, Wallet } from "lucide-react";
 import { BarList } from "@/components/admin/BarList";
 import { DashboardHeader } from "@/components/admin/DashboardHeader";
 import { PostsTable, type PostRow } from "@/components/admin/PostsTable";
@@ -16,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { getLastUpdateInfo, useSimData } from "@/hooks/useSimData";
 import { formatPrice, PRICE_RANGES } from "@/lib/simUtils";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -28,6 +30,20 @@ interface VipSimLite {
   network: string;
 }
 
+/**
+ * Chia dashboard thành các TAB cho gọn (góp ý #16): mọi thống kê SEO / lượt truy
+ * cập gom vào tab Traffic; kho số ở Tổng quan; SIM đã bán + kênh sàn ở Doanh thu;
+ * Shopee đứng riêng. Đổi tab chỉ mount đúng phần đang xem — các section tự fetch
+ * data khi mở nên trang không nặng ngay từ đầu.
+ */
+type TabId = "tong-quan" | "traffic" | "doanh-thu" | "shopee";
+const TABS: { id: TabId; label: string; icon: LucideIcon }[] = [
+  { id: "tong-quan", label: "Tổng quan", icon: LayoutDashboard },
+  { id: "traffic", label: "Traffic", icon: Globe },
+  { id: "doanh-thu", label: "Doanh thu", icon: Wallet },
+  { id: "shopee", label: "Shopee", icon: ShoppingCart },
+];
+
 const formatCompactVnd = (n: number) =>
   n >= 1_000_000_000
     ? `${(n / 1_000_000_000).toFixed(1)} tỷ`
@@ -38,6 +54,7 @@ const formatCompactVnd = (n: number) =>
 function AdminDashboardContent() {
   const { user, session, signOut } = useAdminAuth();
   const token = session?.access_token;
+  const [tab, setTab] = useState<TabId>("tong-quan");
   const [exportingSims, setExportingSims] = useState(false);
   // Danh sách SIM VIP theo nhóm — tải LƯỜI (chỉ khi A Khoa bấm vào 1 chip
   // breakdown lần đầu), rồi giữ lại cho các lần bấm sau (góp ý #13).
@@ -276,116 +293,194 @@ function AdminDashboardContent() {
         onSignOut={() => void signOut()}
       />
 
-      <main className="container space-y-10 px-4 py-8">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <a
-            href="/admin/shopee"
-            className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-colors hover:border-primary/40 hover:bg-card/70"
-          >
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-500/15 text-orange-600">
-                <ShoppingCart className="h-5 w-5" />
-              </span>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-foreground">
-                  Shopee bán hàng
-                </p>
-                <p className="truncate text-xs text-muted-foreground">
-                  Đồng bộ lô SIM lên Shopee · quản lý sản phẩm đã đăng
-                </p>
-              </div>
+      <main className="container space-y-8 px-4 py-8">
+        {/* Thanh tab điều hướng (góp ý #16) */}
+        <nav className="flex gap-1 overflow-x-auto rounded-xl border border-border bg-muted/30 p-1" aria-label="Khu vực dashboard">
+          {TABS.map((t) => {
+            const Icon = t.icon;
+            const active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTab(t.id)}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors",
+                  active
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                {t.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* ─── Tab TỔNG QUAN: kho số ─── */}
+        {tab === "tong-quan" && (
+          <section className="rounded-2xl border border-border bg-muted/20 p-4 sm:p-5">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+                <Smartphone className="h-4 w-4 text-primary" />
+                Thống kê kho số (đang bán)
+              </h2>
+              <button
+                type="button"
+                onClick={() => void handleExportSims()}
+                disabled={exportingSims}
+                title="Tải Excel toàn bộ SIM đang bán, đủ trường (kèm giá thu về từ Sheet)"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/40 disabled:opacity-50"
+              >
+                {exportingSims ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                {exportingSims ? "Đang xuất…" : "Xuất data SIM"}
+              </button>
             </div>
-            <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-          </a>
-        </div>
 
-        <section className="rounded-2xl border border-border bg-muted/20 p-4 sm:p-5">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
-              <Smartphone className="h-4 w-4 text-primary" />
-              Thống kê kho số (đang bán)
-            </h2>
-            <button
-              type="button"
-              onClick={() => void handleExportSims()}
-              disabled={exportingSims}
-              title="Tải Excel toàn bộ SIM đang bán, đủ trường (kèm giá thu về từ Sheet)"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/40 disabled:opacity-50"
-            >
-              {exportingSims ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-              {exportingSims ? "Đang xuất…" : "Xuất data SIM"}
-            </button>
-          </div>
+            {simsLoading ? (
+              <>
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="h-[120px] animate-pulse rounded-xl bg-muted" />
+                  ))}
+                </div>
+                <div className="mt-6 grid gap-4 md:grid-cols-3">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="h-44 animate-pulse rounded-xl bg-muted" />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+                  <StatCard label="Tổng SIM còn hàng" value={stats.total.toLocaleString("vi-VN")} icon={Smartphone} />
+                  <StatCard
+                    label="Tổng giá trị kho"
+                    value={formatCompactVnd(stats.inventoryValue)}
+                    icon={Wallet}
+                    iconClass="bg-gold/15 text-gold"
+                    valueClass="text-gold"
+                  />
+                  <StatCard label="Giá trung bình" value={formatPrice(stats.avgPrice)} icon={TrendingUp} />
+                </div>
 
-          {simsLoading ? (
-            <>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="h-[120px] animate-pulse rounded-xl bg-muted" />
-                ))}
-              </div>
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="h-44 animate-pulse rounded-xl bg-muted" />
-                ))}
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-                <StatCard label="Tổng SIM còn hàng" value={stats.total.toLocaleString("vi-VN")} icon={Smartphone} />
+                {/* SIM VIP là gì — định nghĩa + phân rã thành phần, bấm chip xem
+                    list SIM tương ứng (góp ý #8, #13) */}
+                <div className="mt-6 rounded-xl border border-border bg-card p-4 shadow-card">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Crown className="h-4 w-4 text-gold" />
+                    <h3 className="text-sm font-semibold text-foreground">SIM VIP là gì?</h3>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    SIM VIP = có 1 trong 4 dạng cao cấp (Lục quý · Ngũ quý · Tứ quý · Tam hoa kép)
+                    {" "}<span className="font-semibold text-foreground">hoặc</span> giá từ 50 triệu trở lên.
+                    {" "}<span className="text-foreground">Bấm từng loại để xem danh sách SIM.</span>
+                  </p>
+                  {vipBreakdownItems.length > 0 ? (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {vipBreakdownItems.map(([label, count]) => (
+                        <button
+                          key={label}
+                          type="button"
+                          onClick={() => openVipCat(label)}
+                          title={`Xem ${count.toLocaleString("vi-VN")} SIM ${label}`}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/5 px-3 py-1.5 text-xs transition-colors hover:border-gold hover:bg-gold/10"
+                        >
+                          <span className="font-medium text-foreground">{label}</span>
+                          <span className="font-bold text-gold">{count.toLocaleString("vi-VN")}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-3 text-xs text-muted-foreground">Đang tải phân loại VIP…</p>
+                  )}
+                </div>
+
+                <div className="mt-6 grid gap-4 md:grid-cols-3">
+                  <BarList title="Phân bố theo mạng" items={networkItems} />
+                  <BarList title="Theo khoảng giá" items={priceItems} />
+                  <BarList title="Loại số phổ biến nhất" items={tagItems} />
+                </div>
+              </>
+            )}
+          </section>
+        )}
+
+        {/* ─── Tab TRAFFIC: SEO + lượt truy cập (góp ý #16) ─── */}
+        {tab === "traffic" && (
+          <div className="space-y-10">
+            <PageVisitsSection />
+            <ConversionsSection />
+            <CampaignPerformanceSection />
+
+            {/* Thống kê bài viết — content SEO/organic, gom về Traffic (góp ý #11, #16) */}
+            <section className="rounded-2xl border border-border bg-muted/20 p-4 sm:p-5">
+              <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-foreground">
+                <FileText className="h-4 w-4 text-primary" />
+                Thống kê bài viết
+              </h2>
+              <div className="mb-4 grid grid-cols-3 gap-4">
+                <StatCard label="Tổng bài viết" value={posts.length.toLocaleString("vi-VN")} icon={FileText} />
                 <StatCard
-                  label="Tổng giá trị kho"
-                  value={formatCompactVnd(stats.inventoryValue)}
-                  icon={Wallet}
+                  label="Đã đăng"
+                  value={publishedCount.toLocaleString("vi-VN")}
+                  icon={FileText}
+                  iconClass="bg-primary/15 text-primary"
+                  valueClass="text-primary"
+                />
+                <StatCard
+                  label="Nháp"
+                  value={draftCount.toLocaleString("vi-VN")}
+                  icon={FileText}
                   iconClass="bg-gold/15 text-gold"
                   valueClass="text-gold"
                 />
-                <StatCard label="Giá trung bình" value={formatPrice(stats.avgPrice)} icon={TrendingUp} />
               </div>
+              <PostsTable posts={posts} loading={postsLoading} onDelete={(post) => void handleDeletePost(post)} />
+            </section>
+          </div>
+        )}
 
-              {/* SIM VIP là gì — định nghĩa + phân rã thành phần, bấm chip xem
-                  list SIM tương ứng (góp ý #8, #13) */}
-              <div className="mt-6 rounded-xl border border-border bg-card p-4 shadow-card">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Crown className="h-4 w-4 text-gold" />
-                  <h3 className="text-sm font-semibold text-foreground">SIM VIP là gì?</h3>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  SIM VIP = có 1 trong 4 dạng cao cấp (Lục quý · Ngũ quý · Tứ quý · Tam hoa kép)
-                  {" "}<span className="font-semibold text-foreground">hoặc</span> giá từ 50 triệu trở lên.
-                  {" "}<span className="text-foreground">Bấm từng loại để xem danh sách SIM.</span>
-                </p>
-                {vipBreakdownItems.length > 0 ? (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {vipBreakdownItems.map(([label, count]) => (
-                      <button
-                        key={label}
-                        type="button"
-                        onClick={() => openVipCat(label)}
-                        title={`Xem ${count.toLocaleString("vi-VN")} SIM ${label}`}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/5 px-3 py-1.5 text-xs transition-colors hover:border-gold hover:bg-gold/10"
-                      >
-                        <span className="font-medium text-foreground">{label}</span>
-                        <span className="font-bold text-gold">{count.toLocaleString("vi-VN")}</span>
-                      </button>
-                    ))}
+        {/* ─── Tab DOANH THU: SIM đã bán + kênh sàn ─── */}
+        {tab === "doanh-thu" && (
+          <div className="space-y-10">
+            <SalesChart />
+            <TikTokShopSection />
+          </div>
+        )}
+
+        {/* ─── Tab SHOPEE ─── */}
+        {tab === "shopee" && (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Đồng bộ lô SIM lên Shopee và quản lý sản phẩm đã đăng ở trang riêng bên dưới.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <a
+                href="/admin/shopee"
+                className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-colors hover:border-primary/40 hover:bg-card/70"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-500/15 text-orange-600">
+                    <ShoppingCart className="h-5 w-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground">Shopee bán hàng</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      Đồng bộ lô SIM lên Shopee · quản lý sản phẩm đã đăng
+                    </p>
                   </div>
-                ) : (
-                  <p className="mt-3 text-xs text-muted-foreground">Đang tải phân loại VIP…</p>
-                )}
-              </div>
+                </div>
+                <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              </a>
+            </div>
+          </div>
+        )}
 
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
-                <BarList title="Phân bố theo mạng" items={networkItems} />
-                <BarList title="Theo khoảng giá" items={priceItems} />
-                <BarList title="Loại số phổ biến nhất" items={tagItems} />
-              </div>
-            </>
-          )}
-        </section>
-
-        {/* Danh sách SIM của nhóm VIP đang chọn (góp ý #13) */}
+        {/* Danh sách SIM của nhóm VIP đang chọn (góp ý #13) — mount ở gốc để mọi
+            tab đều mở được, dù chip nằm trong tab Tổng quan */}
         <Dialog open={!!selectedVipCat} onOpenChange={(open) => (open ? null : setSelectedVipCat(null))}>
           <DialogContent className="max-w-md">
             <DialogHeader>
@@ -437,42 +532,6 @@ function AdminDashboardContent() {
             )}
           </DialogContent>
         </Dialog>
-
-        <SalesChart />
-
-        <PageVisitsSection />
-
-        <ConversionsSection />
-
-        <CampaignPerformanceSection />
-
-        <TikTokShopSection />
-
-        {/* Zone thống kê bài viết — tách riêng khỏi thống kê kho số (góp ý #11) */}
-        <section className="rounded-2xl border border-border bg-muted/20 p-4 sm:p-5">
-          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-foreground">
-            <FileText className="h-4 w-4 text-primary" />
-            Thống kê bài viết
-          </h2>
-          <div className="mb-4 grid grid-cols-3 gap-4">
-            <StatCard label="Tổng bài viết" value={posts.length.toLocaleString("vi-VN")} icon={FileText} />
-            <StatCard
-              label="Đã đăng"
-              value={publishedCount.toLocaleString("vi-VN")}
-              icon={FileText}
-              iconClass="bg-primary/15 text-primary"
-              valueClass="text-primary"
-            />
-            <StatCard
-              label="Nháp"
-              value={draftCount.toLocaleString("vi-VN")}
-              icon={FileText}
-              iconClass="bg-gold/15 text-gold"
-              valueClass="text-gold"
-            />
-          </div>
-          <PostsTable posts={posts} loading={postsLoading} onDelete={(post) => void handleDeletePost(post)} />
-        </section>
       </main>
     </div>
   );
