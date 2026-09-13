@@ -16,18 +16,20 @@ export const revalidate = 300;
 export async function GET(_req: NextRequest) {
   const sims = await getServerSims();
   if (sims.length === 0)
-    return Response.json({ total: 0, totalValue: 0, networkCounts: {}, tagCounts: {}, priceCounts: [] });
+    return Response.json({ total: 0, totalValue: 0, vipCount: 0, networkCounts: {}, tagCounts: {}, priceCounts: [] });
 
   const networkCounts: Record<string, number> = {};
   const priceCounts: number[] = PRICE_RANGES.map(() => 0);
 
   let totalValue = 0;
   let total = 0;
+  let vipCount = 0;
 
   for (const s of sims) {
     if (s.price <= 0) continue;
     total++;
     totalValue += s.price;
+    if (s.isVIP) vipCount++;
     networkCounts[s.network] = (networkCounts[s.network] ?? 0) + 1;
     const idx = PRICE_RANGES.findIndex((r) => s.price >= r.min && s.price <= r.max);
     if (idx !== -1) priceCounts[idx]++;
@@ -38,6 +40,7 @@ export async function GET(_req: NextRequest) {
   return Response.json({
     total,
     totalValue,
+    vipCount,
     networkCounts,
     tagCounts,
     priceCounts,

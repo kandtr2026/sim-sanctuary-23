@@ -36,7 +36,16 @@ function AdminDashboardContent() {
 
   // Server-side stats: total SIM + inventory value (authoritative ~49k, không
   // bị fallback cache 14k của useSimData). Fetch 1 lần, cache 5 phút.
-  const [serverStats, setServerStats] = useState<{ total: number; totalValue: number } | null>(null);
+  // Số liệu TOÀN KHO (~49k) từ server — các mục phân bổ phải dùng cái này, KHÔNG
+  // đếm từ allSims (chỉ ~14k client tải) kẻo cộng thiếu (góp ý #7).
+  const [serverStats, setServerStats] = useState<{
+    total: number;
+    totalValue: number;
+    vipCount: number;
+    networkCounts: Record<string, number>;
+    priceCounts: number[];
+    tagCounts: Record<string, number>;
+  } | null>(null);
   useEffect(() => {
     fetch("/api/admin/stats")
       .then((r) => { if (r.ok) return r.json(); return null; })
@@ -81,31 +90,39 @@ function AdminDashboardContent() {
       inventoryValue,
       avgPrice: total > 0 ? inventoryValue / total : 0,
       maxPrice: Math.max(0, ...allSims.map((sim) => sim.price || 0)),
-      vipCount: allSims.filter((sim) => sim.isVIP).length,
+      vipCount: serverStats?.vipCount ?? allSims.filter((sim) => sim.isVIP).length,
     };
   }, [allSims, serverStats]);
 
+  // Ưu tiên số toàn kho từ server; chỉ rơi về allSims khi server chưa tải xong.
   const networkCounts = useMemo(() => {
+    if (serverStats?.networkCounts) return serverStats.networkCounts;
     const counts: Record<string, number> = {};
     for (const sim of allSims) {
       counts[sim.network] = (counts[sim.network] ?? 0) + 1;
     }
     return counts;
-  }, [allSims]);
+  }, [allSims, serverStats]);
 
   const priceBucketCounts = useMemo(() => {
+    if (serverStats?.priceCounts) {
+      return PRICE_RANGES.map((range, i) => ({
+        label: range.label,
+        count: serverStats.priceCounts[i] ?? 0,
+      }));
+    }
     return PRICE_RANGES.map((range) => ({
       label: range.label,
       count: allSims.filter((s) => s.price >= range.min && s.price <= range.max).length,
     }));
-  }, [allSims]);
+  }, [allSims, serverStats]);
 
   const topTags = useMemo(
     () =>
-      Object.entries(tagCounts)
+      Object.entries(serverStats?.tagCounts ?? tagCounts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 8),
-    [tagCounts],
+    [tagCounts, serverStats],
   );
 
   const networkItems = useMemo(
