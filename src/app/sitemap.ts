@@ -41,15 +41,20 @@ const ROUTES: StaticRoute[] = [
   { path: "/sim-hop/cong-danh", changeFrequency: "weekly", priority: 0.7, dynamic: true },
   { path: "/sim-hop/tinh-duyen", changeFrequency: "weekly", priority: 0.7, dynamic: true },
   { path: "/sim-hop/quy-nhan", changeFrequency: "weekly", priority: 0.7, dynamic: true },
+  // SIM theo mệnh (ngũ hành của số) — hub + 5 hành.
+  { path: "/sim-theo-menh", changeFrequency: "weekly", priority: 0.7, dynamic: true },
+  { path: "/sim-theo-menh/kim", changeFrequency: "weekly", priority: 0.7, dynamic: true },
+  { path: "/sim-theo-menh/moc", changeFrequency: "weekly", priority: 0.7, dynamic: true },
+  { path: "/sim-theo-menh/thuy", changeFrequency: "weekly", priority: 0.7, dynamic: true },
+  { path: "/sim-theo-menh/hoa", changeFrequency: "weekly", priority: 0.7, dynamic: true },
+  { path: "/sim-theo-menh/tho", changeFrequency: "weekly", priority: 0.7, dynamic: true },
   // Hub "sim năm sinh". Trước đây chỉ 38 trang con /sim-nam-sinh/<năm> có trong
   // sitemap còn trang hub thì không, dù nó có trong Navigation — tức một trang
   // money page vô hình với sitemap.
   { path: "/sim-nam-sinh", changeFrequency: "weekly", priority: 0.8, dynamic: true },
   { path: "/sim-than-tai", changeFrequency: "weekly", priority: 0.8, dynamic: true },
   { path: "/sim-loc-phat", changeFrequency: "weekly", priority: 0.8, dynamic: true },
-  { path: "/sim-ngu-quy", changeFrequency: "weekly", priority: 0.8, dynamic: true },
-  { path: "/sim-ong-dia", changeFrequency: "weekly", priority: 0.8, dynamic: true },
-  { path: "/sim-phong-thuy-hop-menh", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/sim-ngu-quy", changeFrequency: "weekly", priority: 0.8, dynamic: true },  { path: "/sim-phong-thuy-hop-menh", changeFrequency: "weekly", priority: 0.8 },
   { path: "/sim-tra-gop", changeFrequency: "monthly", priority: 0.7 },
   // Hub của 3 cụm trang programmatic mới (29/08/2026).
   { path: "/sim-hop-tuoi", changeFrequency: "weekly", priority: 0.8, dynamic: true },

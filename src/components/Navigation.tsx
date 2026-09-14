@@ -13,6 +13,7 @@ import { NavLink } from "@/components/NavLink";
 const menuItems = [
   { label: "SIM SỐ", href: "/" },
   { label: "SIM PHONG THỦY", href: "/sim-phong-thuy" },
+  { label: "SIM THEO MỆNH", href: "/sim-theo-menh" },
   { label: "SIM THẦN TÀI", href: "/sim-than-tai" },
   { label: "SIM TỨ QUÝ", href: "/mua-sim-tu-quy" },
   { label: "SIM NĂM SINH", href: "/sim-nam-sinh" },

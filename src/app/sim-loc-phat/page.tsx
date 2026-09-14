@@ -194,13 +194,7 @@ export default async function SimLocPhatPage() {
                 <a href="/mua-sim-tu-quy" className="font-medium text-primary underline-offset-2 hover:underline">
                   Sim tứ quý
                 </a>
-              </li>
-              <li>
-                <a href="/sim-ong-dia" className="font-medium text-primary underline-offset-2 hover:underline">
-                  Sim ông địa
-                </a>
-              </li>
-              <li>
+              </li>              <li>
                 <a href="/sim-phong-thuy-hop-menh" className="font-medium text-primary underline-offset-2 hover:underline">
                   Sim phong thủy hợp mệnh
                 </a>

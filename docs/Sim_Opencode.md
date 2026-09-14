@@ -678,3 +678,23 @@ nâu), gắn cạnh ChipDiemPT ở SIMCardNew + CheapSimCard. Hành = ngũ hành
 (Hà Đồ, chinh); "hợp tuổi" theo mệnh khách vẫn ở trang số (HopTuoiBox).
 Verify homepage: 100/100 chip có badge hành, mặt tiền [Mobifone][✦ 8.9][● Thủy].
 tsc/lint sạch · 175 test xanh · build xanh.
+
+## [2026-09-14] Bỏ loại "Ông địa" + thêm view "SIM theo mệnh"
+
+**Bỏ Ông địa (A Khoa: khách bỏ chạy, loại này thừa):** gỡ khỏi filter facet
+(phongThuyTags), tag detection + ALL_SIM_TAGS + beauty bonus (simUtils), TAG_META
++ TAG_PRIORITY (simMeta), LOAI + LOAI_KEYS_LEGACY (simTaxonomy), nav + homepage +
+sitemap + cross-links (sim-than-tai/sim-loc-phat). `/sim-ong-dia` → 301
+`/sim-than-tai`; `/sim-dau-so/*/ong-dia` → 301 `/sim-dau-so/[dauso]` (khỏi 404 URL
+đã index). Gạt tag "Ông địa" khỏi DB tags khi đọc (serverSimData) → biến mất khỏi
+mọi nơi (trang chủ 0 occurrence).
+
+**SIM theo mệnh (view mới):** `/sim-theo-menh` (hub THỐNG KÊ 5 hành: Kim 16.075 ·
+Mộc 13.089 · Hỏa 7.504 · Thổ 6.777 · Thủy 5.476) + `/sim-theo-menh/[hanh]`
+(kim/moc/thuy/hoa/tho — 60 số hành đó, xếp theo điểm PT). Ngũ hành theo Hà Đồ =
+KHỚP badge hành trên chip. Mỗi tile ghi "hợp mệnh X (tương hòa) + mệnh SINH[X]
+(được số nuôi)". Thêm vào Navigation + sitemap.
+
+Nghiệm thu (local): hub 5 tile có count; /sim-theo-menh/thuy 60 số (9.1/9.0/8.9…,
+khớp chip); /sim-ong-dia→Thần tài; trang chủ 0 "Ông địa". tsc/lint sạch · 175 test
+xanh · build xanh.

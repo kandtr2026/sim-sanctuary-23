@@ -111,14 +111,7 @@ export const LOAI = {
     suffixes: ["68", "86"],
     y: "đuôi 68 (lộc phát), 86 (phát lộc) — cầu phát đạt",
     searchHint: "*68 / *86",
-  },
-  "ong-dia": {
-    label: "ông địa",
-    suffixes: ["38", "78"],
-    y: "đuôi 38, 78 — ông địa, giữ của",
-    searchHint: "*38 / *78",
-  },
-  "tu-quy": {
+  },  "tu-quy": {
     label: "tứ quý",
     suffixes: ["0000", "1111", "2222", "3333", "4444", "5555", "6666", "7777", "8888", "9999"],
     y: "bốn số cuối giống nhau (0000 → 9999) — dãy hiếm nhất trong kho, thường được chọn làm số đại diện",
@@ -134,15 +127,15 @@ export const LOAI = {
 
 export type LoaiKey = keyof typeof LOAI;
 
-/** Ordered list of loại keys (than-tai, loc-phat, ong-dia, tu-quy, tam-hoa). */
+/** Ordered list of loại keys (than-tai, loc-phat, tu-quy, tam-hoa). */
 export const LOAI_KEYS = Object.keys(LOAI) as LoaiKey[];
 
 /**
- * 3 loại đuôi ĐÃ CÓ TRANG TỪ TRƯỚC (8 đầu số × 3 loại = 24 URL đang được index).
- * Route combo luôn prerender đúng 24 URL này dù tồn kho có tụt dưới ngưỡng, để
+ * 2 loại đuôi ĐÃ CÓ TRANG TỪ TRƯỚC (8 đầu số × 2 loại = 16 URL đang được index).
+ * Route combo luôn prerender đúng 16 URL này dù tồn kho có tụt dưới ngưỡng, để
  * không có URL đang index nào rơi xuống render on-demand.
  */
-export const LOAI_KEYS_LEGACY: LoaiKey[] = ["than-tai", "loc-phat", "ong-dia"];
+export const LOAI_KEYS_LEGACY: LoaiKey[] = ["than-tai", "loc-phat"];
 
 /** True when `v` is a known loại key. */
 export const isLoaiKey = (v: string): v is LoaiKey =>

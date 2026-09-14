@@ -277,7 +277,11 @@ const simsDbRowToNormalized = (r: SimsDbRow): NormalizedSIM => {
   // trả về rỗng và bảng "tứ quý nổi bật" + ItemList/Product schema của
   // /mua-sim-tu-quy, /sim-ngu-quy biến mất khỏi HTML mà không ai thấy lỗi.
   // Coi mảng rỗng là "chưa có tag" và tự suy ra bằng detector dùng chung.
-  const tags = r.tags && r.tags.length > 0 ? r.tags : detectSimTags(rawDigits);
+  // A Khoa 14/09: bỏ loại "Ông địa" — gạt tag này ra kể cả khi DB còn lưu (đuôi
+  // 38/78), để nó biến mất khỏi mọi nơi (lọc, nhãn, thống kê).
+  const tags = (r.tags && r.tags.length > 0 ? r.tags : detectSimTags(rawDigits)).filter(
+    (t) => t !== "Ông địa",
+  );
   const price = r.effective_price || r.final_price || r.original_price || 0;
   // Chỉ mang `original_price` sang khi nó THẬT SỰ cao hơn giá bán — tức đang giảm
   // giá thật. Bằng nhau (hiện là 100% kho: 51.636 dòng có Final_Price = GIÁ BÁN)

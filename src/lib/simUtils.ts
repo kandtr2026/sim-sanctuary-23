@@ -110,7 +110,7 @@ export const checkQuyPosition = (
 // All SIM tag types
 export const ALL_SIM_TAGS = [
   'Lục quý', 'Ngũ quý', 'Tứ quý', 'Tam hoa', 'Tam hoa kép',
-  'Lộc phát', 'Thần tài', 'Ông địa',
+  'Lộc phát', 'Thần tài',
   'Năm sinh', 'Tiến lên', 'Gánh đảo', 'Lặp kép', 'Dễ nhớ', 'Taxi',
   'VIP'
 ] as const;
@@ -192,8 +192,6 @@ export const detectSimTags = (rawDigits: string): string[] => {
   // Phong thủy patterns (can coexist)
   if (/39$|79$/.test(rawDigits)) tags.push('Thần tài');
   if (/68$|86$/.test(rawDigits)) tags.push('Lộc phát');
-  if (/38$|78$/.test(rawDigits)) tags.push('Ông địa');
-
   // Tiến lên (ascending last 4)
   if (/0123$|1234$|2345$|3456$|4567$|5678$|6789$/.test(rawDigits)) {
     tags.push('Tiến lên');
@@ -268,9 +266,7 @@ export const calculateBeautyScore = (tags: string[], price: number, vipThreshold
   if (tags.includes('Tam hoa kép')) score += 55;
   if (tags.includes('Tam hoa')) score += 40;
   if (tags.includes('Thần tài')) score += 25;
-  if (tags.includes('Lộc phát')) score += 25;
-  if (tags.includes('Ông địa')) score += 20;
-  if (tags.includes('Tiến lên')) score += 20;
+  if (tags.includes('Lộc phát')) score += 25;  if (tags.includes('Tiến lên')) score += 20;
   if (tags.includes('Gánh đảo')) score += 20;
   if (tags.includes('Lặp kép')) score += 20;
   if (tags.includes('Năm sinh')) score += 15;

@@ -131,6 +131,16 @@ export function nguHanhCuaSo(digits: string): NguHanhSo {
   return { phanBo, chinh };
 }
 
+// ── VIEW "SIM THEO MỆNH" — 5 hành để khách chọn số theo mệnh ─────────────────
+export const NGU_HANH_LIST: { hanh: NguHanh; slug: string; moTa: string }[] = [
+  { hanh: "Kim", slug: "kim", moTa: "cứng cỏi, quyết đoán — hợp tài chính, kim khí, cơ khí" },
+  { hanh: "Mộc", slug: "moc", moTa: "sinh sôi, phát triển — hợp khởi nghiệp, sáng tạo, giáo dục" },
+  { hanh: "Thủy", slug: "thuy", moTa: "linh hoạt, giao tiếp — hợp thương mại, vận tải, dịch vụ" },
+  { hanh: "Hỏa", slug: "hoa", moTa: "nhiệt huyết, danh tiếng — hợp lãnh đạo, truyền thông, F&B" },
+  { hanh: "Thổ", slug: "tho", moTa: "vững vàng, tích lũy — hợp bất động sản, xây dựng, nông sản" },
+];
+export const hanhTheoSlug = (slug: string) => NGU_HANH_LIST.find((x) => x.slug === slug);
+
 // ── HỢP TUỔI NHẸ — chỉ cần NĂM SINH (nạp âm ngũ hành), không cần CCCD ────────
 // Nạp âm ngũ hành theo vòng 60 Giáp Tý; index = (năm - 4) mod 60 (Giáp Tý = 1984).
 const NAP_AM_HANH: NguHanh[] = [
@@ -152,6 +162,9 @@ export function menhTheoNam(nam: number): NguHanh | null {
 // Vòng tương sinh / tương khắc.
 const SINH: Record<NguHanh, NguHanh> = { Mộc: "Hỏa", Hỏa: "Thổ", Thổ: "Kim", Kim: "Thủy", Thủy: "Mộc" };
 const KHAC: Record<NguHanh, NguHanh> = { Mộc: "Thổ", Thổ: "Thủy", Thủy: "Hỏa", Hỏa: "Kim", Kim: "Mộc" };
+
+/** Số hành `h` sinh vượng cho mệnh nào (h → SINH[h]); dùng ở trang SIM theo mệnh. */
+export const nguHanhSinhRa = (h: NguHanh): NguHanh => SINH[h];
 
 export type HopTuoiTone = "tot" | "trungtinh" | "xau";
 

@@ -66,7 +66,7 @@ const AdvancedFilterSidebar = ({
   const quyTypes: QuyType[] = ['Lục quý', 'Ngũ quý', 'Tứ quý'];
   // Position removed - now position-agnostic
   const otherQuyTags = ['Tam hoa', 'Tam hoa kép'];
-  const phongThuyTags = ['Lộc phát', 'Thần tài', 'Ông địa'];
+  const phongThuyTags = ['Lộc phát', 'Thần tài'];
   const styleTags = ['Năm sinh', 'Tiến lên', 'Gánh đảo', 'Lặp kép', 'Dễ nhớ', 'Taxi', 'VIP'];
 
   // Handle quý type selection (radio-like behavior, no position)

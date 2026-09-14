@@ -52,9 +52,7 @@ const CATEGORY_LINKS: { href: string; label: string }[] = [
   { href: "/sim-than-tai", label: "Sim thần tài" },
   { href: "/sim-loc-phat", label: "Sim lộc phát" },
   { href: "/mua-sim-tu-quy", label: "Sim tứ quý" },
-  { href: "/sim-ngu-quy", label: "Sim ngũ quý" },
-  { href: "/sim-ong-dia", label: "Sim ông địa" },
-  { href: "/sim-phong-thuy-hop-menh", label: "Sim phong thủy hợp mệnh" },
+  { href: "/sim-ngu-quy", label: "Sim ngũ quý" },  { href: "/sim-phong-thuy-hop-menh", label: "Sim phong thủy hợp mệnh" },
 ];
 
 export default async function SimDauSoHubPage() {

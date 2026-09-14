@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { Phone, Star, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
 import CategorySimPriceList from "@/components/CategorySimPriceList";
@@ -126,6 +126,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function SimDauSoLoaiPage({ params }: Props) {
   const { dauso, loai } = await params;
+  // Ông địa đã bỏ (A Khoa 14/09): 301 combo cũ về hub đầu số, khỏi 404 URL đã index.
+  if (loai === "ong-dia") permanentRedirect(`/sim-dau-so/${dauso}`);
   if (!isDauSoPrefix(dauso) || !isLoaiKey(loai)) notFound();
 
   const loaiInfo = LOAI[loai];

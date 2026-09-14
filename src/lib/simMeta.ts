@@ -48,13 +48,7 @@ export const TAG_META: Record<string, TagMeta> = {
     label: "Lộc phát",
     blurb: "đuôi 68/86, đọc chệch thành “lộc phát”, ý nghĩa thịnh vượng.",
     path: "/sim-loc-phat",
-  },
-  "Ông địa": {
-    label: "Ông địa",
-    blurb: "đuôi 38/78, vía Ông Địa, được người kinh doanh ưa chuộng.",
-    path: "/sim-ong-dia",
-  },
-  "Tiến lên": {
+  },  "Tiến lên": {
     label: "Tiến lên",
     blurb: "bốn số cuối tăng dần liên tiếp, ngụ ý thăng tiến, đi lên.",
     path: "/sim-tien-len",
@@ -95,7 +89,6 @@ const TAG_PRIORITY = [
   "Tam hoa",
   "Thần tài",
   "Lộc phát",
-  "Ông địa",
   "Tiến lên",
   "Gánh đảo",
   "Lặp kép",
