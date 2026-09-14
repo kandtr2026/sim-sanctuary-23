@@ -45,7 +45,7 @@ const faqItems = [
   },
   {
     q: "Mua sim trả góp có phải trả lãi không?",
-    a: "Tùy chương trình. Có những gói lãi suất 0% trong thời gian đầu, sau đó tính lãi theo thỏa thuận trong hợp đồng. Toàn bộ chi phí, kỳ hạn và số tiền phải trả mỗi tháng được nêu rõ trước khi Quý khách ký, không phát sinh phí ẩn.",
+    a: "Tùy chương trình. Có những gói lãi suất 0% trong thời gian đầu, sau đó tính lãi theo thỏa thuận trong hợp đồng. Toàn bộ chi phí, kỳ hạn và số tiền phải trả mỗi tháng được nêu rõ trước khi Quý khách ký, không phát sinh chi phí khác.",
   },
 ];
 

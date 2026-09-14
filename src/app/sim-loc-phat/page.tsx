@@ -40,7 +40,7 @@ const faqItems = [
   },
   {
     q: "Giá sim lộc phát bao nhiêu?",
-    a: "Từ vài trăm nghìn đến hàng chục triệu đồng, tùy đầu số và độ đẹp của dãy. Mỗi số có giá hiện sẵn trong kho, không phí ẩn, nên Quý khách so giá vài số rồi mới quyết.",
+    a: "Từ vài trăm nghìn đến hàng chục triệu đồng, tùy đầu số và độ đẹp của dãy. Mỗi số có giá hiện sẵn trong kho, không chi phí khác, nên Quý khách so giá vài số rồi mới quyết.",
   },
   {
     q: "Mua sim lộc phát có sang tên chính chủ được không?",

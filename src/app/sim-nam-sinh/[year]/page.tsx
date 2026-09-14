@@ -182,7 +182,7 @@ export default async function SimNamSinhPage({ params, searchParams }: Props) {
     },
     {
       q: `Sim năm sinh ${year} giá bao nhiêu?`,
-      a: `Sim năm sinh ${year} Mobifone trải rộng từ vài trăm nghìn đến vài chục triệu đồng, tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số quanh số ${year}. Từng số đều hiện giá ngay trong kho, không phát sinh phí ẩn — Quý khách chủ động so giá trước khi hỏi tư vấn.`,
+      a: `Sim năm sinh ${year} Mobifone trải rộng từ vài trăm nghìn đến vài chục triệu đồng, tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số quanh số ${year}. Từng số đều hiện giá ngay trong kho, không phát sinh chi phí khác — Quý khách chủ động so giá trước khi hỏi tư vấn.`,
     },
     {
       q: `Không có sim chứa ${year} thì Quý khách nên chọn thế nào?`,

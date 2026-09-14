@@ -152,8 +152,8 @@ export default async function SimDauSoLoaiPage({ params }: Props) {
       q: `Sim ${label} đầu số ${dauso} giá bao nhiêu?`,
       a:
         stat.count > 0
-          ? `Kho hiện có ${groupThousands(stat.count)} số ${label} đầu ${dauso}, giá ${priceRangeText(stat.minPrice, stat.maxPrice)} tùy độ đẹp của dãy số phía trước đuôi. Từng số đều hiện giá ngay trong kho để Quý khách so trước, không phát sinh phí ẩn.`
-          : `Sim ${label} đầu số ${dauso} MobiFone trải từ vài trăm nghìn đến hàng chục triệu đồng, tùy độ đẹp của dãy số phía trước đuôi. Từng số đều hiện giá ngay trong kho để Quý khách so trước, không phát sinh phí ẩn.`,
+          ? `Kho hiện có ${groupThousands(stat.count)} số ${label} đầu ${dauso}, giá ${priceRangeText(stat.minPrice, stat.maxPrice)} tùy độ đẹp của dãy số phía trước đuôi. Từng số đều hiện giá ngay trong kho để Quý khách so trước, không phát sinh chi phí khác.`
+          : `Sim ${label} đầu số ${dauso} MobiFone trải từ vài trăm nghìn đến hàng chục triệu đồng, tùy độ đẹp của dãy số phía trước đuôi. Từng số đều hiện giá ngay trong kho để Quý khách so trước, không phát sinh chi phí khác.`,
     },
     {
       q: `Mua sim ${label} đầu số ${dauso} có sang tên chính chủ được không?`,

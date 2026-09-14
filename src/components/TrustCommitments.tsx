@@ -19,7 +19,7 @@ const COMMITMENTS = [
   {
     icon: Tag,
     title: "Giá niêm yết công khai",
-    text: "Giá hiện ngay trên số — không phí ẩn, không hét giá.",
+    text: "Giá hiện ngay trên số — không chi phí khác, không hét giá.",
   },
   {
     icon: Truck,

@@ -38,7 +38,7 @@ const faqItems = [
   },
   {
     q: "Giá sim thần tài Mobifone bao nhiêu?",
-    a: "Từ vài trăm nghìn đến hàng chục triệu đồng. Mức giá tùy đầu số (090, 093, 07x...), độ dễ nhớ của dãy số và vị trí đuôi thần tài. Giá niêm yết công khai trên kho, không phát sinh phí ẩn.",
+    a: "Từ vài trăm nghìn đến hàng chục triệu đồng. Mức giá tùy đầu số (090, 093, 07x...), độ dễ nhớ của dãy số và vị trí đuôi thần tài. Giá niêm yết công khai trên kho, không phát sinh chi phí khác.",
   },
   {
     q: "Mua sim thần tài có sang tên chính chủ được không?",

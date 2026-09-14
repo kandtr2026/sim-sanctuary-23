@@ -160,8 +160,8 @@ export default async function SimDauSoPage({ params }: Props) {
       q: `Sim đầu số ${dauso} giá bao nhiêu?`,
       a:
         stat.count > 0
-          ? `Kho đầu số ${dauso} hiện có ${groupThousands(stat.count)} số, giá ${priceRangeText(stat.minPrice, stat.maxPrice)} tùy độ đẹp của dãy số (tứ quý, tam hoa, thần tài, lộc phát, phong thủy). Từng số đều hiện giá ngay trong kho, không phát sinh phí ẩn.`
-          : `Sim đầu số ${dauso} MobiFone trải từ vài trăm nghìn đến hàng chục triệu đồng, tùy độ đẹp của dãy số. Từng số đều hiện giá ngay trong kho, không phát sinh phí ẩn.`,
+          ? `Kho đầu số ${dauso} hiện có ${groupThousands(stat.count)} số, giá ${priceRangeText(stat.minPrice, stat.maxPrice)} tùy độ đẹp của dãy số (tứ quý, tam hoa, thần tài, lộc phát, phong thủy). Từng số đều hiện giá ngay trong kho, không phát sinh chi phí khác.`
+          : `Sim đầu số ${dauso} MobiFone trải từ vài trăm nghìn đến hàng chục triệu đồng, tùy độ đẹp của dãy số. Từng số đều hiện giá ngay trong kho, không phát sinh chi phí khác.`,
     },
     {
       q: `Mua sim đầu số ${dauso} có sang tên chính chủ được không?`,

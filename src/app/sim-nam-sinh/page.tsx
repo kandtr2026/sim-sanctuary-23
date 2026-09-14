@@ -35,7 +35,7 @@ const faqData: FaqItem[] = [
   },
   {
     question: "Sim năm sinh có đắt không?",
-    answer: "Sim năm sinh có giá từ vài trăm nghìn đến vài chục triệu tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số. Giá niêm yết công khai, không phát sinh phí ẩn.",
+    answer: "Sim năm sinh có giá từ vài trăm nghìn đến vài chục triệu tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số. Giá niêm yết công khai, không phát sinh chi phí khác.",
   },
   {
     question: "Không có sim đúng ngày sinh của Quý khách thì sao?",
@@ -74,7 +74,7 @@ const PILLARS: { title: string; body: string }[] = [
   },
   {
     title: "Giá sim năm sinh có đắt không?",
-    body: "Sim năm sinh Mobifone có giá từ vài trăm nghìn đến vài chục triệu đồng, tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số quanh số năm sinh. Giá niêm yết công khai trên kho, không phát sinh phí ẩn — Quý khách so giá trước, quyết định sau.",
+    body: "Sim năm sinh Mobifone có giá từ vài trăm nghìn đến vài chục triệu đồng, tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số quanh số năm sinh. Giá niêm yết công khai trên kho, không phát sinh chi phí khác — Quý khách so giá trước, quyết định sau.",
   },
   {
     title: "Số gắn với năm sinh — vì sao nhiều người chọn",

@@ -273,7 +273,7 @@ export default async function SimDetailPage({ params }: Props) {
                   <> . Tổng các chữ số bằng {sim.sumDigits}.</>
                 )}{" "}
                 {orderable
-                  ? `Giá niêm yết công khai ${priceLabel}, không phát sinh phí ẩn.`
+                  ? `Giá niêm yết công khai ${priceLabel}, không phát sinh chi phí khác.`
                   : "Số này được báo giá trực tiếp — Quý khách nhắn Zalo hoặc gọi để nhận giá."}
               </p>
 

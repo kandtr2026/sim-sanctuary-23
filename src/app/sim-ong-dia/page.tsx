@@ -37,7 +37,7 @@ const faqItems = [
   },
   {
     q: "Giá sim ông địa bao nhiêu?",
-    a: "Từ vài trăm nghìn đến vài chục triệu đồng. Đầu số, độ dễ nhớ của dãy và vị trí đuôi số quyết định mức giá. Kho niêm yết giá công khai từng số, không phát sinh phí ẩn.",
+    a: "Từ vài trăm nghìn đến vài chục triệu đồng. Đầu số, độ dễ nhớ của dãy và vị trí đuôi số quyết định mức giá. Kho niêm yết giá công khai từng số, không phát sinh chi phí khác.",
   },
   {
     q: "Mua sim ông địa có sang tên chính chủ được không?",
