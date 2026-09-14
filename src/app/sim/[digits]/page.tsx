@@ -24,7 +24,7 @@ import TrustCommitments from "@/components/TrustCommitments";
 import PhongThuyStory from "./PhongThuyStory";
 import GoiYSimTot from "./GoiYSimTot";
 import SoVuaXem from "@/components/SoVuaXem";
-import { chamBatCuc } from "@/lib/batCuc";
+import { diemTongHop } from "@/lib/phongThuy";
 
 // ISR: mỗi trang số làm tươi mỗi 5 phút. Số đã bán → lần regenerate kế tiếp
 // `findSimByDigits` trả null → notFound(), trang chuyển 404. dynamicParams=true
@@ -116,7 +116,7 @@ export default async function SimDetailPage({ params }: Props) {
   // nhỉnh ≤50%, KHÔNG đẩy số đắt hẳn). Chấm bằng chính engine đang tư vấn
   // (chamBatCuc), giữ số điểm cao hơn số đang xem, ưu tiên điểm cao + giá gần nhất.
   // Cắt 400 số gần giá nhất trước khi chấm cho nhẹ build/ISR.
-  const curScore = chamBatCuc(sim.rawDigits).score;
+  const curScore = diemTongHop(sim.rawDigits).diem;
   const goiY =
     sim.price > 0
       ? (await getServerSims())
@@ -125,7 +125,7 @@ export default async function SimDetailPage({ params }: Props) {
           )
           .sort((a, b) => a.price - b.price)
           .slice(0, 400)
-          .map((s) => ({ s, sc: chamBatCuc(s.rawDigits).score }))
+          .map((s) => ({ s, sc: diemTongHop(s.rawDigits).diem }))
           .filter((x) => x.sc > curScore + 0.05)
           .sort((a, b) => b.sc - a.sc || a.s.price - b.s.price)
           .slice(0, 6)

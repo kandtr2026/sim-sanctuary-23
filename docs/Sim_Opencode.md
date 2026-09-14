@@ -631,3 +631,24 @@ Cron `sync-sims` chạy **2 lần/ngày** (01:17, 13:17 — `vercel.json`) và g
 - Trang số: thêm section "Gợi ý số hợp phong thủy hơn — cùng tầm giá" (`GoiYSimTot`). Lọc số giá ∈ [giá hiện tại, ×1.5] (cắt 400 số gần giá nhất), chấm bằng `chamBatCuc`, giữ điểm > số đang xem, xếp điểm giảm dần + giá tăng dần, lấy 6. Mỗi dòng hiện điểm PT + giá + "bằng giá"/"+Xđ".
 
 **Nghiệm thu (local :3100):** /sim/0906828709 (6.6/10) → 6 gợi ý điểm 7.0–7.4, giá 900k "bằng giá" → +90k (không đắt hẳn); trang số 0 link /mua-ngay. Homepage/sim-than-tai/mua-sim-gia-re/tra-cuu: 0 /mua-ngay, 0 "Đặt mua", số dẫn /sim/, Zalo khắp nơi. tsc sạch · 175 test xanh · eslint (file mình) 0 lỗi · next build xanh.
+
+## [2026-09-14] Trang số phong thủy: mục tiêu + điểm tổng + ngũ hành + hợp tuổi + so sánh + lọc mục tiêu (P1+P2)
+
+Benchmark simkinhdich.com (10 số): quẻ 4 số cuối KHỚP 100% engine mình; điểm Bát Cực bên họ cần CCCD+ngày sinh, mình number-only. A Khoa chốt làm P1+P2.
+
+**Lib mới `src/lib/phongThuy.ts`** (thuần, client+server):
+- `diemTongHop` = Bát Cực + thưởng/phạt theo cấp quẻ (Đại cát +0.7 … Đại hung −0.7) → điểm headline nhất quán với quẻ (hết cảnh "quẻ Đại cát mà điểm thấp").
+- `mucTieuCuaSo` / `diemMucTieu` / `MUC_TIEU` (Tài lộc=Thiên Y+Phục Vị · Công danh=Diên Niên+Sinh Khí · Tình duyên=Thiên Y+Lục Sát · Quý nhân=Sinh Khí+Thiên Y) + slug + `mucTieuTheoSlug`.
+- `nguHanhCuaSo` (Hà Đồ: 1,6 Thủy·2,7 Hỏa·3,8 Mộc·4,9 Kim·5,0 Thổ) + `HANH_MAU`.
+- `menhTheoNam` (nạp âm vòng 60 Giáp Tý) + `hopTuoiSo` (tương sinh/khắc số↔mệnh) — hợp tuổi CHỈ cần năm sinh, KHÔNG đòi CCCD như simkinhdich.
+
+**Trang số `/sim/[digits]`** (PhongThuyStory): headline nay là ĐIỂM TỔNG + phụ đề "(Bát Cực X + quẻ Y)"; thêm badge "Số này hợp mục tiêu" (link sang /sim-hop/[slug]); "Ngũ hành của số"; ô "Hợp tuổi của bạn?" (`HopTuoiBox`, client — nhập năm sinh → tương sinh/hòa/khắc). GoiYSimTot + headline dùng `diemTongHop`.
+
+**Trang mới:**
+- `/sim-hop/[muc]` (server, 4 slug): lọc kho theo mục tiêu, xếp độ-hợp → điểm tổng, 60 số, metadata+canonical index, link nội bộ /sim/.
+- `/so-sanh-sim` (server + `SoSanhSimClient`): so 2 số cạnh nhau (điểm/Bát Cực/chủ đạo/ngũ hành/quẻ/mục tiêu), điền sẵn từ ?a=&b= hoặc "Số vừa xem" (localStorage). "Số vừa xem" thêm nút ⇄ So sánh.
+- sitemap: + /so-sanh-sim + 4 /sim-hop/*.
+
+**Không làm — quẻ cổ 64 (Thuần Càn…):** tool số của simkinhdich cũng chỉ dùng "Quẻ số N" (đã khớp); 64-gua là hệ riêng bên hợp-tuổi, chưa có phương pháp chuẩn để không lệch → để riêng. Đã thêm ngũ hành (phần chắc chắn) thay thế.
+
+**Nghiệm thu (local :3100):** /sim/0906828709 → "(Bát Cực 6.6 + quẻ Hung)", 4 badge mục tiêu, "Hành chủ đạo: Thổ", hợp tuổi 1990→Thổ "Tương hòa"; /sim-hop/tai-loc 60 số (top 8.7); /so-sanh-sim ?a=…879&b=…215 → "0768.768.879 hợp hơn (7.4 vs 4.3)". tsc sạch · 175 test xanh · eslint 0 lỗi · next build xanh (595 trang).

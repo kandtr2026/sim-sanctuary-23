@@ -35,6 +35,12 @@ const ROUTES: StaticRoute[] = [
   { path: "/sim-phong-thuy", changeFrequency: "weekly", priority: 0.8 },
   // Công cụ tra cứu ý nghĩa + giá một số bất kỳ (đợt-2).
   { path: "/tra-cuu-sim", changeFrequency: "monthly", priority: 0.7 },
+  // Công cụ so sánh phong thủy 2 số + lọc số hợp mục tiêu (đợt phong thủy 14/09).
+  { path: "/so-sanh-sim", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/sim-hop/tai-loc", changeFrequency: "weekly", priority: 0.7, dynamic: true },
+  { path: "/sim-hop/cong-danh", changeFrequency: "weekly", priority: 0.7, dynamic: true },
+  { path: "/sim-hop/tinh-duyen", changeFrequency: "weekly", priority: 0.7, dynamic: true },
+  { path: "/sim-hop/quy-nhan", changeFrequency: "weekly", priority: 0.7, dynamic: true },
   // Hub "sim năm sinh". Trước đây chỉ 38 trang con /sim-nam-sinh/<năm> có trong
   // sitemap còn trang hub thì không, dù nó có trong Navigation — tức một trang
   // money page vô hình với sitemap.

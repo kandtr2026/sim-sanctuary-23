@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   Sparkles,
   ShieldCheck,
@@ -7,7 +8,6 @@ import {
   Gem,
 } from "lucide-react";
 import {
-  chamBatCuc,
   phanTichBatCuc,
   NL_META,
   NL_ORDER,
@@ -16,6 +16,8 @@ import {
   type NangLuong,
 } from "@/lib/batCuc";
 import { getHexagramFromSuffix, type HexagramLevel } from "@/lib/hexagrams";
+import { diemTongHop, mucTieuCuaSo, nguHanhCuaSo, HANH_MAU, type NguHanh } from "@/lib/phongThuy";
+import HopTuoiBox from "./HopTuoiBox";
 
 // Trang "câu chuyện" của một con số: áp thẳng engine Bát Cực Linh Số + quẻ Kinh
 // Dịch đã có sẵn trong hệ thống (lib/batCuc, lib/hexagrams) rồi kể lại cho khách.
@@ -71,13 +73,15 @@ const hexTone: Record<HexagramLevel, string> = {
 
 export default function PhongThuyStory({ digits, formatted, zaloHref }: Props) {
   const clean = digits.replace(/\D/g, "");
-  const { score } = chamBatCuc(clean);
+  const { diem: score, batCuc, queLevel } = diemTongHop(clean);
   const r = phanTichBatCuc(clean);
   const present = NL_ORDER.filter((k) => r.counts[k] > 0);
   const catCount = NL_CAT.reduce((s, k) => s + r.counts[k], 0);
   const hungCount = NL_HUNG.reduce((s, k) => s + r.counts[k], 0);
   const chuDao = r.chuDao ? NL_META[r.chuDao] : null;
   const hex = getHexagramFromSuffix(clean.slice(-4));
+  const mucTieu = mucTieuCuaSo(clean);
+  const nguHanh = nguHanhCuaSo(clean);
   const v = verdictOf(score);
   const pct = Math.max(4, Math.round((score / 10) * 100));
 
@@ -103,7 +107,7 @@ export default function PhongThuyStory({ digits, formatted, zaloHref }: Props) {
           <span className="mb-1 text-lg font-semibold text-muted-foreground">/10</span>
         </div>
         <div className="min-w-0 flex-1">
-          <div className="mb-1.5 flex items-center gap-2">
+          <div className="mb-1.5 flex flex-wrap items-center gap-2">
             <span className={`text-base font-bold ${v.text}`}>{v.label}</span>
             <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-1.5 py-0.5 text-xs font-medium text-emerald-600">
               <ShieldCheck aria-hidden className="h-3 w-3" /> {catCount} cát
@@ -113,11 +117,62 @@ export default function PhongThuyStory({ digits, formatted, zaloHref }: Props) {
                 <AlertTriangle aria-hidden className="h-3 w-3" /> {hungCount} hung
               </span>
             )}
+            <span className="text-xs text-muted-foreground">
+              (Bát Cực {batCuc.toFixed(1)}
+              {queLevel ? ` + quẻ ${queLevel}` : ""})
+            </span>
           </div>
           <div className="h-2.5 w-full overflow-hidden rounded-full bg-border">
             <div className={`h-full rounded-full ${v.bar}`} style={{ width: `${pct}%` }} />
           </div>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{v.blurb}</p>
+        </div>
+      </div>
+
+      {/* ── Hợp mục tiêu gì ─────────────────────────────────────────────── */}
+      {mucTieu.length > 0 && (
+        <div className="mb-6">
+          <h3 className="mb-2 text-base font-bold text-foreground">Số này hợp mục tiêu</h3>
+          <div className="flex flex-wrap gap-2">
+            {mucTieu.map((m, i) => (
+              <Link
+                key={m.id}
+                href={`/sim-hop/${m.slug}`}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium transition hover:border-gold/60 ${
+                  i === 0
+                    ? "border-gold/40 bg-gold/10 text-gold-dark"
+                    : "border-border bg-secondary/40 text-foreground"
+                }`}
+              >
+                <span aria-hidden>{m.icon}</span>
+                {m.label}
+                {i === 0 && <span className="text-xs font-semibold">· nổi bật</span>}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Ngũ hành của số ─────────────────────────────────────────────── */}
+      <div className="mb-6">
+        <h3 className="mb-2 text-base font-bold text-foreground">Ngũ hành của số</h3>
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span>
+            Hành chủ đạo:{" "}
+            <strong style={{ color: HANH_MAU[nguHanh.chinh] }}>{nguHanh.chinh}</strong>
+          </span>
+          <span className="opacity-40">·</span>
+          {(["Kim", "Mộc", "Thủy", "Hỏa", "Thổ"] as NguHanh[])
+            .filter((h) => nguHanh.phanBo[h] > 0)
+            .map((h) => (
+              <span
+                key={h}
+                className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/30 px-2 py-0.5 text-xs"
+              >
+                <span className="h-2 w-2 rounded-full" style={{ background: HANH_MAU[h] }} />
+                {h} {nguHanh.phanBo[h]}
+              </span>
+            ))}
         </div>
       </div>
 
@@ -251,6 +306,9 @@ export default function PhongThuyStory({ digits, formatted, zaloHref }: Props) {
           </div>
         </div>
       )}
+
+      {/* ── Hợp tuổi (nhẹ — chỉ năm sinh, không cần CCCD) ───────────────── */}
+      <HopTuoiBox digits={clean} formatted={formatted} zaloHref={zaloHref} />
 
       {/* ── CTA giữa trang (Zalo-first) ───────────────────────────────────── */}
       <div className="flex flex-col items-center gap-2 rounded-xl border border-gold/30 bg-gold/[0.06] p-4 text-center">

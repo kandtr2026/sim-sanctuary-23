@@ -74,13 +74,21 @@ export default function SoVuaXem({ current }: { current?: Item }) {
         <h2 className="flex items-center gap-2 text-sm font-bold text-foreground">
           <History aria-hidden className="h-4 w-4 text-primary" /> Số vừa xem
         </h2>
-        <button
-          type="button"
-          onClick={clear}
-          className="text-xs text-muted-foreground underline-offset-2 transition hover:text-foreground hover:underline"
-        >
-          Xoá
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/so-sanh-sim"
+            className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
+          >
+            ⇄ So sánh
+          </Link>
+          <button
+            type="button"
+            onClick={clear}
+            className="text-xs text-muted-foreground underline-offset-2 transition hover:text-foreground hover:underline"
+          >
+            Xoá
+          </button>
+        </div>
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1">
         {shown.map((s) => (
