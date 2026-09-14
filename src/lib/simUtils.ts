@@ -1,4 +1,5 @@
 // SIM Utility Functions - Tag Detection, Scoring, and Analysis
+import { diemTongHop } from "./phongThuy";
 
 export interface NormalizedSIM {
   id: string;
@@ -669,18 +670,28 @@ export const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'suffix_beauty', label: 'Đuôi đẹp' }
 ];
 
+// Điểm phong thủy tổng (Bát Cực + quẻ) theo digits — cache module-scope vì hàm
+// XÁC ĐỊNH, để sort cả kho không tính lại mỗi request.
+const _diemPtCache = new Map<string, number>();
+const diemPt = (sim: NormalizedSIM): number => {
+  const k = sim.rawDigits || "";
+  let v = _diemPtCache.get(k);
+  if (v === undefined) {
+    v = diemTongHop(k).diem;
+    _diemPtCache.set(k, v);
+  }
+  return v;
+};
+
 /**
- * "Đề xuất" — trộn phổ giá thay vì xếp toàn số rẻ lên trước.
+ * "Đề xuất" — trộn phổ giá, và trong mỗi rổ ƯU TIÊN PHONG THỦY TỐT trước.
  *
- * Mặt tiền cũ (giá tăng dần) bày ra 8 số đầu đều 800k–990k, điểm đẹp 0–25, trong
- * khi kho có 2.250 số VIP và 1.108 ngũ quý — khách mới vào tưởng shop chỉ bán số
- * thường. Ở đây chia kho thành ba rổ theo phân vị giá rồi rải theo chu kỳ 10 số:
- * **6 rổ rẻ + 3 rổ tầm trung + 1 rổ cao cấp**. Trong mỗi rổ vẫn là giá tăng dần.
- *
- * Quan trọng: đây là một thứ tự XÁC ĐỊNH trên toàn tập, không phải mẹo chỉ đẹp ở
- * trang đầu — nhờ vậy `limit`/`offset` vẫn phân trang đúng và "xem thêm" không
- * lặp hay nhảy cóc số. Cùng ý đồ với `getCategorySnapshotMix` (dải Nổi bật của
- * trang danh mục), chỉ khác là áp cho cả lưới.
+ * Chia kho thành ba rổ theo phân vị giá rồi rải theo chu kỳ 10 số (6 rẻ / 3 trung
+ * / 1 cao) nên màn đầu không "toàn số rẻ". A Khoa 14/09: "số auto hiện toàn 4-5
+ * điểm, khách bỏ chạy" → trong MỖI rổ nay xếp theo ĐIỂM PHONG THỦY giảm dần (rồi
+ * giá tăng dần), nên số đẹp phong thủy của từng tầm giá lên trước, số yếu chìm
+ * xuống trang sau. Vẫn là thứ tự XÁC ĐỊNH trên toàn tập → `limit`/`offset` phân
+ * trang đúng, "xem thêm" không lặp/nhảy cóc.
  */
 const mixByPriceSpectrum = (sims: NormalizedSIM[]): NormalizedSIM[] => {
   const byPrice = [...sims].sort((a, b) => a.price - b.price || b.beautyScore - a.beautyScore);
@@ -689,10 +700,15 @@ const mixByPriceSpectrum = (sims: NormalizedSIM[]): NormalizedSIM[] => {
 
   const cheapEnd = Math.floor(byPrice.length * 0.6);
   const midEnd = Math.floor(byPrice.length * 0.9);
+  // Trong mỗi rổ: điểm phong thủy cao trước, rồi giá tăng dần (chốt bằng digits).
+  const trongRo = (arr: NormalizedSIM[]) =>
+    arr.sort(
+      (a, b) => diemPt(b) - diemPt(a) || a.price - b.price || a.rawDigits.localeCompare(b.rawDigits),
+    );
   const buckets = [
-    byPrice.slice(0, cheapEnd),
-    byPrice.slice(cheapEnd, midEnd),
-    byPrice.slice(midEnd),
+    trongRo(byPrice.slice(0, cheapEnd)),
+    trongRo(byPrice.slice(cheapEnd, midEnd)),
+    trongRo(byPrice.slice(midEnd)),
   ];
   // 6 rẻ / 3 trung / 1 cao trong mỗi chu kỳ 10 số.
   const pattern = [0, 0, 1, 0, 0, 1, 0, 2, 0, 1];

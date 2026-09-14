@@ -652,3 +652,11 @@ Benchmark simkinhdich.com (10 số): quẻ 4 số cuối KHỚP 100% engine mìn
 **Không làm — quẻ cổ 64 (Thuần Càn…):** tool số của simkinhdich cũng chỉ dùng "Quẻ số N" (đã khớp); 64-gua là hệ riêng bên hợp-tuổi, chưa có phương pháp chuẩn để không lệch → để riêng. Đã thêm ngũ hành (phần chắc chắn) thay thế.
 
 **Nghiệm thu (local :3100):** /sim/0906828709 → "(Bát Cực 6.6 + quẻ Hung)", 4 badge mục tiêu, "Hành chủ đạo: Thổ", hợp tuổi 1990→Thổ "Tương hòa"; /sim-hop/tai-loc 60 số (top 8.7); /so-sanh-sim ?a=…879&b=…215 → "0768.768.879 hợp hơn (7.4 vs 4.3)". tsc sạch · 175 test xanh · eslint 0 lỗi · next build xanh (595 trang).
+
+## [2026-09-14] Mặt tiền: số auto hiện ưu tiên PHONG THỦY TỐT
+
+A Khoa: "số auto hiện ngoài web toàn 4-5 điểm, khách bỏ chạy".
+- `simUtils.mixByPriceSpectrum` (lưới "Đề xuất"): GIỮ trộn phổ giá (6 rẻ/3 trung/1 cao) nhưng TRONG MỖI RỔ xếp theo điểm phong thủy tổng (diemTongHop) giảm dần → số đẹp phong thủy của từng tầm giá lên trước, số yếu chìm trang sau. Cache điểm theo digits (module scope). Áp cho cả homepage SSR (filterSims mix) LẪN /api/sims mix + phân trang (cùng 1 hàm). Bucketing KHÔNG đổi nên sortMix test giữ nguyên.
+- `serverSimData.getCategorySnapshotMix` (dải "Nổi bật" danh mục): chọn số phong thủy TỐT NHẤT trong mỗi cửa sổ giá (~15% rẻ / mid / ~15% đắt).
+
+Nghiệm thu: mặt tiền homepage nay dẫn 0767276686:8.9 · 0767676268:9 · 0768686767:9.1 (trước: 0903714793:4.9 · 0932126215:4.3). 175 test xanh · tsc sạch · build xanh (595 trang).

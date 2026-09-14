@@ -15,6 +15,7 @@
 
 import { normalizeSIM, parsePrice, formatSIMNumber, detectSimTags, detectNetwork, PRICE_RANGES } from "@/lib/simUtils";
 import type { NormalizedSIM } from "@/lib/simUtils";
+import { diemTongHop } from "@/lib/phongThuy";
 import {
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY,
@@ -895,34 +896,38 @@ export const getCategorySnapshotMix = async (
   sims.sort((a, b) => a.price - b.price || b.beautyScore - a.beautyScore);
   if (sims.length <= limit) return sims;
 
-  const pick = limit;
-  const cheapCount = 2; // vài số rẻ nhất
-  const premiumCount = 2; // 1–2 số cao cấp
-  const midCount = Math.max(0, pick - cheapCount - premiumCount);
-  const result: NormalizedSIM[] = [];
+  // A Khoa 14/09: dải "Nổi bật" cũng đừng toàn số 4-5 điểm phong thủy. Vẫn giữ
+  // phổ giá (rẻ / trung / cao) nhưng trong mỗi tầm chọn số PHONG THỦY TỐT NHẤT.
+  const dpt = (s: NormalizedSIM) => diemTongHop(s.rawDigits).diem;
+  const bestOf = (arr: NormalizedSIM[], n: number) =>
+    [...arr].sort((a, b) => dpt(b) - dpt(a) || a.price - b.price).slice(0, n);
 
-  const pushUnique = (s: NormalizedSIM) => {
-    if (result.length < pick && !result.includes(s)) result.push(s);
+  const cheapCount = 2; // vài số rẻ
+  const premiumCount = 2; // 1–2 số cao cấp
+  const midCount = Math.max(0, limit - cheapCount - premiumCount);
+  const win = Math.max(cheapCount, Math.floor(sims.length * 0.15)); // cửa sổ ~15% mỗi đầu
+  const result: NormalizedSIM[] = [];
+  const pushUnique = (s: NormalizedSIM | undefined) => {
+    if (s && result.length < limit && !result.includes(s)) result.push(s);
   };
 
-  // 1) Số rẻ nhất
-  for (let i = 0; i < cheapCount; i++) pushUnique(sims[i]);
-
-  // 2) Số cao cấp nhất (lấy từ cuối)
-  for (let i = sims.length - 1; i >= sims.length - premiumCount; i--) pushUnique(sims[i]);
-
-  // 3) Số tầm trung — chia đều theo vị trí để không dồn về một mức giá
-  const midStart = cheapCount;
-  const midEnd = sims.length - premiumCount;
+  // 1) Rẻ: số phong thủy tốt nhất trong ~15% rẻ nhất
+  bestOf(sims.slice(0, win), cheapCount).forEach(pushUnique);
+  // 2) Cao cấp: số phong thủy tốt nhất trong ~15% đắt nhất
+  bestOf(sims.slice(sims.length - win), premiumCount).forEach(pushUnique);
+  // 3) Trung: chia đều midCount cửa sổ, mỗi cửa sổ lấy số phong thủy tốt nhất
+  const midStart = win;
+  const midEnd = sims.length - win;
   if (midCount > 0 && midEnd > midStart) {
     const midPool = sims.slice(midStart, midEnd);
-    const step = midPool.length / midCount;
+    const seg = midPool.length / midCount;
     for (let i = 0; i < midCount; i++) {
-      pushUnique(midPool[Math.min(midPool.length - 1, Math.floor(i * step))]);
+      const s0 = Math.floor(i * seg);
+      const s1 = Math.max(s0 + 1, Math.floor((i + 1) * seg));
+      bestOf(midPool.slice(s0, s1), 1).forEach(pushUnique);
     }
   }
-
-  // 4) Lấp đầy nếu chưa đủ (danh mục ít số)
+  // 4) Lấp đầy nếu chưa đủ
   for (const s of sims) pushUnique(s);
 
   return result;
