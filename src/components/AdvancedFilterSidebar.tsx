@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import Link from 'next/link';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { PRICE_RANGES, type QuyType } from '@/lib/simUtils';
+import { NGU_HANH_LIST, HANH_MAU } from '@/lib/phongThuy';
 import type { FilterState } from '@/hooks/useSimData';
 
 interface AdvancedFilterSidebarProps {
@@ -88,6 +90,34 @@ const AdvancedFilterSidebar = ({
 
   return (
     <aside className="bg-card rounded-lg shadow-card border border-border overflow-hidden">
+      {/* SIM theo mệnh — điều hướng sang view ngũ hành của số (trang riêng
+          /sim-theo-menh/<hành>), KHÔNG phải bộ lọc lưới. Chuyển từ thanh nav
+          xuống đây để nav bớt chật; đặt trên cùng cho khách dễ thấy. */}
+      <FilterSection title="SIM theo mệnh">
+        <div className="flex flex-col gap-1 max-md:gap-0.5">
+          {NGU_HANH_LIST.map((h) => (
+            <Link
+              key={h.slug}
+              href={`/sim-theo-menh/${h.slug}`}
+              className="filter-btn-sm flex items-center gap-1.5"
+            >
+              <span
+                aria-hidden
+                className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                style={{ backgroundColor: HANH_MAU[h.hanh] }}
+              />
+              Mệnh {h.hanh}
+            </Link>
+          ))}
+          <Link
+            href="/sim-theo-menh"
+            className="filter-btn-sm mt-0.5 text-center font-semibold"
+          >
+            Xem tất cả →
+          </Link>
+        </div>
+      </FilterSection>
+
       {/* Price Filter */}
       <FilterSection title="SIM theo giá">
         <div className="space-y-1 max-md:space-y-0.5">
