@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { formatPrice } from '@/lib/simUtils';
 import { createHighlightedNumber } from '@/lib/highlightUtils';
 import { planSimDisplay } from '@/lib/simDisplay';
+import ChipDiemPT from '@/components/ChipDiemPT';
 import QuickContactPopup from '@/components/QuickContactPopup';
 import { CHEAP_PRICE, type CheapSim } from '@/lib/cheapSimSheet';
 import {
@@ -73,6 +74,7 @@ const CheapSimCard = ({
         >
           {sim.network}
         </span>
+        <ChipDiemPT digits={sim.rawDigits} />
         {badges.map((badge) => (
           <span
             key={badge}

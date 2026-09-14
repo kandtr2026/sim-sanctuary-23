@@ -660,3 +660,12 @@ A Khoa: "số auto hiện ngoài web toàn 4-5 điểm, khách bỏ chạy".
 - `serverSimData.getCategorySnapshotMix` (dải "Nổi bật" danh mục): chọn số phong thủy TỐT NHẤT trong mỗi cửa sổ giá (~15% rẻ / mid / ~15% đắt).
 
 Nghiệm thu: mặt tiền homepage nay dẫn 0767276686:8.9 · 0767676268:9 · 0768686767:9.1 (trước: 0903714793:4.9 · 0932126215:4.3). 175 test xanh · tsc sạch · build xanh (595 trang).
+
+## [2026-09-14] Chip số: hiện điểm phong thủy cạnh badge mạng
+
+A Khoa: cho hiện điểm phong thủy + mạng ngay trên chip số, bố trí hài hòa.
+- `components/ChipDiemPT.tsx` (mới): badge Sparkles + điểm tổng 0–10, cùng cỡ/nhịp
+  với badge mạng (xanh ≥7 / vàng ≥5.5 / xám <5). Dùng chung.
+- Gắn vào `SIMCardNew` (lưới chính) + `CheapSimCard` (/mua-sim-gia-re), ngay SAU
+  badge mạng → hàng badge [Mobifone][✦ 8.9] gọn gàng.
+Verify homepage: 100/100 chip có điểm PT, mặt tiền [Mobifone][✦ 8.9/8.8/9.0…]. tsc/lint sạch · 175 test xanh · build xanh.

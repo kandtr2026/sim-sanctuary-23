@@ -7,6 +7,7 @@ import { matchesQuyType, formatPrice, formatBirthDateDisplayLenient, formatSIMNu
 import { cn } from '@/lib/utils';
 import { createHighlightedNumber, createQuyHighlightedNumber, quyDisplayNumber } from '@/lib/highlightUtils';
 import { planSimDisplay } from '@/lib/simDisplay';
+import ChipDiemPT from '@/components/ChipDiemPT';
 
 // Fallback only — mirrors NETWORK_PREFIXES in @/lib/simUtils, which deliberately
 // covers just Mobifone / Vinaphone / Gmobile. Keep the two lists in sync.
@@ -224,6 +225,7 @@ const SIMCardNew = ({ sim, quyFilter, searchQuery = '', birthDateDisplay }: SIMC
               {carrier}
             </span>
           )}
+          <ChipDiemPT digits={sim.rawDigits || rawNumber} />
           {carrier && sim.beautyScore >= 50 && (
             <span
               className={cn(badgeBase, 'bg-gold/20 text-gold-dark')}
