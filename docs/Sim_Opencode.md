@@ -618,3 +618,16 @@ Cron `sync-sims` chạy **2 lần/ngày** (01:17, 13:17 — `vercel.json`) và g
 **Nghiệm thu (local :3100):** homepage 100 link `/sim/*`; `/sim/0768768879` → 7.7/10 "Tốt", quẻ 79 (8879%80) đúng; sang số thứ 2 → "Số vừa xem" hiện chip số trước + giá, localStorage đúng thứ tự. `tsc` sạch · 175 test xanh · eslint 0 error · `next build` xanh.
 
 **Còn ngỏ (chủ ý):** "Số vừa xem" mới đặt ở trang số; có thể gắn thêm ở trang duyệt nếu A Khoa muốn.
+
+## [2026-09-14] SIM: bỏ "Đặt mua online" → Zalo-first + gợi ý số phong thủy tốt hơn cùng giá
+
+**Yêu cầu A Khoa (chat):**
+1. "Xóa hết các chỗ có đặt mua online. Tất cả đều hướng khách inbox Zalo."
+2. Khi khách xem số giá X → gợi ý số BẰNG GIÁ hoặc nhỉnh hơn CHÚT nhưng điểm phong thủy CAO HƠN (đừng đề xuất số đắt hẳn — phí tiền khách).
+3. (cùng đợt) đổi "phí ẩn" → "chi phí khác".
+
+**Đã làm:**
+- Gỡ mọi CTA/link `/mua-ngay` ("Đặt mua online / Đặt mua / Đặt ngay / ĐẶT NGAY") ở: trang số (hero), CategoryFeaturedSims, CategorySimPriceList, SimSnapshot, ArticleSimTable, MuaSimGiaReTool, tra-cuu-sim → thay bằng Chat Zalo (kèm data-sim-number cho A6 gắn campaign). Số ở lưới giá rẻ nay cũng dẫn sang /sim/[digits]. Route `/mua-ngay` + CheckoutClient GIỮ NGUYÊN (không xoá — tránh vỡ test/robots) nhưng KHÔNG còn link tới. `BuyNowDialog` nay là dead code (không nơi nào import).
+- Trang số: thêm section "Gợi ý số hợp phong thủy hơn — cùng tầm giá" (`GoiYSimTot`). Lọc số giá ∈ [giá hiện tại, ×1.5] (cắt 400 số gần giá nhất), chấm bằng `chamBatCuc`, giữ điểm > số đang xem, xếp điểm giảm dần + giá tăng dần, lấy 6. Mỗi dòng hiện điểm PT + giá + "bằng giá"/"+Xđ".
+
+**Nghiệm thu (local :3100):** /sim/0906828709 (6.6/10) → 6 gợi ý điểm 7.0–7.4, giá 900k "bằng giá" → +90k (không đắt hẳn); trang số 0 link /mua-ngay. Homepage/sim-than-tai/mua-sim-gia-re/tra-cuu: 0 /mua-ngay, 0 "Đặt mua", số dẫn /sim/, Zalo khắp nơi. tsc sạch · 175 test xanh · eslint (file mình) 0 lỗi · next build xanh.

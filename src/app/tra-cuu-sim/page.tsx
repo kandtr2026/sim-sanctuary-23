@@ -3,7 +3,6 @@ import Link from "next/link";
 import {
   Phone,
   MessageCircle,
-  ShoppingCart,
   CheckCircle,
   Sparkles,
   Cake,
@@ -209,13 +208,17 @@ export default async function TraCuuSimPage({ searchParams }: Props) {
                         >
                           <Sparkles className="h-4 w-4" /> Xem trang số này
                         </Link>
-                        <Link
-                          href={`/mua-ngay/${encodeURIComponent(result.sim.id)}`}
-                          rel="nofollow"
-                          className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-secondary/50"
+                        <a
+                          href={zaloHref(
+                            `Xin chào, tôi muốn giữ/mua số ${result.formatted}. Số còn không ạ?`,
+                          )}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          data-sim-number={digits}
+                          className="inline-flex items-center justify-center gap-2 rounded-lg border border-sky-500/40 bg-sky-500/10 px-4 py-2.5 text-sm font-semibold text-sky-500 transition hover:bg-sky-500/20"
                         >
-                          <ShoppingCart className="h-4 w-4" /> Đặt mua online
-                        </Link>
+                          <MessageCircle className="h-4 w-4" /> Nhắn Zalo giữ số
+                        </a>
                       </div>
                     </>
                   ) : (

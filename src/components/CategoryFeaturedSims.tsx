@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Phone, MessageCircle } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import type { NormalizedSIM } from "@/lib/simUtils";
 import { formatPrice } from "@/lib/simUtils";
 import { formatSimQuyAware } from "@/lib/simDisplay";
@@ -37,7 +37,7 @@ export default function CategoryFeaturedSims({
       >
         <h2 className="mb-1 text-base font-bold text-primary md:text-lg">{title}</h2>
         <p className="mb-3 text-xs text-muted-foreground">
-          Các số đang còn trong kho, giá niêm yết — Quý khách chọn số ưng ý rồi đặt mua hoặc chat Zalo.
+          Các số đang còn trong kho, giá niêm yết — Quý khách chọn số ưng ý rồi nhắn Zalo để chốt số.
         </p>
 
         <div className="overflow-x-auto rounded-lg border border-border">
@@ -50,7 +50,7 @@ export default function CategoryFeaturedSims({
                 <th scope="col" className="border-b border-border px-2 py-2.5 text-right font-semibold text-foreground sm:px-3">
                   Giá bán
                 </th>
-                <th scope="col" className="border-b border-border px-2 py-2.5 text-right sm:px-3" colSpan={2}>
+                <th scope="col" className="border-b border-border px-2 py-2.5 text-right sm:px-3">
                   <span className="sr-only">Thao tác</span>
                 </th>
               </tr>
@@ -65,26 +65,15 @@ export default function CategoryFeaturedSims({
                     {formatPrice(sim.price)}
                   </td>
                   <td className="whitespace-nowrap border-b border-border/60 px-2 py-2.5 text-right sm:px-3">
-                    <Link
-                      href={`/mua-ngay/${encodeURIComponent(sim.id)}`}
-                      rel="nofollow"
-                      className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90"
-                    >
-                      <Phone className="h-3 w-3" />
-                      <span className="hidden sm:inline">Đặt mua</span>
-                      <span className="sm:hidden">Đặt</span>
-                    </Link>
-                  </td>
-                  <td className="whitespace-nowrap border-b border-border/60 px-2 py-2.5 text-right sm:px-3">
                     <a
                       href={ZALO_BASE}
                       target="_blank"
                       rel="noopener noreferrer"
                       data-sim-number={sim.displayNumber || sim.rawDigits}
-                      className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs font-semibold text-foreground transition hover:bg-secondary/50"
+                      className="inline-flex items-center gap-1 rounded-md bg-sky-500 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-600"
                     >
-                      <MessageCircle className="h-3 w-3 text-sky-500" />
-                      <span className="hidden sm:inline">Zalo</span>
+                      <MessageCircle className="h-3 w-3" />
+                      <span className="hidden sm:inline">Chat Zalo</span>
                       <span className="sm:hidden">Zalo</span>
                     </a>
                   </td>

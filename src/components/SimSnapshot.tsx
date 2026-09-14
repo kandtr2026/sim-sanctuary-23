@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { Phone } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import type { NormalizedSIM } from "@/lib/simUtils";
 import { formatPrice } from "@/lib/simUtils";
 import { formatSimQuyAware } from "@/lib/simDisplay";
@@ -113,12 +112,15 @@ const SimSnapshot = ({
                     {formatPrice(sim.price)}
                   </td>
                   <td className="px-4 py-3 text-center whitespace-nowrap">
-                    <Link
-                      href={`/mua-ngay/${encodeURIComponent(sim.id)}`}
-                      className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90"
+                    <a
+                      href={ZALO_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-sim-number={sim.rawDigits || sim.formattedNumber}
+                      className="inline-flex items-center gap-1 rounded-md bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-600"
                     >
-                      <Phone className="h-3 w-3" /> Đặt ngay
-                    </Link>
+                      <MessageCircle className="h-3 w-3" /> Chat Zalo
+                    </a>
                   </td>
                 </tr>
               ))}

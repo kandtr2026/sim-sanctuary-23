@@ -92,13 +92,15 @@ export default async function ArticleSimTable({
                   {priceFormatter.format(sim.price)} đ
                 </td>
                 <td className="whitespace-nowrap border-b border-border/60 px-3 py-2.5 text-right">
-                  <Link
-                    href={`/mua-ngay/${sim.id}`}
-                    rel="nofollow"
-                    className="text-xs font-semibold text-gold hover:underline"
+                  <a
+                    href="https://zalo.me/0933686666"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-sim-number={sim.rawDigits || sim.displayNumber}
+                    className="text-xs font-semibold text-sky-500 hover:underline"
                   >
-                    Đặt mua
-                  </Link>
+                    Chat Zalo
+                  </a>
                 </td>
               </tr>
             ))}

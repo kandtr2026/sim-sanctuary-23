@@ -87,7 +87,7 @@ export default function CategorySimPriceList({
                   Giá bán
                 </th>
                 <th scope="col" className="border-b border-border px-2 py-2.5 text-right sm:px-3">
-                  <span className="sr-only">Đặt mua</span>
+                  <span className="sr-only">Chat Zalo</span>
                 </th>
               </tr>
             </thead>
@@ -112,16 +112,16 @@ export default function CategorySimPriceList({
                     {formatPrice(sim.price)}
                   </td>
                   <td className="whitespace-nowrap border-b border-border/60 px-2 py-2.5 text-right sm:px-3">
-                    <Link
-                      href={`/mua-ngay/${encodeURIComponent(sim.id)}`}
-                      rel="nofollow"
-                      className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
+                    <a
+                      href="https://zalo.me/0933686666"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-sim-number={sim.displayNumber || sim.rawDigits}
+                      className="text-xs font-semibold text-sky-500 underline-offset-2 hover:underline"
                     >
-                      {/* Nhãn ngắn ở màn hẹp: ba cột số + giá + "Đặt mua" làm bảng
-                          tràn ngang ở 375px, khách phải kéo mới thấy nút. */}
-                      <span className="sm:hidden">Đặt</span>
-                      <span className="hidden sm:inline">Đặt mua</span>
-                    </Link>
+                      <span className="sm:hidden">Zalo</span>
+                      <span className="hidden sm:inline">Chat Zalo</span>
+                    </a>
                   </td>
                 </tr>
               ))}

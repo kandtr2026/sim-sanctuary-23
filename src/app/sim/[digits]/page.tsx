@@ -4,7 +4,6 @@ import Link from "next/link";
 import {
   Phone,
   MessageCircle,
-  ShoppingCart,
   Star,
   CheckCircle,
   ChevronRight,
@@ -17,12 +16,15 @@ import {
   getIndexableSimDigits,
   isIndexableSim,
   getCategorySnapshot,
+  getServerSims,
 } from "@/lib/serverSimData";
 import { BASE_URL, buildBreadcrumb } from "@/lib/seo";
 import { describeSimTags, primaryTagMeta } from "@/lib/simMeta";
 import TrustCommitments from "@/components/TrustCommitments";
 import PhongThuyStory from "./PhongThuyStory";
+import GoiYSimTot from "./GoiYSimTot";
 import SoVuaXem from "@/components/SoVuaXem";
+import { chamBatCuc } from "@/lib/batCuc";
 
 // ISR: mỗi trang số làm tươi mỗi 5 phút. Số đã bán → lần regenerate kế tiếp
 // `findSimByDigits` trả null → notFound(), trang chuyển 404. dynamicParams=true
@@ -109,6 +111,31 @@ export default async function SimDetailPage({ params }: Props) {
     12,
   );
   const related = relatedRaw.filter((s) => s.rawDigits !== sim.rawDigits).slice(0, 8);
+
+  // A Khoa 14/09: gợi ý số hợp phong thủy HƠN nhưng CÙNG TẦM GIÁ (bằng giá hoặc
+  // nhỉnh ≤50%, KHÔNG đẩy số đắt hẳn). Chấm bằng chính engine đang tư vấn
+  // (chamBatCuc), giữ số điểm cao hơn số đang xem, ưu tiên điểm cao + giá gần nhất.
+  // Cắt 400 số gần giá nhất trước khi chấm cho nhẹ build/ISR.
+  const curScore = chamBatCuc(sim.rawDigits).score;
+  const goiY =
+    sim.price > 0
+      ? (await getServerSims())
+          .filter(
+            (s) => s.rawDigits !== sim.rawDigits && s.price >= sim.price && s.price <= sim.price * 1.5,
+          )
+          .sort((a, b) => a.price - b.price)
+          .slice(0, 400)
+          .map((s) => ({ s, sc: chamBatCuc(s.rawDigits).score }))
+          .filter((x) => x.sc > curScore + 0.05)
+          .sort((a, b) => b.sc - a.sc || a.s.price - b.s.price)
+          .slice(0, 6)
+          .map((x) => ({
+            digits: x.s.rawDigits,
+            price: x.s.price,
+            score: x.sc,
+            formatted: formatSimQuyAware(x.s.rawDigits),
+          }))
+      : [];
 
   const zaloText = encodeURIComponent(
     `Xin chào, tôi muốn mua SIM ${formatted}${orderable ? ` giá ${priceLabel}` : ""}. Số còn không ạ?`,
@@ -202,7 +229,7 @@ export default async function SimDetailPage({ params }: Props) {
               {orderable ? " · nhận SIM kiểm tra rồi thanh toán" : " · liên hệ để nhận giá chính xác"}
             </div>
 
-            {/* CTA: Zalo-first, kèm gọi + đặt mua */}
+            {/* CTA: Zalo-first + gọi */}
             <div className="mt-5 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
               <a
                 href={zaloHref}
@@ -221,13 +248,6 @@ export default async function SimDetailPage({ params }: Props) {
               >
                 <Phone className="h-5 w-5" /> Gọi {CALL_DISPLAY}
               </a>
-              <Link
-                href={`/mua-ngay/${encodeURIComponent(sim.id)}`}
-                rel="nofollow"
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-primary-foreground/25 bg-primary-foreground/5 px-6 py-3 font-semibold text-primary-foreground transition hover:bg-primary-foreground/15"
-              >
-                <ShoppingCart className="h-5 w-5" /> Đặt mua online
-              </Link>
             </div>
             <p className="mt-2 text-xs text-primary-foreground/70">
               Gọi hay nhắn Zalo đều gặp đúng người bán số. Phản hồi trong ít phút.
@@ -305,6 +325,9 @@ export default async function SimDetailPage({ params }: Props) {
 
           {/* ── Cam kết ─────────────────────────────────────────────────────── */}
           <TrustCommitments />
+
+          {/* ── Gợi ý số hợp phong thủy hơn, cùng tầm giá ───────────────────── */}
+          <GoiYSimTot items={goiY} curScore={curScore} curPrice={sim.price} />
 
           {/* ── Số cùng nhóm (link nội bộ sang /sim/*) ──────────────────────── */}
           {related.length > 0 && (

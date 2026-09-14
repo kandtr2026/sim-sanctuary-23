@@ -48,7 +48,6 @@ const CheapSimCard = ({
   /** Câu tìm đang áp dụng — để cụm khách tìm hiện liền một cụm, tô vàng. */
   searchQuery?: string;
 }) => {
-  const checkoutHref = `/mua-ngay/${encodeURIComponent(sim.id)}`;
   const badges = badgesFor(sim.rawDigits);
 
   // Có câu tìm → theo rule chung ở `simDisplay` (đuôi khách tìm không bị chấm
@@ -86,8 +85,8 @@ const CheapSimCard = ({
       </div>
 
       <Link
-        href={checkoutHref}
-        aria-label={`Đặt mua SIM ${display} — ${formatPrice(sim.price)}`}
+        href={`/sim/${sim.rawDigits}`}
+        aria-label={`Xem phong thủy & thông tin số ${display}`}
         className="sim-number-auto mb-1.5 block overflow-hidden text-ellipsis whitespace-nowrap transition-all group-hover:[text-shadow:0_0_12px_hsl(var(--gold)_/_0.4)]"
       >
         {number}
@@ -124,14 +123,17 @@ const CheapSimCard = ({
           >
             <Phone style={{ width: 'clamp(10px, 2vw, 14px)', height: 'clamp(10px, 2vw, 14px)' }} />
           </button>
-          <Link
-            href={checkoutHref}
-            aria-label={`Đặt ngay SIM ${display}`}
+          <a
+            href="https://zalo.me/0933686666"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-sim-number={sim.displayNumber || sim.rawDigits}
+            aria-label={`Chat Zalo giữ SIM ${display}`}
             className="btn-cta-sm flex min-w-0 items-center justify-center whitespace-nowrap text-center"
             style={{ fontSize: 'clamp(8px, 1.8vw, 11px)' }}
           >
-            ĐẶT NGAY
-          </Link>
+            CHAT ZALO
+          </a>
         </div>
       </div>
     </div>
