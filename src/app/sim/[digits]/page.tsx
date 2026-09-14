@@ -21,6 +21,8 @@ import {
 import { BASE_URL, buildBreadcrumb } from "@/lib/seo";
 import { describeSimTags, primaryTagMeta } from "@/lib/simMeta";
 import TrustCommitments from "@/components/TrustCommitments";
+import PhongThuyStory from "./PhongThuyStory";
+import SoVuaXem from "@/components/SoVuaXem";
 
 // ISR: mỗi trang số làm tươi mỗi 5 phút. Số đã bán → lần regenerate kế tiếp
 // `findSimByDigits` trả null → notFound(), trang chuyển 404. dynamicParams=true
@@ -234,6 +236,12 @@ export default async function SimDetailPage({ params }: Props) {
         </section>
 
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-12 md:py-10">
+          {/* ── Số vừa xem (giúp khách nhảy lại số đã xem, khỏi lạc) ─────────── */}
+          <SoVuaXem current={{ d: sim.rawDigits, label: formatted, p: sim.price }} />
+
+          {/* ── Chấm điểm phong thủy — câu chuyện của con số ─────────────────── */}
+          <PhongThuyStory digits={sim.rawDigits} formatted={formatted} zaloHref={zaloHref} />
+
           {/* ── Ý nghĩa số ──────────────────────────────────────────────────── */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">

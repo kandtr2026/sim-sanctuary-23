@@ -603,3 +603,18 @@ Cron `sync-sims` chạy **2 lần/ngày** (01:17, 13:17 — `vercel.json`) và g
 ### Còn nợ (chưa làm, có chủ ý)
 - Hai trang admin vẫn tải CSV 931 KB mỗi lần mở (chỉ là không còn tự tải lại). Chuyển hẳn sang đọc `sims` trên Supabase là việc riêng, đụng UI admin.
 - `CheckoutClient` vẫn giữ nhánh dự phòng tải CSV khi `fetch-sim-by-id` lỗi — hiếm khi chạy, giữ làm lưới an toàn.
+
+## [2026-09-14] Trang số: chấm điểm phong thủy + "câu chuyện" + Số vừa xem
+
+**Yêu cầu A Khoa (chat):** click vào từng số → nhảy sang trang chấm điểm phong thủy, kể "câu chuyện" của số; áp engine phong thủy SẴN CÓ trong hệ thống, hiển thị cho khách. Thêm mục "Số vừa xem" để khách khỏi lạc.
+
+**Rà hệ thống hiện có:** đã sẵn engine `lib/batCuc.ts` (`chamBatCuc` → điểm 0–10; `phanTichBatCuc` → 8 năng lượng cát/hung theo cặp) + `lib/hexagrams.ts` (`getHexagramFromSuffix` → quẻ Kinh Dịch từ 4 số cuối) + route chi tiết `/sim/[digits]` (trước chỉ "ý nghĩa" chung chung, CHƯA áp phong thủy) + card `SIMCardNew` (bấm số MỞ popup mua, KHÔNG dẫn sang trang số).
+
+**Đã làm:**
+1. `src/app/sim/[digits]/PhongThuyStory.tsx` (mới, server): áp `chamBatCuc`/`phanTichBatCuc`/`getHexagramFromSuffix` → điểm tổng + nhận định, năng lượng chủ đạo, liệt kê từng năng lượng cát/hung, đọc theo từng cặp số (0 & 5 = trung tính), quẻ Kinh Dịch, kèm CTA Zalo. Ghép vào `/sim/[digits]` ngay dưới hero.
+2. `src/components/SoVuaXem.tsx` (mới, client): nhớ số vừa xem trong localStorage (`csm_recent_sims`, tối đa 12), hiện dải chip link `/sim/*` đầu trang số + nút "Xoá".
+3. `SIMCardNew.tsx`: số nay là `<Link href="/sim/{digits}">` (thay nút mở BuyNowDialog) → mọi lưới (SimBrowser/CategorySimGrid/BirthYearSimGrid…) click số đều sang trang câu chuyện. Nút "Chat Zalo" giữ nguyên (Zalo-first). Gỡ BuyNowDialog khỏi card (luồng "Đặt mua online" vẫn còn ở trang số).
+
+**Nghiệm thu (local :3100):** homepage 100 link `/sim/*`; `/sim/0768768879` → 7.7/10 "Tốt", quẻ 79 (8879%80) đúng; sang số thứ 2 → "Số vừa xem" hiện chip số trước + giá, localStorage đúng thứ tự. `tsc` sạch · 175 test xanh · eslint 0 error · `next build` xanh.
+
+**Còn ngỏ (chủ ý):** "Số vừa xem" mới đặt ở trang số; có thể gắn thêm ở trang duyệt nếu A Khoa muốn.

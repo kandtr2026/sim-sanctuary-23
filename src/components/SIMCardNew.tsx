@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { Star, Cake, MessageCircle } from 'lucide-react';
 import type { NormalizedSIM, QuyType } from '@/lib/simUtils';
 import { matchesQuyType, formatPrice, formatBirthDateDisplayLenient, formatSIMNumber } from '@/lib/simUtils';
 import { cn } from '@/lib/utils';
 import { createHighlightedNumber, createQuyHighlightedNumber, quyDisplayNumber } from '@/lib/highlightUtils';
 import { planSimDisplay } from '@/lib/simDisplay';
-import BuyNowDialog from '@/components/BuyNowDialog';
 
 // Fallback only — mirrors NETWORK_PREFIXES in @/lib/simUtils, which deliberately
 // covers just Mobifone / Vinaphone / Gmobile. Keep the two lists in sync.
@@ -45,7 +44,6 @@ interface SIMCardNewProps {
 export const formatDiscountAmount = (amount: number): string => `Giảm ${formatPrice(amount)}`;
 
 const SIMCardNew = ({ sim, quyFilter, searchQuery = '', birthDateDisplay }: SIMCardNewProps) => {
-  const [buyNowOpen, setBuyNowOpen] = useState(false);
   // Build rawNumber from ALL possible sources
   const rawNumber = (() => {
     const sources = [sim.rawDigits, sim.displayNumber, sim.formattedNumber];
@@ -191,13 +189,11 @@ const SIMCardNew = ({ sim, quyFilter, searchQuery = '', birthDateDisplay }: SIMC
 
   return (
     <>
-      {/* The card is deliberately NOT one big click target any more. It used to have
-          onClick={() => setContactOpen(true)} on the wrapper, so every click — number,
-          price, anywhere — opened the Zalo/call popup and the real checkout at
-          /mua-ngay/:simId was unreachable from the listing. Now the number is a link to
-          checkout and the action row has two explicit buttons. The contact button must
-          stay a sibling of the link, not a descendant: a <button> inside an <a> is
-          invalid HTML and browsers handle the nested activation inconsistently. */}
+      {/* The card is deliberately NOT one big click target. Clicking the NUMBER now
+          goes to that sim's phong thủy / detail page (/sim/:digits) — A Khoa 14/09:
+          "click vào từng số thì phải có câu chuyện của số đó". The Zalo button stays a
+          SIBLING of that link, never a descendant: a <button>/<a> nested inside an <a>
+          is invalid HTML and browsers handle the nested activation inconsistently. */}
       <div
         className={cn(
           "sim-card-compact group relative overflow-hidden",
@@ -266,29 +262,16 @@ const SIMCardNew = ({ sim, quyFilter, searchQuery = '', birthDateDisplay }: SIMC
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => setBuyNowOpen(true)}
-          aria-label={`Đặt mua SIM ${searchDisplay} — ${formatPrice(sim.price)}`}
+        <Link
+          href={`/sim/${sim.rawDigits || rawNumber}`}
+          aria-label={`Xem phong thủy & thông tin số ${searchDisplay}`}
           className="sim-number-auto mb-1.5 block w-full cursor-pointer text-left transition-all whitespace-nowrap overflow-hidden text-ellipsis group-hover:[text-shadow:0_0_12px_hsl(var(--gold)_/_0.4)]"
         >
           {searchQuery?.trim()
             ? createHighlightedNumber(cardDisplay, sim.rawDigits || rawNumber, searchQuery)
             : formatWithHighlight(cardDisplay)
           }
-        </button>
-
-        <BuyNowDialog
-          open={buyNowOpen}
-          onOpenChange={setBuyNowOpen}
-          sim={{
-            id: sim.id,
-            displayNumber: searchDisplay,
-            rawDigits: rawNumber,
-            price: sim.price,
-            network: carrier || undefined,
-          }}
-        />
+        </Link>
 
         {/* Price above, actions below — NOT side by side. On mobile the card's inner
             width is only 128px while the nowrap price alone needs 84px, so a horizontal
