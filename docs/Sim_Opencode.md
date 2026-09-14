@@ -669,3 +669,12 @@ A Khoa: cho hiện điểm phong thủy + mạng ngay trên chip số, bố trí
 - Gắn vào `SIMCardNew` (lưới chính) + `CheapSimCard` (/mua-sim-gia-re), ngay SAU
   badge mạng → hàng badge [Mobifone][✦ 8.9] gọn gàng.
 Verify homepage: 100/100 chip có điểm PT, mặt tiền [Mobifone][✦ 8.9/8.8/9.0…]. tsc/lint sạch · 175 test xanh · build xanh.
+
+## [2026-09-14] Chip số: thêm badge NGŨ HÀNH của số (Kim/Mộc/Thủy/Hỏa/Thổ)
+
+A Khoa: chip chưa có badge hợp mạng/ngũ hành. Thêm `components/ChipNguHanh.tsx`
+(chấm màu + tên hành theo HANH_MAU: Kim vàng · Mộc lục · Thủy lam · Hỏa đỏ · Thổ
+nâu), gắn cạnh ChipDiemPT ở SIMCardNew + CheapSimCard. Hành = ngũ hành CỦA SỐ
+(Hà Đồ, chinh); "hợp tuổi" theo mệnh khách vẫn ở trang số (HopTuoiBox).
+Verify homepage: 100/100 chip có badge hành, mặt tiền [Mobifone][✦ 8.9][● Thủy].
+tsc/lint sạch · 175 test xanh · build xanh.
