@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import SIMCardNew from "@/components/SIMCardNew";
+import MenhMucSearchGrid from "@/components/MenhMucSearchGrid";
 import { getServerSims } from "@/lib/serverSimData";
 import { MUC_TIEU, mucTieuTheoSlug, diemMucTieu, diemTongHop } from "@/lib/phongThuy";
 
@@ -78,21 +78,7 @@ export default async function SimHopMucTieuPage({ params }: Props) {
       </section>
 
       <div className="container mx-auto px-4 py-8">
-        {scored.length === 0 ? (
-          <p className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-            Kho tạm chưa có số hợp {m.label}. Quý khách{" "}
-            <a href={ZALO} target="_blank" rel="noopener noreferrer" className="font-semibold text-sky-500 hover:underline">
-              nhắn Zalo
-            </a>{" "}
-            để em tìm số phù hợp.
-          </p>
-        ) : (
-          <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 md:gap-3 lg:grid-cols-4">
-            {scored.map((x) => (
-              <SIMCardNew key={x.s.id} sim={x.s} />
-            ))}
-          </div>
-        )}
+        <MenhMucSearchGrid initial={scored.map((x) => x.s)} mucId={m.id} label={m.label} zaloHref={ZALO} />
 
         <p className="mt-4 text-xs text-muted-foreground">
           Điểm phong thủy theo Bát Cực Linh Số + quẻ Kinh Dịch, mang tính tham khảo. Bấm vào số để

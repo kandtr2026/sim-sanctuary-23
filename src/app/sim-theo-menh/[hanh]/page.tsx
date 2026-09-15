@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import SIMCardNew from "@/components/SIMCardNew";
+import MenhMucSearchGrid from "@/components/MenhMucSearchGrid";
 import { getServerSims } from "@/lib/serverSimData";
 import {
   nguHanhCuaSo,
@@ -80,21 +80,7 @@ export default async function SimTheoMenhHanhPage({ params }: Props) {
       </section>
 
       <div className="container mx-auto px-4 py-8">
-        {scored.length === 0 ? (
-          <p className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-            Kho tạm chưa có số hành {item.hanh}. Quý khách{" "}
-            <a href={ZALO} target="_blank" rel="noopener noreferrer" className="font-semibold text-sky-500 hover:underline">
-              nhắn Zalo
-            </a>{" "}
-            để em tìm số hợp mệnh.
-          </p>
-        ) : (
-          <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 md:gap-3 lg:grid-cols-4">
-            {scored.map((x) => (
-              <SIMCardNew key={x.s.id} sim={x.s} />
-            ))}
-          </div>
-        )}
+        <MenhMucSearchGrid initial={scored.map((x) => x.s)} hanh={item.hanh} zaloHref={ZALO} />
         <p className="mt-4 text-xs text-muted-foreground">
           Ngũ hành của số tính theo Hà Đồ, điểm phong thủy theo Bát Cực + quẻ — mang tính tham khảo.
           Bấm vào số để xem phân tích đầy đủ, hoặc nhập năm sinh ở ô “Hợp tuổi” để soi theo mệnh bạn.
