@@ -72,7 +72,7 @@ const SearchBarAdvanced = ({ value, onChange, debounceMs = 300, compact = false 
           placeholder="Nhập số cần tìm... (VD: 0903*, *8888)"
           className={
             compact
-              ? "w-full pl-10 md:pl-11 pr-12 py-3 md:py-2.5 rounded-xl bg-input text-foreground text-base tabular-nums ring-2 ring-gold shadow-lg shadow-gold/20 placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold focus:shadow-gold/40 transition-all"
+              ? "w-full pl-10 md:pl-11 pr-12 py-3.5 md:py-3 rounded-xl bg-gold/[0.07] text-foreground text-base md:text-lg font-medium tabular-nums ring-2 ring-gold shadow-xl shadow-gold/30 placeholder:text-gold/60 focus:outline-none focus:ring-2 focus:ring-gold focus:shadow-gold/50 transition-all"
               : "w-full pl-12 md:pl-16 pr-20 py-2.5 md:py-6 rounded-2xl border border-border/60 bg-card text-lg md:text-2xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
           }
         />
