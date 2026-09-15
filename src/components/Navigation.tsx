@@ -5,19 +5,14 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 
-// 8 mục: browse numbers, phong thủy, các trang danh mục, năm sinh, giá rẻ,
-// TRA CỨU SIM (công cụ tra ý nghĩa+giá 1 số — đợt-2, hút long-tail "tra cứu
-// sim…"), read. "THANH TOÁN" removed from nav (giá trị SEO thấp, chuyển xuống
-// Footer). SIM NĂM SINH đứng sau SIM TỨ QUÝ, trước SIM GIÁ RẺ; TRA CỨU SIM đặt
-// sát TIN TỨC (nhóm công cụ/đọc thêm, tách khỏi các trang danh mục bán).
+// Nav gọn (A Khoa 15/09): bỏ "SIM SỐ" (trùng logo trỏ trang chủ), "SIM TỨ QUÝ"
+// và "TRA CỨU SIM" (không cần thiết). "THANH TOÁN" trước đó đã chuyển xuống
+// Footer. Trang chủ vẫn về được qua logo header (href="/").
 const menuItems = [
-  { label: "SIM SỐ", href: "/" },
   { label: "SIM PHONG THỦY", href: "/sim-phong-thuy" },
   { label: "SIM THẦN TÀI", href: "/sim-than-tai" },
-  { label: "SIM TỨ QUÝ", href: "/mua-sim-tu-quy" },
   { label: "SIM NĂM SINH", href: "/sim-nam-sinh" },
   { label: "SIM GIÁ RẺ", href: "/mua-sim-gia-re" },
-  { label: "TRA CỨU SIM", href: "/tra-cuu-sim" },
   { label: "TIN TỨC", href: "/tin-tuc" },
 ];
 
