@@ -79,6 +79,7 @@ const MobileFilterDrawer = ({
         
         <div className="pb-20">
           <AdvancedFilterSidebar
+            layout="drawer"
             filters={filters}
             tagCounts={tagCounts}
             networkCounts={networkCounts}
