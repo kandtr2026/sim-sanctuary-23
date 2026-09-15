@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { MessageCircle } from "lucide-react";
+import SIMCardNew from "@/components/SIMCardNew";
 import { getServerSims } from "@/lib/serverSimData";
-import { formatPrice } from "@/lib/simUtils";
-import { formatSimQuyAware } from "@/lib/simDisplay";
 import {
   nguHanhCuaSo,
   diemTongHop,
@@ -91,47 +89,10 @@ export default async function SimTheoMenhHanhPage({ params }: Props) {
             để em tìm số hợp mệnh.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-border">
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr className="bg-secondary/50">
-                  <th scope="col" className="border-b border-border px-3 py-2.5 text-left font-semibold text-foreground">Số SIM</th>
-                  <th scope="col" className="border-b border-border px-3 py-2.5 text-center font-semibold text-foreground">Điểm PT</th>
-                  <th scope="col" className="border-b border-border px-3 py-2.5 text-right font-semibold text-foreground">Giá bán</th>
-                  <th scope="col" className="border-b border-border px-3 py-2.5 text-right"><span className="sr-only">Thao tác</span></th>
-                </tr>
-              </thead>
-              <tbody>
-                {scored.map((x, i) => (
-                  <tr key={x.s.id} className={i % 2 === 1 ? "bg-secondary/20" : undefined}>
-                    <td className="whitespace-nowrap border-b border-border/60 px-3 py-2.5 font-semibold tracking-wide text-foreground">
-                      <Link href={`/sim/${x.s.rawDigits}`} className="underline-offset-2 hover:text-primary hover:underline">
-                        {formatSimQuyAware(x.s.rawDigits)}
-                      </Link>
-                    </td>
-                    <td className="border-b border-border/60 px-3 py-2.5 text-center">
-                      <span className="inline-block rounded bg-emerald-500/10 px-1.5 py-0.5 text-xs font-bold text-emerald-600">
-                        {x.pt.toFixed(1)}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap border-b border-border/60 px-3 py-2.5 text-right font-semibold text-primary">
-                      {formatPrice(x.s.price)}
-                    </td>
-                    <td className="whitespace-nowrap border-b border-border/60 px-3 py-2.5 text-right">
-                      <a
-                        href={ZALO}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        data-sim-number={x.s.displayNumber || x.s.rawDigits}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-sky-500 hover:underline"
-                      >
-                        <MessageCircle className="h-3 w-3" /> Zalo
-                      </a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 md:gap-3 lg:grid-cols-4">
+            {scored.map((x) => (
+              <SIMCardNew key={x.s.id} sim={x.s} />
+            ))}
           </div>
         )}
         <p className="mt-4 text-xs text-muted-foreground">

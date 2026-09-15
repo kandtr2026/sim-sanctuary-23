@@ -21,6 +21,7 @@ import {
 import { BASE_URL, buildBreadcrumb } from "@/lib/seo";
 import { describeSimTags, primaryTagMeta } from "@/lib/simMeta";
 import TrustCommitments from "@/components/TrustCommitments";
+import SIMCardNew from "@/components/SIMCardNew";
 import PhongThuyStory from "./PhongThuyStory";
 import GoiYSimTot from "./GoiYSimTot";
 import SoVuaXem from "@/components/SoVuaXem";
@@ -117,7 +118,7 @@ export default async function SimDetailPage({ params }: Props) {
   // (chamBatCuc), giữ số điểm cao hơn số đang xem, ưu tiên điểm cao + giá gần nhất.
   // Cắt 400 số gần giá nhất trước khi chấm cho nhẹ build/ISR.
   const curScore = diemTongHop(sim.rawDigits).diem;
-  const goiY =
+  const goiY: NormalizedSIM[] =
     sim.price > 0
       ? (await getServerSims())
           .filter(
@@ -128,13 +129,8 @@ export default async function SimDetailPage({ params }: Props) {
           .map((s) => ({ s, sc: diemTongHop(s.rawDigits).diem }))
           .filter((x) => x.sc > curScore + 0.05)
           .sort((a, b) => b.sc - a.sc || a.s.price - b.s.price)
-          .slice(0, 6)
-          .map((x) => ({
-            digits: x.s.rawDigits,
-            price: x.s.price,
-            score: x.sc,
-            formatted: formatSimQuyAware(x.s.rawDigits),
-          }))
+          .slice(0, 8)
+          .map((x) => x.s)
       : [];
 
   const zaloText = encodeURIComponent(
@@ -327,7 +323,7 @@ export default async function SimDetailPage({ params }: Props) {
           <TrustCommitments />
 
           {/* ── Gợi ý số hợp phong thủy hơn, cùng tầm giá ───────────────────── */}
-          <GoiYSimTot items={goiY} curScore={curScore} curPrice={sim.price} />
+          <GoiYSimTot sims={goiY} curScore={curScore} />
 
           {/* ── Số cùng nhóm (link nội bộ sang /sim/*) ──────────────────────── */}
           {related.length > 0 && (
@@ -336,47 +332,10 @@ export default async function SimDetailPage({ params }: Props) {
                 <span className="h-8 w-1 rounded-full bg-primary" />
                 Số cùng nhóm {primary ? primary.label : `đầu ${sim.prefix3}`}
               </h2>
-              <div className="overflow-x-auto rounded-lg border border-border">
-                <table className="w-full border-collapse text-sm">
-                  <thead>
-                    <tr className="bg-secondary/50">
-                      <th scope="col" className="border-b border-border px-3 py-2.5 text-left font-semibold text-foreground">
-                        Số SIM
-                      </th>
-                      <th scope="col" className="border-b border-border px-3 py-2.5 text-right font-semibold text-foreground">
-                        Giá bán
-                      </th>
-                      <th scope="col" className="border-b border-border px-3 py-2.5 text-right">
-                        <span className="sr-only">Xem</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {related.map((s, i) => (
-                      <tr key={s.id} className={i % 2 === 1 ? "bg-secondary/20" : undefined}>
-                        <td className="whitespace-nowrap border-b border-border/60 px-3 py-2.5 font-semibold tracking-wide text-foreground">
-                          <Link
-                            href={`/sim/${s.rawDigits}`}
-                            className="underline-offset-2 hover:text-primary hover:underline"
-                          >
-                            {formatSimQuyAware(s.rawDigits)}
-                          </Link>
-                        </td>
-                        <td className="whitespace-nowrap border-b border-border/60 px-3 py-2.5 text-right font-semibold text-primary">
-                          {formatPrice(s.price)}
-                        </td>
-                        <td className="whitespace-nowrap border-b border-border/60 px-3 py-2.5 text-right">
-                          <Link
-                            href={`/sim/${s.rawDigits}`}
-                            className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
-                          >
-                            Xem số
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 md:gap-3 lg:grid-cols-4">
+                {related.map((s) => (
+                  <SIMCardNew key={s.id} sim={s} />
+                ))}
               </div>
               {primary?.path && (
                 <p className="mt-3 text-sm">
