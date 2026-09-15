@@ -83,6 +83,7 @@ function AdminDashboardContent() {
     networkCounts: Record<string, number>;
     priceCounts: number[];
     tagCounts: Record<string, number>;
+    phongThuyCounts: { label: string; count: number }[];
   } | null>(null);
   useEffect(() => {
     fetch("/api/admin/stats")
@@ -200,6 +201,15 @@ function AdminDashboardContent() {
         fillClass: "bg-[hsl(var(--gold-soft))]",
       })),
     [topTags],
+  );
+
+  // Phân bố kho theo dải điểm phong thủy (góp ý #22) — server đã xếp cao→thấp.
+  const phongThuyItems = useMemo(
+    () =>
+      (serverStats?.phongThuyCounts ?? [])
+        .filter((b) => b.count > 0)
+        .map((b) => ({ label: b.label, count: b.count, fillClass: "bg-emerald-500/60" })),
+    [serverStats],
   );
 
   // Phân rã SIM VIP theo từng nhóm (từ server, toàn kho) — hiện count>0, nhiều nhất trước.
@@ -357,8 +367,8 @@ function AdminDashboardContent() {
                     <div key={i} className="h-[120px] animate-pulse rounded-xl bg-muted" />
                   ))}
                 </div>
-                <div className="mt-6 grid gap-4 md:grid-cols-3">
-                  {Array.from({ length: 3 }).map((_, i) => (
+                <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  {Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} className="h-44 animate-pulse rounded-xl bg-muted" />
                   ))}
                 </div>
@@ -409,9 +419,10 @@ function AdminDashboardContent() {
                   )}
                 </div>
 
-                <div className="mt-6 grid gap-4 md:grid-cols-3">
+                <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                   <BarList title="Phân bố theo mạng" items={networkItems} />
                   <BarList title="Theo khoảng giá" items={priceItems} />
+                  <BarList title="Phân bố theo điểm phong thủy" items={phongThuyItems} />
                   <BarList title="Loại số phổ biến nhất" items={tagItems} />
                 </div>
               </>
