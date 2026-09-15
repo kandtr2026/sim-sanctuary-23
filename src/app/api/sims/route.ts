@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { getServerSims, querySimsFromDb, type DbQueryCriteria } from "@/lib/serverSimData";
 import { filterSims, paginateSims, type SimFilterCriteria } from "@/lib/simFilter";
-import { countTags, getUniquePrefixes, PRICE_RANGES } from "@/lib/simUtils";
+import { countTags, countMenh, getUniquePrefixes, PRICE_RANGES } from "@/lib/simUtils";
 import type { QuyType, SortOption } from "@/lib/simUtils";
 
 // Cache tầng route để đỡ cold-start; chính thực ra `getServerSims` đã cache CSV
@@ -125,6 +125,7 @@ export async function GET(req: NextRequest) {
       prefixes: { prefix3: string[]; prefix4: string[] };
       networkCounts: Record<string, number>;
       priceCounts: number[];
+      menhCounts: Record<string, number>;
     };
   } = {
     items,
@@ -148,6 +149,7 @@ export async function GET(req: NextRequest) {
       prefixes: getUniquePrefixes(sims),
       networkCounts,
       priceCounts,
+      menhCounts: countMenh(sims),
     };
   }
 

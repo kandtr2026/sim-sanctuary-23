@@ -78,6 +78,7 @@ const SimBrowser = ({
     prefixes: { prefix3: string[]; prefix4: string[] };
     networkCounts: Record<string, number>;
     priceCounts: number[];
+    menhCounts: Record<string, number>;
   };
 }) => {
   const [filters, setFilters] = useState<FilterState>(HOME_DEFAULTS);
@@ -351,6 +352,7 @@ const SimBrowser = ({
       prefixes: { prefix3: string[]; prefix4: string[] };
       networkCounts: Record<string, number>;
       priceCounts: number[];
+      menhCounts: Record<string, number>;
     };
   }>({
     queryKey: ["sims-facets"],
@@ -369,6 +371,7 @@ const SimBrowser = ({
   const tagCounts = facetsQuery.data?.facets?.tagCounts ?? {};
   const networkCounts = facetsQuery.data?.facets?.networkCounts ?? {};
   const priceCounts = facetsQuery.data?.facets?.priceCounts ?? [];
+  const menhCounts = facetsQuery.data?.facets?.menhCounts ?? {};
   const catalogueTotal = facetsQuery.data?.total ?? 0;
 
   // ── Main query: offset pagination (mỗi trang 100, append, không re-fetch list cũ) ──
@@ -479,6 +482,7 @@ const SimBrowser = ({
             tagCounts={tagCounts}
             networkCounts={networkCounts}
             priceCounts={priceCounts}
+            menhCounts={menhCounts}
             onTogglePriceRange={togglePriceRange}
             onToggleTag={toggleTag}
             onToggleNetwork={toggleNetwork}
@@ -497,6 +501,7 @@ const SimBrowser = ({
                   tagCounts={tagCounts}
                   networkCounts={networkCounts}
                   priceCounts={priceCounts}
+                  menhCounts={menhCounts}
                   activeFilterCount={activeFilters.length}
                   onTogglePriceRange={togglePriceRange}
                   onToggleTag={toggleTag}

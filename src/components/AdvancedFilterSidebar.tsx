@@ -10,6 +10,7 @@ interface AdvancedFilterSidebarProps {
   tagCounts: Record<string, number>;
   networkCounts: Record<string, number>;
   priceCounts: number[];
+  menhCounts: Record<string, number>;
   onTogglePriceRange: (index: number) => void;
   onToggleTag: (tag: string) => void;
   onToggleNetwork: (network: string) => void;
@@ -53,6 +54,7 @@ const AdvancedFilterSidebar = ({
   tagCounts,
   networkCounts,
   priceCounts,
+  menhCounts,
   onTogglePriceRange,
   onToggleTag,
   onToggleNetwork,
@@ -106,7 +108,10 @@ const AdvancedFilterSidebar = ({
                 className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full"
                 style={{ backgroundColor: HANH_MAU[h.hanh] }}
               />
-              Mệnh {h.hanh}
+              <span>
+                Mệnh {h.hanh}
+                <span className="ml-1 text-[10px] font-medium leading-none text-red-500">{fmtCount(menhCounts[h.hanh])}</span>
+              </span>
             </Link>
           ))}
           <Link

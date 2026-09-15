@@ -9,6 +9,7 @@ interface MobileFilterDrawerProps {
   tagCounts: Record<string, number>;
   networkCounts: Record<string, number>;
   priceCounts: number[];
+  menhCounts: Record<string, number>;
   activeFilterCount: number;
   onTogglePriceRange: (index: number) => void;
   onToggleTag: (tag: string) => void;
@@ -22,6 +23,7 @@ const MobileFilterDrawer = ({
   tagCounts,
   networkCounts,
   priceCounts,
+  menhCounts,
   activeFilterCount,
   onTogglePriceRange,
   onToggleTag,
@@ -81,6 +83,7 @@ const MobileFilterDrawer = ({
             tagCounts={tagCounts}
             networkCounts={networkCounts}
             priceCounts={priceCounts}
+            menhCounts={menhCounts}
             onTogglePriceRange={onTogglePriceRange}
             onToggleTag={onToggleTag}
             onToggleNetwork={onToggleNetwork}

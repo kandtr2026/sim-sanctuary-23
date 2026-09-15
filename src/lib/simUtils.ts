@@ -1,5 +1,5 @@
 // SIM Utility Functions - Tag Detection, Scoring, and Analysis
-import { diemTongHop } from "./phongThuy";
+import { diemTongHop, nguHanhCuaSo, type NguHanh } from "./phongThuy";
 
 export interface NormalizedSIM {
   id: string;
@@ -817,4 +817,17 @@ export const countTags = (sims: NormalizedSIM[]): Record<string, number> => {
   });
 
   return counts;
+};
+
+/**
+ * Đếm số lượng SIM theo NGŨ HÀNH CỦA SỐ (Hà Đồ — khớp badge hành trên chip),
+ * chỉ tính số có giá (price > 0). Đếm y hệt cách trang /sim-theo-menh thống kê,
+ * để con số trong ngoặc ở sidebar và số trên trang hub không bao giờ lệch nhau.
+ */
+export const countMenh = (sims: NormalizedSIM[]): Record<NguHanh, number> => {
+  const dem: Record<NguHanh, number> = { Kim: 0, Mộc: 0, Thủy: 0, Hỏa: 0, Thổ: 0 };
+  sims.forEach((sim) => {
+    if (sim.price > 0) dem[nguHanhCuaSo(sim.rawDigits).chinh]++;
+  });
+  return dem;
 };

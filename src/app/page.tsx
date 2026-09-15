@@ -5,7 +5,7 @@ import { buildSimItemListJsonLd } from "@/components/SimSnapshot";
 import { faqData } from "@/data/faqData";
 import { getServerSims } from "@/lib/serverSimData";
 import { filterSims } from "@/lib/simFilter";
-import { countTags, getUniquePrefixes, PRICE_RANGES } from "@/lib/simUtils";
+import { countTags, countMenh, getUniquePrefixes, PRICE_RANGES } from "@/lib/simUtils";
 import { DAU_SO_PREFIXES } from "@/lib/simTaxonomy";
 
 // Cụm "sim giá rẻ" thuộc /mua-sim-gia-re (chủ dự án chốt 29/08). Title trang chủ
@@ -116,6 +116,7 @@ export default async function HomePage() {
       prefixes: getUniquePrefixes(sims),
       networkCounts,
       priceCounts,
+      menhCounts: countMenh(sims),
     };
   })();
 
