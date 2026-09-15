@@ -221,3 +221,40 @@ vẫn cần thao tác này để **lấy được token thực tế**, vì Partn
   quyền, tránh vượt giới hạn "tối đa 10 ứng dụng" mà Partner Center đã cảnh báo.
 - Đây là dữ liệu tài chính thật (doanh thu) — validate kỹ trước khi hiển thị, không hiển thị số
   liệu sai lệch nếu API trả lỗi (hiện trạng thái lỗi rõ ràng thay vì số 0 gây hiểu lầm).
+
+---
+
+# PHẦN 3 — Checklist "đã submit Google Search Console" cho từng bài viết
+
+> Ghi bởi Claude. Task độc lập, không liên quan PHẦN 1/2. Ngày ghi: 2026-09-15.
+
+## 1. Vấn đề
+
+Số bài trong `blog_posts` đang tăng nhanh (bot tự đăng 2 lần/ngày). Chủ shop thủ công vào Google
+Search Console → URL Inspection → "Yêu cầu lập chỉ mục" (Request Indexing) cho từng bài mới để
+Google index nhanh hơn. Với hàng chục bài, không nhớ nổi bài nào đã làm bài nào chưa.
+
+## 2. Việc cần làm
+
+1. Migration Supabase (project `ADMIN_SUPABASE_URL`, cùng chỗ với `blog_posts`): thêm cột
+   `gsc_submitted boolean not null default false` và `gsc_submitted_at timestamptz` vào bảng
+   `blog_posts`.
+2. Trong `/admin/dashboard`, ở bảng "Bài viết" hiện có (component chứa danh sách bài, cạnh cột
+   Trạng thái/Cập nhật): thêm 1 cột mới **"Đã submit GSC"** — 1 checkbox mỗi dòng.
+   - Click checkbox → `PATCH` bản ghi đó trong `blog_posts`, set `gsc_submitted = true` (hoặc
+     false nếu bỏ tick) và `gsc_submitted_at = now()` khi tick.
+   - Mỗi dòng cũng hiển thị **link đầy đủ** của bài (`https://www.chonsomobifone.com/tin-tuc/{slug}`)
+     dưới dạng có thể bấm copy nhanh (nút icon copy cạnh link, hoặc bấm vào link để mở tab mới) —
+     mục đích để chủ shop dán thẳng vào ô "Kiểm tra URL" của Search Console mà không phải gõ tay.
+3. Sắp xếp mặc định: bài **chưa submit** (`gsc_submitted = false`) hiện lên **đầu danh sách** (dễ
+   thấy việc còn tồn đọng), có thể thêm bộ lọc nhỏ "Chỉ hiện chưa submit" / "Tất cả".
+4. Chỉ admin thấy được (đã có `RequireAdmin` bọc `/admin/dashboard` sẵn, không cần thêm gate mới).
+
+## 3. Ràng buộc
+
+- Đây chỉ là checkbox đánh dấu thủ công (chủ shop tự vào Search Console submit tay, rồi quay lại
+  tick) — KHÔNG cần tích hợp Google Search Console API thật ở bước này (không cần xin quyền OAuth
+  Google Search Console, không cần thêm biến môi trường Google nào). Nếu sau này muốn tự động hoá
+  việc gọi Google Indexing API để submit thẳng từ dashboard, đó là việc khác, ghi task riêng.
+- Không phá vỡ layout/chức năng hiện có của bảng "Bài viết" (sửa/xoá bài vẫn phải hoạt động y như
+  cũ, chỉ thêm cột mới).
