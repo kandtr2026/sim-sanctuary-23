@@ -41,7 +41,7 @@ const Footer = () => {
               </Link>
             </h3>
             <p className="text-header-foreground/70 text-sm leading-relaxed mb-4 break-words">
-              Chuyên SIM Mobifone số đẹp: phong thủy, tài lộc, tứ quý. Giá niêm yết công khai, sang tên chính chủ, 30 phút giao toàn quốc.
+              Chuyên SIM Mobifone số đẹp: phong thủy, tài lộc, tứ quý. Giá niêm yết công khai, đăng ký thông tin chính chủ, 30 phút giao toàn quốc.
             </p>
             <a href="tel:0933686666" className="inline-flex items-center gap-2 text-gold hover:text-gold-light transition-colors">
               <Phone className="w-4 h-4 flex-shrink-0" />

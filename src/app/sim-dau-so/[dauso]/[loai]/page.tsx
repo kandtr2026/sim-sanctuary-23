@@ -57,11 +57,11 @@ const variantFor = (dauso: string, loai: keyof typeof LOAI): number =>
 // (LOAI[loai].y) giữ nguyên.
 const INTRO_VARIANTS: ((dauso: string, label: string, y: string, fact: string) => string)[] = [
   (d, label, y, fact) =>
-    `Quý khách cần một số vừa đúng đầu ${d}, vừa đúng đuôi ${label}? Kho dưới đây đã lọc sẵn: ${y}. ${fact} Sang tên chính chủ, 30 phút giao toàn quốc.`,
+    `Quý khách cần một số vừa đúng đầu ${d}, vừa đúng đuôi ${label}? Kho dưới đây đã lọc sẵn: ${y}. ${fact} Đăng ký thông tin chính chủ, 30 phút giao toàn quốc.`,
   (d, label, y, fact) =>
     `Toàn bộ số đầu ${d} có đuôi ${label} đang có hàng được xếp cạnh nhau kèm giá, để Quý khách so trong một lần: ${y}. ${fact}`,
   (d, label, y, fact) =>
-    `Hai tiêu chí gộp một chỗ: đầu ${d} quen tay và đuôi ${label} — ${y}. ${fact} Mỗi số đều hiện giá công khai, sang tên chính chủ.`,
+    `Hai tiêu chí gộp một chỗ: đầu ${d} quen tay và đuôi ${label} — ${y}. ${fact} Mỗi số đều hiện giá công khai, đăng ký thông tin chính chủ.`,
   (d, label, y, fact) =>
     `Đội ngũ tư vấn đã tách riêng nhóm số đầu ${d} đuôi ${label} để Quý khách khỏi lọc thủ công: ${y}. ${fact} 30 phút giao toàn quốc.`,
 ];
@@ -117,7 +117,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       type: "website",
       title,
-      description: `Kho sim ${label} đầu số ${dauso} MobiFone, đuôi ${LOAI[loai].suffixes.slice(0, 2).join(" và ")}. Giá công khai, sang tên chính chủ.`,
+      description: `Kho sim ${label} đầu số ${dauso} MobiFone, đuôi ${LOAI[loai].suffixes.slice(0, 2).join(" và ")}. Giá công khai, đăng ký thông tin chính chủ.`,
       url: canonical,
       images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
     },
@@ -158,8 +158,8 @@ export default async function SimDauSoLoaiPage({ params }: Props) {
           : `Sim ${label} đầu số ${dauso} MobiFone trải từ vài trăm nghìn đến hàng chục triệu đồng, tùy độ đẹp của dãy số phía trước đuôi. Từng số đều hiện giá ngay trong kho để Quý khách so trước, không phát sinh chi phí khác.`,
     },
     {
-      q: `Mua sim ${label} đầu số ${dauso} có sang tên chính chủ được không?`,
-      a: `Được. Toàn bộ sim ${label} đầu số ${dauso} tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới trả tiền; chúng tôi hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.`,
+      q: `Mua sim ${label} đầu số ${dauso} có đăng ký thông tin chính chủ được không?`,
+      a: `Được. Toàn bộ sim ${label} đầu số ${dauso} tại CHONSOMOBIFONE.COM đều hỗ trợ đăng ký thông tin chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới trả tiền; chúng tôi hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.`,
     },
     {
       q: `Giao sim ${label} đầu số ${dauso} mất bao lâu?`,

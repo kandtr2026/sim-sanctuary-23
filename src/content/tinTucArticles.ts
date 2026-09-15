@@ -85,7 +85,7 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
     title: "Cách Kiểm Tra SIM Chính Chủ MobiFone & Chuẩn Hoá Thông Tin",
     h1: "Cách kiểm tra SIM MobiFone có chính chủ hay không",
     description:
-      "Hướng dẫn kiểm tra SIM MobiFone đang đứng tên ai bằng cú pháp TTTB gửi 1414, app My MobiFone; cách chuẩn hoá và sang tên khi thông tin chưa đúng.",
+      "Hướng dẫn kiểm tra SIM MobiFone đang đứng tên ai bằng cú pháp TTTB gửi 1414, app My MobiFone; cách chuẩn hoá và đăng ký thông tin chính chủ khi thông tin chưa đúng.",
     excerpt:
       "SIM không chính chủ có thể bị khoá bất cứ lúc nào và không thể dùng để xác thực ngân hàng. Đây là cách tự kiểm tra trong 30 giây và cách chuẩn hoá lại.",
     category: "Hướng dẫn MobiFone",
@@ -261,7 +261,7 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
     title: "Mua SIM Số Đẹp Ở Đâu Uy Tín? 8 Điều Cần Kiểm Tra",
     h1: "Mua SIM số đẹp ở đâu uy tín? 8 điều cần kiểm tra trước khi trả tiền",
     description:
-      "Checklist 8 bước kiểm tra một nơi bán SIM số đẹp: giá niêm yết, thông tin thuê bao, cam kết sang tên, cách nhận SIM, chính sách đổi trả và dấu hiệu lừa đảo.",
+      "Checklist 8 bước kiểm tra một nơi bán SIM số đẹp: giá niêm yết, thông tin thuê bao, cam kết đăng ký thông tin chính chủ, cách nhận SIM, chính sách đổi trả và dấu hiệu lừa đảo.",
     excerpt:
       "Không có giấy phép nào riêng cho nghề bán SIM số đẹp, nên người mua phải tự kiểm. Tám câu hỏi dưới đây lọc được phần lớn rủi ro.",
     category: "Kiến thức mua sim",

@@ -17,7 +17,7 @@ const TAG = "Tam hoa kép";
 
 const TITLE = "Sim Tam Hoa Kép Mobifone | Hai Cụm Ba Số Trong Dãy";
 const DESCRIPTION =
-  "Sim tam hoa kép Mobifone: hai cụm ba số giống nhau trong cùng dãy, kiểu 111.222 hay 999.777. Giá công khai từng số, hàng có sẵn, sang tên chính chủ.";
+  "Sim tam hoa kép Mobifone: hai cụm ba số giống nhau trong cùng dãy, kiểu 111.222 hay 999.777. Giá công khai từng số, hàng có sẵn, đăng ký thông tin chính chủ.";
 const CANONICAL = `${BASE_URL}/sim-tam-hoa-kep`;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -57,8 +57,8 @@ const faqItems = [
     a: "Người cần một dãy số vừa dễ đọc vừa nói được vị thế: chủ doanh nghiệp, người bán hàng giá trị cao, chủ showroom. Số dạng này đọc lên có nhịp, khách nghe một lần là ghi lại được, nên rất hợp làm số hotline in trên bảng hiệu.",
   },
   {
-    q: "Mua sim tam hoa kép có sang tên chính chủ được không?",
-    a: "Được, và với số ở tầm giá này thì đây là bước Quý khách nên làm ngay. Toàn bộ sim tại CHONSOMOBIFONE.COM đều sang tên chính chủ; Quý khách nhận SIM, kiểm tra rồi mới thanh toán. Thủ tục làm tại cửa hàng MobiFone hoặc trên ứng dụng My Mobifone.",
+    q: "Mua sim tam hoa kép có đăng ký thông tin chính chủ được không?",
+    a: "Được, và với số ở tầm giá này thì đây là bước Quý khách nên làm ngay. Toàn bộ sim tại CHONSOMOBIFONE.COM đều đăng ký thông tin chính chủ; Quý khách nhận SIM, kiểm tra rồi mới thanh toán. Thủ tục làm tại cửa hàng MobiFone hoặc trên ứng dụng My Mobifone.",
   },
 ];
 
@@ -102,7 +102,7 @@ export default async function SimTamHoaKepPage() {
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
               {stats.count > 0
-                ? `Nhóm số khan: cả kho còn ${stats.count.toLocaleString("vi-VN")} dãy có hai cụm ba số, giá từ ${formatTrieu(stats.min)}. Sang tên chính chủ, nhận SIM kiểm tra rồi thanh toán.`
+                ? `Nhóm số khan: cả kho còn ${stats.count.toLocaleString("vi-VN")} dãy có hai cụm ba số, giá từ ${formatTrieu(stats.min)}. Đăng ký thông tin chính chủ, nhận SIM kiểm tra rồi thanh toán.`
                 : "Nhóm số khan, kho đang trống tạm thời. Quý khách để lại yêu cầu qua Zalo để nhận tin khi có dãy mới."}
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">

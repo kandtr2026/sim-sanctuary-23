@@ -623,7 +623,7 @@ const CheckoutClient = () => {
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle className="w-4 h-4 mt-0.5 shrink-0 text-emerald-500" />
-                <span>Hỗ trợ sang tên chính chủ và trọn bộ hồ sơ.</span>
+                <span>Hỗ trợ đăng ký thông tin chính chủ và trọn bộ hồ sơ.</span>
               </li>
             </ul>
             <p className="text-sm text-muted-foreground">

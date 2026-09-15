@@ -30,7 +30,7 @@ const CALL_DISPLAY = "0933.686.666";
 
 const TITLE = "Tra cứu sim: ý nghĩa & giá số điện thoại | CHONSOMOBIFONE.COM";
 const DESCRIPTION =
-  "Nhập số điện thoại để tra ngay ý nghĩa (thần tài, lộc phát, tứ quý, năm sinh…), nhà mạng và giá bán nếu số còn trong kho. Sang tên chính chủ, giao 30 phút.";
+  "Nhập số điện thoại để tra ngay ý nghĩa (thần tài, lộc phát, tứ quý, năm sinh…), nhà mạng và giá bán nếu số còn trong kho. Đăng ký thông tin chính chủ, giao 30 phút.";
 
 type Props = { searchParams: Promise<{ so?: string }> };
 
@@ -79,7 +79,7 @@ const faqItems = [
   },
   {
     q: "Số đẹp có giữ được không?",
-    a: "Có. Quý khách nhắn Zalo hoặc gọi " + CALL_DISPLAY + " để giữ số; đội ngũ xác nhận còn hàng và báo giá chính xác. Nhận SIM kiểm tra rồi mới thanh toán, sang tên chính chủ.",
+    a: "Có. Quý khách nhắn Zalo hoặc gọi " + CALL_DISPLAY + " để giữ số; đội ngũ xác nhận còn hàng và báo giá chính xác. Nhận SIM kiểm tra rồi mới thanh toán, đăng ký thông tin chính chủ.",
   },
 ];
 

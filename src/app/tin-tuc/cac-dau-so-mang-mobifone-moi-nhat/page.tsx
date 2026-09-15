@@ -99,7 +99,7 @@ export default function TinTucBai6Page() {
               <Link href="/" className="text-gold hover:underline font-semibold">
                 kho sim Mobifone đang có
               </Link>{" "}
-              tại CHONSOMOBIFONE.COM: giá niêm yết công khai, giao hàng toàn quốc và hỗ trợ sang tên chính chủ.
+              tại CHONSOMOBIFONE.COM: giá niêm yết công khai, giao hàng toàn quốc và hỗ trợ đăng ký thông tin chính chủ.
             </p>
           </div>
         </article>

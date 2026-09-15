@@ -46,7 +46,7 @@ const PREFIX_INFO: Record<string, string> = {
 
 const describePrefix = (prefix: string): string =>
   PREFIX_INFO[prefix] ??
-  `Kho sim đầu số ${prefix} Mobifone — số đẹp giá tốt, sang tên chính chủ, giao toàn quốc.`;
+  `Kho sim đầu số ${prefix} Mobifone — số đẹp giá tốt, đăng ký thông tin chính chủ, giao toàn quốc.`;
 
 const CATEGORY_LINKS: { href: string; label: string }[] = [
   { href: "/sim-than-tai", label: "Sim thần tài" },
@@ -91,7 +91,7 @@ export default async function SimDauSoHubPage() {
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
               Quý khách chọn đầu số quen tay nhất — mỗi đầu số là một kho riêng: tứ quý, thần tài,
-              lộc phát, phong thủy. Giá niêm yết công khai, sang tên chính chủ.
+              lộc phát, phong thủy. Giá niêm yết công khai, đăng ký thông tin chính chủ.
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a

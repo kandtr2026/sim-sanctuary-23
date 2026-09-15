@@ -58,7 +58,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       type: "website",
       title: meta.title,
-      description: `Sim hợp mệnh ${hanh} Mobifone — số thật trong kho, giá niêm yết công khai, sang tên chính chủ.`,
+      description: `Sim hợp mệnh ${hanh} Mobifone — số thật trong kho, giá niêm yết công khai, đăng ký thông tin chính chủ.`,
       url: canonical,
       images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
     },
@@ -93,8 +93,8 @@ const buildFaq = (hanh: NguHanh) => {
       a: `Bản mệnh suy từ Thiên Can – Địa Chi của năm sinh theo bảng 60 hoa giáp, nên chỉ cần năm sinh là tra được. Quý khách xem danh sách năm sinh thuộc mệnh ${hanh} ngay trong trang này, hoặc dùng công cụ xem sim hợp tuổi để tra bằng ngày sinh đầy đủ.`,
     },
     {
-      q: `Mua sim hợp mệnh ${hanh} có sang tên chính chủ được không?`,
-      a: `Được. Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Quý khách nhận SIM, kiểm tra đúng số đã chọn rồi mới trả tiền. 30 phút giao toàn quốc.`,
+      q: `Mua sim hợp mệnh ${hanh} có đăng ký thông tin chính chủ được không?`,
+      a: `Được. Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ đăng ký thông tin chính chủ. Quý khách nhận SIM, kiểm tra đúng số đã chọn rồi mới trả tiền. 30 phút giao toàn quốc.`,
     },
   ];
 };

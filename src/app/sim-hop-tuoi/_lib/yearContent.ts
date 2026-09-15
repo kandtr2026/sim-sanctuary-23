@@ -106,7 +106,7 @@ export const buildDescription = (info: YearInfo): string => {
     case 0:
       return `Sim hợp tuổi ${nam} (${canChi}), nạp âm ${napAm}, mệnh ${menh}. Nên ưu tiên số ${soUuTien}, tránh ${soNenTranh} theo quan niệm dân gian. Kho Mobifone thật, giá công khai.`;
     case 1:
-      return `Sim hợp tuổi ${nam} còn trong kho Mobifone: người ${canChi} mệnh ${menh} được cho là hợp số ${soUuTien}. Mỗi số kèm điểm phong thủy và giá bán, sang tên chính chủ.`;
+      return `Sim hợp tuổi ${nam} còn trong kho Mobifone: người ${canChi} mệnh ${menh} được cho là hợp số ${soUuTien}. Mỗi số kèm điểm phong thủy và giá bán, đăng ký thông tin chính chủ.`;
     case 2:
       return `Quý khách sinh năm ${nam}, cầm tinh con ${conGiap}, mệnh ${menh} (${napAm}) xem số hợp tuổi có sẵn: điểm ngũ hành, tổng nút và quẻ dịch cạnh từng số, giá rõ.`;
     default:

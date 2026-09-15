@@ -10,7 +10,7 @@ const ZALO_URL = 'https://zalo.me/0933686666';
 
 const TITLE = "Mua Sim Tứ Quý | Kho Sim Tứ Quý Đẹp Toàn Quốc";
 const DESCRIPTION =
-  "Kho sim tứ quý 1111, 6666, 8888, 9999 của CHONSOMOBIFONE.COM, giá niêm yết công khai. Quý khách chọn số, nhận sim rồi mới trả tiền, sang tên chính chủ.";
+  "Kho sim tứ quý 1111, 6666, 8888, 9999 của CHONSOMOBIFONE.COM, giá niêm yết công khai. Quý khách chọn số, nhận sim rồi mới trả tiền, đăng ký thông tin chính chủ.";
 const CANONICAL = "https://www.chonsomobifone.com/mua-sim-tu-quy";
 
 // ISR: match the 5-minute cache window Back uses for the live SIM catalogue, so
@@ -38,8 +38,8 @@ export const metadata: Metadata = {
 
 const faqItems = [
 { q: 'Sim tứ quý giá bao nhiêu?', a: 'Giá sim tứ quý trải rộng từ vài trăm nghìn đến hàng trăm triệu đồng, tùy số quý (1111, 8888, 9999...), đầu số và nhà mạng. Tứ quý 8 và tứ quý 9 thường nằm ở nhóm giá cao nhất do ý nghĩa phong thủy đặc biệt. Từng số trong kho đều có giá niêm yết công khai để Quý khách so sánh trước khi đặt.' },
-{ q: 'Mua sim tứ quý ở đâu uy tín?', a: 'CHONSOMOBIFONE.COM có kho tứ quý lớn, giá niêm yết công khai, hỗ trợ sang tên chính chủ và giao sim toàn quốc. Quý khách nhận sim, kiểm tra đúng số rồi mới trả tiền. Mọi giao dịch đều có hóa đơn đầy đủ.' },
-{ q: 'Sim tứ quý có sang tên được không?', a: 'Được. Toàn bộ sim tứ quý tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ miễn phí. Quý khách mang CMND/CCCD đến cửa hàng nhà mạng gần nhất, hoặc đăng ký ngay trên ứng dụng My Mobifone.' },
+{ q: 'Mua sim tứ quý ở đâu uy tín?', a: 'CHONSOMOBIFONE.COM có kho tứ quý lớn, giá niêm yết công khai, hỗ trợ đăng ký thông tin chính chủ và giao sim toàn quốc. Quý khách nhận sim, kiểm tra đúng số rồi mới trả tiền. Mọi giao dịch đều có hóa đơn đầy đủ.' },
+{ q: 'Sim tứ quý có đăng ký thông tin chính chủ được không?', a: 'Được. Toàn bộ sim tứ quý tại CHONSOMOBIFONE.COM đều hỗ trợ đăng ký thông tin chính chủ miễn phí. Quý khách mang CMND/CCCD đến cửa hàng nhà mạng gần nhất, hoặc đăng ký ngay trên ứng dụng My Mobifone.' },
 { q: 'Sim tứ quý nhà mạng nào tốt nhất?', a: 'Mỗi nhà mạng mạnh ở một điểm. Mobifone nổi bật về chất lượng cuộc gọi và data 4G/5G. Viettel có vùng phủ sóng rộng. Vinaphone ổn định với người dùng lâu năm. Quan trọng hơn cả vẫn là chọn dãy số hợp mệnh và hợp tuổi của Quý khách.' },
 { q: 'Sim tứ quý có hợp phong thủy không?', a: 'Một chữ số lặp lại bốn lần tạo nên nguồn năng lượng tập trung, nên tứ quý được xem là dòng sim đậm ý nghĩa phong thủy. Mỗi số một hàm ý: 1111 khởi đầu, 6666 lộc lá, 8888 phát tài, 9999 quyền lực. Đội ngũ tư vấn có thể đối chiếu mệnh và tuổi cùng Quý khách trước khi chốt số.' },
 { q: 'Giao sim tứ quý mất bao lâu?', a: '30 phút giao toàn quốc. Quý khách nhận SIM, kiểm tra rồi mới thanh toán (COD).' }];
@@ -115,7 +115,7 @@ const fengShuiTable = [
 const benefits = [
 { icon: Star, text: 'Kho sim tứ quý cập nhật mỗi ngày' },
 { icon: Shield, text: 'Giao dịch minh bạch, thông tin bảo mật' },
-{ icon: CheckCircle, text: 'Sang tên chính chủ miễn phí' },
+{ icon: CheckCircle, text: 'Đăng ký thông tin chính chủ miễn phí' },
 { icon: DollarSign, text: 'Giá niêm yết công khai từng số' },
 { icon: Truck, text: 'Giao sim toàn quốc, nhận sim rồi trả tiền' },
 { icon: Users, text: 'Đội ngũ tư vấn trực 24/7' }];
@@ -151,7 +151,7 @@ export default async function MuaSimTuQuyPage() {
 
             {/* Description */}
             <p className="text-primary-foreground/80 text-sm md:text-base leading-relaxed max-w-xl mx-auto mb-4">
-              Hàng nghìn dãy tứ quý, giá của từng số hiện sẵn trên kho. Quý khách kiểm tra đúng số rồi mới trả tiền, có hỗ trợ sang tên chính chủ và giao sim toàn quốc.
+              Hàng nghìn dãy tứ quý, giá của từng số hiện sẵn trên kho. Quý khách kiểm tra đúng số rồi mới trả tiền, có hỗ trợ đăng ký thông tin chính chủ và giao sim toàn quốc.
             </p>
 
             {/* CTA buttons */}

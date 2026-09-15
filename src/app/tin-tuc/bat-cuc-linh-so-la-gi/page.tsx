@@ -290,7 +290,7 @@ export default function BatCucLinhSoPage() {
         </li>
         <li>
           <strong>Số thật quan trọng hơn điểm số.</strong> Trước khi trả tiền, hãy kiểm tra SIM
-          có hoạt động, có sang tên chính chủ được hay không — xem{" "}
+          có hoạt động, có đăng ký thông tin chính chủ được hay không — xem{" "}
           <Link href="/tin-tuc/mua-sim-so-dep-o-dau-uy-tin">8 điều cần kiểm tra</Link>.
         </li>
       </ul>

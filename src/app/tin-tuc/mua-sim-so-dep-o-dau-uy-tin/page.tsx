@@ -20,9 +20,9 @@ const CHECKLIST: [string, string, string][] = [
     "Không trả lời được câu này thì rất có thể họ cũng chỉ là người trung gian.",
   ],
   [
-    "3. Có cam kết sang tên chính chủ không?",
-    "Phải nói rõ sang tên ở đâu (cửa hàng nhà mạng hay app), ai chịu chi phí.",
-    "SIM không sang tên được sẽ không dùng để xác thực ngân hàng, ví điện tử.",
+    "3. Có cam kết đăng ký thông tin chính chủ không?",
+    "Phải nói rõ đăng ký thông tin chính chủ ở đâu (cửa hàng nhà mạng hay app), ai chịu chi phí.",
+    "SIM không đăng ký thông tin chính chủ được sẽ không dùng để xác thực ngân hàng, ví điện tử.",
   ],
   [
     "4. Nhận SIM trước rồi trả tiền được không?",
@@ -54,7 +54,7 @@ const CHECKLIST: [string, string, string][] = [
 const RED_FLAGS: [string, string][] = [
   [
     "Giá thấp hơn hẳn mặt bằng cùng dòng",
-    "Tứ quý 8888 đầu số cổ chào giá vài triệu là điều không xảy ra trên thị trường thật. Giá quá tốt thường đi kèm SIM không sang tên được, đang cầm cố, hoặc đơn giản là không tồn tại.",
+    "Tứ quý 8888 đầu số cổ chào giá vài triệu là điều không xảy ra trên thị trường thật. Giá quá tốt thường đi kèm SIM không đăng ký thông tin chính chủ được, đang cầm cố, hoặc đơn giản là không tồn tại.",
   ],
   [
     "Đòi đặt cọc để \"giữ số\"",
@@ -77,15 +77,15 @@ const RED_FLAGS: [string, string][] = [
 const faq: FaqItem[] = [
   {
     q: "Mua SIM số đẹp ở đâu uy tín?",
-    a: "Không có giấy phép riêng cho nghề bán SIM số đẹp, nên thay vì tìm một cái tên, hãy kiểm tra tám điều: giá niêm yết công khai, thông tin thuê bao rõ ràng, cam kết sang tên chính chủ, nhận SIM trước khi trả tiền, chính sách đổi hoàn, pháp nhân và hotline thật, tên chủ tài khoản nhận tiền khớp người bán, và không bị thúc chốt gấp.",
+    a: "Không có giấy phép riêng cho nghề bán SIM số đẹp, nên thay vì tìm một cái tên, hãy kiểm tra tám điều: giá niêm yết công khai, thông tin thuê bao rõ ràng, cam kết đăng ký thông tin chính chủ, nhận SIM trước khi trả tiền, chính sách đổi hoàn, pháp nhân và hotline thật, tên chủ tài khoản nhận tiền khớp người bán, và không bị thúc chốt gấp.",
   },
   {
     q: "Mua SIM online có an toàn không?",
     a: "An toàn khi giữ được một nguyên tắc: nhận SIM và kiểm tra trước khi thanh toán. Rủi ro không nằm ở việc mua online mà nằm ở việc chuyển toàn bộ tiền trước khi thấy SIM.",
   },
   {
-    q: "Làm sao biết SIM có sang tên chính chủ được không?",
-    a: "Hỏi người bán SIM đang đứng tên ai và có kèm giấy tờ chuyển nhượng không. Sau khi nhận SIM, Quý khách có thể tự kiểm tra thông tin thuê bao rồi tiến hành cập nhật sang tên chính chủ. Cách kiểm tra có trong bài hướng dẫn kiểm tra SIM chính chủ MobiFone trên site.",
+    q: "Làm sao biết SIM có đăng ký thông tin chính chủ được không?",
+    a: "Hỏi người bán SIM đang đứng tên ai và có kèm giấy tờ chuyển nhượng không. Sau khi nhận SIM, Quý khách có thể tự kiểm tra thông tin thuê bao rồi tiến hành cập nhật đăng ký thông tin chính chủ. Cách kiểm tra có trong bài hướng dẫn kiểm tra SIM chính chủ MobiFone trên site.",
   },
   {
     q: "Có nên đặt cọc giữ số không?",
@@ -97,7 +97,7 @@ const faq: FaqItem[] = [
   },
   {
     q: "SIM đã dùng rồi có mua được không?",
-    a: "Được, và phần lớn SIM số đẹp trên thị trường đều là SIM đã hoà mạng trước đó. Điều cần kiểm là SIM còn hoạt động, không nợ cước, không ràng buộc gói cam kết, và chuyển được quyền sử dụng sang tên người mua.",
+    a: "Được, và phần lớn SIM số đẹp trên thị trường đều là SIM đã hoà mạng trước đó. Điều cần kiểm là SIM còn hoạt động, không nợ cước, không ràng buộc gói cam kết, và chuyển được quyền sử dụng đăng ký thông tin chính chủ người mua.",
   },
 ];
 
@@ -131,7 +131,7 @@ export default function MuaSimOdauUyTinPage() {
             người mua.
           </>,
           <>
-            Hỏi rõ <strong>SIM đang đứng tên ai</strong> và có sang tên chính chủ được không.
+            Hỏi rõ <strong>SIM đang đứng tên ai</strong> và có đăng ký thông tin chính chủ được không.
           </>,
           <>
             Tên <strong>chủ tài khoản nhận tiền</strong> phải khớp người bán; khác tên là dấu hiệu
@@ -187,7 +187,7 @@ export default function MuaSimOdauUyTinPage() {
         rows={[
           [
             "Cửa hàng của nhà mạng",
-            "Chắc chắn về pháp lý, sang tên tại quầy",
+            "Chắc chắn về pháp lý, đăng ký thông tin chính chủ tại quầy",
             "Kho số đẹp hạn chế, ít dòng tứ quý, ngũ quý; giá cố định không thương lượng",
           ],
           [
@@ -216,7 +216,7 @@ export default function MuaSimOdauUyTinPage() {
           tên chủ tài khoản nhận tiền.
         </li>
         <li>
-          <strong>Thống nhất bằng chữ.</strong> Giá cuối, ai chịu phí sang tên, thời gian giao, điều
+          <strong>Thống nhất bằng chữ.</strong> Giá cuối, ai chịu phí đăng ký thông tin chính chủ, thời gian giao, điều
           kiện đổi hoàn — nhắn lại một tin tóm tắt để hai bên cùng xác nhận.
         </li>
         <li>
@@ -224,7 +224,7 @@ export default function MuaSimOdauUyTinPage() {
           thông tin thuê bao rồi mới thanh toán.
         </li>
         <li>
-          <strong>Sang tên ngay.</strong> Đừng để việc này &ldquo;làm sau&rdquo; — hướng dẫn ở bài{" "}
+          <strong>Đăng ký thông tin chính chủ ngay.</strong> Đừng để việc này &ldquo;làm sau&rdquo; — hướng dẫn ở bài{" "}
           <Link href="/tin-tuc/kiem-tra-sim-chinh-chu-mobifone">
             kiểm tra và chuẩn hoá SIM chính chủ MobiFone
           </Link>

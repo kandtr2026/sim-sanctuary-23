@@ -19,7 +19,7 @@ const TAG = "Tam hoa";
 
 const TITLE = "Sim Tam Hoa Mobifone | Ba Số Cuối Giống Nhau, Giá Rõ";
 const DESCRIPTION =
-  "Kho sim tam hoa Mobifone với ba số cuối giống nhau: 222, 555, 888. Quý khách xem giá niêm yết ngay cạnh từng số, sang tên chính chủ, giao tận nơi HCM.";
+  "Kho sim tam hoa Mobifone với ba số cuối giống nhau: 222, 555, 888. Quý khách xem giá niêm yết ngay cạnh từng số, đăng ký thông tin chính chủ, giao tận nơi HCM.";
 const CANONICAL = `${BASE_URL}/sim-tam-hoa`;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -36,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       title: TITLE,
-      description: "Sim tam hoa Mobifone — ba số cuối giống nhau. Giá công khai, sang tên chính chủ.",
+      description: "Sim tam hoa Mobifone — ba số cuối giống nhau. Giá công khai, đăng ký thông tin chính chủ.",
       url: CANONICAL,
       images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
     },
@@ -61,8 +61,8 @@ const faqItems = [
     a: "Tam hoa là ba số cuối giống nhau, tứ quý là bốn. Hơn một chữ số nhưng độ khan chênh nhiều, nên tứ quý thường đắt hơn tam hoa cùng đầu số vài lần. Anh Chị cần một dãy dễ nhớ ở tầm giá vừa phải thì tam hoa là bậc hợp lý nhất trong nhóm số lặp.",
   },
   {
-    q: "Mua sim tam hoa có sang tên chính chủ được không?",
-    a: "Được. Toàn bộ sim tại CHONSOMOBIFONE.COM đều sang tên chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới thanh toán; thủ tục chính chủ làm tại cửa hàng MobiFone hoặc trên ứng dụng My Mobifone.",
+    q: "Mua sim tam hoa có đăng ký thông tin chính chủ được không?",
+    a: "Được. Toàn bộ sim tại CHONSOMOBIFONE.COM đều đăng ký thông tin chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới thanh toán; thủ tục chính chủ làm tại cửa hàng MobiFone hoặc trên ứng dụng My Mobifone.",
   },
   {
     q: "Giao sim tam hoa mất bao lâu?",
@@ -110,7 +110,7 @@ export default async function SimTamHoaPage() {
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
               {stats.count > 0
-                ? `Kho đang còn ${stats.count.toLocaleString("vi-VN")} số tam hoa, giá từ ${formatTrieu(stats.min)}. Giá hiện sẵn cạnh từng số, sang tên chính chủ.`
+                ? `Kho đang còn ${stats.count.toLocaleString("vi-VN")} số tam hoa, giá từ ${formatTrieu(stats.min)}. Giá hiện sẵn cạnh từng số, đăng ký thông tin chính chủ.`
                 : "Kho tam hoa đang cập nhật. Quý khách nhắn Zalo để đội ngũ tư vấn báo số vừa về."}
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">

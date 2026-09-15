@@ -140,7 +140,7 @@ export default function KiemTraSoMobifonePage() {
 
       <Note tone="tip" title="Vì sao nên dùng cách này khi vừa mua SIM">
         Tin trả về cho biết SIM đang đứng tên ai. Với SIM số đẹp mới mua, đây là bước kiểm tra đầu
-        tiên nên làm — nếu tên trong tin không phải tên Quý khách thì việc sang tên chính chủ vẫn
+        tiên nên làm — nếu tên trong tin không phải tên Quý khách thì việc đăng ký thông tin chính chủ vẫn
         chưa hoàn tất. Chi tiết ở bài{" "}
         <Link href="/tin-tuc/kiem-tra-sim-chinh-chu-mobifone">
           kiểm tra SIM chính chủ MobiFone

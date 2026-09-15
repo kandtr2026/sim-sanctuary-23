@@ -118,7 +118,7 @@ const FACTORS: [string, string][] = [
   ],
   [
     "Nguồn gốc và tình trạng SIM",
-    "SIM còn nguyên, sang tên chính chủ được luôn có giá cao hơn SIM ràng buộc gói cam kết hoặc chưa rõ tình trạng.",
+    "SIM còn nguyên, đăng ký thông tin chính chủ được luôn có giá cao hơn SIM ràng buộc gói cam kết hoặc chưa rõ tình trạng.",
   ],
 ];
 
@@ -310,7 +310,7 @@ export default async function GiaSimSoDepPage() {
       </ol>
 
       <Note tone="warn" title="Giá rẻ bất thường là dấu hiệu cần dừng lại">
-        Một số được chào thấp hơn hẳn mặt bằng cùng dòng thường có lý do: SIM chưa sang tên được,
+        Một số được chào thấp hơn hẳn mặt bằng cùng dòng thường có lý do: SIM chưa đăng ký thông tin chính chủ được,
         đang ràng buộc gói cam kết, hoặc người bán không giữ số. Trước khi chuyển tiền, đọc{" "}
         <Link href="/tin-tuc/mua-sim-so-dep-o-dau-uy-tin">8 điều cần kiểm tra</Link> và{" "}
         <Link href="/tin-tuc/cach-tranh-mat-tien-oan-khi-mua-sim-so-dep">

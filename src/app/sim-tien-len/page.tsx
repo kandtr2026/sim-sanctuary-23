@@ -102,7 +102,7 @@ export default async function SimTienLenPage() {
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
               {stats.count > 0
-                ? `Bốn số cuối tăng từng bước, đọc một hơi là hết. Kho còn ${stats.count.toLocaleString("vi-VN")} số, giá từ ${formatTrieu(stats.min)}, sang tên chính chủ.`
+                ? `Bốn số cuối tăng từng bước, đọc một hơi là hết. Kho còn ${stats.count.toLocaleString("vi-VN")} số, giá từ ${formatTrieu(stats.min)}, đăng ký thông tin chính chủ.`
                 : "Bốn số cuối tăng từng bước, đọc một hơi là hết. Nhóm ít hàng — Quý khách nhắn Zalo để nhận tin khi có số về."}
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">

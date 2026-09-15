@@ -33,7 +33,7 @@ export const POLICY_DOCS: Record<string, PolicyDoc> = {
         type: "ul",
         items: [
           "Họ tên, số điện thoại và địa chỉ nhận SIM — dùng để xác nhận và giao đơn hàng.",
-          "Thông tin trên CCCD/CMND — chỉ thu thập khi Quý khách yêu cầu sang tên chính chủ, theo quy định của nhà mạng.",
+          "Thông tin trên CCCD/CMND — chỉ thu thập khi Quý khách yêu cầu đăng ký thông tin chính chủ, theo quy định của nhà mạng.",
           "Số SIM Quý khách quan tâm hoặc đã đặt mua.",
           "Dữ liệu truy cập ẩn danh (trang đã xem, thiết bị, nguồn truy cập) thông qua Google Analytics và Google Tag Manager.",
         ],
@@ -92,7 +92,7 @@ export const POLICY_DOCS: Record<string, PolicyDoc> = {
       {
         type: "ul",
         items: [
-          "Giá niêm yết trên website là giá bán SIM, đã bao gồm phí sang tên chính chủ, chưa bao gồm phí hòa mạng hoặc gói cước theo yêu cầu riêng.",
+          "Giá niêm yết trên website là giá bán SIM, đã bao gồm phí đăng ký thông tin chính chủ, chưa bao gồm phí hòa mạng hoặc gói cước theo yêu cầu riêng.",
         ],
       },
       { type: "h2", text: "2. Đặt hàng và xác nhận" },
@@ -114,7 +114,7 @@ export const POLICY_DOCS: Record<string, PolicyDoc> = {
         type: "ul",
         items: [
           "Cung cấp SIM đúng số, đúng nhà mạng và đúng giá đã xác nhận.",
-          "Hỗ trợ thủ tục sang tên chính chủ theo quy định của nhà mạng.",
+          "Hỗ trợ thủ tục đăng ký thông tin chính chủ theo quy định của nhà mạng.",
           "Bảo mật thông tin khách hàng theo Chính sách bảo mật.",
         ],
       },

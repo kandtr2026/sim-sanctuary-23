@@ -53,7 +53,7 @@ export const BAND_COPY: Record<string, BandCopy> = {
   "1-3-trieu": {
     title: "Sim Mobifone Giá 1–3 Triệu | Số Đẹp Vừa Tầm",
     description:
-      "Kho sim Mobifone giá 1 đến 3 triệu: dải đông hàng nhất, đủ đuôi thần tài, lộc phát, gánh đảo. Quý khách so giá từng số rồi chốt, sang tên chính chủ.",
+      "Kho sim Mobifone giá 1 đến 3 triệu: dải đông hàng nhất, đủ đuôi thần tài, lộc phát, gánh đảo. Quý khách so giá từng số rồi chốt, đăng ký thông tin chính chủ.",
     ogDescription: "Sim Mobifone 1–3 triệu: dải đông hàng nhất kho, giá niêm yết công khai từng số.",
     heroLead: "Tầm giá có nhiều lựa chọn nhất, đủ đuôi tài lộc và số cân đối.",
     intro: {
@@ -93,8 +93,8 @@ export const BAND_COPY: Record<string, BandCopy> = {
         a: "Tam hoa thì có, tập trung ở các cụm 000, 111 trên đầu số 07x. Tứ quý gần như không xuất hiện dưới 3 triệu vì nguồn hàng quá khan; Quý khách muốn tứ quý nên xem dải 10–50 triệu.",
       },
       {
-        q: "Mua sim ở dải này có được sang tên chính chủ?",
-        a: "Được, chính sách áp dụng cho mọi mức giá. Quý khách nhận SIM, kiểm tra rồi mới thanh toán; thủ tục sang tên làm tại cửa hàng MobiFone hoặc trên ứng dụng My Mobifone.",
+        q: "Mua sim ở dải này có được đăng ký thông tin chính chủ?",
+        a: "Được, chính sách áp dụng cho mọi mức giá. Quý khách nhận SIM, kiểm tra rồi mới thanh toán; thủ tục đăng ký thông tin chính chủ làm tại cửa hàng MobiFone hoặc trên ứng dụng My Mobifone.",
       },
       {
         q: "Ngân sách của Quý khách dưới 1 triệu thì xem đâu?",
@@ -157,7 +157,7 @@ export const BAND_COPY: Record<string, BandCopy> = {
   "5-10-trieu": {
     title: "Sim Mobifone Giá 5–10 Triệu | Số Đẹp Đầu 090, 093",
     description:
-      "Sim Mobifone giá 5 đến 10 triệu: nhiều dãy đầu 090, 093 và đuôi tam hoa. Mức giá Anh Chị mua số dùng lâu dài. Giá công khai, sang tên chính chủ.",
+      "Sim Mobifone giá 5 đến 10 triệu: nhiều dãy đầu 090, 093 và đuôi tam hoa. Mức giá Anh Chị mua số dùng lâu dài. Giá công khai, đăng ký thông tin chính chủ.",
     ogDescription: "Sim Mobifone 5–10 triệu: nhiều dãy đầu 090, 093, đuôi tam hoa. Giá công khai.",
     heroLead: "Kho hẹp lại, và đây là lúc đầu số cùng cấu trúc dãy quyết định giá.",
     intro: {
@@ -201,7 +201,7 @@ export const BAND_COPY: Record<string, BandCopy> = {
       },
       {
         q: "Mua ở tầm này có cần hợp đồng không?",
-        a: "Quý khách nhận SIM, kiểm tra thông tin và thử số trước khi thanh toán; đội ngũ xuất phiếu bán kèm hỗ trợ sang tên chính chủ. Với số trên 10 triệu, chúng tôi làm thêm biên nhận chi tiết cho Quý khách.",
+        a: "Quý khách nhận SIM, kiểm tra thông tin và thử số trước khi thanh toán; đội ngũ xuất phiếu bán kèm hỗ trợ đăng ký thông tin chính chủ. Với số trên 10 triệu, chúng tôi làm thêm biên nhận chi tiết cho Quý khách.",
       },
       {
         q: "Số đã bán có còn hiện trên trang không?",
@@ -212,15 +212,15 @@ export const BAND_COPY: Record<string, BandCopy> = {
   "10-50-trieu": {
     title: "Sim Mobifone Giá 10–50 Triệu | Số Đẹp Cao Cấp",
     description:
-      "Sim Mobifone giá 10 đến 50 triệu: tứ quý, tam hoa kép, taxi và đuôi thần tài hiếm. Hàng có sẵn, sang tên chính chủ, giao trực tiếp tại TP.HCM.",
-    ogDescription: "Sim Mobifone 10–50 triệu: tứ quý, tam hoa kép, taxi. Sang tên chính chủ, giao tại TP.HCM.",
+      "Sim Mobifone giá 10 đến 50 triệu: tứ quý, tam hoa kép, taxi và đuôi thần tài hiếm. Hàng có sẵn, đăng ký thông tin chính chủ, giao trực tiếp tại TP.HCM.",
+    ogDescription: "Sim Mobifone 10–50 triệu: tứ quý, tam hoa kép, taxi. Đăng ký thông tin chính chủ, giao tại TP.HCM.",
     heroLead: "Tầm giá của tứ quý, tam hoa kép và những cụm số khan hàng.",
     intro: {
       heading: "Ở tầm này, khách mua số theo cách khác",
       paragraphs: [
         "Khách đặt số trên 10 triệu thường không hỏi “còn số nào đẹp không” mà hỏi đúng một cấu trúc: tứ quý 8, tam hoa kép cụm 9, taxi 68. Số ở đây được chọn như chọn một vật giữ lâu, nên tiêu chí rất rõ ràng ngay từ đầu.",
         "Kho ở dải này mỏng theo đúng nghĩa: mỗi cấu trúc thường chỉ có vài dãy, có cấu trúc chỉ còn một. Đội ngũ tư vấn vì thế làm việc theo yêu cầu cụ thể — Quý khách nói cấu trúc muốn, chúng tôi báo đúng những dãy đang còn.",
-        "Ba việc nên làm trước khi chuyển tiền cho một số ở tầm này: xem thông tin thuê bao trên ứng dụng My Mobifone, xác nhận sim chưa bị khóa hai chiều, và làm sang tên chính chủ ngay trong ngày nhận.",
+        "Ba việc nên làm trước khi chuyển tiền cho một số ở tầm này: xem thông tin thuê bao trên ứng dụng My Mobifone, xác nhận sim chưa bị khóa hai chiều, và làm đăng ký thông tin chính chủ ngay trong ngày nhận.",
       ],
     },
     guide: {
@@ -236,7 +236,7 @@ export const BAND_COPY: Record<string, BandCopy> = {
           body: "Gọi ra một số khác và nhận lại một tin nhắn. Bước này loại được trường hợp sim đang bị hạn chế dịch vụ.",
         },
         {
-          title: "Sang tên chính chủ trong ngày",
+          title: "Đăng ký thông tin chính chủ trong ngày",
           body: "Đăng ký thông tin của Quý khách ngay khi nhận SIM. Đây là cơ sở để giữ số nếu sau này mất SIM hoặc cần khôi phục.",
         },
         {

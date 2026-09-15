@@ -14,7 +14,7 @@ const ZALO_URL = "https://zalo.me/0933686666";
 
 const TITLE = "Sim Ngũ Quý 88888 99999 | Kho Sim Ngũ Quý Mobifone";
 const DESCRIPTION =
-  "Sim ngũ quý Mobifone 88888, 99999 và lục quý — nhóm số khan hiếm. Giá niêm yết công khai, sang tên chính chủ, Quý khách nhận SIM kiểm tra rồi mới thanh toán.";
+  "Sim ngũ quý Mobifone 88888, 99999 và lục quý — nhóm số khan hiếm. Giá niêm yết công khai, đăng ký thông tin chính chủ, Quý khách nhận SIM kiểm tra rồi mới thanh toán.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-ngu-quy";
 
 export const metadata: Metadata = {
@@ -40,8 +40,8 @@ const faqItems = [
     a: "Từ vài chục triệu đến hàng trăm triệu đồng. Mức giá đến từ con số được lặp (ngũ quý 8 và ngũ quý 9 đắt nhất), đầu số và vị trí cụm năm số trong dãy. Mỗi số hiện giá niêm yết ngay trên kho, Quý khách xem trước rồi mới đặt.",
   },
   {
-    q: "Sim ngũ quý có sang tên chính chủ được không?",
-    a: "Được — và với số giá trị cao thì đây là bước không thể bỏ qua. Ngũ quý, lục quý tại CHONSOMOBIFONE.COM đều sang tên chính chủ. Quý khách kiểm tra SIM trên tay trước, thanh toán sau; thủ tục chính chủ làm tại cửa hàng MobiFone hoặc trên ứng dụng My Mobifone.",
+    q: "Sim ngũ quý có đăng ký thông tin chính chủ được không?",
+    a: "Được — và với số giá trị cao thì đây là bước không thể bỏ qua. Ngũ quý, lục quý tại CHONSOMOBIFONE.COM đều đăng ký thông tin chính chủ. Quý khách kiểm tra SIM trên tay trước, thanh toán sau; thủ tục chính chủ làm tại cửa hàng MobiFone hoặc trên ứng dụng My Mobifone.",
   },
   {
     q: "Giao sim ngũ quý mất bao lâu?",
@@ -62,7 +62,7 @@ const faqJsonLd = {
 const benefits = [
   { icon: Star, text: "Kho ngũ quý, lục quý Mobifone" },
   { icon: Shield, text: "Giao dịch an toàn, bảo mật thông tin" },
-  { icon: CheckCircle, text: "Sang tên chính chủ cho Quý khách" },
+  { icon: CheckCircle, text: "Đăng ký thông tin chính chủ cho Quý khách" },
   { icon: DollarSign, text: "Giá niêm yết công khai từng số" },
   { icon: Truck, text: "Thanh toán sau khi nhận và kiểm tra SIM" },
   { icon: Users, text: "Đội ngũ tư vấn trực 24/7" },
@@ -93,7 +93,7 @@ export default async function SimNguQuyPage() {
               Sim Ngũ Quý Mobifone — <span className="text-gold">88888, 99999, lục quý</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Ngũ quý 8, ngũ quý 9 và lục quý — nhóm số khan, dãy đẹp thường có chủ sớm. Giá niêm yết công khai, sang tên chính chủ.
+              Ngũ quý 8, ngũ quý 9 và lục quý — nhóm số khan, dãy đẹp thường có chủ sớm. Giá niêm yết công khai, đăng ký thông tin chính chủ.
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a
@@ -181,7 +181,7 @@ export default async function SimNguQuyPage() {
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-6 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
               <span className="h-8 w-1 rounded-full bg-primary" />
-              Mua sim ngũ quý ở đâu uy tín — cam kết &amp; sang tên
+              Mua sim ngũ quý ở đâu uy tín — cam kết &amp; đăng ký thông tin chính chủ
             </h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {benefits.map((b, i) => (

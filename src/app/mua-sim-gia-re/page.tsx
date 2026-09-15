@@ -42,7 +42,7 @@ export const metadata: Metadata = {
 const KHO_PERKS = [
   { Icon: Wifi, text: 'Một phần kho kèm sẵn gói cước, nhãn ghi rõ trên từng số' },
   { Icon: PhoneCall, text: 'Số nào chưa có gói, Quý khách tự chọn gói sau khi kích hoạt' },
-  { Icon: BadgeCheck, text: 'SIM MobiFone chính hãng, sang tên chính chủ' },
+  { Icon: BadgeCheck, text: 'SIM MobiFone chính hãng, đăng ký thông tin chính chủ' },
   { Icon: Truck, text: 'Giao SIM toàn quốc, miễn phí vận chuyển' },
 ];
 
@@ -56,7 +56,7 @@ const faqItems = [
     a: 'Không. Kho đồng giá là SIM phổ thông: đẹp ở mức dễ nhớ (đuôi kép, tránh số 4 và 7, đuôi 6-8-9, số tiến) chứ không có tứ quý, tam hoa hay lộc phát — những dãy đó thuộc phân khúc vài triệu đến vài chục triệu. Quý khách cần số phong thủy hoặc số VIP, vui lòng xem kho SIM chính ở trang chủ.',
   },
   {
-    q: 'SIM giá rẻ có sang tên chính chủ được không?',
+    q: 'SIM giá rẻ có đăng ký thông tin chính chủ được không?',
     a: 'Được. Mọi SIM tại CHONSOMOBIFONE.COM đều hỗ trợ đăng ký chính chủ, kể cả SIM đồng giá. Sau khi nhận SIM, Quý khách mang CCCD đến cửa hàng MobiFone gần nhất, hoặc đăng ký thông tin thuê bao trên ứng dụng My MobiFone.',
   },
   {

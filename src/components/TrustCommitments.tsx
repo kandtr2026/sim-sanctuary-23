@@ -13,8 +13,8 @@ const COMMITMENTS = [
   },
   {
     icon: BadgeCheck,
-    title: "Sang tên chính chủ 100%",
-    text: "Hỗ trợ sang tên qua cửa hàng MobiFone / app My MobiFone.",
+    title: "Đăng ký thông tin chính chủ 100%",
+    text: "Hỗ trợ đăng ký thông tin chính chủ qua cửa hàng MobiFone / app My MobiFone.",
   },
   {
     icon: Tag,

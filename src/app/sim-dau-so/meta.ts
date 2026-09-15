@@ -118,7 +118,7 @@ const CLOSERS: string[] = [
   "Nhận SIM kiểm tra rồi mới trả tiền.",
   "30 phút giao toàn quốc.",
   "Anh Chị lọc theo đuôi hoặc ngân sách.",
-  "Sang tên chính chủ.",
+  "Đăng ký thông tin chính chủ.",
   "Tư vấn qua 0933.686.666.",
   "Giao toàn quốc.",
 ];
@@ -232,7 +232,7 @@ export const networkAnswer = (prefix: string): string => {
     prefix.length === 4
       ? `Đầu số ${prefix} là mạng MobiFone — ${prefix} nằm trong dải ${family}, ${note}.`
       : `Đầu số ${prefix} là mạng MobiFone — ${note}.`;
-  return `${scope} Từ khi có chuyển mạng giữ số, một thuê bao ${prefix} đang dùng vẫn có thể đã sang mạng khác; còn SIM bán tại CHONSOMOBIFONE.COM đều là SIM MobiFone, sang tên chính chủ.`;
+  return `${scope} Từ khi có chuyển mạng giữ số, một thuê bao ${prefix} đang dùng vẫn có thể đã sang mạng khác; còn SIM bán tại CHONSOMOBIFONE.COM đều là SIM MobiFone, đăng ký thông tin chính chủ.`;
 };
 
 /** Tiêu đề mục "là mạng gì" trên thân trang. */

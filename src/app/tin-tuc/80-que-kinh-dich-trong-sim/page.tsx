@@ -254,7 +254,7 @@ export default function QueKinhDichPage() {
         </li>
         <li>
           <strong>Kiểm tra phần thực tế trước khi trả tiền.</strong> Quẻ đẹp không thay được việc
-          xác minh SIM còn hoạt động và sang tên được — xem{" "}
+          xác minh SIM còn hoạt động và đăng ký thông tin chính chủ được — xem{" "}
           <Link href="/tin-tuc/mua-sim-so-dep-o-dau-uy-tin">8 điều cần kiểm tra</Link>.
         </li>
       </ul>

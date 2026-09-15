@@ -7,7 +7,7 @@ import { buildBreadcrumb } from "@/lib/seo";
 
 const TITLE = "Sim Năm Sinh – Tìm SIM Có Đúng Ngày Sinh, Năm Sinh";
 const DESCRIPTION =
-  "Tìm sim năm sinh theo ngày sinh của Quý khách: chọn ngày/tháng/năm để xem những số có năm sinh trong dãy. Giá công khai, sang tên chính chủ, giao toàn quốc.";
+  "Tìm sim năm sinh theo ngày sinh của Quý khách: chọn ngày/tháng/năm để xem những số có năm sinh trong dãy. Giá công khai, đăng ký thông tin chính chủ, giao toàn quốc.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-nam-sinh";
 
 export const metadata: Metadata = {
@@ -42,8 +42,8 @@ const faqData: FaqItem[] = [
     answer: "Kho đổi hàng liên tục nên Quý khách có thể xem lại sau, hoặc chuyển sang chọn theo phong thủy: công cụ Sim hợp tuổi chấm điểm toàn bộ kho theo mệnh, ngũ hành và quẻ dịch của Quý khách, nên luôn có số phù hợp dù dãy số không chứa năm sinh.",
   },
   {
-    question: "Mua sim năm sinh có sang tên chính chủ không?",
-    answer: "Được. Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới trả tiền.",
+    question: "Mua sim năm sinh có đăng ký thông tin chính chủ không?",
+    answer: "Được. Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ đăng ký thông tin chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới trả tiền.",
   },
 ];
 
@@ -82,7 +82,7 @@ const PILLARS: { title: string; body: string }[] = [
   },
   {
     title: "Cam kết khi mua sim tại CHONSOMOBIFONE",
-    body: "Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới trả tiền. 30 phút giao toàn quốc. Chúng tôi hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.",
+    body: "Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ đăng ký thông tin chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới trả tiền. 30 phút giao toàn quốc. Chúng tôi hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.",
   },
 ];
 
@@ -102,7 +102,7 @@ export default function SimNamSinhPage() {
               </h1>
               <p style={{ color: "rgba(237, 237, 237, 0.7)" }} className="mx-auto max-w-xl text-sm md:text-base leading-relaxed">
                 Quý khách chọn ngày/tháng/năm sinh, chúng tôi lọc sẵn những số có năm sinh trong dãy. Giá niêm yết
-                công khai, sang tên chính chủ, giao toàn quốc.
+                công khai, đăng ký thông tin chính chủ, giao toàn quốc.
               </p>
             </div>
 
@@ -155,7 +155,7 @@ export default function SimNamSinhPage() {
                 {[
                   "Giá niêm yết công khai trên từng số, trong kho SIM Mobifone thật",
                   "Tra sim theo ngày sinh chỉ trong một bước",
-                  "Sang tên chính chủ; Quý khách nhận SIM, kiểm tra rồi mới trả tiền",
+                  "Đăng ký thông tin chính chủ; Quý khách nhận SIM, kiểm tra rồi mới trả tiền",
                   "30 phút giao toàn quốc",
                 ].map((item) => (
                   <div

@@ -9,7 +9,7 @@ const ZALO_URL = "https://zalo.me/0933686666";
 
 const TITLE = "Sim Số Đẹp Theo Giá | Chọn Đúng Ngân Sách";
 const DESCRIPTION =
-  "Chọn sim Mobifone theo đúng ngân sách: 1–3 triệu, 3–5 triệu, 5–10 triệu, 10–50 triệu. Mỗi dải một kho riêng, giá niêm yết công khai, sang tên chính chủ.";
+  "Chọn sim Mobifone theo đúng ngân sách: 1–3 triệu, 3–5 triệu, 5–10 triệu, 10–50 triệu. Mỗi dải một kho riêng, giá niêm yết công khai, đăng ký thông tin chính chủ.";
 const CANONICAL = `${BASE_URL}/sim-gia`;
 
 export const metadata: Metadata = {

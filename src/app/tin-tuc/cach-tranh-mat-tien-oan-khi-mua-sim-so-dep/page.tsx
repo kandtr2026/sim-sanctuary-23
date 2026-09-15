@@ -36,7 +36,7 @@ export default function TinTucBai5Page() {
             </p>
 
             <h2 className="text-xl md:text-2xl font-bold text-primary mt-8 mb-4">
-              1. Không thanh toán 100% tiền khi chưa sang tên chính chủ
+              1. Không thanh toán 100% tiền khi chưa đăng ký thông tin chính chủ
             </h2>
 
             <p>
@@ -44,7 +44,7 @@ export default function TinTucBai5Page() {
             </p>
 
             <p>
-              <strong>Nên làm:</strong> Chỉ đặt cọc một khoản nhỏ, khoảng 10-20%, khi mua từ xa. An tâm nhất là giao dịch trực tiếp tại điểm giao dịch của nhà mạng và trả phần còn lại sau khi hồ sơ sang tên hoàn tất.
+              <strong>Nên làm:</strong> Chỉ đặt cọc một khoản nhỏ, khoảng 10-20%, khi mua từ xa. An tâm nhất là giao dịch trực tiếp tại điểm giao dịch của nhà mạng và trả phần còn lại sau khi hồ sơ đăng ký thông tin chính chủ hoàn tất.
             </p>
 
             <h2 className="text-xl md:text-2xl font-bold text-primary mt-8 mb-4">
@@ -90,7 +90,7 @@ export default function TinTucBai5Page() {
             </p>
 
             <p>
-              Thông tin trả về không phải của Quý khách nghĩa là số chưa thật sự thuộc về Quý khách. Hãy đề nghị bên bán hỗ trợ sang tên ngay tại cửa hàng nhà mạng, trước khi tất toán phần tiền còn lại.
+              Thông tin trả về không phải của Quý khách nghĩa là số chưa thật sự thuộc về Quý khách. Hãy đề nghị bên bán hỗ trợ đăng ký thông tin chính chủ ngay tại cửa hàng nhà mạng, trước khi tất toán phần tiền còn lại.
             </p>
 
             <h2 className="text-xl md:text-2xl font-bold text-primary mt-8 mb-4">
@@ -102,7 +102,7 @@ export default function TinTucBai5Page() {
             </p>
 
             <p>
-              Cách an tâm nhất vẫn là chọn nơi bán niêm yết giá công khai và cam kết sang tên chính chủ. Mời Quý khách tham khảo{" "}
+              Cách an tâm nhất vẫn là chọn nơi bán niêm yết giá công khai và cam kết đăng ký thông tin chính chủ. Mời Quý khách tham khảo{" "}
               <Link href="/mua-sim-gia-re" className="text-gold hover:underline font-semibold">
                 kho sim số đẹp giá tốt, minh bạch giá
               </Link>{" "}

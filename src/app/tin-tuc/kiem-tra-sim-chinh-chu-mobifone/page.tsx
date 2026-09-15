@@ -67,8 +67,8 @@ const faq: FaqItem[] = [
     a: "Được, qua app My MobiFone hoặc qua VNeID, và hoàn toàn miễn phí. Cần chuẩn bị CCCD gắn chip và chụp thêm ảnh chân dung để xác thực sinh trắc học. Tuy nhiên kênh trực tuyến không áp dụng cho các số đặc biệt như tam hoa, tứ quý, số lặp hay số dễ nhớ — những số này phải làm tại cửa hàng.",
   },
   {
-    q: "Mua SIM số đẹp thì sang tên ở đâu, phí bao nhiêu?",
-    a: "Sang tên đổi chủ được làm tại cửa hàng MobiFone, thường cần cả người bán và người mua có mặt cùng giấy tờ gốc. MobiFone công bố phí chuyển chủ quyền thuê bao trả sau là 50.000 đồng, chưa gồm phí SIM nếu phải đổi SIM mới; với thuê bao trả trước nhà mạng không công bố mức phí cụ thể nên hãy gọi 18001090 xác nhận trước khi đi.",
+    q: "Mua SIM số đẹp thì đăng ký thông tin chính chủ ở đâu, phí bao nhiêu?",
+    a: "Đăng ký thông tin chính chủ đổi chủ được làm tại cửa hàng MobiFone, thường cần cả người bán và người mua có mặt cùng giấy tờ gốc. MobiFone công bố phí chuyển chủ quyền thuê bao trả sau là 50.000 đồng, chưa gồm phí SIM nếu phải đổi SIM mới; với thuê bao trả trước nhà mạng không công bố mức phí cụ thể nên hãy gọi 18001090 xác nhận trước khi đi.",
   },
   {
     q: "SIM không chính chủ có bị khoá không?",
@@ -200,7 +200,7 @@ export default function KiemTraSimChinhChuPage() {
           một chuyến ra cửa hàng.
         </li>
         <li>
-          Khi mua, nên thống nhất với người bán về việc <strong>cùng ra cửa hàng làm sang tên</strong>{" "}
+          Khi mua, nên thống nhất với người bán về việc <strong>cùng ra cửa hàng làm đăng ký thông tin chính chủ</strong>{" "}
           thay vì chỉ nhận SIM rồi tự xoay.
         </li>
         <li>
@@ -228,10 +228,10 @@ export default function KiemTraSimChinhChuPage() {
         .
       </Note>
 
-      <h2 id="sang-ten">Sang tên đổi chủ khi mua SIM số đẹp</h2>
+      <h2 id="sang-ten">Đăng ký thông tin chính chủ đổi chủ khi mua SIM số đẹp</h2>
       <p>
-        Kiểm tra chính chủ và sang tên là hai việc khác nhau. Kiểm tra thì tự làm được bằng tin nhắn;
-        sang tên thì phải làm thủ tục:
+        Kiểm tra chính chủ và đăng ký thông tin chính chủ là hai việc khác nhau. Kiểm tra thì tự làm được bằng tin nhắn;
+        đăng ký thông tin chính chủ thì phải làm thủ tục:
       </p>
       <ul>
         <li>
@@ -246,7 +246,7 @@ export default function KiemTraSimChinhChuPage() {
           mức phí cụ thể.
         </li>
         <li>
-          <strong>Nên làm ngay,</strong> đừng để dành. Số chưa sang tên là số Quý khách chưa thực sự
+          <strong>Nên làm ngay,</strong> đừng để dành. Số chưa đăng ký thông tin chính chủ là số Quý khách chưa thực sự
           nắm quyền, dù đã trả tiền.
         </li>
       </ul>

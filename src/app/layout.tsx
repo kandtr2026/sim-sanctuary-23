@@ -23,7 +23,7 @@ const BASE_URL = "https://www.chonsomobifone.com";
 const STORE_PLACE_ID = "ChIJV2BfBgAvdTERQ39odCHMHT0";
 const DEFAULT_TITLE = "CHONSOMOBIFONE.COM — Kho SIM số đẹp Mobifone uy tín";
 const DEFAULT_DESCRIPTION =
-  "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh. 30 phút giao toàn quốc, sang tên chính chủ. Hotline 0933.686.666.";
+  "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh. 30 phút giao toàn quốc, đăng ký thông tin chính chủ. Hotline 0933.686.666.";
 
 // LocalBusiness schema (P1-3). The old index.html only had a bare Organization;
 // the business has a physical TPHCM storefront, so `Store` (a LocalBusiness
@@ -123,7 +123,7 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: DEFAULT_TITLE,
     description:
-      "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh. 30 phút giao toàn quốc, sang tên chính chủ.",
+      "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh. 30 phút giao toàn quốc, đăng ký thông tin chính chủ.",
     images: [
       {
         // URL tuyệt đối: metadataBase đã tự nối absolute cho path tương đối, nhưng
@@ -140,7 +140,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: DEFAULT_TITLE,
     description:
-      "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh. 30 phút giao toàn quốc, sang tên chính chủ.",
+      "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh. 30 phút giao toàn quốc, đăng ký thông tin chính chủ.",
     images: ["/share-banner.png?v=999"],
   },
   // Next's `verification.google` only emits one token, so render both through

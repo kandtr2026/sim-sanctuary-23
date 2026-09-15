@@ -63,7 +63,7 @@ const faqData: FaqItem[] = [
   {
     question: "Làm sao để đặt mua SIM sau khi xem kết quả?",
     answer:
-      "Quý khách bấm ĐẶT NGAY ở số đã chọn, điền thông tin nhận hàng. Chúng tôi giao SIM toàn quốc, hỗ trợ sang tên chính chủ, nhận SIM rồi mới trả tiền (COD).",
+      "Quý khách bấm ĐẶT NGAY ở số đã chọn, điền thông tin nhận hàng. Chúng tôi giao SIM toàn quốc, hỗ trợ đăng ký thông tin chính chủ, nhận SIM rồi mới trả tiền (COD).",
   },
 ];
 
@@ -176,7 +176,7 @@ export default function SimPhongThuyPage() {
                 {[
                   "Giá niêm yết công khai trên từng số, trong kho SIM Mobifone thật",
                   "Điểm phong thủy hiển thị theo 5 trụ cột để Quý khách tự đối chiếu",
-                  "Sang tên chính chủ; Quý khách nhận SIM, kiểm tra rồi mới trả tiền",
+                  "Đăng ký thông tin chính chủ; Quý khách nhận SIM, kiểm tra rồi mới trả tiền",
                   "30 phút giao toàn quốc",
                 ].map((item) => (
                   <div

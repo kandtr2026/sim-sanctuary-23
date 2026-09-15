@@ -40,7 +40,7 @@ const StickyCtaBottomBar = () => {
           className="text-center font-medium text-white/70"
           style={{ fontSize: 11, lineHeight: 1.2 }}
         >
-          Sang tên chính chủ · Giao 30 phút
+          Đăng ký thông tin chính chủ · Giao 30 phút
         </p>
         <div className="flex items-center gap-2">
           {/* Cùng một số 0933.686.666: nút này quay số gọi trực tiếp. */}

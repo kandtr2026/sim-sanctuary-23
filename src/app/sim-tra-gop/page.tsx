@@ -14,7 +14,7 @@ const ZALO_URL = "https://zalo.me/0933686666";
 
 const TITLE = "Mua Sim Trả Góp | Chọn SIM Số Đẹp Trả Góp Lãi Suất Tốt";
 const DESCRIPTION =
-  "Mua sim số đẹp trả góp tại CHONSOMOBIFONE.COM: tứ quý, thần tài, lộc phát. Trả trước 10–30%, kỳ hạn 6–12 tháng, sang tên chính chủ khi tất toán.";
+  "Mua sim số đẹp trả góp tại CHONSOMOBIFONE.COM: tứ quý, thần tài, lộc phát. Trả trước 10–30%, kỳ hạn 6–12 tháng, đăng ký thông tin chính chủ khi tất toán.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-tra-gop";
 
 export const metadata: Metadata = {
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     title: TITLE,
-    description: "Chọn sim số đẹp trả góp: tứ quý, thần tài, lộc phát. Trả trước 10–30%, sang tên chính chủ khi tất toán.",
+    description: "Chọn sim số đẹp trả góp: tứ quý, thần tài, lộc phát. Trả trước 10–30%, đăng ký thông tin chính chủ khi tất toán.",
     url: CANONICAL,
     images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
   },
@@ -33,15 +33,15 @@ export const metadata: Metadata = {
 const faqItems = [
   {
     q: "Mua sim trả góp là gì?",
-    a: "Mua sim trả góp giúp Quý khách sở hữu số đẹp mà không phải trả toàn bộ một lần: thanh toán trước một phần giá trị sim (thường 10–30%), phần còn lại chia nhỏ trả dần theo tháng. Khi thanh toán đủ, sim được sang tên chính chủ cho Quý khách.",
+    a: "Mua sim trả góp giúp Quý khách sở hữu số đẹp mà không phải trả toàn bộ một lần: thanh toán trước một phần giá trị sim (thường 10–30%), phần còn lại chia nhỏ trả dần theo tháng. Khi thanh toán đủ, sim được đăng ký thông tin chính chủ cho Quý khách.",
   },
   {
     q: "Điều kiện để mua sim trả góp?",
     a: "Điều kiện cơ bản: có CMND/CCCD còn hiệu lực, thu nhập ổn định và không có lịch sử nợ xấu. Với sim giá trị lớn, đội ngũ tư vấn sẽ trao đổi cụ thể về hồ sơ và kỳ hạn phù hợp với dòng tiền của Quý khách.",
   },
   {
-    q: "Khi nào sim được sang tên chính chủ?",
-    a: "Sim được sang tên chính chủ ngay sau khi Quý khách thanh toán đủ toàn bộ giá trị sim theo thỏa thuận. Trong thời gian trả góp, mọi cam kết về việc sang tên đều được ghi rõ trong hợp đồng.",
+    q: "Khi nào sim được đăng ký thông tin chính chủ?",
+    a: "Sim được đăng ký thông tin chính chủ ngay sau khi Quý khách thanh toán đủ toàn bộ giá trị sim theo thỏa thuận. Trong thời gian trả góp, mọi cam kết về việc đăng ký thông tin chính chủ đều được ghi rõ trong hợp đồng.",
   },
   {
     q: "Mua sim trả góp có phải trả lãi không?",
@@ -65,7 +65,7 @@ const conditions = [
   { icon: DollarSign, text: "Trả trước 10–30% giá trị sim" },
   { icon: CheckCircle, text: "Kỳ hạn 6–12 tháng linh hoạt" },
   { icon: Truck, text: "Giao sim tận nơi, nhận SIM mới trả tiền đợt đầu" },
-  { icon: Star, text: "Sang tên chính chủ khi tất toán" },
+  { icon: Star, text: "Đăng ký thông tin chính chủ khi tất toán" },
 ];
 
 export default async function SimTraGopPage() {
@@ -93,7 +93,7 @@ export default async function SimTraGopPage() {
               Mua Sim Trả Góp — <span className="text-gold">chọn số, trả dần hàng tháng</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Giúp Quý khách chủ động dòng tiền khi mua số đẹp: trả trước 10–30%, phần còn lại trả dần theo tháng, sang tên chính chủ khi tất toán.
+              Giúp Quý khách chủ động dòng tiền khi mua số đẹp: trả trước 10–30%, phần còn lại trả dần theo tháng, đăng ký thông tin chính chủ khi tất toán.
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a

@@ -17,7 +17,7 @@ const ZALO_URL = "https://zalo.me/0933686666";
 
 const TITLE = "Sim Lộc Phát 68 86 | Kho Sim Lộc Phát Mobifone Đẹp";
 const DESCRIPTION =
-  "Sim lộc phát Mobifone đuôi 68, 86, 6868, 6688 cho Quý khách: giá niêm yết công khai, nhận SIM rồi mới thanh toán, sang tên chính chủ, giao tận nơi HCM.";
+  "Sim lộc phát Mobifone đuôi 68, 86, 6868, 6688 cho Quý khách: giá niêm yết công khai, nhận SIM rồi mới thanh toán, đăng ký thông tin chính chủ, giao tận nơi HCM.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-loc-phat";
 
 export const metadata: Metadata = {
@@ -43,8 +43,8 @@ const faqItems = [
     a: "Từ vài trăm nghìn đến hàng chục triệu đồng, tùy đầu số và độ đẹp của dãy. Mỗi số có giá hiện sẵn trong kho, không chi phí khác, nên Quý khách so giá vài số rồi mới quyết.",
   },
   {
-    q: "Mua sim lộc phát có sang tên chính chủ được không?",
-    a: "Được. Mọi số lộc phát tại CHONSOMOBIFONE.COM đều sang tên chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới thanh toán; phần đăng ký chính chủ có đội ngũ hỗ trợ tại cửa hàng MobiFone hoặc trên ứng dụng My Mobifone.",
+    q: "Mua sim lộc phát có đăng ký thông tin chính chủ được không?",
+    a: "Được. Mọi số lộc phát tại CHONSOMOBIFONE.COM đều đăng ký thông tin chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới thanh toán; phần đăng ký chính chủ có đội ngũ hỗ trợ tại cửa hàng MobiFone hoặc trên ứng dụng My Mobifone.",
   },
   {
     q: "Giao sim lộc phát mất bao lâu?",
@@ -87,7 +87,7 @@ export default async function SimLocPhatPage() {
               Sim Lộc Phát Mobifone — <span className="text-gold">đuôi 68, 86, 6868</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Đọc thử trước khi chọn: 68 là lộc phát, 86 là phát lộc. Giá công khai từng số, sang tên chính chủ, 30 phút giao toàn quốc.
+              Đọc thử trước khi chọn: 68 là lộc phát, 86 là phát lộc. Giá công khai từng số, đăng ký thông tin chính chủ, 30 phút giao toàn quốc.
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a

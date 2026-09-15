@@ -15,7 +15,7 @@ const ZALO_URL = "https://zalo.me/0933686666";
 
 const TITLE = "Sim Thần Tài 39 79 | Kho Sim Thần Tài Mobifone";
 const DESCRIPTION =
-  "Quý khách chọn sim thần tài Mobifone đẹp: đuôi 39 thần tài nhỏ, 79 thần tài lớn, 7939. Giá niêm yết công khai, sang tên chính chủ, giao tận nơi HCM.";
+  "Quý khách chọn sim thần tài Mobifone đẹp: đuôi 39 thần tài nhỏ, 79 thần tài lớn, 7939. Giá niêm yết công khai, đăng ký thông tin chính chủ, giao tận nơi HCM.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-than-tai";
 
 export const metadata: Metadata = {
@@ -41,8 +41,8 @@ const faqItems = [
     a: "Từ vài trăm nghìn đến hàng chục triệu đồng. Mức giá tùy đầu số (090, 093, 07x...), độ dễ nhớ của dãy số và vị trí đuôi thần tài. Giá niêm yết công khai trên kho, không phát sinh chi phí khác.",
   },
   {
-    q: "Mua sim thần tài có sang tên chính chủ được không?",
-    a: "Được. Sim thần tài tại CHONSOMOBIFONE.COM đều sang tên chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới thanh toán; thủ tục chính chủ thực hiện tại cửa hàng MobiFone hoặc trên ứng dụng My Mobifone.",
+    q: "Mua sim thần tài có đăng ký thông tin chính chủ được không?",
+    a: "Được. Sim thần tài tại CHONSOMOBIFONE.COM đều đăng ký thông tin chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới thanh toán; thủ tục chính chủ thực hiện tại cửa hàng MobiFone hoặc trên ứng dụng My Mobifone.",
   },
   {
     q: "Giao sim thần tài mất bao lâu?",
@@ -93,7 +93,7 @@ export default async function SimThanTaiPage() {
               Sim Thần Tài Mobifone — <span className="text-gold">đuôi 39, 79, 7939</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Quý khách chọn đuôi 39 (thần tài nhỏ) hay 79 (thần tài lớn), giá hiện sẵn cạnh từng số. Sang tên chính chủ, 30 phút giao toàn quốc.
+              Quý khách chọn đuôi 39 (thần tài nhỏ) hay 79 (thần tài lớn), giá hiện sẵn cạnh từng số. Đăng ký thông tin chính chủ, 30 phút giao toàn quốc.
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a

@@ -297,7 +297,7 @@ export default function YNghia2SoCuoiPage() {
           cuối theo hệ mà Quý khách tin.
         </li>
         <li>
-          <strong>Kiểm tra phần thực tế.</strong> Số đẹp mà không sang tên được thì vô nghĩa — xem{" "}
+          <strong>Kiểm tra phần thực tế.</strong> Số đẹp mà không đăng ký thông tin chính chủ được thì vô nghĩa — xem{" "}
           <Link href="/tin-tuc/mua-sim-so-dep-o-dau-uy-tin">8 điều cần kiểm tra trước khi trả tiền</Link>.
         </li>
       </ol>

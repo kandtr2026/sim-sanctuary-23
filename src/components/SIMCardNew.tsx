@@ -327,7 +327,7 @@ const SIMCardNew = ({ sim, quyFilter, searchQuery = '', birthDateDisplay }: SIMC
           className="mt-1 text-center font-medium text-muted-foreground"
           style={{ fontSize: 'clamp(10px, 1.8vw, 12px)', lineHeight: 1.3 }}
         >
-          Sang tên chính chủ · Giao 30 phút
+          Đăng ký thông tin chính chủ · Giao 30 phút
         </p>
       </div>
     </>

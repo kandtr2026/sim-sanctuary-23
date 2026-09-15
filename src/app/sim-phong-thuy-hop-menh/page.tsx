@@ -17,7 +17,7 @@ const ZALO_URL = "https://zalo.me/0933686666";
 // chính "sim phong thủy hợp mệnh" + đủ năm mệnh vẫn còn nguyên.
 const TITLE = "SIM Phong Thủy Hợp Mệnh Kim, Mộc, Thủy, Hỏa, Thổ | MobiFone";
 const DESCRIPTION =
-  "Kho sim phong thủy hợp mệnh Mobifone: chọn số theo mệnh Kim, Mộc, Thủy, Hỏa, Thổ. Giá niêm yết công khai, sang tên chính chủ, nhận SIM rồi mới trả tiền.";
+  "Kho sim phong thủy hợp mệnh Mobifone: chọn số theo mệnh Kim, Mộc, Thủy, Hỏa, Thổ. Giá niêm yết công khai, đăng ký thông tin chính chủ, nhận SIM rồi mới trả tiền.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-phong-thuy-hop-menh";
 
 export const metadata: Metadata = {
@@ -91,7 +91,7 @@ export default async function SimPhongThuyHopMenhPage() {
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
               Quý khách chọn mệnh, chúng tôi lọc sẵn những số có đuôi tương sinh. Giá niêm yết công khai,
-              sang tên chính chủ, 30 phút giao toàn quốc.
+              đăng ký thông tin chính chủ, 30 phút giao toàn quốc.
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a
@@ -167,7 +167,7 @@ export default async function SimPhongThuyHopMenhPage() {
             </h2>
             <p className="leading-relaxed text-muted-foreground">
               Mua số hợp mệnh nên bắt đầu từ sự minh bạch. Mỗi số trong kho CHONSOMOBIFONE.COM đều niêm yết giá công
-              khai, kèm bộ lọc theo mệnh để Quý khách tự đối chiếu trước khi cần tới tư vấn. Chúng tôi hỗ trợ sang tên
+              khai, kèm bộ lọc theo mệnh để Quý khách tự đối chiếu trước khi cần tới tư vấn. Chúng tôi hỗ trợ đăng ký thông tin
               chính chủ và giao SIM toàn quốc; Quý khách kiểm tra đúng số đã chọn rồi mới thanh toán.
             </p>
           </section>

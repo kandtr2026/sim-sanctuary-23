@@ -17,7 +17,7 @@ const TAG = "Taxi";
 
 const TITLE = "Sim Taxi Là Gì? Kho Sim Taxi Mobifone 417417, 070070";
 const DESCRIPTION =
-  "Sim taxi là số có sáu chữ số cuối lặp thành cụm: 417.417 hay 07.07.07. Nghe một lần đọc lại được ngay. Kho Mobifone giá công khai, sang tên chính chủ.";
+  "Sim taxi là số có sáu chữ số cuối lặp thành cụm: 417.417 hay 07.07.07. Nghe một lần đọc lại được ngay. Kho Mobifone giá công khai, đăng ký thông tin chính chủ.";
 const CANONICAL = `${BASE_URL}/sim-taxi`;
 
 export async function generateMetadata(): Promise<Metadata> {

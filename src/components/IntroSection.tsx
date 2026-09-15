@@ -37,7 +37,7 @@ const IntroSection = ({ simCount = 0 }: IntroSectionProps) => {
           SIM Số Đẹp - Không Còn Là Đặc Quyền
         </h2>
         <p className="text-sm leading-relaxed text-muted-foreground md:text-base">
-          Kho SIM MobiFone chính hãng, giá niêm yết công khai, sang tên chính chủ.
+          Kho SIM MobiFone chính hãng, giá niêm yết công khai, đăng ký thông tin chính chủ.
         </p>
       </div>
 

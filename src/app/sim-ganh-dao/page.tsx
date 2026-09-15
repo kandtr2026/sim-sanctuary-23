@@ -57,8 +57,8 @@ const faqItems = [
     a: "Người hay đọc số qua điện thoại: chủ quán, tài xế, người giao hàng, nhân viên bán hàng. Dãy đối xứng có nhịp riêng nên khách nghe một lần thường đọc lại đúng, giảm hẳn cảnh phải nhắc lại số nhiều lần trong ngày.",
   },
   {
-    q: "Mua sim gánh đảo có sang tên chính chủ được không?",
-    a: "Được. Sim tại CHONSOMOBIFONE.COM đều sang tên chính chủ, Quý khách nhận SIM và kiểm tra trước khi thanh toán. 30 phút nhận SIM toàn quốc.",
+    q: "Mua sim gánh đảo có đăng ký thông tin chính chủ được không?",
+    a: "Được. Sim tại CHONSOMOBIFONE.COM đều đăng ký thông tin chính chủ, Quý khách nhận SIM và kiểm tra trước khi thanh toán. 30 phút nhận SIM toàn quốc.",
   },
 ];
 

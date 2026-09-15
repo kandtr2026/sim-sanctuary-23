@@ -17,7 +17,7 @@ const TAG = "Lặp kép";
 
 const TITLE = "Sim Lặp Kép Mobifone | Đuôi Kép Đôi 2288, 5500, 6688";
 const DESCRIPTION =
-  "Sim lặp kép Mobifone có đuôi hai cặp số liền nhau: 2288, 5500, 6688. Đọc một nhịp là khách nhớ. Giá niêm yết từng số, sang tên chính chủ, giao nhanh.";
+  "Sim lặp kép Mobifone có đuôi hai cặp số liền nhau: 2288, 5500, 6688. Đọc một nhịp là khách nhớ. Giá niêm yết từng số, đăng ký thông tin chính chủ, giao nhanh.";
 const CANONICAL = `${BASE_URL}/sim-lap-kep`;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -58,7 +58,7 @@ const faqItems = [
   },
   {
     q: "Đặt sim lặp kép rồi nhận hàng thế nào?",
-    a: "Quý khách chọn số, đội ngũ giữ số và xác nhận qua điện thoại hoặc Zalo. 30 phút nhận SIM toàn quốc. Kiểm tra SIM trên tay rồi mới thanh toán, hỗ trợ sang tên chính chủ.",
+    a: "Quý khách chọn số, đội ngũ giữ số và xác nhận qua điện thoại hoặc Zalo. 30 phút nhận SIM toàn quốc. Kiểm tra SIM trên tay rồi mới thanh toán, hỗ trợ đăng ký thông tin chính chủ.",
   },
 ];
 

@@ -13,7 +13,7 @@ import { DAU_SO_PREFIXES } from "@/lib/simTaxonomy";
 // chủ nhắm cụm thương hiệu + quy mô kho + cam kết, để cụm giá rẻ cho trang kia.
 const TITLE = "SIM Mobifone số đẹp – 30 phút giao toàn quốc";
 const DESCRIPTION =
-  "Kho SIM Mobifone hơn 49.000 số: tứ quý, tam hoa, thần tài, lộc phát, phong thủy, năm sinh. Giá niêm yết công khai, sang tên chính chủ, 30 phút giao toàn quốc.";
+  "Kho SIM Mobifone hơn 49.000 số: tứ quý, tam hoa, thần tài, lộc phát, phong thủy, năm sinh. Giá niêm yết công khai, đăng ký thông tin chính chủ, 30 phút giao toàn quốc.";
 const CANONICAL = "https://www.chonsomobifone.com/";
 
 // ISR: regenerate the static shell (incl. the server-rendered SIM grid +
@@ -139,7 +139,7 @@ export default async function HomePage() {
           SIM Mobifone số đẹp — <span className="text-gold">30 phút giao toàn quốc</span>
         </h1>
         <p className="mb-3 text-sm text-muted-foreground md:text-base">
-          Quý khách chọn số theo tuổi, theo mệnh hoặc theo đuôi số ưa thích: tứ quý, tam hoa, phong thủy, thần tài, lộc phát. Sang tên chính chủ, 30 phút nhận SIM.
+          Quý khách chọn số theo tuổi, theo mệnh hoặc theo đuôi số ưa thích: tứ quý, tam hoa, phong thủy, thần tài, lộc phát. Đăng ký thông tin chính chủ, 30 phút nhận SIM.
         </p>
 
         {/* Client island: search + filters + SIM grid (SSG initialData + server fetch

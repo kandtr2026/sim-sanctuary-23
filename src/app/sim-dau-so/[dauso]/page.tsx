@@ -164,8 +164,8 @@ export default async function SimDauSoPage({ params }: Props) {
           : `Sim đầu số ${dauso} MobiFone trải từ vài trăm nghìn đến hàng chục triệu đồng, tùy độ đẹp của dãy số. Từng số đều hiện giá ngay trong kho, không phát sinh chi phí khác.`,
     },
     {
-      q: `Mua sim đầu số ${dauso} có sang tên chính chủ được không?`,
-      a: `Được. Toàn bộ sim đầu số ${dauso} tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới trả tiền; chúng tôi hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.`,
+      q: `Mua sim đầu số ${dauso} có đăng ký thông tin chính chủ được không?`,
+      a: `Được. Toàn bộ sim đầu số ${dauso} tại CHONSOMOBIFONE.COM đều hỗ trợ đăng ký thông tin chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới trả tiền; chúng tôi hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.`,
     },
     {
       q: `Giao sim đầu số ${dauso} mất bao lâu?`,
@@ -258,7 +258,7 @@ export default async function SimDauSoPage({ params }: Props) {
                 </li>
               ) : null}
               <li>
-                <strong className="font-semibold text-foreground">Thủ tục:</strong> sang tên chính
+                <strong className="font-semibold text-foreground">Thủ tục:</strong> đăng ký thông tin chính
                 chủ, nhận SIM kiểm tra rồi mới trả tiền
               </li>
             </ul>

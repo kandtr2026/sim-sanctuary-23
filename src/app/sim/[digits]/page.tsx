@@ -73,7 +73,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     `Sim ${formatted}${carrier ? ` (${carrier})` : ""}` +
     `${primary ? ` — ${primary.label}` : ""}. ` +
     `${orderable ? `Giá niêm yết ${priceLabel}. ` : ""}` +
-    `Sang tên chính chủ, giao 30 phút toàn quốc. Nhắn Zalo hoặc gọi ${CALL_DISPLAY} để chốt số.`;
+    `Đăng ký thông tin chính chủ, giao 30 phút toàn quốc. Nhắn Zalo hoặc gọi ${CALL_DISPLAY} để chốt số.`;
 
   return {
     title: { absolute: `${title} | CHONSOMOBIFONE.COM` },

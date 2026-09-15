@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
   return {
     title: { absolute: `SIM mệnh ${item.hanh} — số hành ${item.hanh} hợp phong thủy | CHONSOMOBIFONE.COM` },
-    description: `Kho SIM MobiFone hành ${item.hanh} (${item.moTa}). Chấm điểm phong thủy, giá niêm yết công khai, sang tên chính chủ. Nhắn Zalo chốt số hợp mệnh.`,
+    description: `Kho SIM MobiFone hành ${item.hanh} (${item.moTa}). Chấm điểm phong thủy, giá niêm yết công khai, đăng ký thông tin chính chủ. Nhắn Zalo chốt số hợp mệnh.`,
     alternates: { canonical: `/sim-theo-menh/${item.slug}` },
     robots: { index: true, follow: true },
   };

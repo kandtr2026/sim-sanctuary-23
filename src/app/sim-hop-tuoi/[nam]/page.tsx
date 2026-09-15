@@ -89,8 +89,8 @@ const buildFaq = (info: YearInfo) => {
       a: `Mỗi số trong kho được chấm trên 5 trụ cột: ngũ hành bản mệnh (40%), cân bằng Âm – Dương (20%), tổng nút (15%), quẻ dịch theo 4 số cuối (20%) và cấu trúc số (5%). Danh sách ở trang này dùng mệnh ${menh} của năm ${nam}, với giờ sinh và giới tính để mặc định.`,
     },
     {
-      q: `Mua sim hợp tuổi ${nam} có sang tên chính chủ được không?`,
-      a: `Được. Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ sang tên chính chủ. Quý khách nhận SIM, kiểm tra đúng số đã chọn rồi mới trả tiền. 30 phút giao toàn quốc.`,
+      q: `Mua sim hợp tuổi ${nam} có đăng ký thông tin chính chủ được không?`,
+      a: `Được. Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ đăng ký thông tin chính chủ. Quý khách nhận SIM, kiểm tra đúng số đã chọn rồi mới trả tiền. 30 phút giao toàn quốc.`,
     },
   ];
 };
