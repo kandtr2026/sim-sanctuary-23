@@ -133,10 +133,9 @@ export default async function SimDetailPage({ params }: Props) {
           .map((x) => x.s)
       : [];
 
-  const zaloText = encodeURIComponent(
-    `Xin chào, tôi muốn mua SIM ${formatted}${orderable ? ` giá ${priceLabel}` : ""}. Số còn không ạ?`,
-  );
-  const zaloHref = `https://zalo.me/${CALL_NUMBER}?text=${zaloText}`;
+  // Link Zalo sạch (không ?text): Zalo không hỗ trợ prefill tin nhắn qua URL, gắn
+  // query làm link ra lỗi "This page doesn't exist" (góp ý #24).
+  const zaloHref = `https://zalo.me/${CALL_NUMBER}`;
 
   // ── JSON-LD: Product (+ Offer nếu có giá) ──────────────────────────────────
   const productJsonLd: Record<string, unknown> = {

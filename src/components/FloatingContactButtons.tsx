@@ -2,8 +2,9 @@
 
 import { Phone } from "lucide-react";
 
-const ZALO_URL =
-  "https://zalo.me/0933686666?text=%F0%9F%91%8B%20Xin%20ch%C3%A0o%2C%20t%C3%B4i%20%C4%91ang%20quan%20t%C3%A2m%20%C4%91%E1%BA%BFn%20sim%20s%E1%BB%91%20%C4%91%E1%BA%B9p%20tr%C3%AAn%20website%20v%C3%A0%20mu%E1%BB%91n%20%C4%91%C6%B0%E1%BB%A3c%20t%C6%B0%20v%E1%BA%A5n.";
+// Zalo không hỗ trợ prefill ?text qua link zalo.me (ra lỗi "page doesn't exist",
+// góp ý #24) — dùng link sạch để luôn mở đúng cửa sổ chat.
+const ZALO_URL = "https://zalo.me/0933686666";
 const CALL_URL = "tel:+84933686666";
 
 const MESSENGER_FALLBACK_URL =

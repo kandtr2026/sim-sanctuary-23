@@ -20,20 +20,16 @@ const CALL_DISPLAY = "0933.686.666";
  * chung chung — không mang theo con số khách vừa tìm, nên chuyên viên nhận tin
  * vẫn phải hỏi lại từ đầu.
  *
- * Tin nhắn Zalo được điền sẵn kèm đúng dãy số đó. `tagZaloHref` (A6) thấy `text=`
- * có sẵn thì GIỮ nguyên và chỉ nối thêm "[Mã: campaign]", nên không đè mất.
+ * Trước đây tin nhắn Zalo được điền sẵn kèm dãy số qua ?text, nhưng Zalo không
+ * hỗ trợ prefill nên link ra lỗi "This page doesn't exist" (góp ý #24) — nay dùng
+ * link sạch, khách tự nhắn.
  */
-const askZaloHref = (query: string): string =>
-  `https://zalo.me/${CALL_NUMBER}?text=${encodeURIComponent(
-    query
-      ? `Em tìm sim ${query} trên web mà không thấy, shop còn số nào gần giống không ạ?`
-      : "Em cần shop tư vấn giúp chọn sim ạ.",
-  )}`;
+const askZaloHref = `https://zalo.me/${CALL_NUMBER}`;
 
 const AskForHelpActions = ({ query, compact }: { query: string; compact?: boolean }) => (
   <div className={`flex flex-wrap items-center gap-2 ${compact ? "mt-2" : "mt-3"}`}>
     <a
-      href={askZaloHref(query)}
+      href={askZaloHref}
       target="_blank"
       rel="noopener noreferrer"
       className="inline-flex min-h-11 items-center gap-1.5 rounded-md bg-sky-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-600"

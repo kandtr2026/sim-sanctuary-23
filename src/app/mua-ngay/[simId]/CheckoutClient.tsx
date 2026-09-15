@@ -570,9 +570,9 @@ const CheckoutClient = () => {
   // Trước đây trang vẫn dựng đủ form với giá "Liên hệ", khách điền xong mới đụng
   // guard `priceVnd > 0` của webhook và chỉ thấy toast lỗi chung.
   if (!isOrderablePrice(displayPrice)) {
-    const zaloQuoteUrl = `https://zalo.me/0933686666?text=${encodeURIComponent(
-      `Xin chào, tôi muốn nhận báo giá SIM ${checkoutDisplay || simWithTags.simId}`,
-    )}`;
+    // Link Zalo sạch — Zalo không nhận ?text prefill (link ra lỗi "page doesn't
+    // exist", góp ý #24).
+    const zaloQuoteUrl = "https://zalo.me/0933686666";
 
     return (
       <div className="min-h-screen bg-background">

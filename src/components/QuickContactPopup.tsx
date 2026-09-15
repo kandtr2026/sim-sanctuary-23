@@ -18,8 +18,9 @@ interface QuickContactPopupProps {
 }
 
 const QuickContactPopup = ({ open, onOpenChange, simNumber, simPrice, simNetwork }: QuickContactPopupProps) => {
-  const zaloMessage = `Chào shop, tôi muốn đặt sim ${simNumber}, giá ${simPrice}. Nhờ shop tư vấn và giữ sim giúp tôi.`;
-  const zaloUrl = `https://zalo.me/${ZALO_BASE}?text=${encodeURIComponent(zaloMessage)}`;
+  // Link Zalo sạch (không ?text) — Zalo không nhận prefill, query làm link ra lỗi
+  // "page doesn't exist" (góp ý #24).
+  const zaloUrl = `https://zalo.me/${ZALO_BASE}`;
   const callUrl = `tel:${HOTLINE}`;
 
   const digits = simNumber.replace(/\D/g, '');

@@ -5,14 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { getPagePath, classifySource } from "@/lib/trackingUtils";
 import { getAttribution } from "@/lib/attribution";
 import { GADS_CONV_SEND_TO } from "@/lib/gadsTracking";
-import { tagZaloHref } from "@/lib/zaloCampaignTag";
 import { getCardZaloVariant } from "@/lib/experiment";
 
 /**
- * A6 — gắn mã campaign vào link Zalo trước khi navigate (chi tiết + test:
- * `src/lib/zaloCampaignTag.ts`). Ở đây chỉ nối dây: trong capture-phase listener,
- * khi click rơi vào anchor zalo.me thì tag href ngay — không phụ thuộc isOwner
- * (admin cũng cần thấy mã khi test, nhưng không bị đếm lead).
+ * Zalo KHÔNG hỗ trợ prefill tin nhắn qua URL (?text=) như wa.me — link zalo.me có
+ * query bị Zalo báo "This page doesn't exist" (góp ý #24, rõ nhất trên Zalo web).
+ * Vì vậy A6 (chèn mã campaign vào ?text) đã được gỡ; listener này còn DỌN SẠCH
+ * query của mọi link zalo.me ngay trước khi điều hướng, để dù còn sót link cũ nào
+ * mang ?text thì cú bấm vẫn mở đúng cửa sổ chat.
  */
 
 /**
@@ -94,11 +94,21 @@ export function useConversionTracker() {
       const type = classifyClick(e.target);
       if (!type) return;
 
-      // A6 — gắn mã campaign (chạy trước khi check isOwner)
+      // Dọn ?text (và mọi query) khỏi link zalo.me trước khi điều hướng — Zalo
+      // không nhận prefill nên query làm link ra lỗi "page doesn't exist" (#24).
       if (type === "zalo") {
         const anchor = (e.target as Element).closest<HTMLAnchorElement>("a[href^='https://zalo.me']");
-        const tagged = anchor ? tagZaloHref(anchor) : undefined;
-        if (anchor && tagged) anchor.setAttribute("href", tagged);
+        if (anchor) {
+          try {
+            const u = new URL(anchor.href);
+            if (u.search) {
+              u.search = "";
+              anchor.setAttribute("href", u.toString());
+            }
+          } catch {
+            /* href lạ thì giữ nguyên */
+          }
+        }
       }
 
       if (isOwner) return;

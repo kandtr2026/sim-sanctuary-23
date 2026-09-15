@@ -111,8 +111,9 @@ export default async function TraCuuSimPage({ searchParams }: Props) {
       })()
     : null;
 
-  const zaloHref = (text: string) =>
-    `https://zalo.me/${CALL_NUMBER}?text=${encodeURIComponent(text)}`;
+  // Link Zalo sạch — Zalo không nhận ?text prefill (link ra lỗi "page doesn't
+  // exist", góp ý #24). Bỏ tham số text, giữ chữ ký để khỏi sửa nơi gọi.
+  const zaloHref = (_text?: string) => `https://zalo.me/${CALL_NUMBER}`;
 
   return (
     <>
