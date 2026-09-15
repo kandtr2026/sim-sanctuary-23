@@ -299,9 +299,78 @@ const DUOI_SO = [
   },
 ];
 
+/**
+ * Chuỗi hướng dẫn sử dụng thực tế — lấy ý tưởng từ mục "Nhà mạng, SIM, thẻ cào"
+ * của thegioididong.com/tin-tuc (401 bài) để đa dạng kho chủ đề, khác hẳn
+ * hướng phong thủy/ý nghĩa số đang chiếm phần lớn TOPIC_BANK. Đây là bài
+ * "how-to" thực dụng (tra cứu chính chủ, eSIM, khóa/mở sim…), KHÔNG áp khung
+ * "theo quan niệm dân gian" của mục văn phong phong thủy.
+ */
+const HUONG_DAN_THUC_TE = [
+  {
+    slug: 'cach-tra-cuu-thue-bao-mobifone-chinh-chu',
+    title: 'Cách tra cứu thông tin thuê bao Mobifone chính chủ nhanh gọn',
+    category: 'Hướng dẫn sử dụng',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['tra cứu thuê bao mobifone', 'sim chính chủ', 'kiểm tra thông tin sim mobifone'],
+  },
+  {
+    slug: 'sim-mobifone-bi-khoa-1-chieu-2-chieu-la-gi',
+    title: 'Sim Mobifone bị khóa 1 chiều, 2 chiều là gì? Cách mở khóa nhanh nhất',
+    category: 'Hướng dẫn sử dụng',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['sim mobifone bị khóa', 'khóa 1 chiều', 'khóa 2 chiều', 'mở khóa sim mobifone'],
+  },
+  {
+    slug: 'esim-mobifone-la-gi-co-nen-dung',
+    title: 'eSIM Mobifone là gì? Có nên chuyển từ sim vật lý sang eSIM không?',
+    category: 'Hướng dẫn sử dụng',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['esim mobifone', 'esim là gì', 'chuyển sim vật lý sang esim', 'esim mobifone có tốt không'],
+  },
+  {
+    slug: 'cach-kich-hoat-esim-mobifone',
+    title: 'Cách kích hoạt eSIM Mobifone nhanh chóng, không cần ra cửa hàng',
+    category: 'Hướng dẫn sử dụng',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['kích hoạt esim mobifone', 'esim mobifone', 'quét mã qr esim'],
+  },
+  {
+    slug: 'mua-sim-mobifone-cua-hang-hay-online',
+    title: 'Nên mua sim Mobifone tại cửa hàng hay đặt online? So sánh chi tiết',
+    category: 'Hướng dẫn sử dụng',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['mua sim mobifone online', 'mua sim mobifone tại cửa hàng', 'so sánh mua sim online'],
+  },
+  {
+    slug: 'doi-sim-mobifone-mat-hong-giu-nguyen-so',
+    title: 'Cách đổi sim Mobifone bị mất, hỏng mà vẫn giữ nguyên số cũ',
+    category: 'Hướng dẫn sử dụng',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['đổi sim mobifone bị mất', 'cấp lại sim mobifone', 'giữ nguyên số cũ'],
+  },
+  {
+    slug: 'chuyen-mang-giu-so-sang-mobifone',
+    title: 'Chuyển mạng giữ số sang Mobifone: Điều kiện và thủ tục cần biết',
+    category: 'Hướng dẫn sử dụng',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['chuyển mạng giữ số mobifone', 'chuyển mạng giữ số', 'thủ tục chuyển mạng'],
+  },
+  {
+    slug: 'sim-mobifone-4g-5g-khac-gi-nhau',
+    title: 'Sim Mobifone 4G và 5G khác gì nhau? Có cần đổi sim để dùng 5G?',
+    category: 'Hướng dẫn sử dụng',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['sim mobifone 4g 5g', 'sim 5g mobifone', 'đổi sim 5g'],
+  },
+];
+
 export const TOPIC_BANK = [
   // Kho số đẹp — các dòng sim có từ khóa SEO mạnh nhất (tứ quý, lục quý…).
   ...KHO_SO_DEP,
+
+  // Hướng dẫn sử dụng thực tế — đa dạng kho chủ đề, khác hướng phong thủy.
+  ...HUONG_DAN_THUC_TE,
 
   // Đuôi số cụ thể — từ khóa mua hàng trực tiếp.
   ...DUOI_SO,

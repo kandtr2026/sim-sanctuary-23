@@ -118,6 +118,25 @@ Bài kiến thức chung khác (category "Kiến thức mua sim"):
 - `nen-mua-sim-tra-gop-hay-tra-thang` — "Nên mua sim trả góp hay trả thẳng? So sánh ưu nhược điểm"
 - `thu-tuc-sang-ten-sim-chinh-chu-mobifone` — "Thủ tục sang tên sim chính chủ Mobifone mới nhất"
 
+**Chuỗi hướng dẫn thực tế (category "Hướng dẫn sử dụng")** — thêm 2026-09-15, lấy ý tưởng từ mục
+"Nhà mạng, SIM, thẻ cào" của thegioididong.com/tin-tuc (401 bài, chủ yếu dạng hướng dẫn thao tác)
+để đa dạng hoá kho chủ đề — khác hẳn hướng phong thủy/ý nghĩa số đang chiếm phần lớn kho hiện tại.
+Đây là bài "how-to" thực dụng, không phải nội dung tâm linh:
+- `cach-tra-cuu-thue-bao-mobifone-chinh-chu` — "Cách tra cứu thông tin thuê bao Mobifone chính chủ nhanh gọn"
+- `sim-mobifone-bi-khoa-1-chieu-2-chieu-la-gi` — "Sim Mobifone bị khóa 1 chiều, 2 chiều là gì? Cách mở khóa nhanh nhất"
+- `esim-mobifone-la-gi-co-nen-dung` — "eSIM Mobifone là gì? Có nên chuyển từ sim vật lý sang eSIM không?"
+- `cach-kich-hoat-esim-mobifone` — "Cách kích hoạt eSIM Mobifone nhanh chóng, không cần ra cửa hàng"
+- `mua-sim-mobifone-cua-hang-hay-online` — "Nên mua sim Mobifone tại cửa hàng hay đặt online? So sánh chi tiết"
+- `doi-sim-mobifone-mat-hong-giu-nguyen-so` — "Cách đổi sim Mobifone bị mất, hỏng mà vẫn giữ nguyên số cũ"
+- `chuyen-mang-giu-so-sang-mobifone` — "Chuyển mạng giữ số sang Mobifone: Điều kiện và thủ tục cần biết"
+- `sim-mobifone-4g-5g-khac-gi-nhau` — "Sim Mobifone 4G và 5G khác gì nhau? Có cần đổi sim để dùng 5G?"
+
+Lưu ý riêng cho nhóm này: đây là hướng dẫn thao tác/thủ tục thật, KHÔNG phải niềm tin dân gian —
+không áp khung "theo quan niệm phong thủy" ở mục 6 cho nhóm này. Vì thủ tục nhà mạng có thể thay
+đổi theo thời gian, viết ở mức hướng dẫn chung + luôn khuyên người đọc gọi tổng đài/ra điểm giao
+dịch Mobifone chính hãng để được hỗ trợ chính xác nhất, KHÔNG tự bịa số điện thoại tổng đài, mã
+lệnh USSD, hay quy trình chi tiết cụ thể mà không chắc chắn còn đúng.
+
 **Lưu ý bắt buộc:** tiêu đề và nội dung mỗi bài phải khác biệt hoàn toàn với các bài đã có (đã
 kiểm slug ở bước 2) — không viết lại gần giống 1 bài cũ dưới tên khác, không dùng lại cùng mở bài
 hay cùng bố cục câu chữ giữa các bài liên tiếp.
