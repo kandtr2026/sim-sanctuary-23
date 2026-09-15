@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ShoppingBag, RefreshCw, TrendingUp, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { StatCard } from "@/components/admin/StatCard";
@@ -71,6 +71,26 @@ export function TikTokShopSection() {
   useEffect(() => {
     void load(days);
   }, [days, load]);
+
+  // Cột biểu đồ doanh thu theo ngày (thay bảng — góp ý #29: "nhìn cho gọn").
+  const dailyBars = useMemo(() => {
+    const daily = data?.daily ?? [];
+    const maxRev = daily.reduce((m, d) => Math.max(m, d.revenue), 0);
+    return daily.map((d) => {
+      const [, mo, day] = d.date.split("-");
+      return {
+        date: d.date,
+        label: mo && day ? `${Number(day)}/${Number(mo)}` : d.date,
+        revenue: d.revenue,
+        orders: d.orders,
+        // Cao tối thiểu 5% để cột có đơn vẫn thấy; cap 92% chừa chỗ nhãn đỉnh.
+        height: d.revenue <= 0 ? 2 : Math.max(Math.min((d.revenue / maxRev) * 100, 92), 5),
+      };
+    });
+  }, [data]);
+  // Nhiều ngày (30/90) thì thưa nhãn trục x cho khỏi chồng chữ.
+  const labelStep = Math.max(1, Math.ceil(dailyBars.length / 15));
+  const peakRevenue = dailyBars.reduce((m, b) => Math.max(m, b.revenue), 0);
 
   return (
     <section>
@@ -166,30 +186,51 @@ export function TikTokShopSection() {
           </div>
 
           <div>
-            <h3 className="mb-2 text-sm font-semibold text-foreground">Doanh thu theo ngày</h3>
-            <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-card">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50 text-left text-muted-foreground">
-                  <tr>
-                    <th scope="col" className="px-4 py-2.5 font-medium">Ngày</th>
-                    <th scope="col" className="px-4 py-2.5 text-right font-medium">Đơn</th>
-                    <th scope="col" className="px-4 py-2.5 text-right font-medium">Doanh thu</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {data.daily.map((d) => (
-                    <tr key={d.date} className="transition-colors hover:bg-muted/30">
-                      <td className="px-4 py-2.5 text-foreground">{d.date}</td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-right text-foreground">
-                        {d.orders.toLocaleString("vi-VN")}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-right font-semibold text-gold">
-                        {formatVnd(d.revenue)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-foreground">Doanh thu theo ngày</h3>
+              <span className="text-xs text-muted-foreground">
+                {dailyBars.length} ngày có đơn · đỉnh {formatVnd(peakRevenue)}
+              </span>
+            </div>
+            <div className="rounded-xl border border-border bg-card p-4 shadow-card">
+              <div
+                className="relative flex h-48 items-end gap-[3px]"
+                role="img"
+                aria-label={`Biểu đồ doanh thu TikTok Shop theo ngày, tổng ${formatVnd(data.total_revenue)}`}
+              >
+                {dailyBars.map((b, i) => {
+                  const isLatest = i === dailyBars.length - 1;
+                  return (
+                    <div key={b.date} className="relative flex-1 self-end" style={{ height: `${b.height}%` }}>
+                      <div
+                        title={`${b.label}: ${b.orders.toLocaleString("vi-VN")} đơn · ${formatVnd(b.revenue)}`}
+                        aria-label={`${b.label}: ${b.orders} đơn, ${formatVnd(b.revenue)}`}
+                        className={cn(
+                          "h-full w-full rounded-t-md transition-colors",
+                          b.revenue <= 0
+                            ? "bg-muted"
+                            : isLatest
+                              ? "bg-primary hover:opacity-90"
+                              : "bg-[hsl(var(--gold-soft))] hover:bg-[hsl(var(--gold))]",
+                        )}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-1.5 flex gap-[3px]">
+                {dailyBars.map((b, i) => (
+                  <span
+                    key={b.date}
+                    className={cn(
+                      "flex-1 truncate text-center text-[9px] text-muted-foreground",
+                      i % labelStep !== 0 && "invisible",
+                    )}
+                  >
+                    {b.label}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
