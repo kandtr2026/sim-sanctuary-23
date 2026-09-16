@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getPagePath, classifySource } from "@/lib/trackingUtils";
-import { getAttribution } from "@/lib/attribution";
+import { getAttribution, getFirstTouchSource } from "@/lib/attribution";
 import { GADS_CONV_SEND_TO } from "@/lib/gadsTracking";
 import { getCardZaloVariant } from "@/lib/experiment";
 
@@ -119,7 +119,9 @@ export function useConversionTracker() {
       lastLoggedRef.current = { type, at: now };
 
       const path = getPagePath(window.location.pathname, window.location.search);
-      const { source } = classifySource(document.referrer);
+      // Ưu tiên nguồn lần vào đầu (do usePageVisitTracker chốt) để chuyển đổi bám
+      // đúng nơi khách vào web, không lấy referrer lúc bấm (dễ rớt thành Nội bộ).
+      const source = (getFirstTouchSource() ?? classifySource(document.referrer)).source;
       const attr = getAttribution();
 
       // T9/T11 — enrich

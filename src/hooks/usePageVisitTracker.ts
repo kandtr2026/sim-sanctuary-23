@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { getPagePath, classifySource } from "@/lib/trackingUtils";
-import { captureAttribution, getAttribution } from "@/lib/attribution";
+import { captureAttribution, getAttribution, captureFirstTouchSource, getFirstTouchSource } from "@/lib/attribution";
 
 /**
  * Logs every page navigation to `public.page_visits` so the admin dashboard
@@ -58,12 +58,16 @@ export function usePageVisitTracker() {
 
       lastLoggedRef.current = { path, at: now };
 
-      const { referrer, source } = classifySource(document.referrer);
+      // Chốt nguồn lần vào đầu rồi ưu tiên dùng nó: khách vào từ Google/Facebook…
+      // rồi bấm loanh quanh vẫn giữ đúng nguồn, không rớt thành Nội bộ/Trực tiếp.
+      const live = classifySource(document.referrer);
+      captureFirstTouchSource(live.source, live.referrer);
+      const ft = getFirstTouchSource() ?? live;
 
       const payload = {
         path,
-        referrer,
-        source,
+        referrer: ft.referrer,
+        source: ft.source,
         user_agent: navigator.userAgent,
         ...getAttribution(),
       };

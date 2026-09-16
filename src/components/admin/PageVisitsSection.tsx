@@ -21,7 +21,7 @@ const SOURCE_LABELS: Record<string, { label: string; color: string }> = {
   coccoc: { label: "Cốc Cốc", color: "bg-orange-500/15 text-orange-400" },
   pinterest: { label: "Pinterest", color: "bg-red-400/15 text-red-400" },
   twitter: { label: "Twitter/X", color: "bg-neutral-400/15 text-neutral-300" },
-  direct: { label: "Trực tiếp", color: "bg-emerald-500/15 text-emerald-400" },
+  direct: { label: "Trực tiếp / không rõ", color: "bg-emerald-500/15 text-emerald-400" },
   internal: { label: "Nội bộ", color: "bg-primary/15 text-primary" },
   other: { label: "Khác", color: "bg-muted text-muted-foreground" },
 };
@@ -224,6 +224,14 @@ export function PageVisitsSection() {
                 );
               })}
             </div>
+            <p className="mt-3 border-t border-border pt-2 text-xs leading-relaxed text-muted-foreground">
+              <b className="text-foreground">Trực tiếp / không rõ</b>: trình duyệt không gửi nguồn — gõ tay/lưu link,
+              mở từ app (Zalo/Facebook/TikTok in-app hay nuốt nguồn), hoặc Google bị mất referrer.{" "}
+              <b className="text-foreground">Nội bộ</b>: bấm từ một trang khác ngay trong web sang.{" "}
+              <b className="text-foreground">Google/Facebook…</b>: có referrer từ nơi đó. Nguồn tính theo{" "}
+              <b className="text-foreground">lần khách vào web đầu tiên</b> trong phiên. Muốn chắc nguồn 100% thì gắn UTM
+              vào link mình đăng (Ads/Facebook/TikTok).
+            </p>
           </div>
 
           <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-card">
