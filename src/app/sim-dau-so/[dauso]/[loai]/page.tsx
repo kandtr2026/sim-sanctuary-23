@@ -238,20 +238,21 @@ export default async function SimDauSoLoaiPage({ params }: Props) {
         </section>
 
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
-          {/* Bảng giá thật + ItemList/Product/Offer trong HTML thô */}
-          <CategorySimPriceList
-            title={`Giá sim ${label} đầu số ${dauso} đang bán`}
-            sims={snapshotSims}
-            pageUrl={`${BASE_URL}/sim-dau-so/${dauso}/${loai}`}
-            note={`Bảng lấy 8 số ${label} đầu ${dauso} có giá thấp nhất trong kho tại thời điểm cập nhật.`}
-          />
-
+          {/* Kho + ô tìm lên đầu để khách vừa vào tìm được ngay (góp ý #32) */}
           <CategorySimGrid
             title={`Kho Sim ${label} Đầu Số ${dauso} Cập Nhật`}
             searchPlaceholder={`Nhập số, hoặc ${loaiInfo.searchHint} để tìm theo đuôi...`}
             emptyText={`Kho hiện chưa có số ${label} đầu ${dauso} khớp yêu cầu. Quý khách thử đuôi khác, hoặc liên hệ 0933.686.666 để được tư vấn.`}
             matchPrefixes={[dauso]}
             matchSuffixes={[...loaiInfo.suffixes]}
+          />
+
+          {/* Bảng giá thật + ItemList/Product/Offer trong HTML thô */}
+          <CategorySimPriceList
+            title={`Giá sim ${label} đầu số ${dauso} đang bán`}
+            sims={snapshotSims}
+            pageUrl={`${BASE_URL}/sim-dau-so/${dauso}/${loai}`}
+            note={`Bảng lấy 8 số ${label} đầu ${dauso} có giá thấp nhất trong kho tại thời điểm cập nhật.`}
           />
 
           <TrustCommitments />

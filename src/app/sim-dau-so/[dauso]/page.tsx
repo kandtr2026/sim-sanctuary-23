@@ -228,6 +228,14 @@ export default async function SimDauSoPage({ params }: Props) {
         </section>
 
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
+          {/* Kho + ô tìm lên đầu để khách vừa vào tìm được ngay (góp ý #32) */}
+          <CategorySimGrid
+            title={`Kho Sim ${dauso} Cập Nhật`}
+            searchPlaceholder={`Nhập số cần tìm trong kho ${dauso}...`}
+            emptyText={`Kho hiện chưa có số đầu ${dauso} khớp yêu cầu. Quý khách thử từ khóa khác, hoặc liên hệ 0933.686.666 để được tư vấn.`}
+            matchPrefixes={[dauso]}
+          />
+
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
               <span className="h-8 w-1 rounded-full bg-primary" />
@@ -270,13 +278,6 @@ export default async function SimDauSoPage({ params }: Props) {
             sims={snapshotSims}
             pageUrl={`${BASE_URL}/sim-dau-so/${dauso}`}
             note={`Bảng lấy 8 số đầu ${dauso} có giá thấp nhất trong kho tại thời điểm cập nhật.`}
-          />
-
-          <CategorySimGrid
-            title={`Kho Sim ${dauso} Cập Nhật`}
-            searchPlaceholder={`Nhập số cần tìm trong kho ${dauso}...`}
-            emptyText={`Kho hiện chưa có số đầu ${dauso} khớp yêu cầu. Quý khách thử từ khóa khác, hoặc liên hệ 0933.686.666 để được tư vấn.`}
-            matchPrefixes={[dauso]}
           />
 
           <TrustCommitments />

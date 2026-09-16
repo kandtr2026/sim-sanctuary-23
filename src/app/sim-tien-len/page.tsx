@@ -125,6 +125,14 @@ export default async function SimTienLenPage() {
         </section>
 
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
+          {/* Kho + ô tìm lên đầu để khách vừa vào tìm được ngay (góp ý #32) */}
+          <CategorySimGrid
+            title="Sim Tiến Lên Mới Cập Nhật"
+            searchPlaceholder="Nhập số cần tìm, hoặc *6789 / *3456 để thử một đuôi"
+            emptyText="Nhóm này chỉ có bảy dãy đuôi nên kho hết nhanh. Quý khách nhắn Zalo 0933686666 kèm đuôi muốn tìm, đội ngũ tư vấn sẽ báo khi có số về."
+            matchTags={[TAG]}
+          />
+
           {/* ── 1. Mở bài: cả nhóm chỉ có bảy dãy ─────────────────────────── */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
@@ -231,14 +239,6 @@ export default async function SimTienLenPage() {
             sims={snapshotSims}
             pageUrl={CANONICAL}
             note="Bảng lấy 8 số tiến lên có giá thấp nhất trong kho tại thời điểm cập nhật."
-          />
-
-          {/* ── 5. Lưới lọc theo tag ───────────────────────────────────────── */}
-          <CategorySimGrid
-            title="Sim Tiến Lên Mới Cập Nhật"
-            searchPlaceholder="Nhập số cần tìm, hoặc *6789 / *3456 để thử một đuôi"
-            emptyText="Nhóm này chỉ có bảy dãy đuôi nên kho hết nhanh. Quý khách nhắn Zalo 0933686666 kèm đuôi muốn tìm, đội ngũ tư vấn sẽ báo khi có số về."
-            matchTags={[TAG]}
           />
 
           <TrustCommitments />

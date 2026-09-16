@@ -109,6 +109,14 @@ export default async function SimLocPhatPage() {
         </section>
 
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
+          {/* Kho + ô tìm lên đầu để khách vừa vào tìm được ngay (góp ý #32) */}
+          <CategorySimGrid
+            title="Sim Lộc Phát Đuôi 68, 86 Mới Cập Nhật"
+            searchPlaceholder="Nhập số cần tìm, hoặc *68 / *86 để xem đuôi lộc phát"
+            emptyText="Chưa có số nào khớp yêu cầu này. Quý khách thử *68, *86 hoặc 6868, hoặc gọi 0933.686.666 để đội ngũ tư vấn lọc kho theo ngân sách."
+            matchSuffixes={["68", "86"]}
+          />
+
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
               <span className="h-8 w-1 rounded-full bg-primary" />
@@ -137,13 +145,6 @@ export default async function SimLocPhatPage() {
             sims={snapshotSims}
             pageUrl={CANONICAL}
             note="Bảng lấy 8 số đuôi 68 / 86 có giá thấp nhất trong kho tại thời điểm cập nhật."
-          />
-
-          <CategorySimGrid
-            title="Sim Lộc Phát Đuôi 68, 86 Mới Cập Nhật"
-            searchPlaceholder="Nhập số cần tìm, hoặc *68 / *86 để xem đuôi lộc phát"
-            emptyText="Chưa có số nào khớp yêu cầu này. Quý khách thử *68, *86 hoặc 6868, hoặc gọi 0933.686.666 để đội ngũ tư vấn lọc kho theo ngân sách."
-            matchSuffixes={["68", "86"]}
           />
 
           <LeadMagnetCta />

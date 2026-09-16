@@ -115,6 +115,14 @@ export default async function SimThanTaiPage() {
         </section>
 
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
+          {/* Kho + ô tìm số lên ĐẦU trang để khách vừa vào tìm được ngay (góp ý #32) */}
+          <CategorySimGrid
+            title="Sim Thần Tài Đuôi 39, 79 Mới Cập Nhật"
+            searchPlaceholder="Nhập số cần tìm, hoặc *39 / *79 để xem đuôi thần tài"
+            emptyText="Kho tạm hết số khớp yêu cầu này. Quý khách thử tìm *39 hoặc *79, hoặc gọi 0933.686.666 để đội ngũ tư vấn lọc số theo đúng ngân sách."
+            matchSuffixes={["39", "79"]}
+          />
+
           {/* ── 1. Sim Thần Tài là gì? ───────────────────────────────────── */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
@@ -309,14 +317,6 @@ export default async function SimThanTaiPage() {
             sims={snapshotSims}
             pageUrl={CANONICAL}
             note="Bảng lấy 8 số đuôi 39 / 79 có giá thấp nhất trong kho tại thời điểm cập nhật."
-          />
-
-          {/* ── 8. Kho sim thần tài ─────────────────────────────────────── */}
-          <CategorySimGrid
-            title="Sim Thần Tài Đuôi 39, 79 Mới Cập Nhật"
-            searchPlaceholder="Nhập số cần tìm, hoặc *39 / *79 để xem đuôi thần tài"
-            emptyText="Kho tạm hết số khớp yêu cầu này. Quý khách thử tìm *39 hoặc *79, hoặc gọi 0933.686.666 để đội ngũ tư vấn lọc số theo đúng ngân sách."
-            matchSuffixes={["39", "79"]}
           />
 
           <LeadMagnetCta />

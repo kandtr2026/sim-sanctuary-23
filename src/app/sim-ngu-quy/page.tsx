@@ -116,20 +116,20 @@ export default async function SimNguQuyPage() {
 
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
 
-          {/* ===== DẢI "NỔI BẬT" — SỐ + GIÁ + Zalo NGAY SAU HERO ===== */}
-          <CategoryFeaturedSims
-            title="Sim Ngũ Quý Nổi Bật Trong Kho"
-            sims={featuredSims}
-            pageUrl={CANONICAL}
-          />
-
-          {/* ===== Ô TÌM + LƯỚI "KHO NGŨ QUÝ CẬP NHẬT" ===== */}
+          {/* Kho + ô tìm lên đầu để khách vừa vào tìm được ngay (góp ý #32) */}
           <CategorySimGrid
             title="Sim Ngũ Quý, Lục Quý Mới Cập Nhật"
             searchPlaceholder="Nhập số cần tìm, hoặc *88888 / *99999 để xem đuôi ngũ quý"
             emptyText="Kho đang trống ở nhóm này — ngũ quý về lẻ và đi rất nhanh. Quý khách để lại yêu cầu qua Zalo 0933686666, đội ngũ tư vấn sẽ báo khi có dãy phù hợp."
             matchTags={["Ngũ quý", "Lục quý"]}
             quyFilter="Ngũ quý"
+          />
+
+          {/* ===== DẢI "NỔI BẬT" — SỐ + GIÁ + Zalo NGAY SAU HERO ===== */}
+          <CategoryFeaturedSims
+            title="Sim Ngũ Quý Nổi Bật Trong Kho"
+            sims={featuredSims}
+            pageUrl={CANONICAL}
           />
 
           {/* ===== GIÁO DỤC (dời xuống sau sản phẩm, giữ nguyên nội dung SEO) ===== */}

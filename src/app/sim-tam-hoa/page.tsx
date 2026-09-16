@@ -133,6 +133,14 @@ export default async function SimTamHoaPage() {
         </section>
 
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
+          {/* Kho + ô tìm lên đầu để khách vừa vào tìm được ngay (góp ý #32) */}
+          <CategorySimGrid
+            title="Sim Tam Hoa Mới Cập Nhật"
+            searchPlaceholder="Nhập số cần tìm, hoặc *888 / *999 để xem đuôi tam hoa"
+            emptyText="Kho tạm hết số khớp yêu cầu này. Quý khách thử tìm *888 hoặc *222, hoặc gọi 0933.686.666 để đội ngũ tư vấn lọc số theo đúng ngân sách."
+            matchTags={[TAG]}
+          />
+
           {/* ── 1. Mở bài: đọc một số tam hoa ─────────────────────────────── */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
@@ -252,14 +260,6 @@ export default async function SimTamHoaPage() {
             sims={snapshotSims}
             pageUrl={CANONICAL}
             note="Bảng lấy 8 số tam hoa có giá thấp nhất trong kho tại thời điểm cập nhật."
-          />
-
-          {/* ── 5. Lưới lọc theo tag ───────────────────────────────────────── */}
-          <CategorySimGrid
-            title="Sim Tam Hoa Mới Cập Nhật"
-            searchPlaceholder="Nhập số cần tìm, hoặc *888 / *999 để xem đuôi tam hoa"
-            emptyText="Kho tạm hết số khớp yêu cầu này. Quý khách thử tìm *888 hoặc *222, hoặc gọi 0933.686.666 để đội ngũ tư vấn lọc số theo đúng ngân sách."
-            matchTags={[TAG]}
           />
 
           <TrustCommitments />

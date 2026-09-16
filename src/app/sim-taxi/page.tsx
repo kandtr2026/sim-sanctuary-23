@@ -125,6 +125,14 @@ export default async function SimTaxiPage() {
         </section>
 
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
+          {/* Kho + ô tìm lên đầu để khách vừa vào tìm được ngay (góp ý #32) */}
+          <CategorySimGrid
+            title="Sim Taxi Mới Cập Nhật"
+            searchPlaceholder="Nhập số cần tìm, hoặc *686868 / *979979 để thử một cụm"
+            emptyText="Nhóm taxi khan hàng nên kho có lúc trống. Quý khách nhắn Zalo 0933686666 kèm cụm số muốn tìm, đội ngũ tư vấn sẽ báo ngay khi có."
+            matchTags={[TAG]}
+          />
+
           {/* ── 1. Mở bài: cái tên đến từ đâu ─────────────────────────────── */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
@@ -219,14 +227,6 @@ export default async function SimTaxiPage() {
             sims={snapshotSims}
             pageUrl={CANONICAL}
             note="Bảng lấy 8 số taxi có giá thấp nhất trong kho tại thời điểm cập nhật."
-          />
-
-          {/* ── 5. Lưới lọc theo tag ───────────────────────────────────────── */}
-          <CategorySimGrid
-            title="Sim Taxi Mới Cập Nhật"
-            searchPlaceholder="Nhập số cần tìm, hoặc *686868 / *979979 để thử một cụm"
-            emptyText="Nhóm taxi khan hàng nên kho có lúc trống. Quý khách nhắn Zalo 0933686666 kèm cụm số muốn tìm, đội ngũ tư vấn sẽ báo ngay khi có."
-            matchTags={[TAG]}
           />
 
           <TrustCommitments />

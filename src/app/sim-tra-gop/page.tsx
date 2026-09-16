@@ -115,6 +115,14 @@ export default async function SimTraGopPage() {
         </section>
 
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
+          {/* Kho + ô tìm lên đầu để khách vừa vào tìm được ngay (góp ý #32) */}
+          <CategorySimGrid
+            title="Kho Sim Có Thể Trả Góp"
+            searchPlaceholder="Nhập số hoặc *đuôi để tìm sim trả góp..."
+            emptyText="Kho hiện chưa có số phù hợp. Quý khách vui lòng thử lại với dãy số khác."
+            matchAll
+          />
+
           {/* Điều kiện */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-6 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
@@ -139,14 +147,6 @@ export default async function SimTraGopPage() {
             sims={snapshotSims}
             pageUrl={CANONICAL}
             note="Giá niêm yết trả thẳng — mức trả trước và số tiền mỗi tháng được tính trên chính con số này khi Quý khách chọn trả góp."
-          />
-
-          {/* Client island: SIM grid */}
-          <CategorySimGrid
-            title="Kho Sim Có Thể Trả Góp"
-            searchPlaceholder="Nhập số hoặc *đuôi để tìm sim trả góp..."
-            emptyText="Kho hiện chưa có số phù hợp. Quý khách vui lòng thử lại với dãy số khác."
-            matchAll
           />
 
           {/* FAQ */}

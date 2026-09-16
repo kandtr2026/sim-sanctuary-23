@@ -125,6 +125,14 @@ export default async function SimTamHoaKepPage() {
         </section>
 
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
+          {/* Kho + ô tìm lên đầu để khách vừa vào tìm được ngay (góp ý #32) */}
+          <CategorySimGrid
+            title="Sim Tam Hoa Kép Mới Cập Nhật"
+            searchPlaceholder="Nhập số cần tìm, hoặc *888999 để thử một cặp cụ thể"
+            emptyText="Nhóm này về lẻ và đi rất nhanh nên kho có lúc trống. Quý khách nhắn Zalo 0933686666, đội ngũ tư vấn sẽ báo ngay khi có dãy phù hợp."
+            matchTags={[TAG]}
+          />
+
           {/* ── 1. Mở bài: đặt cạnh tam hoa đơn để thấy khác biệt ──────────── */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
@@ -241,14 +249,6 @@ export default async function SimTamHoaKepPage() {
             sims={snapshotSims}
             pageUrl={CANONICAL}
             note="Bảng lấy 8 số tam hoa kép có giá thấp nhất trong kho tại thời điểm cập nhật."
-          />
-
-          {/* ── 5. Lưới lọc theo tag ───────────────────────────────────────── */}
-          <CategorySimGrid
-            title="Sim Tam Hoa Kép Mới Cập Nhật"
-            searchPlaceholder="Nhập số cần tìm, hoặc *888999 để thử một cặp cụ thể"
-            emptyText="Nhóm này về lẻ và đi rất nhanh nên kho có lúc trống. Quý khách nhắn Zalo 0933686666, đội ngũ tư vấn sẽ báo ngay khi có dãy phù hợp."
-            matchTags={[TAG]}
           />
 
           <TrustCommitments />
