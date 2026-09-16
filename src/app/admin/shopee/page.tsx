@@ -27,6 +27,7 @@ import {
   RefreshCw,
   Search,
   Store,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,6 +83,13 @@ const trangThai = (s: string) =>
 
 const formatVnd = (n: number) => (n > 0 ? n.toLocaleString("vi-VN") + "₫" : "—");
 
+const formatVndShort = (n: number) =>
+  n >= 1_000_000
+    ? `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}tr`
+    : n >= 1_000
+      ? `${Math.round(n / 1_000)}k`
+      : n.toLocaleString("vi-VN");
+
 const giaListing = (it: ShopeeListing): string => {
   const prices = (it.variants ?? []).map((v) => v.price).filter((p) => p > 0);
   if (prices.length === 0) return it.priceNote || formatVnd(it.price);
@@ -120,6 +128,13 @@ function ShopeeAdminContent() {
   const [q, setQ] = useState("");
   const [onlyLive, setOnlyLive] = useState(false);
   const [copiedId, setCopiedId] = useState<number | "all" | null>(null);
+
+  // Doanh thu đã bán (Shopee Order API) — nạp theo yêu cầu để sort theo mã bán chạy (#35).
+  const [sales, setSales] = useState<Record<number, { orders: number; quantity: number; revenue: number }>>({});
+  const [salesDays, setSalesDays] = useState<7 | 30 | 90>(90);
+  const [salesLoading, setSalesLoading] = useState(false);
+  const [salesFetched, setSalesFetched] = useState(false);
+  const [sortBy, setSortBy] = useState<"default" | "revenue" | "quantity" | "stock">("default");
 
   // Panel kết nối — chỉ mở khi cần setup.
   const [showConnect, setShowConnect] = useState(false);
@@ -179,6 +194,29 @@ function ShopeeAdminContent() {
       toast.error((err as Error).message, { id: t });
     } finally {
       setPulling(false);
+    }
+  };
+
+  // Kéo doanh thu đã bán từ Shopee Order API (chậm — chia cửa sổ 15 ngày), rồi
+  // ghép vào từng listing để sort. Nạp theo yêu cầu vì tốn request.
+  const loadSales = async (d: 7 | 30 | 90) => {
+    if (!token) return;
+    setSalesLoading(true);
+    const t = toast.loading(`Đang lấy doanh thu ${d} ngày từ Shopee…`);
+    try {
+      const data = await api<{
+        byItem: { item_id: number; orders: number; quantity: number; revenue: number }[];
+      }>(`/api/admin/shopee/sales?days=${d}`, {}, token);
+      const map: Record<number, { orders: number; quantity: number; revenue: number }> = {};
+      for (const r of data.byItem) map[r.item_id] = { orders: r.orders, quantity: r.quantity, revenue: r.revenue };
+      setSales(map);
+      setSalesFetched(true);
+      setSortBy((s) => (s === "default" ? "revenue" : s));
+      toast.success(`Đã lấy doanh thu ${d} ngày (${data.byItem.length} mã có bán)`, { id: t });
+    } catch (err) {
+      toast.error((err as Error).message, { id: t });
+    } finally {
+      setSalesLoading(false);
     }
   };
 
@@ -262,6 +300,15 @@ function ShopeeAdminContent() {
     () => listings.filter((it) => String(it.status).toUpperCase() === "NORMAL").length,
     [listings],
   );
+
+  // Sắp xếp: theo doanh thu / SL đã bán (dùng dữ liệu Order API) hoặc theo kho (#35).
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
+    if (sortBy === "revenue") arr.sort((a, b) => (sales[b.item_id]?.revenue ?? 0) - (sales[a.item_id]?.revenue ?? 0));
+    else if (sortBy === "quantity") arr.sort((a, b) => (sales[b.item_id]?.quantity ?? 0) - (sales[a.item_id]?.quantity ?? 0));
+    else if (sortBy === "stock") arr.sort((a, b) => a.stock - b.stock);
+    return arr;
+  }, [filtered, sortBy, sales]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -368,6 +415,51 @@ function ShopeeAdminContent() {
             </Button>
           </div>
 
+          {/* Hàng doanh thu + sắp xếp (#35): kéo đã-bán từ Order API rồi sort theo mã bán chạy */}
+          <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-border pt-3">
+            <span className="text-xs font-medium text-muted-foreground">Doanh thu đã bán:</span>
+            <div className="inline-flex rounded-lg border border-border p-0.5">
+              {([7, 30, 90] as const).map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => {
+                    setSalesDays(d);
+                    if (salesFetched) void loadSales(d);
+                  }}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                    salesDays === d ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {d} ngày
+                </button>
+              ))}
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void loadSales(salesDays)}
+              disabled={salesLoading || listings.length === 0}
+            >
+              {salesLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <TrendingUp className="h-4 w-4" />}
+              {salesFetched ? "Cập nhật doanh thu" : "Tải doanh thu đã bán"}
+            </Button>
+
+            <div className="ml-auto flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Sắp xếp:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+              >
+                <option value="default">Mặc định</option>
+                <option value="revenue">Doanh thu đã bán ↓</option>
+                <option value="quantity">SL đã bán ↓</option>
+                <option value="stock">Kho ít nhất ↑</option>
+              </select>
+            </div>
+          </div>
+
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <span>
               <b className="text-foreground">{listings.length.toLocaleString("vi-VN")}</b> listing
@@ -401,9 +493,10 @@ function ShopeeAdminContent() {
           <p className="py-12 text-center text-sm text-muted-foreground">Không có listing khớp bộ lọc.</p>
         ) : (
           <ul className="space-y-2">
-            {filtered.map((it) => {
+            {sorted.map((it) => {
               const link = productLink(it.item_id);
               const tt = trangThai(it.status);
+              const sold = sales[it.item_id];
               return (
                 <li
                   key={it.item_id}
@@ -433,6 +526,17 @@ function ShopeeAdminContent() {
                       {" · "}kho {it.stock.toLocaleString("vi-VN")}
                       {it.variants && it.variants.length > 0 && <> · {it.variants.length} số</>}
                     </p>
+                    {salesFetched && (
+                      <p className="mt-0.5 text-xs">
+                        {sold ? (
+                          <span className="font-medium text-emerald-400">
+                            Đã bán {sold.quantity.toLocaleString("vi-VN")} · {sold.orders} đơn · DT {formatVndShort(sold.revenue)}₫
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">Chưa bán ({salesDays} ngày qua)</span>
+                        )}
+                      </p>
+                    )}
                     {link ? (
                       <a
                         href={link}
