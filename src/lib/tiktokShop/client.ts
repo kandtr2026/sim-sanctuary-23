@@ -162,6 +162,24 @@ export async function callApi<T = unknown>(
 
 // ---------- Order ----------
 
+/**
+ * Một dòng hàng trong đơn. Version 202309 KHÔNG có field số lượng: mỗi line_item
+ * là ĐÚNG 1 đơn vị (có `id` riêng). Mua 3 cái cùng SKU → 3 phần tử line_items.
+ * => số lượng bán của 1 listing = đếm số line_item; số đơn = đếm order distinct.
+ * (Xác nhận từ doc get-order-list-202309.)
+ */
+interface OrderLineItem {
+  id?: string;
+  product_id?: string;
+  product_name?: string;
+  sku_id?: string;
+  sku_name?: string;
+  seller_sku?: string;
+  /** Giá bán/đơn vị (đã giảm), TikTok trả dạng chuỗi. */
+  sale_price?: string | number;
+  currency?: string;
+}
+
 interface OrderSearchItem {
   id?: string;
   /** Trạng thái đơn: COMPLETED, AWAITING_SHIPMENT, IN_TRANSIT, CANCELLED, UNPAID… */
@@ -173,6 +191,8 @@ interface OrderSearchItem {
   cancel_time?: number;
   cancel_reason?: string;
   cancellation_initiator?: string;
+  /** Danh sách dòng hàng — orders/search đã trả sẵn, khỏi gọi Get Order Detail. */
+  line_items?: OrderLineItem[];
 }
 
 interface OrderSearchData {
@@ -267,11 +287,41 @@ export function summarizeOrders(orders: OrderSearchItem[]) {
     .map(([date, v]) => ({ date, ...v }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
+  // Gom theo LISTING (product_id): mỗi listing bán được bao nhiêu đơn / bao nhiêu
+  // sản phẩm / doanh thu (góp ý #29). "orders" = đếm đơn distinct chứa listing đó;
+  // "quantity" = đếm số line_item (vì 202309 không có field số lượng); doanh thu =
+  // cộng sale_price từng line_item.
+  const byProductMap = new Map<
+    string,
+    { product_id: string; product_name: string; orders: number; quantity: number; revenue: number }
+  >();
+  for (const o of paidOrders) {
+    const items = o.line_items ?? [];
+    const seenInOrder = new Set<string>();
+    for (const li of items) {
+      const pid = String(li.product_id ?? li.sku_id ?? "unknown");
+      const name = li.product_name || li.sku_name || li.seller_sku || pid;
+      const row = byProductMap.get(pid) ?? { product_id: pid, product_name: name, orders: 0, quantity: 0, revenue: 0 };
+      row.quantity += 1;
+      row.revenue += toNum(li.sale_price);
+      if (!row.product_name || row.product_name === pid) row.product_name = name;
+      if (!seenInOrder.has(pid)) {
+        row.orders += 1;
+        seenInOrder.add(pid);
+      }
+      byProductMap.set(pid, row);
+    }
+  }
+  const byProduct = [...byProductMap.values()]
+    .map((r) => ({ ...r, revenue: Math.round(r.revenue * 100) / 100 }))
+    .sort((a, b) => b.orders - a.orders || b.quantity - a.quantity || b.revenue - a.revenue);
+
   return {
     total_orders: paidOrders.length,
     total_revenue: Math.round(totalRevenue * 100) / 100,
     currency,
     avg_order_value: paidOrders.length > 0 ? Math.round((totalRevenue / paidOrders.length) * 100) / 100 : 0,
     daily,
+    byProduct,
   };
 }

@@ -16,6 +16,7 @@ interface SummaryResponse {
   avg_order_value: number;
   orders_count_raw: number;
   daily: { date: string; revenue: number; orders: number }[];
+  byProduct?: { product_id: string; product_name: string; orders: number; quantity: number; revenue: number }[];
   error?: string;
   code?: string | number;
   hint?: string | null;
@@ -233,6 +234,50 @@ export function TikTokShopSection() {
               </div>
             </div>
           </div>
+
+          {data.byProduct && data.byProduct.length > 0 && (
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-foreground">Sản phẩm đã bán (gom theo listing)</h3>
+                <span className="text-xs text-muted-foreground">{data.byProduct.length} listing</span>
+              </div>
+              <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
+                <div className="max-h-[420px] overflow-y-auto">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-muted/90 text-left text-muted-foreground backdrop-blur">
+                      <tr>
+                        <th scope="col" className="px-4 py-2.5 font-medium">Sản phẩm</th>
+                        <th scope="col" className="px-4 py-2.5 text-right font-medium">Đơn</th>
+                        <th scope="col" className="px-4 py-2.5 text-right font-medium">SL</th>
+                        <th scope="col" className="px-4 py-2.5 text-right font-medium">Doanh thu</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {data.byProduct.map((p) => (
+                        <tr key={p.product_id} className="transition-colors hover:bg-muted/30">
+                          <td className="px-4 py-2.5 text-foreground">
+                            <span className="line-clamp-2">{p.product_name}</span>
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-2.5 text-right font-semibold text-primary">
+                            {p.orders.toLocaleString("vi-VN")}
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-2.5 text-right text-foreground">
+                            {p.quantity.toLocaleString("vi-VN")}
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-2.5 text-right font-semibold text-gold">
+                            {formatVnd(p.revenue)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                “Đơn” = số đơn có chứa sản phẩm · “SL” = số lượng bán (đếm dòng hàng) · doanh thu cộng theo giá bán từng dòng.
+              </p>
+            </div>
+          )}
         </div>
       )}
     </section>
