@@ -13,6 +13,7 @@ import { PageVisitsSection } from "@/components/admin/PageVisitsSection";
 import { ConversionsSection } from "@/components/admin/ConversionsSection";
 import { CampaignPerformanceSection } from "@/components/admin/CampaignPerformanceSection";
 import { TikTokShopSection } from "@/components/admin/TikTokShopSection";
+import { ShopeeSummaryCard } from "@/components/admin/ShopeeSummaryCard";
 import { PostReadsSection } from "@/components/admin/PostReadsSection";
 import { VisitTrendSection } from "@/components/admin/VisitTrendSection";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -340,8 +341,9 @@ function AdminDashboardContent() {
           </a>
         </nav>
 
-        {/* ─── Tab TỔNG QUAN: kho số ─── */}
+        {/* ─── Tab TỔNG QUAN: kho số + tóm tắt Shopee (góp ý #30) ─── */}
         {tab === "tong-quan" && (
+          <div className="space-y-8">
           <section className="rounded-2xl border border-border bg-muted/20 p-4 sm:p-5">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
@@ -428,6 +430,9 @@ function AdminDashboardContent() {
               </>
             )}
           </section>
+
+            <ShopeeSummaryCard />
+          </div>
         )}
 
         {/* ─── Tab TRAFFIC: SEO + lượt truy cập (góp ý #16) ─── */}

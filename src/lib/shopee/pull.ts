@@ -330,3 +330,28 @@ export async function getSnapshot(): Promise<SnapshotResult> {
     isStale: Date.now() - fetchedMs > 6 * 3600 * 1000,
   };
 }
+
+export interface SnapshotSummary {
+  total: number;
+  live: number;
+  outOfStock: number;
+  fetchedAt: string | null;
+  isStale: boolean;
+}
+
+/**
+ * Tóm tắt snapshot cho dashboard (góp ý #30): chỉ trả số đếm, KHÔNG ship cả mảng
+ * items về client — server đọc 1 dòng snapshot rồi gửi vài con số, nhẹ egress.
+ * "outOfStock" = listing hết hàng (stock<=0) — con số A Khoa quan tâm nhất.
+ */
+export async function getSnapshotSummary(): Promise<SnapshotSummary> {
+  const snap = await getSnapshot();
+  const items = snap.items;
+  return {
+    total: items.length,
+    live: items.filter((i) => String(i.status).toUpperCase() === "NORMAL").length,
+    outOfStock: items.filter((i) => Number(i.stock ?? 0) <= 0).length,
+    fetchedAt: snap.fetchedAt,
+    isStale: snap.isStale,
+  };
+}
