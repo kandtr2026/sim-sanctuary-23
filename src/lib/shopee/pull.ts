@@ -331,27 +331,59 @@ export async function getSnapshot(): Promise<SnapshotResult> {
   };
 }
 
+export interface SnapshotListing {
+  item_id: number;
+  name: string;
+  /** Số biến thể (mỗi số SIM 1 biến thể) — 0 nếu listing 1 giá. */
+  variantCount: number;
+  /** Giá rổ: min/max giá các biến thể (hoặc giá đơn nếu 1 giá). 0 = chưa rõ. */
+  priceMin: number;
+  priceMax: number;
+  stock: number;
+  status: string;
+}
+
 export interface SnapshotSummary {
   total: number;
   live: number;
   outOfStock: number;
   fetchedAt: string | null;
   isStale: boolean;
+  listings: SnapshotListing[];
 }
 
 /**
- * Tóm tắt snapshot cho dashboard (góp ý #30): chỉ trả số đếm, KHÔNG ship cả mảng
- * items về client — server đọc 1 dòng snapshot rồi gửi vài con số, nhẹ egress.
- * "outOfStock" = listing hết hàng (stock<=0) — con số A Khoa quan tâm nhất.
+ * Tóm tắt snapshot cho dashboard (góp ý #30 + #33): số đếm + DANH SÁCH listing
+ * gọn (tên, số biến thể, giá rổ, kho, trạng thái). Không ship ảnh / mảng biến thể
+ * đầy đủ về client — chỉ vài trường mỗi listing, nhẹ egress. Xếp hết-hàng lên đầu
+ * ("outOfStock" là con số A Khoa quan tâm nhất).
  */
 export async function getSnapshotSummary(): Promise<SnapshotSummary> {
   const snap = await getSnapshot();
   const items = snap.items;
+
+  const listings: SnapshotListing[] = items
+    .map((it) => {
+      const variantPrices = (it.variants ?? []).map((v) => v.price).filter((p) => p > 0);
+      const prices = variantPrices.length > 0 ? variantPrices : it.price > 0 ? [it.price] : [];
+      return {
+        item_id: it.item_id,
+        name: it.item_name || `Item #${it.item_id}`,
+        variantCount: it.variants?.length ?? 0,
+        priceMin: prices.length > 0 ? Math.min(...prices) : 0,
+        priceMax: prices.length > 0 ? Math.max(...prices) : 0,
+        stock: Number(it.stock ?? 0),
+        status: it.status,
+      };
+    })
+    .sort((a, b) => a.stock - b.stock);
+
   return {
     total: items.length,
     live: items.filter((i) => String(i.status).toUpperCase() === "NORMAL").length,
     outOfStock: items.filter((i) => Number(i.stock ?? 0) <= 0).length,
     fetchedAt: snap.fetchedAt,
     isStale: snap.isStale,
+    listings,
   };
 }

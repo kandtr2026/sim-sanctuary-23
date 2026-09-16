@@ -13,14 +13,45 @@ import { supabase } from "@/integrations/supabase/client";
 import { StatCard } from "@/components/admin/StatCard";
 import { cn } from "@/lib/utils";
 
+interface SnapshotListing {
+  item_id: number;
+  name: string;
+  variantCount: number;
+  priceMin: number;
+  priceMax: number;
+  stock: number;
+  status: string;
+}
+
 interface Summary {
   total: number;
   live: number;
   outOfStock: number;
   fetchedAt: string | null;
   isStale: boolean;
+  listings?: SnapshotListing[];
   error?: string;
 }
+
+const TRANG_THAI: Record<string, { label: string; cls: string }> = {
+  NORMAL: { label: "Đang bán", cls: "bg-emerald-500/15 text-emerald-400" },
+  UNLIST: { label: "Ngừng", cls: "bg-muted text-muted-foreground" },
+  UNLISTED: { label: "Ngừng", cls: "bg-muted text-muted-foreground" },
+  REVIEWING: { label: "Đang duyệt", cls: "bg-gold/15 text-gold" },
+  BANNED: { label: "Bị khoá", cls: "bg-primary/15 text-primary" },
+  DELETED: { label: "Đã xoá", cls: "bg-primary/15 text-primary" },
+};
+const trangThai = (s: string) =>
+  TRANG_THAI[String(s || "").toUpperCase()] ?? { label: s || "—", cls: "bg-muted text-muted-foreground" };
+
+const vnd = (n: number) =>
+  n >= 1_000_000
+    ? `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}tr`
+    : n >= 1_000
+      ? `${Math.round(n / 1_000)}k`
+      : n.toLocaleString("vi-VN");
+
+const giaRo = (min: number, max: number) => (min <= 0 ? "—" : min === max ? vnd(min) : `${vnd(min)}–${vnd(max)}`);
 
 export function ShopeeSummaryCard() {
   const [data, setData] = useState<Summary | null>(null);
@@ -128,6 +159,62 @@ export function ShopeeSummaryCard() {
               Cập nhật lúc <b className="text-foreground">{new Date(data.fetchedAt).toLocaleString("vi-VN")}</b>
               {data.isStale && <span className="text-gold"> (đã cũ &gt;6h — vào trang Shopee bấm “Lấy danh sách mới nhất”)</span>}
             </p>
+          )}
+
+          {data.listings && data.listings.length > 0 && (
+            <div className="mt-4">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-foreground">Danh sách listing</h3>
+                <span className="text-xs text-muted-foreground">hết hàng xếp lên đầu</span>
+              </div>
+              <div className="overflow-hidden rounded-xl border border-border bg-card">
+                <div className="max-h-[420px] overflow-y-auto">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-muted/90 text-left text-muted-foreground backdrop-blur">
+                      <tr>
+                        <th scope="col" className="px-3 py-2.5 font-medium">Sản phẩm</th>
+                        <th scope="col" className="px-3 py-2.5 text-right font-medium">Biến thể</th>
+                        <th scope="col" className="px-3 py-2.5 text-right font-medium">Giá rổ</th>
+                        <th scope="col" className="px-3 py-2.5 text-right font-medium">Kho</th>
+                        <th scope="col" className="px-3 py-2.5 text-right font-medium">Trạng thái</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {data.listings.map((it) => {
+                        const tt = trangThai(it.status);
+                        return (
+                          <tr key={it.item_id} className="transition-colors hover:bg-muted/30">
+                            <td className="px-3 py-2.5 text-foreground">
+                              <span className="line-clamp-2">{it.name}</span>
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-2.5 text-right text-foreground">
+                              {it.variantCount > 0 ? it.variantCount.toLocaleString("vi-VN") : "—"}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-2.5 text-right font-semibold text-gold">
+                              {giaRo(it.priceMin, it.priceMax)}
+                            </td>
+                            <td
+                              className={cn(
+                                "whitespace-nowrap px-3 py-2.5 text-right font-semibold",
+                                it.stock <= 0 ? "text-primary" : "text-foreground",
+                              )}
+                            >
+                              {it.stock.toLocaleString("vi-VN")}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-2.5 text-right">
+                              <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium", tt.cls)}>{tt.label}</span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                “Giá rổ” = khoảng giá các biến thể · kho ô đỏ = hết hàng. Bấm “Quản lý Shopee” để mở/sao chép link từng listing.
+              </p>
+            </div>
           )}
         </>
       )}
