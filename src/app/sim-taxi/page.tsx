@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Phone, Star, Sparkles } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
+import CategoryHeroArt from "@/components/CategoryHeroArt";
 import CategorySimPriceList from "@/components/CategorySimPriceList";
 import TrustCommitments from "@/components/TrustCommitments";
 import FaqAccordion from "@/components/FaqAccordion";
@@ -85,12 +86,7 @@ export default async function SimTaxiPage() {
           style={{ minHeight: "clamp(300px, 38vw, 380px)" }}
           className="relative flex items-center bg-gradient-to-b from-primary via-primary-dark to-primary text-primary-foreground"
         >
-          <div
-            className="pointer-events-none absolute inset-0 overflow-hidden opacity-[0.07]"
-            style={{
-              backgroundImage: `radial-gradient(circle at 25% 50%, hsl(var(--gold)) 0%, transparent 50%), radial-gradient(circle at 75% 50%, hsl(var(--gold)) 0%, transparent 50%)`,
-            }}
-          />
+          <CategoryHeroArt numerals={["8686", "1212"]} />
           <div className="container relative mx-auto px-4 py-6 text-center">
             <div className="mb-2 flex justify-center">
               <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/30 bg-gold/15">
