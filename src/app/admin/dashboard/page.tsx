@@ -432,6 +432,7 @@ function AdminDashboardContent() {
           </section>
 
             <ShopeeSummaryCard />
+            <TikTokShopSection />
           </div>
         )}
 
