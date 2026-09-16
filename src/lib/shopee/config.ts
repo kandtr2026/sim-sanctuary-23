@@ -41,6 +41,10 @@ export const PATH_GET_CATEGORY = "/api/v2/product/get_category";
 export const PATH_GET_ATTRIBUTES = "/api/v2/product/get_attributes";
 export const PATH_GET_LOGISTICS = "/api/v2/logistics/get_logistics_info";
 
+// ── Order (đọc đơn để tính doanh thu đã bán) ────────────────────────────────────
+export const PATH_GET_ORDER_LIST = "/api/v2/order/get_order_list";
+export const PATH_GET_ORDER_DETAIL = "/api/v2/order/get_order_detail";
+
 /** Điều kiện sản phẩm: SIM luôn mới. */
 export const ITEM_CONDITION = "NEW";
 

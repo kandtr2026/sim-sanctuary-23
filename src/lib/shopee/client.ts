@@ -13,6 +13,8 @@ import {
   PATH_GET_ITEM_BASE_INFO,
   PATH_GET_ITEM_LIST,
   PATH_GET_MODEL_LIST,
+  PATH_GET_ORDER_LIST,
+  PATH_GET_ORDER_DETAIL,
   PATH_GET_LOGISTICS,
   PATH_INIT_TIER_VARIATION,
   PATH_UPDATE_TIER_VARIATION,
@@ -274,6 +276,49 @@ export class ShopeeProductClient {
   /** Lấy danh sách model (biến thể) của một item — để có giá/kho khi item có model. */
   async getModelList(itemId: number): Promise<Record<string, unknown>> {
     return this.call(PATH_GET_MODEL_LIST, {}, { item_id: itemId }, "GET");
+  }
+
+  /**
+   * Danh sách đơn trong khoảng [timeFrom, timeTo] (epoch GIÂY, cửa sổ ≤15 ngày).
+   * Chỉ trả order_sn + order_status → phải gọi getOrderDetail để có sản phẩm/tiền.
+   * Phân trang bằng cursor: đọc more/next_cursor ở response.
+   */
+  async getOrderList(params: {
+    timeFrom: number;
+    timeTo: number;
+    cursor?: string;
+    pageSize?: number;
+  }): Promise<Record<string, unknown>> {
+    return this.call(
+      PATH_GET_ORDER_LIST,
+      {},
+      {
+        time_range_field: "create_time",
+        time_from: params.timeFrom,
+        time_to: params.timeTo,
+        page_size: params.pageSize ?? 100,
+        cursor: params.cursor ?? "",
+        response_optional_fields: "order_status",
+      },
+      "GET",
+    );
+  }
+
+  /**
+   * Chi tiết đơn theo lô ≤50 order_sn. order_sn_list phải là CHUỖI nối dấu phẩy
+   * (không để buildUrl bung mảng thành key trùng). Phải xin response_optional_fields
+   * = item_list mới có danh sách sản phẩm.
+   */
+  async getOrderDetail(orderSnList: string[]): Promise<Record<string, unknown>> {
+    return this.call(
+      PATH_GET_ORDER_DETAIL,
+      {},
+      {
+        order_sn_list: orderSnList.join(","),
+        response_optional_fields: "item_list,order_status",
+      },
+      "GET",
+    );
   }
 
   /**

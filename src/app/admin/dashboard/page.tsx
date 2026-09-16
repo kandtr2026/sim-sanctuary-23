@@ -14,6 +14,7 @@ import { ConversionsSection } from "@/components/admin/ConversionsSection";
 import { CampaignPerformanceSection } from "@/components/admin/CampaignPerformanceSection";
 import { TikTokShopSection } from "@/components/admin/TikTokShopSection";
 import { ShopeeSummaryCard } from "@/components/admin/ShopeeSummaryCard";
+import { ShopeeSalesSection } from "@/components/admin/ShopeeSalesSection";
 import { PostReadsSection } from "@/components/admin/PostReadsSection";
 import { VisitTrendSection } from "@/components/admin/VisitTrendSection";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -432,6 +433,7 @@ function AdminDashboardContent() {
           </section>
 
             <ShopeeSummaryCard />
+            <ShopeeSalesSection />
             <TikTokShopSection />
           </div>
         )}
