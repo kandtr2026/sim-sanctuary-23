@@ -714,7 +714,7 @@ xanh · build xanh.
 **Làm gì:**
 - Migration `20260917120000` → `20260917160000`: hai bảng `sim_birthday_kho` / `sim_birthday_khach` (RLS bật, không policy — chỉ service role), view khoá ghép, và các hàm `sim_birthday_thong_ke` / `_top_sim` / `_khach_theo_kich_ban` / `_xuat_csv`.
 - API `/api/admin/sim-birthday` (+ `/export`), giao diện `src/components/admin/SimBirthdaySection.tsx`, gắn thành tab thứ 5 của `/admin/dashboard`.
-- 6 kịch bản ghép: `ddmmyy` · `yymmdd` · `giua6` · `ddmm` · `mmyy` · `yyyy`; lọc khách theo ngưỡng lô đại lý, dải năm sinh, bỏ ngày 01/01, đầu số.
+- **3 kịch bản ghép** (A Khoa chốt 17/09, đã bỏ `mmyy` / `yyyy` / `giua6` vì quá loãng hoặc không ghép được số nào): `ddmmyy` 30.572 khách · `yymmdd` 659 · `ddmm` 27.263. Lọc khách theo ngưỡng lô đại lý, dải năm sinh, bỏ ngày 01/01, đầu số.
 
 **⚠️ ĐỪNG tự quy đổi đầu số:** bản đầu có thêm cột đổi `0121…` → `079…` theo đợt chuyển đổi 11 số năm 2018. A Khoa đã bác (17/09): **0121 là đầu số đang dùng, chạy song song với 079, hai thứ không liên quan nhau.** Migration `20260917170000` đã gỡ sạch; số thuê bao giữ đúng như file nguồn.
 

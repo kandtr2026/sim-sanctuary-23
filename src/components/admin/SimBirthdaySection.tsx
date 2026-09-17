@@ -79,14 +79,10 @@ const NGUONG_LO = [
 /** Câu chào mẫu theo từng kịch bản — chào đúng cái khách nhận ra ngay. */
 const CAU_CHAO: Record<string, string> = {
   ddmmyy:
-    "Chào anh/chị, bên em có số {sim} — bốn số cuối chính là ngày sinh {ngay_sinh} của anh/chị. Anh/chị xem thử ạ.",
+    "Chào anh/chị, bên em có số {sim} — sáu số cuối chính là ngày sinh {ngay_sinh} của anh/chị. Anh/chị xem thử ạ.",
   yymmdd:
     "Chào anh/chị, số {sim} có đuôi đọc theo ngày sinh {ngay_sinh} của anh/chị (năm – tháng – ngày). Em gửi anh/chị tham khảo.",
-  giua6:
-    "Chào anh/chị, số {sim} mang trọn ngày sinh {ngay_sinh} của anh/chị ở giữa dãy. Dễ nhớ mà lại riêng.",
   ddmm: "Chào anh/chị, số {sim} có đuôi đúng ngày sinh nhật {ngay_sinh} của anh/chị.",
-  mmyy: "Chào anh/chị, số {sim} có đuôi là tháng và năm sinh của anh/chị.",
-  yyyy: "Chào anh/chị, số {sim} kết thúc bằng đúng năm sinh của anh/chị.",
 };
 
 const NHAN_SUC_MANH: Record<string, { text: string; cls: string }> = {

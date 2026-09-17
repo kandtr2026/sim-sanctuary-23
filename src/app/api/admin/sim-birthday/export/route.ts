@@ -14,10 +14,7 @@ export const dynamic = "force-dynamic";
 const KICH_BAN: Record<string, string> = {
   ddmmyy: "trung-tron-ngay-sinh",
   yymmdd: "trung-tron-ngay-sinh-nguoc",
-  giua6: "ngay-sinh-giua-day",
   ddmm: "trung-ngay-thang",
-  mmyy: "trung-thang-nam",
-  yyyy: "trung-nam-sinh",
 };
 
 const MAX_DONG = 200000;

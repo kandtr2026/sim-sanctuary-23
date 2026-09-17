@@ -16,7 +16,9 @@ export const dynamic = "force-dynamic";
  * không kéo cả bảng về client.
  */
 
-const KICH_BAN = new Set(["ddmmyy", "yymmdd", "giua6", "ddmm", "mmyy", "yyyy"]);
+// A Khoa đã bỏ `mmyy`, `yyyy`, `giua6` (17/09): quá loãng hoặc không ghép được số
+// nào. Còn lại ba kịch bản khách nhìn phát nhận ra ngày sinh mình.
+const KICH_BAN = new Set(["ddmmyy", "yymmdd", "ddmm"]);
 
 interface BoLoc {
   p_nguong_lo: number;
