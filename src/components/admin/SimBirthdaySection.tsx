@@ -71,6 +71,20 @@ interface KhachRow {
   sim_goi_y: string | null;
 }
 
+/** Khách đang dùng số có đuôi là chính ngày sinh của mình (#41). */
+interface TuTrungRow {
+  msisdn: string;
+  dob: string;
+  loai: string;
+  tong: number;
+}
+
+const NHAN_LOAI: Record<string, string> = {
+  ddmmyy: "Trùng ngày sinh",
+  yymmdd: "Ngược yy-mm-dd",
+  ddmm: "Ngày + tháng",
+};
+
 const NGUONG_LO = [
   { v: 0, label: "Lấy tất", mo_ta: "kể cả sim đại lý đăng ký hàng loạt" },
   { v: 100, label: "Lọc nhẹ", mo_ta: "bỏ số dính sát nhau dưới 100 đơn vị" },
@@ -169,6 +183,11 @@ export function SimBirthdaySection({ token }: { token?: string }) {
   const [dangTaiDs, setDangTaiDs] = useState(false);
   const [daCopy, setDaCopy] = useState<string | null>(null);
 
+  // Khách tự-trùng: đang dùng số có đuôi là ngày sinh của chính họ (#41).
+  const [tuTrung, setTuTrung] = useState<TuTrungRow[]>([]);
+  const [partTt, setPartTt] = useState(0);
+  const [dangTaiTt, setDangTaiTt] = useState(false);
+
   const query = useMemo(() => {
     const p = new URLSearchParams({
       nguong_lo: String(nguongLo),
@@ -263,6 +282,18 @@ export function SimBirthdaySection({ token }: { token?: string }) {
     return () => { bo = true; };
   }, [token, kichBan, query, part, goi]);
 
+  // Nạp khách tự-trùng (part 100). Không phụ thuộc bộ lọc kịch bản.
+  useEffect(() => {
+    if (!token) return;
+    let bo = false;
+    setDangTaiTt(true);
+    goi<{ rows: TuTrungRow[] }>(`/api/admin/sim-birthday?view=tu-trung&limit=100&offset=${partTt * 100}`)
+      .then((r) => { if (!bo) setTuTrung(r.rows ?? []); })
+      .catch(() => { if (!bo) setTuTrung([]); })
+      .finally(() => { if (!bo) setDangTaiTt(false); });
+    return () => { bo = true; };
+  }, [token, partTt, goi]);
+
   const copyTin = async (msisdn: string, tin: string) => {
     try {
       await navigator.clipboard.writeText(tin);
@@ -309,6 +340,8 @@ export function SimBirthdaySection({ token }: { token?: string }) {
   const tong = thongKe?.tong;
   const kbDangChon = thongKe?.kich_ban.find((k) => k.ma === kichBan);
   const soPart = Math.max(1, Math.ceil((kbDangChon?.so_khach ?? 0) / 100));
+  const tongTt = tuTrung[0]?.tong ?? 0;
+  const soPartTt = Math.max(1, Math.ceil(tongTt / 100));
   const dauSoPhoBien = (thongKe?.phan_bo_dau_so ?? []).filter((d) => d.so_khach >= 1000);
 
   return (
@@ -585,6 +618,94 @@ export function SimBirthdaySection({ token }: { token?: string }) {
               );
             })}
           </ul>
+        )}
+      </section>
+
+      {/* ── Khách đang dùng số sinh nhật của mình (#41) ── */}
+      <section className="rounded-xl border border-border bg-card shadow-card">
+        <div className="border-b border-border p-4">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Users className="h-4 w-4 text-primary" />
+            Khách đang dùng số sinh nhật của mình
+          </h3>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            Người đã tự chọn số có đuôi chính là ngày sinh của họ — bằng chứng nhu cầu có thật, nhóm dễ chào thêm / giới thiệu.
+            {tongTt > 0 && (
+              <>
+                {" "}Có <b className="text-foreground">{soVn(tongTt)}</b> khách.
+              </>
+            )}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-2.5 text-xs">
+          <span className="text-muted-foreground">
+            Part <b className="text-foreground">{partTt + 1}</b>/{soPartTt}
+          </span>
+          <div className="ml-auto flex items-center gap-1.5">
+            <button
+              type="button"
+              disabled={partTt === 0}
+              onClick={() => setPartTt((p) => Math.max(0, p - 1))}
+              className="rounded-lg border border-border px-2.5 py-1 font-medium text-foreground transition-colors hover:border-primary/40 disabled:opacity-40"
+            >
+              ← Trước
+            </button>
+            <button
+              type="button"
+              disabled={partTt >= soPartTt - 1}
+              onClick={() => setPartTt((p) => Math.min(soPartTt - 1, p + 1))}
+              className="rounded-lg border border-border px-2.5 py-1 font-medium text-foreground transition-colors hover:border-primary/40 disabled:opacity-40"
+            >
+              Sau →
+            </button>
+          </div>
+        </div>
+
+        {dangTaiTt ? (
+          <div className="grid place-items-center py-16 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin" />
+          </div>
+        ) : tuTrung.length === 0 ? (
+          <p className="py-12 text-center text-sm text-muted-foreground">Chưa tìm thấy khách nào tự dùng số sinh nhật.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-left text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-2.5 font-medium">Số đang dùng</th>
+                  <th className="px-4 py-2.5 font-medium">Ngày sinh</th>
+                  <th className="hidden px-4 py-2.5 font-medium sm:table-cell">Kiểu trùng</th>
+                  <th className="px-4 py-2.5 text-right font-medium">Zalo</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {tuTrung.map((kh) => (
+                  <tr key={kh.msisdn} className="transition-colors hover:bg-muted/30">
+                    <td className="whitespace-nowrap px-4 py-2.5 font-mono font-semibold text-foreground">
+                      {chamSo(kh.msisdn, kh.loai)}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-2.5 text-muted-foreground">{ngaySinhVn(kh.dob)}</td>
+                    <td className="hidden px-4 py-2.5 sm:table-cell">
+                      <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[11px] font-medium text-gold">
+                        {NHAN_LOAI[kh.loai] ?? kh.loai}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-2.5 text-right">
+                      <a
+                        href={`https://zalo.me/${kh.msisdn}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-medium text-primary hover:underline"
+                      >
+                        Mở Zalo
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
 

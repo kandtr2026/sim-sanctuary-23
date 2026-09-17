@@ -75,6 +75,17 @@ export async function GET(req: NextRequest) {
       return jsonNoStore({ rows: data ?? [] });
     }
 
+    if (view === "tu-trung") {
+      // Khách đang dùng số có đuôi là chính ngày sinh của mình (#41). Không dùng
+      // bộ lọc kịch bản — chỉ so khớp ngay trên số của khách (view đã bỏ 0121).
+      const { data, error } = await db.rpc("sim_birthday_khach_tu_trung", {
+        p_limit: Math.min(Math.max(Number(sp.get("limit")) || 100, 1), 1000),
+        p_offset: Math.max(Number(sp.get("offset")) || 0, 0),
+      });
+      if (error) throw new Error(error.message);
+      return jsonNoStore({ rows: data ?? [] });
+    }
+
     if (view === "khach") {
       const { data, error } = await db.rpc("sim_birthday_khach_theo_kich_ban", {
         p_kich_ban: docKichBan(sp),
