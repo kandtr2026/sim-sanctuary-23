@@ -93,6 +93,13 @@ const NHAN_SUC_MANH: Record<string, { text: string; cls: string }> = {
 
 const soVn = (n: number) => n.toLocaleString("vi-VN");
 
+/**
+ * TẠM ẨN phần "ghép kịch bản" (góp ý #38): A Khoa muốn ẩn từ dòng "Năm sinh"
+ * trong bộ lọc trở xuống (kịch bản ghép / chi tiết / phân bố) để nêu lại kịch bản
+ * dần dần. Code giữ NGUYÊN — chỉ không render. Đổi thành true để hiện lại.
+ */
+const HIEN_GHEP = false;
+
 export function SimBirthdaySection({ token }: { token?: string }) {
   const [nguongLo, setNguongLo] = useState(1000);
   const [namTu, setNamTu] = useState(1950);
@@ -297,6 +304,7 @@ export function SimBirthdaySection({ token }: { token?: string }) {
             </div>
           </div>
 
+          {HIEN_GHEP && (
           <div>
             <span className="mb-1.5 block text-xs font-medium text-muted-foreground">Năm sinh</span>
             <div className="flex items-center gap-2">
@@ -319,7 +327,9 @@ export function SimBirthdaySection({ token }: { token?: string }) {
               />
             </div>
           </div>
+          )}
 
+          {HIEN_GHEP && (
           <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
             <input
               type="checkbox"
@@ -329,9 +339,10 @@ export function SimBirthdaySection({ token }: { token?: string }) {
             />
             Bỏ người khai sinh 01/01
           </label>
+          )}
         </div>
 
-        {dauSoPhoBien.length > 0 && (
+        {HIEN_GHEP && dauSoPhoBien.length > 0 && (
           <div className="mt-4">
             <span className="mb-1.5 block text-xs font-medium text-muted-foreground">
               Đầu số khách {dauSo.length > 0 && `(đang chọn ${dauSo.length})`}
@@ -374,6 +385,8 @@ export function SimBirthdaySection({ token }: { token?: string }) {
         )}
       </section>
 
+      {HIEN_GHEP && (
+      <>
       {/* ── Bảng kịch bản ── */}
       <section className="rounded-xl border border-border bg-card shadow-card">
         <div className="border-b border-border p-4">
@@ -565,6 +578,8 @@ export function SimBirthdaySection({ token }: { token?: string }) {
             </span>
           }
         />
+      )}
+      </>
       )}
     </div>
   );
