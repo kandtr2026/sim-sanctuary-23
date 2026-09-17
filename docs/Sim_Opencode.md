@@ -698,3 +698,27 @@ KHỚP badge hành trên chip. Mỗi tile ghi "hợp mệnh X (tương hòa) + m
 Nghiệm thu (local): hub 5 tile có count; /sim-theo-menh/thuy 60 số (9.1/9.0/8.9…,
 khớp chip); /sim-ong-dia→Thần tài; trang chủ 0 "Ông địa". tsc/lint sạch · 175 test
 xanh · build xanh.
+
+---
+
+## Task 17 — ✅ ĐÃ LÀM (Claude tự code 17/09/2026) · [DỰ ÁN RIÊNG] Tab "Sim sinh nhật" — ghép khách có ngày sinh ↔ sim mang đúng ngày đó
+
+> ⚠️ **Đây là dự án RIÊNG chạy song song, KHÔNG dính kho số đang bán.** Hai bảng
+> `sim_birthday_*` không được merge vào `public.sims`, không xuất hiện ngoài storefront.
+> Khi nào A Khoa lệnh sáp nhập thì mới tính. Cũng KHÔNG liên quan cụm trang `/sim-nam-sinh`.
+
+**Nguồn dữ liệu** (A Khoa đưa, `Dropbox/____Top 1 Trending/Sim Birthday/`):
+- `6k so Nam sinh.xlsx` → kho sim đang có để bán: 6.646 số, chỉ đầu 093/090, 6.443 số có đuôi là ngày hợp lệ. Chưa có giá.
+- `2tr so Mobi.xlsx` sheet `Sheet2` → 195.207 thuê bao kèm ngày sinh (1980–2010). Hai sheet còn lại (2.096.002 số, không ngày sinh) CHƯA dùng.
+
+**Làm gì:**
+- Migration `20260917120000` → `20260917160000`: hai bảng `sim_birthday_kho` / `sim_birthday_khach` (RLS bật, không policy — chỉ service role), view khoá ghép, và các hàm `sim_birthday_thong_ke` / `_top_sim` / `_khach_theo_kich_ban` / `_xuat_csv`.
+- API `/api/admin/sim-birthday` (+ `/export`), giao diện `src/components/admin/SimBirthdaySection.tsx`, gắn thành tab thứ 5 của `/admin/dashboard`.
+- 6 kịch bản ghép: `ddmmyy` · `yymmdd` · `giua6` · `ddmm` · `mmyy` · `yyyy`; lọc khách theo ngưỡng lô đại lý, dải năm sinh, bỏ ngày 01/01, đầu số.
+
+**Ba cái bẫy đã vấp, đừng vấp lại:**
+1. **52,4% danh sách khách là sim đại lý đăng ký theo lô** — cả lô cùng một ngày sinh, số nối đuôi nhau (94–99% cặp cách nhau <1000). Cột `khoang_cach_lo` lưu sẵn khoảng cách tới thuê bao gần nhất cùng ngày để lọc; ngưỡng mặc định 1000.
+2. **Statement timeout**: bản đầu join khách × kho rồi `count(distinct)` sinh 1,34 triệu cặp, quá 8s là PostgREST cắt → 500. Phải GOM NHÓM THEO KHOÁ hai bên rồi join (mỗi khách chỉ có một khoá cho mỗi kịch bản). 3s → 0,9s.
+3. **Trần 1000 hàng của PostgREST** (đúng cái bẫy Task 14): route export gọi RPC trả nhiều hàng thì file CSV chỉ có 1.000/30.572 dòng mà không báo lỗi. `sim_birthday_xuat_csv` trả nguyên khối CSV trong MỘT giá trị text.
+
+**Còn nợ:** giá cho 6.646 số (A Khoa ráp sau), chốt kênh chào bán.

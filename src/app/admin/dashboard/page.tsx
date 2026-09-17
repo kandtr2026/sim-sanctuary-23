@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { ArrowRight, Crown, Download, ExternalLink, FileText, Globe, LayoutDashboard, Loader2, ShoppingCart, Smartphone, TrendingUp, Wallet } from "lucide-react";
+import { ArrowRight, CalendarHeart, Crown, Download, ExternalLink, FileText, Globe, LayoutDashboard, Loader2, ShoppingCart, Smartphone, TrendingUp, Wallet } from "lucide-react";
 import { BarList } from "@/components/admin/BarList";
 import { DashboardHeader } from "@/components/admin/DashboardHeader";
 import { PostsTable, type PostRow } from "@/components/admin/PostsTable";
@@ -14,6 +14,7 @@ import { ConversionsSection } from "@/components/admin/ConversionsSection";
 import { CampaignPerformanceSection } from "@/components/admin/CampaignPerformanceSection";
 import { TikTokShopSection } from "@/components/admin/TikTokShopSection";
 import { ShopeeSummaryCard } from "@/components/admin/ShopeeSummaryCard";
+import { SimBirthdaySection } from "@/components/admin/SimBirthdaySection";
 import { ShopeeSalesSection } from "@/components/admin/ShopeeSalesSection";
 import { PostReadsSection } from "@/components/admin/PostReadsSection";
 import { VisitTrendSection } from "@/components/admin/VisitTrendSection";
@@ -40,12 +41,14 @@ interface VipSimLite {
  * Shopee đứng riêng. Đổi tab chỉ mount đúng phần đang xem — các section tự fetch
  * data khi mở nên trang không nặng ngay từ đầu.
  */
-type TabId = "tong-quan" | "traffic" | "bai-viet" | "doanh-thu";
+type TabId = "tong-quan" | "traffic" | "bai-viet" | "doanh-thu" | "sim-sinh-nhat";
 const TABS: { id: TabId; label: string; icon: LucideIcon }[] = [
   { id: "tong-quan", label: "Tổng quan", icon: LayoutDashboard },
   { id: "traffic", label: "Traffic", icon: Globe },
   { id: "bai-viet", label: "Bài viết", icon: FileText },
   { id: "doanh-thu", label: "Doanh thu", icon: Wallet },
+  // Dự án riêng, chạy song song với kho số đang bán — xem SimBirthdaySection.
+  { id: "sim-sinh-nhat", label: "Sim sinh nhật", icon: CalendarHeart },
 ];
 
 const formatCompactVnd = (n: number) =>
@@ -487,6 +490,11 @@ function AdminDashboardContent() {
             <TikTokShopSection />
           </div>
         )}
+
+        {/* ─── Tab SIM SINH NHẬT: dự án ghép khách có ngày sinh ↔ sim mang đúng
+            ngày đó. Kho và danh sách khách nằm ở bảng riêng, KHÔNG trộn vào kho
+            số đang bán. ─── */}
+        {tab === "sim-sinh-nhat" && <SimBirthdaySection token={token} />}
 
         {/* Danh sách SIM của nhóm VIP đang chọn (góp ý #13) — mount ở gốc để mọi
             tab đều mở được, dù chip nằm trong tab Tổng quan */}
