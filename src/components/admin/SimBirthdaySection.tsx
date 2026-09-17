@@ -121,11 +121,23 @@ const ngaySinhVn = (dob: string): string => {
   return d && m && y ? `${d}/${m}/${y}` : dob;
 };
 
+/**
+ * Chấm số để lộ rõ ngày sinh (góp ý #40): 6 số cuối (ddmmyy/yymmdd) hay 4 số cuối
+ * (ddmm) tách theo cặp — vd 0938150701 → 0938.15.07.01, thấy ngay là ngày sinh.
+ */
+const chamSo = (digits: string, kb: string): string => {
+  const n = kb === "ddmm" ? 4 : 6;
+  if (!digits || digits.length <= n) return digits;
+  const head = digits.slice(0, digits.length - n);
+  const nhom = (digits.slice(-n).match(/.{2}/g) ?? []).join(".");
+  return `${head}.${nhom}`;
+};
+
 /** Dựng tin nhắn cho 1 khách theo mẫu xoay vòng (chỉ số toàn cục để đỡ trùng). */
-const soanTin = (chiSo: number, dob: string, goiY: string | null): string =>
+const soanTin = (chiSo: number, dob: string, goiY: string | null, kb: string): string =>
   MAU_TIN_NHAN[chiSo % MAU_TIN_NHAN.length]
     .replace("{ns}", ngaySinhVn(dob))
-    .replace("{ds}", dsSoTuGoiY(goiY).join(", "));
+    .replace("{ds}", dsSoTuGoiY(goiY).map((s) => chamSo(s, kb)).join(", "));
 
 /**
  * TẠM ẨN phần "ghép kịch bản" (góp ý #38): A Khoa muốn ẩn từ dòng "Năm sinh"
@@ -525,7 +537,7 @@ export function SimBirthdaySection({ token }: { token?: string }) {
             {dsKhach.map((kh, i) => {
               const chiSo = part * 100 + i;
               const soList = dsSoTuGoiY(kh.sim_goi_y);
-              const tin = soanTin(chiSo, kh.dob, kh.sim_goi_y);
+              const tin = soanTin(chiSo, kh.dob, kh.sim_goi_y, kichBan);
               return (
                 <li key={kh.msisdn} className="p-4">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -541,7 +553,7 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {soList.map((s) => (
                         <span key={s} className="rounded-md bg-secondary px-2 py-0.5 font-mono text-xs text-foreground">
-                          {s}
+                          {chamSo(s, kichBan)}
                         </span>
                       ))}
                     </div>
