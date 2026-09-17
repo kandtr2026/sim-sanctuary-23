@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CalendarHeart,
+  Check,
+  Copy,
   Download,
   Loader2,
   MessageSquareQuote,
@@ -94,6 +96,38 @@ const NHAN_SUC_MANH: Record<string, { text: string; cls: string }> = {
 const soVn = (n: number) => n.toLocaleString("vi-VN");
 
 /**
+ * Mẫu tin nhắn Zalo XOAY VÒNG (góp ý #39): mỗi khách lấy 1 mẫu theo chỉ số toàn
+ * cục nên tin gửi ra không lặp y hệt liên tục → nền tảng đỡ gắn cờ spam. Placeholder
+ * {ns} = ngày sinh, {ds} = danh sách số. Thêm/sửa mẫu tuỳ ý — càng nhiều càng đỡ trùng.
+ */
+const MAU_TIN_NHAN: string[] = [
+  "Chào anh/chị 👋 Bên em vừa lọc được mấy số có đuôi trùng ngày sinh {ns} của anh/chị: {ds}. Số nào ưng anh/chị nhắn em giữ liền nhé!",
+  "Anh/chị ơi, sim mà đuôi đúng ngày sinh {ns} hiếm lắm ạ. Bên em đang có: {ds}. Anh/chị tham khảo giúp em nha.",
+  "Dạ em chào anh/chị. Em tìm được vài sim đuôi chính là ngày sinh {ns} của mình: {ds}. Anh/chị xem thử có thích số nào không ạ?",
+  "Gửi anh/chị vài số đẹp trùng ngày sinh {ns}: {ds}. Sim mang đúng ngày sinh cầm cũng vui tay anh/chị nhỉ 😊",
+  "Chào anh/chị, bên em có sim đuôi {ns} — đúng ngày sinh của anh/chị: {ds}. Cần em tư vấn thêm cứ nhắn ạ.",
+  "Anh/chị xem giúp em mấy số này với, đuôi đều là ngày sinh {ns}: {ds}. Có số nào hợp em để lại giá tốt cho mình.",
+  "Em chào anh/chị ạ. Nhân dịp em có mấy sim số đuôi là ngày sinh {ns} của anh/chị: {ds}. Anh/chị ngắm thử nhé!",
+  "Anh/chị ơi số điện thoại trùng ngày sinh {ns} bên em còn vài số: {ds}. Anh/chị thích số nào em ưu tiên giữ cho mình ạ.",
+];
+
+/** Tách chuỗi sim_goi_y ("093…, 093…") thành mảng số. */
+const dsSoTuGoiY = (goiY: string | null): string[] =>
+  (goiY ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+
+/** dob 'YYYY-MM-DD' → 'DD/MM/YYYY'. */
+const ngaySinhVn = (dob: string): string => {
+  const [y, m, d] = dob.split("-");
+  return d && m && y ? `${d}/${m}/${y}` : dob;
+};
+
+/** Dựng tin nhắn cho 1 khách theo mẫu xoay vòng (chỉ số toàn cục để đỡ trùng). */
+const soanTin = (chiSo: number, dob: string, goiY: string | null): string =>
+  MAU_TIN_NHAN[chiSo % MAU_TIN_NHAN.length]
+    .replace("{ns}", ngaySinhVn(dob))
+    .replace("{ds}", dsSoTuGoiY(goiY).join(", "));
+
+/**
  * TẠM ẨN phần "ghép kịch bản" (góp ý #38): A Khoa muốn ẩn từ dòng "Năm sinh"
  * trong bộ lọc trở xuống (kịch bản ghép / chi tiết / phân bố) để nêu lại kịch bản
  * dần dần. Code giữ NGUYÊN — chỉ không render. Đổi thành true để hiện lại.
@@ -116,6 +150,12 @@ export function SimBirthdaySection({ token }: { token?: string }) {
   const [khach, setKhach] = useState<KhachRow[]>([]);
   const [dangTaiChiTiet, setDangTaiChiTiet] = useState(false);
   const [dangXuat, setDangXuat] = useState(false);
+
+  // Outreach (#39): danh sách khách theo part 100 để Sale gửi Zalo từng người.
+  const [part, setPart] = useState(0);
+  const [dsKhach, setDsKhach] = useState<KhachRow[]>([]);
+  const [dangTaiDs, setDangTaiDs] = useState(false);
+  const [daCopy, setDaCopy] = useState<string | null>(null);
 
   const query = useMemo(() => {
     const p = new URLSearchParams({
@@ -192,6 +232,35 @@ export function SimBirthdaySection({ token }: { token?: string }) {
     };
   }, [token, kichBan, query, goi]);
 
+  // Đổi kịch bản / bộ lọc thì về part đầu (offset cũ có thể vượt tổng khách).
+  useEffect(() => {
+    setPart(0);
+  }, [kichBan, query]);
+
+  // Nạp 100 khách của part đang xem (không dùng moi_ngay — lấy đủ danh sách).
+  useEffect(() => {
+    if (!token) return;
+    let bo = false;
+    setDangTaiDs(true);
+    goi<{ rows: KhachRow[] }>(
+      `/api/admin/sim-birthday?view=khach&kich_ban=${kichBan}&limit=100&offset=${part * 100}&${query}`,
+    )
+      .then((r) => { if (!bo) setDsKhach(r.rows ?? []); })
+      .catch(() => { if (!bo) setDsKhach([]); })
+      .finally(() => { if (!bo) setDangTaiDs(false); });
+    return () => { bo = true; };
+  }, [token, kichBan, query, part, goi]);
+
+  const copyTin = async (msisdn: string, tin: string) => {
+    try {
+      await navigator.clipboard.writeText(tin);
+      setDaCopy(msisdn);
+      setTimeout(() => setDaCopy((v) => (v === msisdn ? null : v)), 1500);
+    } catch {
+      toast.error("Trình duyệt chặn sao chép — copy tay giúp em.");
+    }
+  };
+
   const xuatCsv = async () => {
     if (!token) return;
     setDangXuat(true);
@@ -227,6 +296,7 @@ export function SimBirthdaySection({ token }: { token?: string }) {
 
   const tong = thongKe?.tong;
   const kbDangChon = thongKe?.kich_ban.find((k) => k.ma === kichBan);
+  const soPart = Math.max(1, Math.ceil((kbDangChon?.so_khach ?? 0) / 100));
   const dauSoPhoBien = (thongKe?.phan_bo_dau_so ?? []).filter((d) => d.so_khach >= 1000);
 
   return (
@@ -382,6 +452,127 @@ export function SimBirthdaySection({ token }: { token?: string }) {
               )}
             </div>
           </div>
+        )}
+      </section>
+
+      {/* ── Gửi Zalo theo part 100 khách (#39) ── */}
+      <section className="rounded-xl border border-border bg-card shadow-card">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
+          <div>
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <MessageSquareQuote className="h-4 w-4 text-primary" />
+              Gửi Zalo cho khách — mỗi part 100 người
+            </h3>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              Mỗi khách có sẵn tin nhắn (nội dung xoay vòng đỡ dính spam) + tối đa 5 số mang đúng ngày sinh.
+              Sale mở Zalo khách, dán tin rồi gửi.
+            </p>
+          </div>
+          <div className="inline-flex rounded-lg border border-border p-0.5">
+            {(["ddmmyy", "yymmdd", "ddmm"] as const).map((kb) => (
+              <button
+                key={kb}
+                type="button"
+                onClick={() => setKichBan(kb)}
+                className={cn(
+                  "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                  kichBan === kb ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {kb === "ddmmyy" ? "Trùng ngày sinh" : kb === "yymmdd" ? "Ngược yy-mm-dd" : "Ngày + tháng"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-2.5 text-xs">
+          <span className="text-muted-foreground">
+            {kbDangChon ? (
+              <>
+                Tổng <b className="text-foreground">{soVn(kbDangChon.so_khach)}</b> khách ·{" "}
+              </>
+            ) : null}
+            Part <b className="text-foreground">{part + 1}</b>/{soPart}
+          </span>
+          <div className="ml-auto flex items-center gap-1.5">
+            <button
+              type="button"
+              disabled={part === 0}
+              onClick={() => setPart((p) => Math.max(0, p - 1))}
+              className="rounded-lg border border-border px-2.5 py-1 font-medium text-foreground transition-colors hover:border-primary/40 disabled:opacity-40"
+            >
+              ← Trước
+            </button>
+            <button
+              type="button"
+              disabled={part >= soPart - 1}
+              onClick={() => setPart((p) => Math.min(soPart - 1, p + 1))}
+              className="rounded-lg border border-border px-2.5 py-1 font-medium text-foreground transition-colors hover:border-primary/40 disabled:opacity-40"
+            >
+              Sau →
+            </button>
+          </div>
+        </div>
+
+        {dangTaiDs ? (
+          <div className="grid place-items-center py-16 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin" />
+          </div>
+        ) : dsKhach.length === 0 ? (
+          <p className="py-12 text-center text-sm text-muted-foreground">Không có khách trong part này.</p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {dsKhach.map((kh, i) => {
+              const chiSo = part * 100 + i;
+              const soList = dsSoTuGoiY(kh.sim_goi_y);
+              const tin = soanTin(chiSo, kh.dob, kh.sim_goi_y);
+              return (
+                <li key={kh.msisdn} className="p-4">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className="font-mono text-sm font-semibold text-foreground">{kh.msisdn}</span>
+                    <span className="text-xs text-muted-foreground">Sinh {ngaySinhVn(kh.dob)}</span>
+                    <span className="text-xs text-muted-foreground">· {soVn(kh.so_sim)} số khớp</span>
+                    <span className="ml-auto text-[11px] text-muted-foreground">
+                      mẫu #{(chiSo % MAU_TIN_NHAN.length) + 1}
+                    </span>
+                  </div>
+
+                  {soList.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {soList.map((s) => (
+                        <span key={s} className="rounded-md bg-secondary px-2 py-0.5 font-mono text-xs text-foreground">
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <p className="mt-2 rounded-lg border border-border bg-background px-3 py-2 text-xs leading-relaxed text-foreground">
+                    {tin}
+                  </p>
+
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void copyTin(kh.msisdn, tin)}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                    >
+                      {daCopy === kh.msisdn ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                      {daCopy === kh.msisdn ? "Đã copy" : "Copy tin nhắn"}
+                    </button>
+                    <a
+                      href={`https://zalo.me/${kh.msisdn}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/40"
+                    >
+                      Mở Zalo khách
+                    </a>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </section>
 
