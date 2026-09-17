@@ -22,7 +22,7 @@ const KICH_BAN: Record<string, string> = {
 
 const MAX_DONG = 200000;
 
-const TIEU_DE = ["Số gọi được", "SĐT trong file gốc", "Đã quy đổi", "Ngày sinh", "Số sim khớp", "Sim gợi ý"];
+const TIEU_DE = ["SĐT khách", "Ngày sinh", "Số sim khớp", "Sim gợi ý"];
 
 export async function GET(req: NextRequest) {
   const gate = await requireAdmin(req);
@@ -57,8 +57,6 @@ export async function GET(req: NextRequest) {
     });
     if (error) throw new Error(error.message);
 
-    // "Số gọi được" đứng trước: với khách còn mang số 11 chữ số đầu 012x thì cột
-    // này mới là số gọi đến được, cột gốc giữ lại để đối chiếu với file nguồn.
     const than = typeof data === "string" ? data : "";
     const rows = than ? than.split("\n").length : 0;
 

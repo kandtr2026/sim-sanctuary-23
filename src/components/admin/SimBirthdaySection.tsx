@@ -63,9 +63,6 @@ interface TopSim {
 
 interface KhachRow {
   msisdn: string;
-  /** Số gọi được — số 11 chữ số đầu 012x đã quy đổi sang 07x (chuyển đổi 9/2018). */
-  so_lien_he: string;
-  doi_so: boolean;
   dob: string;
   dau_so: string;
   so_sim: number;
@@ -377,14 +374,6 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                 </button>
               )}
             </div>
-            {dauSoPhoBien.some((d) => d.dau_so === "012") && (
-              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-                Nhóm <span className="tabular-nums">012</span> là số 11 chữ số kiểu cũ, đã khai tử từ
-                đợt chuyển đổi tháng 9/2018 — màn này và bản xuất CSV đều hiện số đã quy đổi
-                (<span className="tabular-nums">0121…</span> → <span className="tabular-nums">079…</span>)
-                để gọi được.
-              </p>
-            )}
           </div>
         )}
       </section>
@@ -548,17 +537,7 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                 {khach.map((k) => (
                   <div key={k.msisdn} className="py-2 text-sm">
                     <div className="flex items-center justify-between gap-3">
-                      <span className="flex min-w-0 items-center gap-1.5">
-                        <span className="font-medium tabular-nums text-foreground">{k.so_lien_he}</span>
-                        {k.doi_so && (
-                          <span
-                            title={`Số trong file là ${k.msisdn} — dạng 11 chữ số đã khai tử, đây là số sau quy đổi`}
-                            className="rounded bg-muted px-1 py-px text-[10px] text-muted-foreground"
-                          >
-                            đã đổi
-                          </span>
-                        )}
-                      </span>
+                      <span className="font-medium tabular-nums text-foreground">{k.msisdn}</span>
                       <span className="shrink-0 text-xs text-muted-foreground">
                         {k.dob.split("-").reverse().join("/")}
                       </span>

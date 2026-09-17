@@ -716,6 +716,8 @@ xanh · build xanh.
 - API `/api/admin/sim-birthday` (+ `/export`), giao diện `src/components/admin/SimBirthdaySection.tsx`, gắn thành tab thứ 5 của `/admin/dashboard`.
 - 6 kịch bản ghép: `ddmmyy` · `yymmdd` · `giua6` · `ddmm` · `mmyy` · `yyyy`; lọc khách theo ngưỡng lô đại lý, dải năm sinh, bỏ ngày 01/01, đầu số.
 
+**⚠️ ĐỪNG tự quy đổi đầu số:** bản đầu có thêm cột đổi `0121…` → `079…` theo đợt chuyển đổi 11 số năm 2018. A Khoa đã bác (17/09): **0121 là đầu số đang dùng, chạy song song với 079, hai thứ không liên quan nhau.** Migration `20260917170000` đã gỡ sạch; số thuê bao giữ đúng như file nguồn.
+
 **Ba cái bẫy đã vấp, đừng vấp lại:**
 1. **52,4% danh sách khách là sim đại lý đăng ký theo lô** — cả lô cùng một ngày sinh, số nối đuôi nhau (94–99% cặp cách nhau <1000). Cột `khoang_cach_lo` lưu sẵn khoảng cách tới thuê bao gần nhất cùng ngày để lọc; ngưỡng mặc định 1000.
 2. **Statement timeout**: bản đầu join khách × kho rồi `count(distinct)` sinh 1,34 triệu cặp, quá 8s là PostgREST cắt → 500. Phải GOM NHÓM THEO KHOÁ hai bên rồi join (mỗi khách chỉ có một khoá cho mỗi kịch bản). 3s → 0,9s.
