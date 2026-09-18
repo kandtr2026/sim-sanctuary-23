@@ -169,6 +169,27 @@ const ngaySinhVn = (dob: string): string => {
   return d && m && y ? `${d}/${m}/${y}` : dob;
 };
 
+/** ISO → giờ VN "HH:mm:ss" (có giây theo yêu cầu #53). */
+const gioVn = (iso: string): string => {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return new Intl.DateTimeFormat("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+  }).format(d);
+};
+
+/** ISO → "HH:mm:ss DD/MM" giờ VN (cho dòng log đầy đủ). */
+const gioNgayVn = (iso: string): string => {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return new Intl.DateTimeFormat("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    day: "2-digit", month: "2-digit", hour12: false,
+  }).format(d).replace(",", "");
+};
+
 /**
  * Chấm số để lộ rõ ngày sinh (góp ý #40): 6 số cuối (ddmmyy/yymmdd) hay 4 số cuối
  * (ddmm) tách theo cặp — vd 0938150701 → 0938.15.07.01, thấy ngay là ngày sinh.
@@ -350,6 +371,8 @@ export function SimBirthdaySection({ token }: { token?: string }) {
   const [coZalo, setCoZalo] = useState<Set<string>>(new Set());
   // Cờ ĐỘC LẬP "đã bấm Mở Zalo" (#52): để lần sau biết số nào đã tiếp xúc.
   const [daMo, setDaMo] = useState<Set<string>>(new Set());
+  // "Đã gửi tin Zalo" (#53): lưu lúc gửi + user bấm để hiện log.
+  const [daNhan, setDaNhan] = useState<Record<string, { at: string; by: string | null }>>({});
   const [locTt, setLocTt] = useState<"all" | "chua_check" | "co_zalo" | "ko_zalo">("all");
 
   const query = useMemo(() => {
@@ -508,6 +531,15 @@ export function SimBirthdaySection({ token }: { token?: string }) {
     goi<{ rows: string[] }>("/api/admin/sim-birthday/trang-thai?loai=da_mo")
       .then((r) => setDaMo(new Set(r.rows ?? [])))
       .catch(() => {});
+    goi<{ rows: { msisdn: string; created_at: string; created_by: string | null }[] }>(
+      "/api/admin/sim-birthday/trang-thai?loai=da_nhan&full=1",
+    )
+      .then((r) => {
+        const m: Record<string, { at: string; by: string | null }> = {};
+        for (const row of r.rows ?? []) m[row.msisdn] = { at: row.created_at, by: row.created_by };
+        setDaNhan(m);
+      })
+      .catch(() => {});
   }, [token, goi]);
 
   // Đánh dấu "đã mở Zalo" khi Sale bấm Mở Zalo (#52) — chỉ thêm, không gỡ, để
@@ -520,6 +552,39 @@ export function SimBirthdaySection({ token }: { token?: string }) {
       headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: JSON.stringify({ msisdn, loai: "da_mo" }),
     }).catch(() => {});
+  };
+
+  // Bấm "Đã gửi Zalo" (#53): toggle. Bật → ghi giờ + user (server trả về);
+  // bấm lại → gỡ (sửa lỡ tay). Optimistic, có giờ tạm trước khi server phản hồi.
+  const danhDauDaNhan = async (msisdn: string) => {
+    const dangCo = Boolean(daNhan[msisdn]);
+    if (dangCo) {
+      setDaNhan((m) => {
+        const n = { ...m };
+        delete n[msisdn];
+        return n;
+      });
+      fetch("/api/admin/sim-birthday/trang-thai", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ msisdn, loai: "da_nhan" }),
+      }).catch(() => {});
+      return;
+    }
+    setDaNhan((m) => ({ ...m, [msisdn]: { at: new Date().toISOString(), by: null } }));
+    try {
+      const res = await fetch("/api/admin/sim-birthday/trang-thai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ msisdn, loai: "da_nhan" }),
+      });
+      const d = (await res.json().catch(() => ({}))) as { created_at?: string; created_by?: string | null };
+      if (res.ok && d.created_at) {
+        setDaNhan((m) => ({ ...m, [msisdn]: { at: d.created_at as string, by: d.created_by ?? null } }));
+      }
+    } catch {
+      toast.error("Không lưu được 'đã gửi'.");
+    }
   };
 
   // Đặt trạng thái check Zalo (#47): 3 trạng thái LOẠI TRỪ nhau — chua_check /
@@ -857,6 +922,7 @@ export function SimBirthdaySection({ token }: { token?: string }) {
               const tt = trangThaiKhach(kh.msisdn);
               const koZ = tt === "ko_zalo";
               const coZ = tt === "co_zalo";
+              const nhan = daNhan[kh.msisdn] ?? null;
               return (
                 <li key={kh.msisdn} className={cn("p-4", koZ && "opacity-60")}>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -924,6 +990,18 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                     )}
                     <button
                       type="button"
+                      onClick={() => void danhDauDaNhan(kh.msisdn)}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
+                        nhan
+                          ? "border-violet-500/40 bg-violet-500/10 text-violet-300"
+                          : "border-border text-foreground hover:border-violet-500/40",
+                      )}
+                    >
+                      {nhan ? `✓ Đã gửi ${gioVn(nhan.at)}` : "Đã gửi Zalo"}
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => void datTrangThai(kh.msisdn, coZ ? "chua_check" : "co_zalo")}
                       className={cn(
                         "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
@@ -947,6 +1025,12 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                       {koZ ? "✓ Ko có Zalo" : "Ko có Zalo"}
                     </button>
                   </div>
+                  {nhan && (
+                    <p className="mt-1.5 text-[11px] text-violet-300/90">
+                      🕐 Đã nhắn lúc {gioNgayVn(nhan.at)}
+                      {nhan.by ? ` · ${nhan.by}` : ""}
+                    </p>
+                  )}
                 </li>
               );
             })}
@@ -1015,6 +1099,7 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                   const tt = trangThaiKhach(kh.msisdn);
                   const koZ = tt === "ko_zalo";
                   const coZ = tt === "co_zalo";
+                  const nhan = daNhan[kh.msisdn] ?? null;
                   return (
                     <tr key={kh.msisdn} className={cn("transition-colors hover:bg-muted/30", koZ && "opacity-60")}>
                       <td className="whitespace-nowrap px-4 py-2.5">
@@ -1045,6 +1130,14 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                               {daMo.has(kh.msisdn) ? "✓ Đã mở" : "Mở Zalo"}
                             </a>
                           )}
+                          <button
+                            type="button"
+                            onClick={() => void danhDauDaNhan(kh.msisdn)}
+                            title={nhan ? `Đã nhắn lúc ${gioNgayVn(nhan.at)}${nhan.by ? " · " + nhan.by : ""}` : undefined}
+                            className={cn("text-xs font-medium", nhan ? "text-violet-300" : "text-muted-foreground hover:text-foreground")}
+                          >
+                            {nhan ? `✓ Đã gửi ${gioVn(nhan.at)}` : "Đã gửi"}
+                          </button>
                           <button
                             type="button"
                             onClick={() => void datTrangThai(kh.msisdn, coZ ? "chua_check" : "co_zalo")}
@@ -1134,6 +1227,7 @@ export function SimBirthdaySection({ token }: { token?: string }) {
               const tt = trangThaiKhach(kh.msisdn);
               const koZ = tt === "ko_zalo";
               const coZ = tt === "co_zalo";
+              const nhan = daNhan[kh.msisdn] ?? null;
               return (
                 <li key={kh.msisdn} className={cn("p-4", koZ && "opacity-60")}>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -1203,6 +1297,18 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                     )}
                     <button
                       type="button"
+                      onClick={() => void danhDauDaNhan(kh.msisdn)}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
+                        nhan
+                          ? "border-violet-500/40 bg-violet-500/10 text-violet-300"
+                          : "border-border text-foreground hover:border-violet-500/40",
+                      )}
+                    >
+                      {nhan ? `✓ Đã gửi ${gioVn(nhan.at)}` : "Đã gửi Zalo"}
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => void datTrangThai(kh.msisdn, coZ ? "chua_check" : "co_zalo")}
                       className={cn(
                         "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
@@ -1226,6 +1332,12 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                       {koZ ? "✓ Ko có Zalo" : "Ko có Zalo"}
                     </button>
                   </div>
+                  {nhan && (
+                    <p className="mt-1.5 text-[11px] text-violet-300/90">
+                      🕐 Đã nhắn lúc {gioNgayVn(nhan.at)}
+                      {nhan.by ? ` · ${nhan.by}` : ""}
+                    </p>
+                  )}
                 </li>
               );
             })}
