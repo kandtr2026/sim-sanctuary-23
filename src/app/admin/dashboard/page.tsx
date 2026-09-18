@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { ArrowRight, CalendarHeart, Crown, Download, ExternalLink, FileText, Globe, LayoutDashboard, Loader2, ShoppingCart, Smartphone, TrendingUp, Wallet } from "lucide-react";
+import { ArrowRight, CalendarHeart, Download, ExternalLink, FileText, Globe, LayoutDashboard, Loader2, ShoppingCart, Smartphone, TrendingUp, Wallet } from "lucide-react";
 import { BarList } from "@/components/admin/BarList";
 import { DashboardHeader } from "@/components/admin/DashboardHeader";
 import { PostsTable, type PostRow } from "@/components/admin/PostsTable";
@@ -230,15 +230,6 @@ function AdminDashboardContent() {
     [serverStats],
   );
 
-  // Phân rã SIM VIP theo từng nhóm (từ server, toàn kho) — hiện count>0, nhiều nhất trước.
-  const vipBreakdownItems = useMemo(() => {
-    const b = serverStats?.vipBreakdown;
-    if (!b) return [] as [string, number][];
-    return Object.entries(b)
-      .filter(([, n]) => n > 0)
-      .sort((x, y) => y[1] - x[1]);
-  }, [serverStats]);
-
   const lastUpdate = getLastUpdateInfo();
   const lastUpdateLabel = lastUpdate.timestamp
     ? new Date(lastUpdate.timestamp).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
@@ -404,38 +395,6 @@ function AdminDashboardContent() {
                     valueClass="text-gold"
                   />
                   <StatCard label="Giá trung bình" value={formatPrice(stats.avgPrice)} icon={TrendingUp} />
-                </div>
-
-                {/* SIM VIP là gì — định nghĩa + phân rã thành phần, bấm chip xem
-                    list SIM tương ứng (góp ý #8, #13) */}
-                <div className="mt-6 rounded-xl border border-border bg-card p-4 shadow-card">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Crown className="h-4 w-4 text-gold" />
-                    <h3 className="text-sm font-semibold text-foreground">SIM VIP là gì?</h3>
-                  </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    SIM VIP = có 1 trong 4 dạng cao cấp (Lục quý · Ngũ quý · Tứ quý · Tam hoa kép)
-                    {" "}<span className="font-semibold text-foreground">hoặc</span> giá từ 50 triệu trở lên.
-                    {" "}<span className="text-foreground">Bấm từng loại để xem danh sách SIM.</span>
-                  </p>
-                  {vipBreakdownItems.length > 0 ? (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {vipBreakdownItems.map(([label, count]) => (
-                        <button
-                          key={label}
-                          type="button"
-                          onClick={() => openVipCat(label)}
-                          title={`Xem ${count.toLocaleString("vi-VN")} SIM ${label}`}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/5 px-3 py-1.5 text-xs transition-colors hover:border-gold hover:bg-gold/10"
-                        >
-                          <span className="font-medium text-foreground">{label}</span>
-                          <span className="font-bold text-gold">{count.toLocaleString("vi-VN")}</span>
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="mt-3 text-xs text-muted-foreground">Đang tải phân loại VIP…</p>
-                  )}
                 </div>
 
                 <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
