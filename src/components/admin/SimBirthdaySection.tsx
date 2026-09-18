@@ -154,6 +154,85 @@ const soanTin = (chiSo: number, dob: string, goiY: string | null, kb: string): s
     .replace("{ds}", dsSoTuGoiY(goiY).map((s) => chamSo(s, kb)).join(", "));
 
 /**
+ * Dãy số part cần hiện (1-based): luôn có 1, part cuối, và cửa sổ quanh part hiện
+ * tại; chèn '…' vào chỗ đứt để không phải in cả trăm nút (#42).
+ */
+const danhSachPart = (cur: number, tong: number): (number | "…")[] => {
+  const co = new Set<number>();
+  for (const p of [1, tong, cur - 2, cur - 1, cur, cur + 1, cur + 2]) {
+    if (p >= 1 && p <= tong) co.add(p);
+  }
+  const arr = [...co].sort((a, b) => a - b);
+  const out: (number | "…")[] = [];
+  for (let i = 0; i < arr.length; i++) {
+    out.push(arr[i]);
+    if (i < arr.length - 1 && arr[i + 1] - arr[i] > 1) out.push("…");
+  }
+  return out;
+};
+
+/** Phân trang part có ĐÁNH SỐ (part 1, part 2…) + nhảy nhanh — dùng cho mọi list. */
+function PartNav({ part, soPart, doiPart }: { part: number; soPart: number; doiPart: (p: number) => void }) {
+  const cur = part + 1;
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <button
+        type="button"
+        disabled={part === 0}
+        onClick={() => doiPart(part - 1)}
+        className="rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:border-primary/40 disabled:opacity-40"
+      >
+        ← Trước
+      </button>
+      {danhSachPart(cur, soPart).map((n, i) =>
+        n === "…" ? (
+          <span key={`e${i}`} className="px-0.5 text-xs text-muted-foreground">
+            …
+          </span>
+        ) : (
+          <button
+            key={n}
+            type="button"
+            onClick={() => doiPart(n - 1)}
+            aria-current={n === cur ? "page" : undefined}
+            title={`Part ${n}`}
+            className={cn(
+              "min-w-[30px] rounded-lg border px-2 py-1 text-xs font-medium transition-colors",
+              n === cur ? "border-primary bg-primary text-primary-foreground" : "border-border text-foreground hover:border-primary/40",
+            )}
+          >
+            {n}
+          </button>
+        ),
+      )}
+      <button
+        type="button"
+        disabled={part >= soPart - 1}
+        onClick={() => doiPart(part + 1)}
+        className="rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:border-primary/40 disabled:opacity-40"
+      >
+        Sau →
+      </button>
+      {soPart > 10 && (
+        <input
+          type="number"
+          min={1}
+          max={soPart}
+          placeholder="tới part…"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              const v = Number((e.target as HTMLInputElement).value);
+              if (v >= 1 && v <= soPart) doiPart(v - 1);
+            }
+          }}
+          className="w-24 rounded-lg border border-border bg-background px-2 py-1 text-xs tabular-nums text-foreground"
+        />
+      )}
+    </div>
+  );
+}
+
+/**
  * TẠM ẨN phần "ghép kịch bản" (góp ý #38): A Khoa muốn ẩn từ dòng "Năm sinh"
  * trong bộ lọc trở xuống (kịch bản ghép / chi tiết / phân bố) để nêu lại kịch bản
  * dần dần. Code giữ NGUYÊN — chỉ không render. Đổi thành true để hiện lại.
@@ -539,23 +618,8 @@ export function SimBirthdaySection({ token }: { token?: string }) {
             ) : null}
             Part <b className="text-foreground">{part + 1}</b>/{soPart}
           </span>
-          <div className="ml-auto flex items-center gap-1.5">
-            <button
-              type="button"
-              disabled={part === 0}
-              onClick={() => setPart((p) => Math.max(0, p - 1))}
-              className="rounded-lg border border-border px-2.5 py-1 font-medium text-foreground transition-colors hover:border-primary/40 disabled:opacity-40"
-            >
-              ← Trước
-            </button>
-            <button
-              type="button"
-              disabled={part >= soPart - 1}
-              onClick={() => setPart((p) => Math.min(soPart - 1, p + 1))}
-              className="rounded-lg border border-border px-2.5 py-1 font-medium text-foreground transition-colors hover:border-primary/40 disabled:opacity-40"
-            >
-              Sau →
-            </button>
+          <div className="ml-auto">
+            <PartNav part={part} soPart={soPart} doiPart={setPart} />
           </div>
         </div>
 
@@ -642,23 +706,8 @@ export function SimBirthdaySection({ token }: { token?: string }) {
           <span className="text-muted-foreground">
             Part <b className="text-foreground">{partTt + 1}</b>/{soPartTt}
           </span>
-          <div className="ml-auto flex items-center gap-1.5">
-            <button
-              type="button"
-              disabled={partTt === 0}
-              onClick={() => setPartTt((p) => Math.max(0, p - 1))}
-              className="rounded-lg border border-border px-2.5 py-1 font-medium text-foreground transition-colors hover:border-primary/40 disabled:opacity-40"
-            >
-              ← Trước
-            </button>
-            <button
-              type="button"
-              disabled={partTt >= soPartTt - 1}
-              onClick={() => setPartTt((p) => Math.min(soPartTt - 1, p + 1))}
-              className="rounded-lg border border-border px-2.5 py-1 font-medium text-foreground transition-colors hover:border-primary/40 disabled:opacity-40"
-            >
-              Sau →
-            </button>
+          <div className="ml-auto">
+            <PartNav part={partTt} soPart={soPartTt} doiPart={setPartTt} />
           </div>
         </div>
 
