@@ -79,6 +79,20 @@ interface TuTrungRow {
   tong: number;
 }
 
+/**
+ * Khách có 6 số đuôi SĐT đang dùng trùng ĐÚNG số trong kho chonso (cả kho web
+ * lẫn kho sinh nhật) — A Khoa yêu cầu tách mục riêng. `so_web`/`so_sn` là các số
+ * kho chonso trùng đuôi để Sale chào.
+ */
+interface TrungKhoRow {
+  msisdn: string;
+  dob: string;
+  duoi6: string;
+  so_web: string[];
+  so_sn: string[];
+  tong: number;
+}
+
 const NHAN_LOAI: Record<string, string> = {
   ddmmyy: "Trùng ngày sinh",
   yymmdd: "Ngược yy-mm-dd",
@@ -190,6 +204,25 @@ const soanTin = (chiSo: number, dsSo: string[], kb: string): string =>
     "{ds}",
     dsSo.map((s) => chamSo(s, kb)).join(", "),
   );
+
+/**
+ * Mẫu tin cho mục "trùng 6 số đuôi với kho": chào số kho chonso có đuôi giống
+ * đuôi số khách đang dùng. Xoay vòng đỡ spam. {d6} = 6 số đuôi, {ds} = danh sách số.
+ */
+const MAU_TIN_TRUNG: string[] = [
+  "Chào anh/chị 👋 Bên em có mấy sim số đẹp đuôi {d6} dễ nhớ: {ds}. Anh/chị xem có số nào ưng em giữ liền cho mình nhé!",
+  "Dạ em chào anh/chị. Bên em đang có sim đuôi {d6} khá đẹp: {ds}. Anh/chị tham khảo giúp em nha.",
+  "Anh/chị ơi, bên em có số đuôi {d6}: {ds}. Số nào hợp anh/chị nhắn em để lại giá tốt ạ.",
+  "Gửi anh/chị vài số đẹp đuôi {d6} bên em đang có: {ds}. Cần em tư vấn thêm cứ nhắn nhé 😊",
+];
+
+/** Đuôi 6 số chấm thành cặp cho dễ đọc (0775000886 → 0775.00.08.86). */
+const cham6 = (digits: string): string => chamSo(digits, "ddmmyy");
+
+const soanTinTrung = (chiSo: number, d6: string, dsSo: string[]): string =>
+  MAU_TIN_TRUNG[chiSo % MAU_TIN_TRUNG.length]
+    .replace("{d6}", d6)
+    .replace("{ds}", dsSo.map(cham6).join(", "));
 
 /**
  * Dãy số part cần hiện (1-based): luôn có 1, part cuối, và cửa sổ quanh part hiện
@@ -306,6 +339,11 @@ export function SimBirthdaySection({ token }: { token?: string }) {
   const [tuTrung, setTuTrung] = useState<TuTrungRow[]>([]);
   const [partTt, setPartTt] = useState(0);
   const [dangTaiTt, setDangTaiTt] = useState(false);
+
+  // Khách trùng 6 số đuôi với kho chonso (mục mới): part 100, lọc lô theo nguongLo.
+  const [trungKho, setTrungKho] = useState<TrungKhoRow[]>([]);
+  const [partTk, setPartTk] = useState(0);
+  const [dangTaiTk, setDangTaiTk] = useState(false);
 
   // Trạng thái khách: cờ Ko Zalo (#43) + Đã gửi (#46). Lọc theo trạng thái.
   const [koZalo, setKoZalo] = useState<Set<string>>(new Set());
@@ -439,6 +477,23 @@ export function SimBirthdaySection({ token }: { token?: string }) {
     return () => { bo = true; };
   }, [token, partTt, goi]);
 
+  // Đổi ngưỡng lô (query) thì mục trùng-kho về part đầu (tổng khách đổi).
+  useEffect(() => { setPartTk(0); }, [query]);
+
+  // Nạp khách trùng 6 số đuôi với kho (part 100). Chỉ dùng nguong_lo trong query.
+  useEffect(() => {
+    if (!token) return;
+    let bo = false;
+    setDangTaiTk(true);
+    goi<{ rows: TrungKhoRow[] }>(
+      `/api/admin/sim-birthday?view=trung-kho&limit=100&offset=${partTk * 100}&${query}`,
+    )
+      .then((r) => { if (!bo) setTrungKho(r.rows ?? []); })
+      .catch(() => { if (!bo) setTrungKho([]); })
+      .finally(() => { if (!bo) setDangTaiTk(false); });
+    return () => { bo = true; };
+  }, [token, partTk, query, goi]);
+
   // Nạp trạng thái đã gắn (Ko Zalo + Đã gửi) một lần.
   useEffect(() => {
     if (!token) return;
@@ -534,8 +589,11 @@ export function SimBirthdaySection({ token }: { token?: string }) {
   const soPart = Math.max(1, Math.ceil((kbDangChon?.so_khach ?? 0) / 100));
   const tongTt = tuTrung[0]?.tong ?? 0;
   const soPartTt = Math.max(1, Math.ceil(tongTt / 100));
+  const tongTk = trungKho[0]?.tong ?? 0;
+  const soPartTk = Math.max(1, Math.ceil(tongTk / 100));
   const dsHienThi = dsKhach.filter((kh) => khopLoc(kh.msisdn));
   const ttHienThi = tuTrung.filter((kh) => khopLoc(kh.msisdn));
+  const tkHienThi = trungKho.filter((kh) => khopLoc(kh.msisdn));
   const dauSoPhoBien = (thongKe?.phan_bo_dau_so ?? []).filter((d) => d.so_khach >= 1000);
 
   return (
@@ -982,6 +1040,163 @@ export function SimBirthdaySection({ token }: { token?: string }) {
               </tbody>
             </table>
           </div>
+        )}
+      </section>
+
+      {/* ── Khách trùng 6 số đuôi với kho chonso (A Khoa yêu cầu tách mục riêng) ── */}
+      <section className="rounded-xl border border-border bg-card shadow-card">
+        <div className="border-b border-border p-4">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Target className="h-4 w-4 text-primary" />
+            Khách trùng 6 số đuôi với kho chonso
+          </h3>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            Khách đang dùng số mà <b className="text-foreground">6 số đuôi trùng đúng</b> một số bên
+            kho chonso — chào họ số &ldquo;đuôi giống hệt&rdquo; dễ chốt.
+            {tongTk > 0 && (
+              <> Có <b className="text-foreground">{soVn(tongTk)}</b> khách (đã lọc lô).</>
+            )}
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-2.5 w-2.5 rounded-sm bg-emerald-500/70 ring-1 ring-emerald-500/40" />
+              <b className="text-emerald-300">Số xanh</b> — kho web (có giá, chốt ngay)
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-2.5 w-2.5 rounded-sm bg-gold/70 ring-1 ring-gold/40" />
+              <b className="text-gold">Số vàng</b> — kho sim sinh nhật
+            </span>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-2.5 text-xs">
+          <span className="text-muted-foreground">
+            Part <b className="text-foreground">{partTk + 1}</b>/{soPartTk}
+          </span>
+          <label className="flex items-center gap-1.5 text-muted-foreground">
+            Lọc:
+            <select
+              value={locTt}
+              onChange={(e) => setLocTt(e.target.value as typeof locTt)}
+              className="rounded-lg border border-border bg-background px-2 py-1 text-xs text-foreground"
+            >
+              <option value="all">Tất cả</option>
+              <option value="chua_check">Chưa check</option>
+              <option value="co_zalo">Zalo OK</option>
+              <option value="ko_zalo">Ko có Zalo</option>
+            </select>
+          </label>
+          <div className="ml-auto">
+            <PartNav part={partTk} soPart={soPartTk} doiPart={setPartTk} />
+          </div>
+        </div>
+
+        {dangTaiTk ? (
+          <div className="grid place-items-center py-16 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin" />
+          </div>
+        ) : trungKho.length === 0 ? (
+          <p className="py-12 text-center text-sm text-muted-foreground">Không có khách trùng đuôi trong part này.</p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {tkHienThi.map((kh) => {
+              const chiSo = partTk * 100 + trungKho.indexOf(kh);
+              const webSet = new Set(kh.so_web);
+              const soGop = [...new Set([...kh.so_web, ...kh.so_sn])].slice(0, 8);
+              const tin = soanTinTrung(chiSo, kh.duoi6, soGop);
+              const tt = trangThaiKhach(kh.msisdn);
+              const koZ = tt === "ko_zalo";
+              const coZ = tt === "co_zalo";
+              return (
+                <li key={kh.msisdn} className={cn("p-4", koZ && "opacity-60")}>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className={cn("text-sm", CLS_SDT_KHACH)}>{cham6(kh.msisdn)}</span>
+                    <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                      đuôi {kh.duoi6}
+                    </span>
+                    <span className="text-xs text-muted-foreground">Sinh {ngaySinhVn(kh.dob)}</span>
+                    <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium", NHAN_TT[tt].cls)}>
+                      {NHAN_TT[tt].label}
+                    </span>
+                    <span className="ml-auto text-[11px] text-muted-foreground">
+                      mẫu #{(chiSo % MAU_TIN_TRUNG.length) + 1}
+                    </span>
+                  </div>
+
+                  {soGop.length > 0 && (
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      {soGop.map((s) => {
+                        const web = webSet.has(s);
+                        return (
+                          <span
+                            key={s}
+                            title={web ? "Số còn bán trên web (có giá)" : "Số kho sim sinh nhật"}
+                            className={cn(
+                              "rounded-md px-2 py-0.5 font-mono text-xs ring-1",
+                              web
+                                ? "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30"
+                                : "bg-gold/15 text-gold ring-gold/30",
+                            )}
+                          >
+                            {cham6(s)}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  <p className="mt-2 rounded-lg border border-border bg-background px-3 py-2 text-xs leading-relaxed text-foreground">
+                    {tin}
+                  </p>
+
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void copyTin(kh.msisdn, tin)}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                    >
+                      {daCopy === kh.msisdn ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                      {daCopy === kh.msisdn ? "Đã copy" : "Copy tin nhắn"}
+                    </button>
+                    {!koZ && (
+                      <a
+                        href={`https://zalo.me/${kh.msisdn}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/40"
+                      >
+                        Mở Zalo khách
+                      </a>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => void datTrangThai(kh.msisdn, coZ ? "chua_check" : "co_zalo")}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
+                        coZ
+                          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                          : "border-border text-foreground hover:border-emerald-500/40",
+                      )}
+                    >
+                      {coZ ? "✓ Zalo OK" : "Zalo OK"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void datTrangThai(kh.msisdn, koZ ? "chua_check" : "ko_zalo")}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
+                        koZ
+                          ? "border-primary/40 bg-primary/10 text-primary"
+                          : "border-border text-foreground hover:border-primary/40",
+                      )}
+                    >
+                      {koZ ? "✓ Ko có Zalo" : "Ko có Zalo"}
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </section>
 

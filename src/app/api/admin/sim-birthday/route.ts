@@ -86,6 +86,18 @@ export async function GET(req: NextRequest) {
       return jsonNoStore({ rows: data ?? [] });
     }
 
+    if (view === "trung-kho") {
+      // Khách có 6 số đuôi SĐT trùng đúng số trong kho chonso (cả kho sinh nhật
+      // lẫn kho web). Lọc lô theo nguong_lo như các view khác.
+      const { data, error } = await db.rpc("sim_birthday_khach_trung_kho", {
+        p_nguong_lo: boLoc.p_nguong_lo,
+        p_limit: Math.min(Math.max(Number(sp.get("limit")) || 100, 1), 500),
+        p_offset: Math.max(Number(sp.get("offset")) || 0, 0),
+      });
+      if (error) throw new Error(error.message);
+      return jsonNoStore({ rows: data ?? [] });
+    }
+
     if (view === "kho-khop") {
       // Đối chiếu đuôi (ngày sinh theo kịch bản) của khách với KHO WEB đang bán
       // (`public.sims`, ~50k số) — chỉ số còn `available` + có giá (góp ý #50).
