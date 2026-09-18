@@ -20,12 +20,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Check,
+  ChevronDown,
   Copy,
   ExternalLink,
   KeyRound,
   Loader2,
   RefreshCw,
   Search,
+  Settings2,
   Store,
   TrendingUp,
 } from "lucide-react";
@@ -33,6 +35,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import RequireAdmin from "@/components/admin/RequireAdmin";
+import ShopeeListingNumbers from "@/components/admin/ShopeeListingNumbers";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { toast } from "sonner";
 
@@ -128,6 +131,7 @@ function ShopeeAdminContent() {
   const [q, setQ] = useState("");
   const [onlyLive, setOnlyLive] = useState(false);
   const [copiedId, setCopiedId] = useState<number | "all" | null>(null);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   // Doanh thu đã bán (Shopee Order API) — nạp theo yêu cầu để sort theo mã bán chạy (#35).
   const [sales, setSales] = useState<Record<number, { orders: number; quantity: number; revenue: number }>>({});
@@ -295,6 +299,17 @@ function ShopeeAdminContent() {
     void copy(links.join("\n"), "all");
     toast.success(`Đã sao chép ${links.length} link`);
   };
+
+  // Cập nhật biến thể của 1 listing sau khi thêm/đổi/tắt số (đồng bộ lại tổng kho).
+  const updateListingVariants = useCallback((itemId: number, next: ShopeeVariant[]) => {
+    setListings((prev) =>
+      prev.map((it) =>
+        it.item_id === itemId
+          ? { ...it, variants: next, stock: next.reduce((s, v) => s + Math.max(0, v.stock), 0) }
+          : it,
+      ),
+    );
+  }, []);
 
   const liveCount = useMemo(
     () => listings.filter((it) => String(it.status).toUpperCase() === "NORMAL").length,
@@ -500,8 +515,9 @@ function ShopeeAdminContent() {
               return (
                 <li
                   key={it.item_id}
-                  className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:border-gold/40"
+                  className="rounded-xl border border-border bg-card transition-colors hover:border-gold/40"
                 >
+                  <div className="flex items-center gap-3 p-3">
                   {/* Ảnh */}
                   <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-secondary">
                     {it.image ? (
@@ -555,6 +571,19 @@ function ShopeeAdminContent() {
                   {/* Hành động */}
                   <div className="flex shrink-0 items-center gap-1">
                     <Button
+                      variant={expandedId === it.item_id ? "secondary" : "ghost"}
+                      size="sm"
+                      className="h-8 gap-1 px-2 text-xs"
+                      title="Quản lý số của listing"
+                      onClick={() => setExpandedId((cur) => (cur === it.item_id ? null : it.item_id))}
+                    >
+                      <Settings2 className="h-4 w-4" />
+                      <span className="hidden sm:inline">Quản lý số</span>
+                      <ChevronDown
+                        className={`h-3.5 w-3.5 transition-transform ${expandedId === it.item_id ? "rotate-180" : ""}`}
+                      />
+                    </Button>
+                    <Button
                       variant="ghost"
                       size="icon"
                       title="Sao chép link"
@@ -575,6 +604,20 @@ function ShopeeAdminContent() {
                       </Button>
                     )}
                   </div>
+                  </div>
+
+                  {expandedId === it.item_id && (
+                    <div className="border-t border-border p-3">
+                      <ShopeeListingNumbers
+                        itemId={it.item_id}
+                        itemName={it.item_name}
+                        variants={it.variants ?? []}
+                        token={token}
+                        onChange={(next) => updateListingVariants(it.item_id, next)}
+                        onRefresh={() => void handlePull()}
+                      />
+                    </div>
+                  )}
                 </li>
               );
             })}
