@@ -5,16 +5,16 @@ import { errorResponse, jsonNoStore, requireAdmin } from "@/lib/shopee/http";
 export const dynamic = "force-dynamic";
 
 /**
- * Trạng thái khách của dự án Sim Birthday (#43 Ko Zalo, #46 Đã gửi) — gom về một
- * route theo `loai`:
- *   GET    ?loai=ko_zalo|da_gui → danh sách msisdn đã gắn.
- *   POST   { msisdn, loai }     → gắn.
- *   DELETE { msisdn, loai }     → bỏ.
+ * Trạng thái check Zalo của khách Sim Birthday (#47) — 3 trạng thái: chưa check /
+ * co_zalo (Zalo OK) / ko_zalo (Ko có Zalo). Gom về một route theo `loai`:
+ *   GET    ?loai=ko_zalo|co_zalo → danh sách msisdn đã gắn cờ đó.
+ *   POST   { msisdn, loai }      → gắn.
+ *   DELETE { msisdn, loai }      → bỏ.
  */
 
 const BANG: Record<string, string> = {
   ko_zalo: "sim_birthday_ko_zalo",
-  da_gui: "sim_birthday_da_gui",
+  co_zalo: "sim_birthday_co_zalo",
 };
 
 const chuanMsisdn = (v: unknown): string => String(v ?? "").replace(/\s+/g, "").trim();

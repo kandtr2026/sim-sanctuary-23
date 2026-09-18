@@ -85,11 +85,11 @@ const NHAN_LOAI: Record<string, string> = {
   ddmm: "Ngày + tháng",
 };
 
-/** Trạng thái gửi Zalo của khách (#46) — tách màu rõ ràng. */
+/** Trạng thái check Zalo của khách (#47) — 3 trạng thái, tách màu rõ. */
 const NHAN_TT: Record<string, { label: string; cls: string }> = {
-  chua_gui: { label: "Chưa gửi", cls: "bg-gold/15 text-gold" },
-  da_gui: { label: "Đã gửi", cls: "bg-emerald-500/15 text-emerald-400" },
-  ko_zalo: { label: "Ko Zalo", cls: "bg-primary/15 text-primary" },
+  chua_check: { label: "Chưa check Zalo", cls: "bg-gold/15 text-gold" },
+  co_zalo: { label: "Zalo OK", cls: "bg-emerald-500/15 text-emerald-400" },
+  ko_zalo: { label: "Ko có Zalo", cls: "bg-primary/15 text-primary" },
 };
 
 const NGUONG_LO = [
@@ -282,8 +282,8 @@ export function SimBirthdaySection({ token }: { token?: string }) {
 
   // Trạng thái khách: cờ Ko Zalo (#43) + Đã gửi (#46). Lọc theo trạng thái.
   const [koZalo, setKoZalo] = useState<Set<string>>(new Set());
-  const [daGui, setDaGui] = useState<Set<string>>(new Set());
-  const [locTt, setLocTt] = useState<"all" | "chua_gui" | "da_gui" | "ko_zalo">("all");
+  const [coZalo, setCoZalo] = useState<Set<string>>(new Set());
+  const [locTt, setLocTt] = useState<"all" | "chua_check" | "co_zalo" | "ko_zalo">("all");
 
   const query = useMemo(() => {
     const p = new URLSearchParams({
@@ -397,40 +397,45 @@ export function SimBirthdaySection({ token }: { token?: string }) {
     goi<{ rows: string[] }>("/api/admin/sim-birthday/trang-thai?loai=ko_zalo")
       .then((r) => setKoZalo(new Set(r.rows ?? [])))
       .catch(() => {});
-    goi<{ rows: string[] }>("/api/admin/sim-birthday/trang-thai?loai=da_gui")
-      .then((r) => setDaGui(new Set(r.rows ?? [])))
+    goi<{ rows: string[] }>("/api/admin/sim-birthday/trang-thai?loai=co_zalo")
+      .then((r) => setCoZalo(new Set(r.rows ?? [])))
       .catch(() => {});
   }, [token, goi]);
 
-  // Gắn / bỏ một cờ (optimistic, hoàn lại nếu lưu lỗi).
-  const doiCo = async (msisdn: string, loai: "ko_zalo" | "da_gui", gan: boolean) => {
-    const setter = loai === "ko_zalo" ? setKoZalo : setDaGui;
-    setter((s) => {
+  // Đặt trạng thái check Zalo (#47): 3 trạng thái LOẠI TRỪ nhau — chua_check /
+  // co_zalo / ko_zalo. Set cái được chọn, xoá cái kia (cả local lẫn DB), optimistic.
+  const datTrangThai = async (msisdn: string, tt: "chua_check" | "co_zalo" | "ko_zalo") => {
+    setCoZalo((s) => {
       const n = new Set(s);
-      if (gan) n.add(msisdn);
+      if (tt === "co_zalo") n.add(msisdn);
       else n.delete(msisdn);
       return n;
     });
-    try {
-      const res = await fetch("/api/admin/sim-birthday/trang-thai", {
-        method: gan ? "POST" : "DELETE",
+    setKoZalo((s) => {
+      const n = new Set(s);
+      if (tt === "ko_zalo") n.add(msisdn);
+      else n.delete(msisdn);
+      return n;
+    });
+    const goiCo = (loai: "co_zalo" | "ko_zalo", bat: boolean) =>
+      fetch("/api/admin/sim-birthday/trang-thai", {
+        method: bat ? "POST" : "DELETE",
         headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({ msisdn, loai }),
       });
-      if (!res.ok) throw new Error(String(res.status));
+    try {
+      const [a, b] = await Promise.all([goiCo("co_zalo", tt === "co_zalo"), goiCo("ko_zalo", tt === "ko_zalo")]);
+      if (!a.ok || !b.ok) throw new Error("save");
     } catch {
-      setter((s) => {
-        const n = new Set(s);
-        if (gan) n.delete(msisdn);
-        else n.add(msisdn);
-        return n;
-      });
       toast.error("Không lưu được trạng thái.");
+      // Nạp lại từ server cho khớp thật.
+      goi<{ rows: string[] }>("/api/admin/sim-birthday/trang-thai?loai=co_zalo").then((r) => setCoZalo(new Set(r.rows ?? []))).catch(() => {});
+      goi<{ rows: string[] }>("/api/admin/sim-birthday/trang-thai?loai=ko_zalo").then((r) => setKoZalo(new Set(r.rows ?? []))).catch(() => {});
     }
   };
 
-  const trangThaiKhach = (msisdn: string): "ko_zalo" | "da_gui" | "chua_gui" =>
-    koZalo.has(msisdn) ? "ko_zalo" : daGui.has(msisdn) ? "da_gui" : "chua_gui";
+  const trangThaiKhach = (msisdn: string): "ko_zalo" | "co_zalo" | "chua_check" =>
+    koZalo.has(msisdn) ? "ko_zalo" : coZalo.has(msisdn) ? "co_zalo" : "chua_check";
   const khopLoc = (msisdn: string) => locTt === "all" || trangThaiKhach(msisdn) === locTt;
 
   const copyTin = async (msisdn: string, tin: string) => {
@@ -688,9 +693,9 @@ export function SimBirthdaySection({ token }: { token?: string }) {
               className="rounded-lg border border-border bg-background px-2 py-1 text-xs text-foreground"
             >
               <option value="all">Tất cả</option>
-              <option value="chua_gui">Chưa gửi</option>
-              <option value="da_gui">Đã gửi</option>
-              <option value="ko_zalo">Ko Zalo</option>
+              <option value="chua_check">Chưa check</option>
+              <option value="co_zalo">Zalo OK</option>
+              <option value="ko_zalo">Ko có Zalo</option>
             </select>
           </label>
           <div className="ml-auto">
@@ -712,9 +717,9 @@ export function SimBirthdaySection({ token }: { token?: string }) {
               const tin = soanTin(chiSo, kh.dob, kh.sim_goi_y, kichBan);
               const tt = trangThaiKhach(kh.msisdn);
               const koZ = tt === "ko_zalo";
-              const daG = tt === "da_gui";
+              const coZ = tt === "co_zalo";
               return (
-                <li key={kh.msisdn} className={cn("p-4", tt !== "chua_gui" && "opacity-60")}>
+                <li key={kh.msisdn} className={cn("p-4", koZ && "opacity-60")}>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <span className={cn("text-sm", CLS_SDT_KHACH)}>{kh.msisdn}</span>
                     <span className="text-xs text-muted-foreground">Sinh {ngaySinhVn(kh.dob)}</span>
@@ -760,31 +765,29 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                         Mở Zalo khách
                       </a>
                     )}
-                    {!koZ && (
-                      <button
-                        type="button"
-                        onClick={() => void doiCo(kh.msisdn, "da_gui", !daG)}
-                        className={cn(
-                          "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
-                          daG
-                            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
-                            : "border-border text-foreground hover:border-emerald-500/40",
-                        )}
-                      >
-                        {daG ? "✓ Đã gửi" : "Đánh đã gửi"}
-                      </button>
-                    )}
                     <button
                       type="button"
-                      onClick={() => void doiCo(kh.msisdn, "ko_zalo", !koZ)}
+                      onClick={() => void datTrangThai(kh.msisdn, coZ ? "chua_check" : "co_zalo")}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
+                        coZ
+                          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                          : "border-border text-foreground hover:border-emerald-500/40",
+                      )}
+                    >
+                      {coZ ? "✓ Zalo OK" : "Zalo OK"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void datTrangThai(kh.msisdn, koZ ? "chua_check" : "ko_zalo")}
                       className={cn(
                         "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
                         koZ
-                          ? "border-border text-muted-foreground hover:text-foreground"
-                          : "border-primary/40 text-primary hover:bg-primary/10",
+                          ? "border-primary/40 bg-primary/10 text-primary"
+                          : "border-border text-foreground hover:border-primary/40",
                       )}
                     >
-                      {koZ ? "Bỏ cờ Ko Zalo" : "Ko Zalo"}
+                      {koZ ? "✓ Ko có Zalo" : "Ko có Zalo"}
                     </button>
                   </div>
                 </li>
@@ -823,9 +826,9 @@ export function SimBirthdaySection({ token }: { token?: string }) {
               className="rounded-lg border border-border bg-background px-2 py-1 text-xs text-foreground"
             >
               <option value="all">Tất cả</option>
-              <option value="chua_gui">Chưa gửi</option>
-              <option value="da_gui">Đã gửi</option>
-              <option value="ko_zalo">Ko Zalo</option>
+              <option value="chua_check">Chưa check</option>
+              <option value="co_zalo">Zalo OK</option>
+              <option value="ko_zalo">Ko có Zalo</option>
             </select>
           </label>
           <div className="ml-auto">
@@ -854,9 +857,9 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                 {ttHienThi.map((kh) => {
                   const tt = trangThaiKhach(kh.msisdn);
                   const koZ = tt === "ko_zalo";
-                  const daG = tt === "da_gui";
+                  const coZ = tt === "co_zalo";
                   return (
-                    <tr key={kh.msisdn} className={cn("transition-colors hover:bg-muted/30", tt !== "chua_gui" && "opacity-60")}>
+                    <tr key={kh.msisdn} className={cn("transition-colors hover:bg-muted/30", koZ && "opacity-60")}>
                       <td className="whitespace-nowrap px-4 py-2.5">
                         <span className={CLS_SDT_KHACH}>{chamSo(kh.msisdn, kh.loai)}</span>
                         <span className={cn("ml-2 rounded-full px-2 py-0.5 text-[11px] font-medium", NHAN_TT[tt].cls)}>
@@ -881,21 +884,19 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                               Mở Zalo
                             </a>
                           )}
-                          {!koZ && (
-                            <button
-                              type="button"
-                              onClick={() => void doiCo(kh.msisdn, "da_gui", !daG)}
-                              className={cn("text-xs font-medium", daG ? "text-emerald-400" : "text-muted-foreground hover:text-foreground")}
-                            >
-                              {daG ? "✓ Đã gửi" : "Đã gửi"}
-                            </button>
-                          )}
                           <button
                             type="button"
-                            onClick={() => void doiCo(kh.msisdn, "ko_zalo", !koZ)}
-                            className="text-xs font-medium text-muted-foreground hover:text-foreground"
+                            onClick={() => void datTrangThai(kh.msisdn, coZ ? "chua_check" : "co_zalo")}
+                            className={cn("text-xs font-medium", coZ ? "text-emerald-400" : "text-muted-foreground hover:text-foreground")}
                           >
-                            {koZ ? "Bỏ cờ" : "Ko Zalo"}
+                            {coZ ? "✓ Zalo OK" : "Zalo OK"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void datTrangThai(kh.msisdn, koZ ? "chua_check" : "ko_zalo")}
+                            className={cn("text-xs font-medium", koZ ? "text-primary" : "text-muted-foreground hover:text-foreground")}
+                          >
+                            {koZ ? "✓ Ko có Zalo" : "Ko có Zalo"}
                           </button>
                         </div>
                       </td>
