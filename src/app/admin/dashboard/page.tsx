@@ -62,6 +62,19 @@ function AdminDashboardContent() {
   const { user, session, signOut } = useAdminAuth();
   const token = session?.access_token;
   const [tab, setTab] = useState<TabId>("tong-quan");
+
+  // Tab có link riêng (?tab=…) để refresh vẫn ở đúng tab (góp ý #44). Đọc URL khi
+  // vào/refresh; đổi tab thì cập nhật URL bằng replaceState (không điều hướng lại).
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get("tab");
+    if (t && TABS.some((x) => x.id === t)) setTab(t as TabId);
+  }, []);
+  const doiTab = (id: TabId) => {
+    setTab(id);
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", id);
+    window.history.replaceState(null, "", url.toString());
+  };
   const [exportingSims, setExportingSims] = useState(false);
   // Danh sách SIM VIP theo nhóm — tải LƯỜI (chỉ khi A Khoa bấm vào 1 chip
   // breakdown lần đầu), rồi giữ lại cho các lần bấm sau (góp ý #13).
@@ -320,7 +333,7 @@ function AdminDashboardContent() {
               <button
                 key={t.id}
                 type="button"
-                onClick={() => setTab(t.id)}
+                onClick={() => doiTab(t.id)}
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors",
