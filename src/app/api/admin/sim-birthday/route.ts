@@ -86,6 +86,50 @@ export async function GET(req: NextRequest) {
       return jsonNoStore({ rows: data ?? [] });
     }
 
+    if (view === "kho-khop") {
+      // Đối chiếu đuôi (ngày sinh theo kịch bản) của khách với KHO WEB đang bán
+      // (`public.sims`, ~50k số) — chỉ số còn `available` + có giá (góp ý #50).
+      // Trả về các số THẬT, bán được, đuôi trùng để nhét vào tin cho Sale copy.
+      // ⚠️ Đây là ĐỌC tra cứu một chiều từ kho bán sang, KHÔNG trộn dữ liệu dự án
+      // sinh nhật ngược vào kho bán (ranh giới dự án vẫn giữ).
+      const duoi = [
+        ...new Set(
+          (sp.get("duoi") ?? "")
+            .split(",")
+            .map((s) => s.trim())
+            .filter((s) => /^\d{4,6}$/.test(s)),
+        ),
+      ].slice(0, 150);
+      if (duoi.length === 0) return jsonNoStore({ khop: {} });
+
+      // Đuôi trong CÙNG một lần gọi luôn cùng độ dài (client gửi theo 1 kịch bản),
+      // nên mỗi số kho web khớp đúng một đuôi — endsWith là đủ. Gom theo lô để
+      // chuỗi `or=(...)` không quá dài; mỗi đuôi giữ tối đa 6 số rẻ nhất.
+      const CHUNK = 40;
+      const PER_DUOI = 6;
+      const khop: Record<string, string[]> = {};
+      for (let i = 0; i < duoi.length; i += CHUNK) {
+        const lot = duoi.slice(i, i + CHUNK);
+        const { data, error } = await db
+          .from("sims")
+          .select("raw_digits,effective_price")
+          .eq("status", "available")
+          .gt("effective_price", 0)
+          .or(lot.map((d) => `raw_digits.like.*${d}`).join(","))
+          .order("effective_price", { ascending: true })
+          .limit(2000);
+        if (error) throw new Error(error.message);
+        for (const row of (data ?? []) as { raw_digits: string }[]) {
+          const rd = row.raw_digits;
+          const hit = lot.find((d) => rd.endsWith(d));
+          if (!hit) continue;
+          const arr = (khop[hit] ??= []);
+          if (arr.length < PER_DUOI && !arr.includes(rd)) arr.push(rd);
+        }
+      }
+      return jsonNoStore({ khop });
+    }
+
     if (view === "khach") {
       const { data, error } = await db.rpc("sim_birthday_khach_theo_kich_ban", {
         p_kich_ban: docKichBan(sp),

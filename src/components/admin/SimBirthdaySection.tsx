@@ -99,13 +99,15 @@ const NGUONG_LO = [
   { v: 10000, label: "Khắt khe", mo_ta: "chỉ giữ số thật sự rời rạc" },
 ];
 
-/** Câu chào mẫu theo từng kịch bản — chào đúng cái khách nhận ra ngay. */
+/**
+ * Câu chào mẫu theo từng kịch bản. ⚠️ Góp ý #50: KHÔNG nhắc "ngày sinh / sinh
+ * nhật của anh/chị" (nhạy cảm) — đảo thành "bên em chuyên sim số ngày tháng" rồi
+ * để số tự nói. Đuôi số vẫn đúng ngày của khách, khách tự nhận ra.
+ */
 const CAU_CHAO: Record<string, string> = {
-  ddmmyy:
-    "Chào anh/chị, bên em có số {sim} — sáu số cuối chính là ngày sinh {ngay_sinh} của anh/chị. Anh/chị xem thử ạ.",
-  yymmdd:
-    "Chào anh/chị, số {sim} có đuôi đọc theo ngày sinh {ngay_sinh} của anh/chị (năm – tháng – ngày). Em gửi anh/chị tham khảo.",
-  ddmm: "Chào anh/chị, số {sim} có đuôi đúng ngày sinh nhật {ngay_sinh} của anh/chị.",
+  ddmmyy: "Chào anh/chị, bên em chuyên sim số dạng ngày tháng của các nhà mạng — có số {sim}, anh/chị xem thử ạ.",
+  yymmdd: "Chào anh/chị, bên em có sim số dạng ngày tháng {sim}, em gửi anh/chị tham khảo.",
+  ddmm: "Chào anh/chị, bên em chuyên sim số ngày tháng — đang có số {sim}, anh/chị ngắm thử nhé.",
 };
 
 const NHAN_SUC_MANH: Record<string, { text: string; cls: string }> = {
@@ -123,19 +125,24 @@ const soVn = (n: number) => n.toLocaleString("vi-VN");
 const CLS_SDT_KHACH = "font-mono font-bold text-gold [text-shadow:0_0_8px_rgba(245,179,1,0.55)]";
 
 /**
- * Mẫu tin nhắn Zalo XOAY VÒNG (góp ý #39): mỗi khách lấy 1 mẫu theo chỉ số toàn
- * cục nên tin gửi ra không lặp y hệt liên tục → nền tảng đỡ gắn cờ spam. Placeholder
- * {ns} = ngày sinh, {ds} = danh sách số. Thêm/sửa mẫu tuỳ ý — càng nhiều càng đỡ trùng.
+ * Mẫu tin nhắn Zalo XOAY VÒNG: mỗi khách lấy 1 mẫu theo chỉ số toàn cục nên tin
+ * gửi ra không lặp y hệt liên tục → nền tảng đỡ gắn cờ spam (góp ý #39).
+ *
+ * ⚠️ Góp ý #50: TUYỆT ĐỐI không nhắc "ngày sinh / trùng ngày sinh của anh/chị"
+ * (thông tin nhạy cảm — khách thấy mình bị soi ngày sinh sẽ ngại). Đảo thành
+ * "bên em chuyên cung cấp sim số ngày tháng của các nhà mạng" rồi list số ra;
+ * đuôi số vẫn đúng ngày của khách nên khách tự nhận ra, mình không cần nói.
+ * Chỉ còn placeholder {ds} = danh sách số. Thêm/sửa mẫu tuỳ ý — càng nhiều càng đỡ trùng.
  */
 const MAU_TIN_NHAN: string[] = [
-  "Chào anh/chị 👋 Bên em vừa lọc được mấy số có đuôi trùng ngày sinh {ns} của anh/chị: {ds}. Số nào ưng anh/chị nhắn em giữ liền nhé!",
-  "Anh/chị ơi, sim mà đuôi đúng ngày sinh {ns} hiếm lắm ạ. Bên em đang có: {ds}. Anh/chị tham khảo giúp em nha.",
-  "Dạ em chào anh/chị. Em tìm được vài sim đuôi chính là ngày sinh {ns} của mình: {ds}. Anh/chị xem thử có thích số nào không ạ?",
-  "Gửi anh/chị vài số đẹp trùng ngày sinh {ns}: {ds}. Sim mang đúng ngày sinh cầm cũng vui tay anh/chị nhỉ 😊",
-  "Chào anh/chị, bên em có sim đuôi {ns} — đúng ngày sinh của anh/chị: {ds}. Cần em tư vấn thêm cứ nhắn ạ.",
-  "Anh/chị xem giúp em mấy số này với, đuôi đều là ngày sinh {ns}: {ds}. Có số nào hợp em để lại giá tốt cho mình.",
-  "Em chào anh/chị ạ. Nhân dịp em có mấy sim số đuôi là ngày sinh {ns} của anh/chị: {ds}. Anh/chị ngắm thử nhé!",
-  "Anh/chị ơi số điện thoại trùng ngày sinh {ns} bên em còn vài số: {ds}. Anh/chị thích số nào em ưu tiên giữ cho mình ạ.",
+  "Chào anh/chị 👋 Bên em chuyên cung cấp sim số đẹp dạng ngày tháng của các nhà mạng. Hiện bên em còn mấy số này: {ds}. Anh/chị xem có số nào ưng em giữ liền cho mình nhé!",
+  "Dạ em chào anh/chị. Bên em chuyên sim số ngày tháng đủ các nhà mạng, đang có sẵn: {ds}. Anh/chị tham khảo giúp em nha.",
+  "Anh/chị ơi, bên em có mấy sim số dạng ngày tháng khá đẹp: {ds}. Số nào hợp anh/chị nhắn em để lại giá tốt ạ.",
+  "Gửi anh/chị vài sim số đẹp dạng ngày tháng bên em đang có: {ds}. Cần em tư vấn thêm cứ nhắn nhé 😊",
+  "Em chào anh/chị ạ. Bên em chuyên cung cấp sim số ngày tháng của các nhà mạng, hiện còn: {ds}. Anh/chị ngắm thử xem có số nào ưng không ạ?",
+  "Anh/chị xem giúp em mấy số này với, sim số dạng ngày tháng bên em: {ds}. Có số nào thích em ưu tiên giữ cho mình.",
+  "Dạ bên em có sẵn ít sim số đẹp ngày tháng: {ds}. Anh/chị tham khảo, ưng số nào em gửi thông tin chi tiết nha.",
+  "Chào anh/chị, bên em chuyên sim số ngày tháng các nhà mạng. Vài số đang có: {ds}. Anh/chị cần số nào cứ nhắn em ạ 👍",
 ];
 
 /** Tách chuỗi sim_goi_y ("093…, 093…") thành mảng số. */
@@ -160,11 +167,29 @@ const chamSo = (digits: string, kb: string): string => {
   return `${head}.${nhom}`;
 };
 
-/** Dựng tin nhắn cho 1 khách theo mẫu xoay vòng (chỉ số toàn cục để đỡ trùng). */
-const soanTin = (chiSo: number, dob: string, goiY: string | null, kb: string): string =>
-  MAU_TIN_NHAN[chiSo % MAU_TIN_NHAN.length]
-    .replace("{ns}", ngaySinhVn(dob))
-    .replace("{ds}", dsSoTuGoiY(goiY).map((s) => chamSo(s, kb)).join(", "));
+/**
+ * Đuôi cần so khớp với KHO WEB theo kịch bản (góp ý #50): ddmmyy/yymmdd → 6 số,
+ * ddmm → 4 số. Cùng luật với đuôi mà kho sinh nhật đã ghép, để hai nguồn số nói
+ * về cùng một "ngày tháng" của khách.
+ */
+const duoiTheoDob = (dob: string, kb: string): string => {
+  const [y, m, d] = dob.split("-");
+  if (!y || !m || !d) return "";
+  const yy = y.slice(-2);
+  if (kb === "yymmdd") return `${yy}${m}${d}`;
+  if (kb === "ddmm") return `${d}${m}`;
+  return `${d}${m}${yy}`; // ddmmyy (mặc định)
+};
+
+/**
+ * Dựng tin nhắn cho 1 khách theo mẫu xoay vòng (chỉ số toàn cục để đỡ trùng).
+ * `dsSo` đã gộp sẵn số kho sinh nhật + số Available khớp trên kho web (#50).
+ */
+const soanTin = (chiSo: number, dsSo: string[], kb: string): string =>
+  MAU_TIN_NHAN[chiSo % MAU_TIN_NHAN.length].replace(
+    "{ds}",
+    dsSo.map((s) => chamSo(s, kb)).join(", "),
+  );
 
 /**
  * Dãy số part cần hiện (1-based): luôn có 1, part cuối, và cửa sổ quanh part hiện
@@ -274,6 +299,8 @@ export function SimBirthdaySection({ token }: { token?: string }) {
   const [dsKhach, setDsKhach] = useState<KhachRow[]>([]);
   const [dangTaiDs, setDangTaiDs] = useState(false);
   const [daCopy, setDaCopy] = useState<string | null>(null);
+  // Số Available khớp đuôi trên KHO WEB (#50): map đuôi → danh sách raw_digits.
+  const [khoKhop, setKhoKhop] = useState<Record<string, string[]>>({});
 
   // Khách tự-trùng: đang dùng số có đuôi là ngày sinh của chính họ (#41).
   const [tuTrung, setTuTrung] = useState<TuTrungRow[]>([]);
@@ -378,6 +405,27 @@ export function SimBirthdaySection({ token }: { token?: string }) {
       .finally(() => { if (!bo) setDangTaiDs(false); });
     return () => { bo = true; };
   }, [token, kichBan, query, part, goi]);
+
+  // Nạp số Available khớp đuôi ngày tháng trên KHO WEB cho part đang xem (#50):
+  // gom các đuôi khác nhau của 100 khách rồi hỏi một lần, nhét vào tin cho Sale.
+  useEffect(() => {
+    if (!token || dsKhach.length === 0) {
+      setKhoKhop({});
+      return;
+    }
+    const duoi = [...new Set(dsKhach.map((k) => duoiTheoDob(k.dob, kichBan)).filter(Boolean))];
+    if (duoi.length === 0) {
+      setKhoKhop({});
+      return;
+    }
+    let bo = false;
+    goi<{ khop: Record<string, string[]> }>(
+      `/api/admin/sim-birthday?view=kho-khop&duoi=${duoi.join(",")}`,
+    )
+      .then((r) => { if (!bo) setKhoKhop(r.khop ?? {}); })
+      .catch(() => { if (!bo) setKhoKhop({}); });
+    return () => { bo = true; };
+  }, [token, dsKhach, kichBan, goi]);
 
   // Nạp khách tự-trùng (part 100). Không phụ thuộc bộ lọc kịch bản.
   useEffect(() => {
@@ -655,8 +703,9 @@ export function SimBirthdaySection({ token }: { token?: string }) {
               Gửi Zalo cho khách — mỗi part 100 người
             </h3>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Mỗi khách có sẵn tin nhắn (nội dung xoay vòng đỡ dính spam) + tối đa 5 số mang đúng ngày sinh.
-              Sale mở Zalo khách, dán tin rồi gửi.
+              Mỗi khách có sẵn tin nhắn (nội dung xoay vòng đỡ dính spam, KHÔNG nhắc ngày sinh) + số
+              đẹp dạng ngày tháng, trong đó <span className="text-emerald-400">số xanh là số còn bán
+              trên web</span> (chốt được ngay). Sale mở Zalo khách, dán tin rồi gửi.
             </p>
           </div>
           <div className="inline-flex rounded-lg border border-border p-0.5">
@@ -713,8 +762,13 @@ export function SimBirthdaySection({ token }: { token?: string }) {
           <ul className="divide-y divide-border">
             {dsHienThi.map((kh) => {
               const chiSo = part * 100 + dsKhach.indexOf(kh);
-              const soList = dsSoTuGoiY(kh.sim_goi_y);
-              const tin = soanTin(chiSo, kh.dob, kh.sim_goi_y, kichBan);
+              // Gộp 2 nguồn số (#50): số THẬT còn bán trên kho web (đánh dấu xanh,
+              // xếp trước vì bán được ngay) + số kho sinh nhật. Dedupe, tối đa 8.
+              const duoi = duoiTheoDob(kh.dob, kichBan);
+              const soKho = duoi ? khoKhop[duoi] ?? [] : [];
+              const webSet = new Set(soKho);
+              const soGop = [...new Set([...soKho, ...dsSoTuGoiY(kh.sim_goi_y)])].slice(0, 8);
+              const tin = soanTin(chiSo, soGop, kichBan);
               const tt = trangThaiKhach(kh.msisdn);
               const koZ = tt === "ko_zalo";
               const coZ = tt === "co_zalo";
@@ -732,13 +786,28 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                     </span>
                   </div>
 
-                  {soList.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {soList.map((s) => (
-                        <span key={s} className="rounded-md bg-secondary px-2 py-0.5 font-mono text-xs text-foreground">
-                          {chamSo(s, kichBan)}
-                        </span>
-                      ))}
+                  {soGop.length > 0 && (
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      {soGop.map((s) => {
+                        const web = webSet.has(s);
+                        return (
+                          <span
+                            key={s}
+                            title={web ? "Số còn bán trên web" : undefined}
+                            className={cn(
+                              "rounded-md px-2 py-0.5 font-mono text-xs",
+                              web
+                                ? "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/30"
+                                : "bg-secondary text-foreground",
+                            )}
+                          >
+                            {chamSo(s, kichBan)}
+                          </span>
+                        );
+                      })}
+                      {webSet.size > 0 && (
+                        <span className="text-[10px] text-emerald-400/80">● số xanh = còn bán trên web</span>
+                      )}
                     </div>
                   )}
 
