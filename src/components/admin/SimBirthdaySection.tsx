@@ -110,6 +110,12 @@ const NHAN_SUC_MANH: Record<string, { text: string; cls: string }> = {
 const soVn = (n: number) => n.toLocaleString("vi-VN");
 
 /**
+ * Kiểu SĐT KHÁCH (#45): tô vàng + glow để tách khỏi số sim chào bán / số khác.
+ * Dùng ở mọi chỗ hiện số điện thoại của chính khách.
+ */
+const CLS_SDT_KHACH = "font-mono font-bold text-gold [text-shadow:0_0_8px_rgba(245,179,1,0.55)]";
+
+/**
  * Mẫu tin nhắn Zalo XOAY VÒNG (góp ý #39): mỗi khách lấy 1 mẫu theo chỉ số toàn
  * cục nên tin gửi ra không lặp y hệt liên tục → nền tảng đỡ gắn cờ spam. Placeholder
  * {ns} = ngày sinh, {ds} = danh sách số. Thêm/sửa mẫu tuỳ ý — càng nhiều càng đỡ trùng.
@@ -688,7 +694,7 @@ export function SimBirthdaySection({ token }: { token?: string }) {
               return (
                 <li key={kh.msisdn} className={cn("p-4", koZ && "opacity-55")}>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span className="font-mono text-sm font-semibold text-foreground">{kh.msisdn}</span>
+                    <span className={cn("text-sm", CLS_SDT_KHACH)}>{kh.msisdn}</span>
                     <span className="text-xs text-muted-foreground">Sinh {ngaySinhVn(kh.dob)}</span>
                     <span className="text-xs text-muted-foreground">· {soVn(kh.so_sim)} số khớp</span>
                     {koZ && (
@@ -809,8 +815,8 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                   const koZ = koZalo.has(kh.msisdn);
                   return (
                     <tr key={kh.msisdn} className={cn("transition-colors hover:bg-muted/30", koZ && "opacity-55")}>
-                      <td className="whitespace-nowrap px-4 py-2.5 font-mono font-semibold text-foreground">
-                        {chamSo(kh.msisdn, kh.loai)}
+                      <td className="whitespace-nowrap px-4 py-2.5">
+                        <span className={CLS_SDT_KHACH}>{chamSo(kh.msisdn, kh.loai)}</span>
                         {koZ && (
                           <span className="ml-2 rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-medium text-primary">
                             Ko Zalo
