@@ -703,10 +703,20 @@ export function SimBirthdaySection({ token }: { token?: string }) {
               Gửi Zalo cho khách — mỗi part 100 người
             </h3>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Mỗi khách có sẵn tin nhắn (nội dung xoay vòng đỡ dính spam, KHÔNG nhắc ngày sinh) + số
-              đẹp dạng ngày tháng, trong đó <span className="text-emerald-400">số xanh là số còn bán
-              trên web</span> (chốt được ngay). Sale mở Zalo khách, dán tin rồi gửi.
+              Mỗi khách có sẵn tin nhắn (xoay vòng đỡ dính spam, KHÔNG nhắc ngày sinh) + danh sách số
+              đẹp dạng ngày tháng. Sale mở Zalo khách, dán tin rồi gửi.
             </p>
+            {/* Chú giải màu số (góp ý #51): tách rõ nguồn số để A Khoa nhìn phát biết. */}
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2.5 w-2.5 rounded-sm bg-emerald-500/70 ring-1 ring-emerald-500/40" />
+                <b className="text-emerald-300">Số xanh</b> — còn bán trên web (có giá, chốt ngay)
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2.5 w-2.5 rounded-sm bg-gold/70 ring-1 ring-gold/40" />
+                <b className="text-gold">Số vàng</b> — kho sim sinh nhật (chưa có giá)
+              </span>
+            </div>
           </div>
           <div className="inline-flex rounded-lg border border-border p-0.5">
             {(["ddmmyy", "yymmdd", "ddmm"] as const).map((kb) => (
@@ -793,21 +803,18 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                         return (
                           <span
                             key={s}
-                            title={web ? "Số còn bán trên web" : undefined}
+                            title={web ? "Số còn bán trên web (có giá)" : "Số kho sim sinh nhật"}
                             className={cn(
-                              "rounded-md px-2 py-0.5 font-mono text-xs",
+                              "rounded-md px-2 py-0.5 font-mono text-xs ring-1",
                               web
-                                ? "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/30"
-                                : "bg-secondary text-foreground",
+                                ? "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30"
+                                : "bg-gold/15 text-gold ring-gold/30",
                             )}
                           >
                             {chamSo(s, kichBan)}
                           </span>
                         );
                       })}
-                      {webSet.size > 0 && (
-                        <span className="text-[10px] text-emerald-400/80">● số xanh = còn bán trên web</span>
-                      )}
                     </div>
                   )}
 
