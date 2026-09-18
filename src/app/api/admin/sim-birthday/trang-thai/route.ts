@@ -15,6 +15,7 @@ export const dynamic = "force-dynamic";
 const BANG: Record<string, string> = {
   ko_zalo: "sim_birthday_ko_zalo",
   co_zalo: "sim_birthday_co_zalo",
+  da_mo: "sim_birthday_da_mo", // đã bấm Mở Zalo (đã tiếp xúc) — cờ độc lập (#52)
 };
 
 const chuanMsisdn = (v: unknown): string => String(v ?? "").replace(/\s+/g, "").trim();

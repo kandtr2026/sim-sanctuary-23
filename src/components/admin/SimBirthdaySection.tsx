@@ -348,6 +348,8 @@ export function SimBirthdaySection({ token }: { token?: string }) {
   // Trạng thái khách: cờ Ko Zalo (#43) + Đã gửi (#46). Lọc theo trạng thái.
   const [koZalo, setKoZalo] = useState<Set<string>>(new Set());
   const [coZalo, setCoZalo] = useState<Set<string>>(new Set());
+  // Cờ ĐỘC LẬP "đã bấm Mở Zalo" (#52): để lần sau biết số nào đã tiếp xúc.
+  const [daMo, setDaMo] = useState<Set<string>>(new Set());
   const [locTt, setLocTt] = useState<"all" | "chua_check" | "co_zalo" | "ko_zalo">("all");
 
   const query = useMemo(() => {
@@ -503,7 +505,22 @@ export function SimBirthdaySection({ token }: { token?: string }) {
     goi<{ rows: string[] }>("/api/admin/sim-birthday/trang-thai?loai=co_zalo")
       .then((r) => setCoZalo(new Set(r.rows ?? [])))
       .catch(() => {});
+    goi<{ rows: string[] }>("/api/admin/sim-birthday/trang-thai?loai=da_mo")
+      .then((r) => setDaMo(new Set(r.rows ?? [])))
+      .catch(() => {});
   }, [token, goi]);
+
+  // Đánh dấu "đã mở Zalo" khi Sale bấm Mở Zalo (#52) — chỉ thêm, không gỡ, để
+  // luôn nhớ số đã tiếp xúc. Optimistic; idempotent (upsert theo msisdn).
+  const danhDauDaMo = (msisdn: string) => {
+    if (daMo.has(msisdn)) return;
+    setDaMo((s) => new Set(s).add(msisdn));
+    fetch("/api/admin/sim-birthday/trang-thai", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify({ msisdn, loai: "da_mo" }),
+    }).catch(() => {});
+  };
 
   // Đặt trạng thái check Zalo (#47): 3 trạng thái LOẠI TRỪ nhau — chua_check /
   // co_zalo / ko_zalo. Set cái được chọn, xoá cái kia (cả local lẫn DB), optimistic.
@@ -894,9 +911,15 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                         href={`https://zalo.me/${kh.msisdn}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/40"
+                        onClick={() => danhDauDaMo(kh.msisdn)}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
+                          daMo.has(kh.msisdn)
+                            ? "border-sky-500/40 bg-sky-500/10 text-sky-300"
+                            : "border-border text-foreground hover:border-primary/40",
+                        )}
                       >
-                        Mở Zalo khách
+                        {daMo.has(kh.msisdn) ? "✓ Đã mở Zalo" : "Mở Zalo khách"}
                       </a>
                     )}
                     <button
@@ -1013,9 +1036,13 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                               href={`https://zalo.me/${kh.msisdn}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-xs font-medium text-primary hover:underline"
+                              onClick={() => danhDauDaMo(kh.msisdn)}
+                              className={cn(
+                                "text-xs font-medium hover:underline",
+                                daMo.has(kh.msisdn) ? "text-sky-300" : "text-primary",
+                              )}
                             >
-                              Mở Zalo
+                              {daMo.has(kh.msisdn) ? "✓ Đã mở" : "Mở Zalo"}
                             </a>
                           )}
                           <button
@@ -1163,9 +1190,15 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                         href={`https://zalo.me/${kh.msisdn}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/40"
+                        onClick={() => danhDauDaMo(kh.msisdn)}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
+                          daMo.has(kh.msisdn)
+                            ? "border-sky-500/40 bg-sky-500/10 text-sky-300"
+                            : "border-border text-foreground hover:border-primary/40",
+                        )}
                       >
-                        Mở Zalo khách
+                        {daMo.has(kh.msisdn) ? "✓ Đã mở Zalo" : "Mở Zalo khách"}
                       </a>
                     )}
                     <button
