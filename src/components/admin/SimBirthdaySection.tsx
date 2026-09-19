@@ -87,11 +87,13 @@ const MAN_HINH: { id: ManHinh; ten: string }[] = [
 ];
 
 /**
- * Số thuê bao KHÔNG có ngày sinh trong file gốc `2tr so Mobi.xlsx` (2 sheet đầu) —
- * hằng số từ lúc bóc file (xác minh: phần CÓ ngày sinh = 195.207 khớp đúng bảng
- * sim_birthday_khach). Dùng để dựng bảng funnel giải thích "2tr → 8x nghìn" (#57).
+ * Tổng thuê bao TRONG FILE gốc `2tr so Mobi.xlsx` — cả 3 sheet, và **100% đều có
+ * ngày sinh** (xác minh 19/09: 1.048.001 + 1.048.001 + 195.207, không dòng nào
+ * thiếu NS). Trước đây tưởng 2 sheet đầu "không có NS" là NHẦM. Hệ thống hiện mới
+ * nạp Sheet2 (195.207) → còn 2.096.002 khách CHƯA nạp. Funnel #57 tính "chưa nạp"
+ * = tổng file − đã nạp (tự về 0 sau khi import đủ).
  */
-const KHACH_KHONG_NGAY_SINH = 2_096_002;
+const TONG_KHACH_CO_NGAY_SINH = 2_291_209;
 
 /** Khách đang dùng số có đuôi là chính ngày sinh của mình (#41). */
 interface TuTrungRow {
@@ -1336,8 +1338,9 @@ export function SimBirthdaySection({ token }: { token?: string }) {
 
       {/* ── MENU: Nguồn dữ liệu — funnel vì sao 2tr → 8x nghìn (#57) ── */}
       {manHinh === "nguon" && (() => {
-        const coNS = tong?.khach_tat_ca ?? 0;
-        const tongFile = KHACH_KHONG_NGAY_SINH + coNS;
+        const coNS = tong?.khach_tat_ca ?? 0; // đã nạp vào hệ thống
+        const tongFile = TONG_KHACH_CO_NGAY_SINH;
+        const chuaNap = Math.max(0, tongFile - coNS);
         const sauLoc = tong?.khach_sau_loc ?? 0;
         const loLoai = Math.max(0, coNS - sauLoc);
         const chaoDuoc = tong?.khach_bat_ky ?? 0;
@@ -1345,11 +1348,13 @@ export function SimBirthdaySection({ token }: { token?: string }) {
         const pct = (n: number) => (tongFile > 0 ? (n / tongFile) * 100 : 0);
         const pctNS = (n: number) => (coNS > 0 ? (n / coNS) * 100 : 0);
         const buoc: { nhan: string; sl: number; loai: boolean; ghi: string; final?: boolean }[] = [
-          { nhan: "Tổng thuê bao trong file gốc", sl: tongFile, loai: false, ghi: "file 2tr so Mobi.xlsx" },
-          { nhan: "Bỏ: không có ngày sinh", sl: KHACH_KHONG_NGAY_SINH, loai: true, ghi: "2 sheet đầu — nhà mạng không lưu NS, không ghép được" },
-          { nhan: "Còn: có ngày sinh", sl: coNS, loai: false, ghi: `chỉ ${pct(coNS).toFixed(1)}% tổng file` },
+          { nhan: "Tổng thuê bao trong file gốc", sl: tongFile, loai: false, ghi: "file 2tr so Mobi.xlsx — 100% ĐỀU có ngày sinh (3 sheet)" },
+          ...(chuaNap > 0
+            ? [{ nhan: "Chưa nạp vào hệ thống", sl: chuaNap, loai: true, ghi: "2 sheet đầu (~2,1tr) cũng có NS — CẦN import bổ sung, không phải bỏ" }]
+            : []),
+          { nhan: "Đã nạp vào hệ thống", sl: coNS, loai: false, ghi: `${pct(coNS).toFixed(1)}% tổng file` },
           { nhan: "Bỏ: sim đại lý đăng ký theo lô", sl: loLoai, loai: true, ghi: `cùng NS + số nối đuôi (khoảng cách < ${soVn(nguongLo)}) → NS khai cho có` },
-          { nhan: "Còn: KHÁCH THẬT để chào", sl: sauLoc, loai: false, final: true, ghi: `${pctNS(sauLoc).toFixed(0)}% khách có NS` },
+          { nhan: "Còn: KHÁCH THẬT để chào", sl: sauLoc, loai: false, final: true, ghi: `${pctNS(sauLoc).toFixed(0)}% khách đã nạp` },
         ];
         return (
           <section className="rounded-xl border border-border bg-card shadow-card">
@@ -1359,7 +1364,9 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                 Nguồn dữ liệu — vì sao {soVn(tongFile)} thuê bao chỉ còn {soVn(sauLoc)} khách?
               </h3>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                Bóc từ file gốc rồi lọc 2 bước. Số &ldquo;khách thật&rdquo; đổi theo ngưỡng lọc lô ở trên.
+                <b className="text-foreground">100% thuê bao trong file đều có ngày sinh.</b> Hệ thống hiện mới nạp
+                Sheet2; còn ~2,1 triệu khách (2 sheet đầu) cũng có NS nhưng <b className="text-primary">chưa import</b>.
+                Số &ldquo;khách thật&rdquo; đổi theo ngưỡng lọc lô ở trên.
               </p>
             </div>
 
