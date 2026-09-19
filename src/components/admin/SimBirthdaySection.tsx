@@ -1341,9 +1341,9 @@ export function SimBirthdaySection({ token }: { token?: string }) {
 
       {/* ── MENU: Nguồn dữ liệu — funnel vì sao 2tr → 8x nghìn (#57) ── */}
       {manHinh === "nguon" && (() => {
-        const coNS = tong?.khach_tat_ca ?? 0; // đã nạp vào hệ thống
+        const coNS = tong?.khach_tat_ca ?? 0; // số dùng được (đã bỏ 0121)
         const tongFile = TONG_KHACH_CO_NGAY_SINH;
-        const chuaNap = Math.max(0, tongFile - coNS);
+        const loai0121 = Math.max(0, tongFile - coNS); // đầu số 0121 đã loại
         const sauLoc = tong?.khach_sau_loc ?? 0;
         const loLoai = Math.max(0, coNS - sauLoc);
         const chaoDuoc = tong?.khach_bat_ky ?? 0;
@@ -1352,12 +1352,12 @@ export function SimBirthdaySection({ token }: { token?: string }) {
         const pctNS = (n: number) => (coNS > 0 ? (n / coNS) * 100 : 0);
         const buoc: { nhan: string; sl: number; loai: boolean; ghi: string; final?: boolean }[] = [
           { nhan: "Tổng thuê bao trong file gốc", sl: tongFile, loai: false, ghi: "file 2tr so Mobi.xlsx — 100% ĐỀU có ngày sinh (3 sheet)" },
-          ...(chuaNap > 0
-            ? [{ nhan: "Chưa nạp vào hệ thống", sl: chuaNap, loai: true, ghi: "2 sheet đầu (~2,1tr) cũng có NS — CẦN import bổ sung, không phải bỏ" }]
+          ...(loai0121 > 0
+            ? [{ nhan: "Bỏ: đầu số 0121 (không dùng được)", sl: loai0121, loai: true, ghi: "số 11 số cũ đã đổi sang 079 — gọi/Zalo không tới, đã loại" }]
             : []),
-          { nhan: "Đã nạp vào hệ thống", sl: coNS, loai: false, ghi: `${pct(coNS).toFixed(1)}% tổng file` },
+          { nhan: "Còn dùng được", sl: coNS, loai: false, ghi: `${pct(coNS).toFixed(1)}% tổng file` },
           { nhan: "Bỏ: sim đại lý đăng ký theo lô", sl: loLoai, loai: true, ghi: `cùng NS + số nối đuôi (khoảng cách < ${soVn(nguongLo)}) → NS khai cho có` },
-          { nhan: "Còn: KHÁCH THẬT để chào", sl: sauLoc, loai: false, final: true, ghi: `${pctNS(sauLoc).toFixed(0)}% khách đã nạp` },
+          { nhan: "Còn: KHÁCH THẬT để chào", sl: sauLoc, loai: false, final: true, ghi: `${pctNS(sauLoc).toFixed(0)}% số dùng được` },
         ];
         return (
           <section className="rounded-xl border border-border bg-card shadow-card">
@@ -1367,9 +1367,9 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                 Nguồn dữ liệu — vì sao {soVn(tongFile)} thuê bao chỉ còn {soVn(sauLoc)} khách?
               </h3>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                <b className="text-foreground">100% thuê bao trong file đều có ngày sinh.</b> Hệ thống hiện mới nạp
-                Sheet2; còn ~2,1 triệu khách (2 sheet đầu) cũng có NS nhưng <b className="text-primary">chưa import</b>.
-                Số &ldquo;khách thật&rdquo; đổi theo ngưỡng lọc lô ở trên.
+                <b className="text-foreground">100% thuê bao trong file đều có ngày sinh</b> ({soVn(tongFile)}). Đã loại{" "}
+                <b className="text-primary">{soVn(loai0121)} số đầu 0121</b> (số 11 số cũ, không dùng được), còn{" "}
+                <b className="text-foreground">{soVn(coNS)}</b> dùng được. Số &ldquo;khách thật&rdquo; đổi theo ngưỡng lọc lô ở trên.
               </p>
             </div>
 
