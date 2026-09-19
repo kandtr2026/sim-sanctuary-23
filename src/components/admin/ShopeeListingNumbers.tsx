@@ -14,7 +14,7 @@
  *  - GET  /api/sims?quyType=…|search=…            → kho số còn bán (public, không cần token)
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Check, Loader2, PencilLine, Plus, PowerOff, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,6 +84,8 @@ export default function ShopeeListingNumbers({
   itemName,
   variants,
   token,
+  stale,
+  snapshotAt,
   onChange,
   onRefresh,
 }: {
@@ -91,6 +93,8 @@ export default function ShopeeListingNumbers({
   itemName: string;
   variants: ShopeeVariant[];
   token?: string;
+  stale?: boolean;
+  snapshotAt?: string | null;
   onChange: (next: ShopeeVariant[]) => void;
   onRefresh?: () => void;
 }) {
@@ -106,12 +110,14 @@ export default function ShopeeListingNumbers({
 
   const soDangCo = new Set(variants.map((v) => v.label.replace(/\D/g, "")));
 
-  const searchKho = useCallback(async () => {
+  // Tìm số trong kho với bộ lọc TRUYỀN THẲNG (không đọc state) → gọi được ngay khi
+  // mở picker / đổi chip mà không cần chờ re-render, và không tìm lại mỗi lần gõ.
+  const runSearch = useCallback(async (quy: string | null, term: string) => {
     setSearching(true);
     try {
       const params = new URLSearchParams();
-      if (quyType) params.set("quyType", quyType);
-      else if (q.trim()) params.set("search", q.trim());
+      if (quy) params.set("quyType", quy);
+      else if (term.trim()) params.set("search", term.trim());
       params.set("sort", "price-asc");
       params.set("limit", "40");
       const data = await fetchJson<{ items: KhoSim[] }>(`/api/sims?${params.toString()}`);
@@ -121,12 +127,7 @@ export default function ShopeeListingNumbers({
     } finally {
       setSearching(false);
     }
-  }, [q, quyType]);
-
-  // Mở picker → tự chạy tìm theo gợi ý; đổi chip/loại cũng tìm lại.
-  useEffect(() => {
-    if (picker) void searchKho();
-  }, [picker, quyType, searchKho]);
+  }, []);
 
   const openAdd = () => {
     const g = guessFilter(itemName);
@@ -136,6 +137,7 @@ export default function ShopeeListingNumbers({
     const p = suggestPrice(variants);
     setPriceInput(p ? String(p) : "");
     setPicker({ mode: "add", price: p });
+    void runSearch(g.quyType ?? null, g.search ?? "");
   };
 
   const openEdit = (v: ShopeeVariant) => {
@@ -145,6 +147,7 @@ export default function ShopeeListingNumbers({
     setResults([]);
     setPriceInput(v.price ? String(v.price) : "");
     setPicker({ mode: "edit", modelId: v.model_id, currentLabel: v.label, price: v.price });
+    void runSearch(g.quyType ?? null, g.search ?? "");
   };
 
   const closePicker = () => setPicker(null);
@@ -214,6 +217,13 @@ export default function ShopeeListingNumbers({
 
   return (
     <div className="space-y-3">
+      {stale && (
+        <div className="rounded-lg border border-gold/40 bg-gold/10 px-3 py-2 text-xs text-gold">
+          ⚠️ Danh sách dưới đây là bản chụp
+          {snapshotAt ? ` lúc ${new Date(snapshotAt).toLocaleString("vi-VN")}` : ""} — có thể KHÁC Shopee hiện
+          tại. Bấm <b>“Lấy danh sách mới nhất”</b> ở đầu trang để đồng bộ trước khi sửa/tắt số.
+        </div>
+      )}
       {/* Bảng biến thể */}
       {variants.length === 0 ? (
         <p className="text-xs text-muted-foreground">
@@ -312,8 +322,10 @@ export default function ShopeeListingNumbers({
                 key={c}
                 type="button"
                 onClick={() => {
-                  setQuyType((cur) => (cur === c ? null : c));
+                  const nextQuy = quyType === c ? null : c;
+                  setQuyType(nextQuy);
                   setQ("");
+                  void runSearch(nextQuy, "");
                 }}
                 className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
                   quyType === c ? "border-gold bg-gold/10 text-foreground" : "border-border text-muted-foreground hover:border-gold/50"
@@ -332,7 +344,7 @@ export default function ShopeeListingNumbers({
                   setQ(e.target.value);
                   if (quyType) setQuyType(null);
                 }}
-                onKeyDown={(e) => e.key === "Enter" && void searchKho()}
+                onKeyDown={(e) => e.key === "Enter" && void runSearch(quyType, q)}
                 placeholder="Tìm số trong kho: *99999, 093*, 0938…"
                 className="h-9 pl-9"
               />
@@ -347,7 +359,7 @@ export default function ShopeeListingNumbers({
                 className="h-9 w-32 tabular-nums"
               />
             </div>
-            <Button size="sm" variant="secondary" onClick={() => void searchKho()} disabled={searching}>
+            <Button size="sm" variant="secondary" onClick={() => void runSearch(quyType, q)} disabled={searching}>
               {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} Tìm
             </Button>
           </div>

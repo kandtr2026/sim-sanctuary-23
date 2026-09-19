@@ -613,6 +613,8 @@ function ShopeeAdminContent() {
                         itemName={it.item_name}
                         variants={it.variants ?? []}
                         token={token}
+                        stale={stale}
+                        snapshotAt={snapshotAt}
                         onChange={(next) => updateListingVariants(it.item_id, next)}
                         onRefresh={() => void handlePull()}
                       />
