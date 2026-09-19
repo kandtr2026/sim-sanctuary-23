@@ -924,7 +924,9 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                   <li key={kh.msisdn} className="flex flex-wrap items-center gap-x-3 gap-y-2 p-4">
                     <span className={cn("text-sm", CLS_SDT_KHACH)}>{kh.msisdn}</span>
                     <span className="text-xs text-muted-foreground">Sinh {ngaySinhVn(kh.dob)}</span>
-                    <span className="text-xs text-muted-foreground">· {soVn(kh.so_sim)} số khớp</span>
+                    {kh.so_sim > 0 && (
+                      <span className="text-xs text-muted-foreground">· {soVn(kh.so_sim)} số khớp</span>
+                    )}
                     {daMoR && (
                       <span className="rounded-full bg-sky-500/15 px-2 py-0.5 text-[11px] font-medium text-sky-300">✓ đã mở</span>
                     )}
@@ -1026,7 +1028,9 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <span className={cn("text-sm", CLS_SDT_KHACH)}>{kh.msisdn}</span>
                     <span className="text-xs text-muted-foreground">Sinh {ngaySinhVn(kh.dob)}</span>
-                    <span className="text-xs text-muted-foreground">· {soVn(kh.so_sim)} số khớp</span>
+                    {kh.so_sim > 0 && (
+                      <span className="text-xs text-muted-foreground">· {soVn(kh.so_sim)} số khớp</span>
+                    )}
                     <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium", NHAN_TT[tt].cls)}>
                       {NHAN_TT[tt].label}
                     </span>
