@@ -75,7 +75,7 @@ interface KhachRow {
 }
 
 /** Các màn hình thao tác (#55,#56): tách nhỏ cho dễ làm, không dồn 1 trang. */
-type ManHinh = "chua-loc" | "co-zalo" | "ko-zalo" | "trung-kho" | "dang-dung-sn" | "kanban";
+type ManHinh = "chua-loc" | "co-zalo" | "ko-zalo" | "trung-kho" | "dang-dung-sn" | "kanban" | "nguon";
 const MAN_HINH: { id: ManHinh; ten: string }[] = [
   { id: "chua-loc", ten: "① Chưa lọc Zalo" },
   { id: "co-zalo", ten: "② Có Zalo · nhắn tin" },
@@ -83,7 +83,15 @@ const MAN_HINH: { id: ManHinh; ten: string }[] = [
   { id: "kanban", ten: "Kanban" },
   { id: "trung-kho", ten: "Trùng đuôi kho" },
   { id: "dang-dung-sn", ten: "Đang dùng số SN" },
+  { id: "nguon", ten: "Nguồn dữ liệu" },
 ];
+
+/**
+ * Số thuê bao KHÔNG có ngày sinh trong file gốc `2tr so Mobi.xlsx` (2 sheet đầu) —
+ * hằng số từ lúc bóc file (xác minh: phần CÓ ngày sinh = 195.207 khớp đúng bảng
+ * sim_birthday_khach). Dùng để dựng bảng funnel giải thích "2tr → 8x nghìn" (#57).
+ */
+const KHACH_KHONG_NGAY_SINH = 2_096_002;
 
 /** Khách đang dùng số có đuôi là chính ngày sinh của mình (#41). */
 interface TuTrungRow {
@@ -1325,6 +1333,86 @@ export function SimBirthdaySection({ token }: { token?: string }) {
 
       {/* ── MÀN: Kanban theo dõi khách (#54) ── */}
       {manHinh === "kanban" && <SimBirthdayKanban token={token} />}
+
+      {/* ── MENU: Nguồn dữ liệu — funnel vì sao 2tr → 8x nghìn (#57) ── */}
+      {manHinh === "nguon" && (() => {
+        const coNS = tong?.khach_tat_ca ?? 0;
+        const tongFile = KHACH_KHONG_NGAY_SINH + coNS;
+        const sauLoc = tong?.khach_sau_loc ?? 0;
+        const loLoai = Math.max(0, coNS - sauLoc);
+        const chaoDuoc = tong?.khach_bat_ky ?? 0;
+        const tronNgay = tong?.khach_tron_ngay ?? 0;
+        const pct = (n: number) => (tongFile > 0 ? (n / tongFile) * 100 : 0);
+        const pctNS = (n: number) => (coNS > 0 ? (n / coNS) * 100 : 0);
+        const buoc: { nhan: string; sl: number; loai: boolean; ghi: string; final?: boolean }[] = [
+          { nhan: "Tổng thuê bao trong file gốc", sl: tongFile, loai: false, ghi: "file 2tr so Mobi.xlsx" },
+          { nhan: "Bỏ: không có ngày sinh", sl: KHACH_KHONG_NGAY_SINH, loai: true, ghi: "2 sheet đầu — nhà mạng không lưu NS, không ghép được" },
+          { nhan: "Còn: có ngày sinh", sl: coNS, loai: false, ghi: `chỉ ${pct(coNS).toFixed(1)}% tổng file` },
+          { nhan: "Bỏ: sim đại lý đăng ký theo lô", sl: loLoai, loai: true, ghi: `cùng NS + số nối đuôi (khoảng cách < ${soVn(nguongLo)}) → NS khai cho có` },
+          { nhan: "Còn: KHÁCH THẬT để chào", sl: sauLoc, loai: false, final: true, ghi: `${pctNS(sauLoc).toFixed(0)}% khách có NS` },
+        ];
+        return (
+          <section className="rounded-xl border border-border bg-card shadow-card">
+            <div className="border-b border-border p-4">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <Target className="h-4 w-4 text-primary" />
+                Nguồn dữ liệu — vì sao {soVn(tongFile)} thuê bao chỉ còn {soVn(sauLoc)} khách?
+              </h3>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Bóc từ file gốc rồi lọc 2 bước. Số &ldquo;khách thật&rdquo; đổi theo ngưỡng lọc lô ở trên.
+              </p>
+            </div>
+
+            <div className="space-y-2 p-4">
+              {buoc.map((b) => (
+                <div
+                  key={b.nhan}
+                  className={cn(
+                    "rounded-lg border p-3",
+                    b.final
+                      ? "border-gold/40 bg-gold/5"
+                      : b.loai
+                        ? "border-border bg-primary/5"
+                        : "border-border bg-background",
+                  )}
+                >
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className={cn("text-sm", b.loai ? "text-muted-foreground" : "font-medium text-foreground", b.final && "font-semibold text-gold")}>
+                      {b.loai ? "− " : ""}{b.nhan}
+                    </span>
+                    <span className={cn("shrink-0 font-mono text-sm tabular-nums", b.loai ? "text-primary" : b.final ? "font-bold text-gold" : "font-semibold text-foreground")}>
+                      {b.loai ? "−" : ""}{soVn(b.sl)}
+                    </span>
+                  </div>
+                  {/* thanh tỉ lệ so với tổng file */}
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className={cn("h-full rounded-full", b.loai ? "bg-primary/40" : b.final ? "bg-gold" : "bg-primary")}
+                      style={{ width: `${Math.max(0.5, pct(b.sl))}%` }}
+                    />
+                  </div>
+                  <p className="mt-1 text-[11px] text-muted-foreground">{b.ghi}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Trong nhóm khách thật */}
+            <div className="border-t border-border p-4">
+              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Trong nhóm khách thật</h4>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="rounded-lg border border-border bg-background p-3">
+                  <div className="text-lg font-bold tabular-nums text-foreground">{soVn(chaoDuoc)}</div>
+                  <div className="text-xs text-muted-foreground">Chào được — có ≥1 sim khớp ngày tháng (mọi kịch bản)</div>
+                </div>
+                <div className="rounded-lg border border-gold/30 bg-gold/5 p-3">
+                  <div className="text-lg font-bold tabular-nums text-gold">{soVn(tronNgay)}</div>
+                  <div className="text-xs text-muted-foreground">Trùng trọn ngày sinh — nhóm mạnh nhất, đáng gọi trước</div>
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+      })()}
 
       {/* ── MÀN: Khách trùng 6 số đuôi với kho chonso (A Khoa yêu cầu tách mục riêng) ── */}
       {manHinh === "trung-kho" && (
