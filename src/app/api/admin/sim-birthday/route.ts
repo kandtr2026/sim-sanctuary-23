@@ -88,7 +88,8 @@ export async function GET(req: NextRequest) {
 
     if (view === "khach-loc") {
       // Khách theo trạng thái Zalo cho màn 1 (chưa lọc) / màn 2 (có Zalo) (#55,#56).
-      const locTt = sp.get("loc_tt") === "co_zalo" ? "co_zalo" : "chua";
+      const locRaw = sp.get("loc_tt");
+      const locTt = locRaw === "co_zalo" || locRaw === "ko_zalo" ? locRaw : "chua";
       // 'all' = gộp mọi kịch bản thành 1 danh sách (#57).
       const kb = sp.get("kich_ban") === "all" ? "all" : docKichBan(sp);
       const { data, error } = await db.rpc("sim_birthday_khach_loc", {

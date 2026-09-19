@@ -14,7 +14,6 @@ import { ConversionsSection } from "@/components/admin/ConversionsSection";
 import { CampaignPerformanceSection } from "@/components/admin/CampaignPerformanceSection";
 import { TikTokShopSection } from "@/components/admin/TikTokShopSection";
 import { ShopeeSummaryCard } from "@/components/admin/ShopeeSummaryCard";
-import { SimBirthdaySection } from "@/components/admin/SimBirthdaySection";
 import { ShopeeSalesSection } from "@/components/admin/ShopeeSalesSection";
 import { PostReadsSection } from "@/components/admin/PostReadsSection";
 import { VisitTrendSection } from "@/components/admin/VisitTrendSection";
@@ -41,14 +40,13 @@ interface VipSimLite {
  * Shopee đứng riêng. Đổi tab chỉ mount đúng phần đang xem — các section tự fetch
  * data khi mở nên trang không nặng ngay từ đầu.
  */
-type TabId = "tong-quan" | "traffic" | "bai-viet" | "doanh-thu" | "sim-sinh-nhat";
+type TabId = "tong-quan" | "traffic" | "bai-viet" | "doanh-thu";
 const TABS: { id: TabId; label: string; icon: LucideIcon }[] = [
   { id: "tong-quan", label: "Tổng quan", icon: LayoutDashboard },
   { id: "traffic", label: "Traffic", icon: Globe },
   { id: "bai-viet", label: "Bài viết", icon: FileText },
   { id: "doanh-thu", label: "Doanh thu", icon: Wallet },
-  // Dự án riêng, chạy song song với kho số đang bán — xem SimBirthdaySection.
-  { id: "sim-sinh-nhat", label: "Sim sinh nhật", icon: CalendarHeart },
+  // Sim sinh nhật đã tách ra trang riêng /admin/SN (góp ý #56) — link ở thanh nav.
 ];
 
 const formatCompactVnd = (n: number) =>
@@ -338,10 +336,19 @@ function AdminDashboardContent() {
               </button>
             );
           })}
+          {/* Sim sinh nhật: trang riêng /admin/SN (góp ý #56) */}
+          <a
+            href="/admin/SN"
+            className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <CalendarHeart className="h-4 w-4" />
+            Sim sinh nhật
+            <ArrowRight className="h-3.5 w-3.5" />
+          </a>
           {/* Shopee: bấm vào đi thẳng trang quản lý, khỏi phải click thêm (góp ý #17) */}
           <a
             href="/admin/shopee"
-            className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <ShoppingCart className="h-4 w-4" />
             Shopee
@@ -463,10 +470,7 @@ function AdminDashboardContent() {
           </div>
         )}
 
-        {/* ─── Tab SIM SINH NHẬT: dự án ghép khách có ngày sinh ↔ sim mang đúng
-            ngày đó. Kho và danh sách khách nằm ở bảng riêng, KHÔNG trộn vào kho
-            số đang bán. ─── */}
-        {tab === "sim-sinh-nhat" && <SimBirthdaySection token={token} />}
+        {/* Sim sinh nhật đã tách ra trang riêng /admin/SN (góp ý #56). */}
 
         {/* Danh sách SIM của nhóm VIP đang chọn (góp ý #13) — mount ở gốc để mọi
             tab đều mở được, dù chip nằm trong tab Tổng quan */}

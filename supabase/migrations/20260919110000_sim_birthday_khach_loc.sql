@@ -35,8 +35,9 @@ with cust as (
     and (not p_bo_0101 or not (k.ngay = 1 and k.thang = 1))
     and (cardinality(p_dau_so) = 0 or k.dau_so = any(p_dau_so))
     and case when p_loc_tt = 'co_zalo' then cz.msisdn is not null
+             when p_loc_tt = 'ko_zalo' then kz.msisdn is not null
              else cz.msisdn is null and kz.msisdn is null end
-    -- Chỉ Màn 2 (co_zalo) đòi có số để chào; Màn 1 lấy TẤT khách chưa lọc.
+    -- Chỉ Màn 2 (co_zalo) đòi có số để chào; Màn 1/3 lấy đủ khách theo trạng thái.
     and (p_loc_tt <> 'co_zalo' or exists (
       select 1 from public.sim_birthday_kho_key x
       where (p_kich_ban = 'all'    and (x.duoi6 = k.k_ddmmyy or x.duoi6 = k.k_yymmdd or x.duoi4 = k.k_ddmm))
