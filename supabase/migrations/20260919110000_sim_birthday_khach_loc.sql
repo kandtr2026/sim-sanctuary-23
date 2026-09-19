@@ -31,7 +31,9 @@ cap as (
   select kh.msisdn, kh.dob, kh.dau_so, k.digits
   from khach kh
   join public.sim_birthday_kho_key k
-    on (p_kich_ban = 'ddmmyy' and k.duoi6 = kh.k_ddmmyy)
+    -- 'all' (#57): gộp mọi kịch bản còn dùng (ddmmyy/yymmdd/ddmm) — khách hiện 1 lần.
+    on (p_kich_ban = 'all'    and (k.duoi6 = kh.k_ddmmyy or k.duoi6 = kh.k_yymmdd or k.duoi4 = kh.k_ddmm))
+    or (p_kich_ban = 'ddmmyy' and k.duoi6 = kh.k_ddmmyy)
     or (p_kich_ban = 'yymmdd' and k.duoi6 = kh.k_yymmdd)
     or (p_kich_ban = 'giua6'  and k.giua6 = kh.k_ddmmyy)
     or (p_kich_ban = 'ddmm'   and k.duoi4 = kh.k_ddmm)
@@ -39,10 +41,15 @@ cap as (
     or (p_kich_ban = 'yyyy'   and k.duoi4 = kh.k_yyyy)
 ),
 gom as (
+  -- distinct digits: gộp 'all' có thể trùng số qua nhiều kịch bản.
   select msisdn, dob, dau_so,
          count(*) as so_sim,
          string_agg(digits, ', ' order by digits) filter (where rn <= 5) as sim_goi_y
-  from (select *, row_number() over (partition by msisdn order by digits) as rn from cap) t
+  from (
+    select msisdn, dob, dau_so, digits,
+           row_number() over (partition by msisdn order by digits) as rn
+    from (select distinct msisdn, dob, dau_so, digits from cap) d
+  ) t
   group by msisdn, dob, dau_so
 ),
 loc as (

@@ -229,6 +229,10 @@ const duoiTheoDob = (dob: string, kb: string): string => {
   return `${d}${m}${yy}`; // ddmmyy (mặc định)
 };
 
+/** Gộp tất cả kịch bản (#57): mọi đuôi cần đối chiếu kho web của 1 khách. */
+const cacDuoi = (dob: string): string[] =>
+  [...new Set(["ddmmyy", "yymmdd", "ddmm"].map((kb) => duoiTheoDob(dob, kb)).filter(Boolean))];
+
 /**
  * Dựng tin nhắn cho 1 khách theo mẫu xoay vòng (chỉ số toàn cục để đỡ trùng).
  * `dsSo` đã gộp sẵn số kho sinh nhật + số Available khớp trên kho web (#50).
@@ -333,27 +337,6 @@ function PartNav({ part, soPart, doiPart }: { part: number; soPart: number; doiP
           className="w-24 rounded-lg border border-border bg-background px-2 py-1 text-xs tabular-nums text-foreground"
         />
       )}
-    </div>
-  );
-}
-
-/** Chọn kịch bản ghép (dùng chung Màn 1 & Màn 2). */
-function KichBanToggle({ kichBan, setKichBan }: { kichBan: string; setKichBan: (k: string) => void }) {
-  return (
-    <div className="inline-flex rounded-lg border border-border p-0.5">
-      {(["ddmmyy", "yymmdd", "ddmm"] as const).map((kb) => (
-        <button
-          key={kb}
-          type="button"
-          onClick={() => setKichBan(kb)}
-          className={cn(
-            "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
-            kichBan === kb ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
-          )}
-        >
-          {kb === "ddmmyy" ? "Trùng ngày sinh" : kb === "yymmdd" ? "Ngược yy-mm-dd" : "Ngày + tháng"}
-        </button>
-      ))}
     </div>
   );
 }
@@ -485,13 +468,13 @@ export function SimBirthdaySection({ token }: { token?: string }) {
     };
   }, [token, kichBan, query, goi]);
 
-  // Đổi kịch bản / bộ lọc / màn thì về part đầu (offset cũ có thể vượt tổng khách).
+  // Đổi bộ lọc / màn thì về part đầu (offset cũ có thể vượt tổng khách).
   useEffect(() => {
     setPart(0);
-  }, [kichBan, query, manHinh]);
+  }, [query, manHinh]);
 
   // Nạp 100 khách của part đang xem theo MÀN: chua-loc (chưa phân loại) / co-zalo
-  // (đã có Zalo). Các màn khác (kanban/trùng-kho/tự-trùng) tự nạp riêng.
+  // (đã có Zalo). GỘP TẤT CẢ KỊCH BẢN (kich_ban=all, #57) — 1 danh sách chung.
   useEffect(() => {
     if (!token) return;
     if (manHinh !== "chua-loc" && manHinh !== "co-zalo") return;
@@ -499,13 +482,13 @@ export function SimBirthdaySection({ token }: { token?: string }) {
     let bo = false;
     setDangTaiDs(true);
     goi<{ rows: KhachRow[] }>(
-      `/api/admin/sim-birthday?view=khach-loc&kich_ban=${kichBan}&loc_tt=${locTt}&limit=100&offset=${part * 100}&${query}`,
+      `/api/admin/sim-birthday?view=khach-loc&kich_ban=all&loc_tt=${locTt}&limit=100&offset=${part * 100}&${query}`,
     )
       .then((r) => { if (!bo) setDsKhach(r.rows ?? []); })
       .catch(() => { if (!bo) setDsKhach([]); })
       .finally(() => { if (!bo) setDangTaiDs(false); });
     return () => { bo = true; };
-  }, [token, kichBan, query, part, manHinh, goi]);
+  }, [token, query, part, manHinh, goi]);
 
   // Nạp số Available khớp đuôi ngày tháng trên KHO WEB cho part đang xem (#50):
   // gom các đuôi khác nhau của 100 khách rồi hỏi một lần, nhét vào tin cho Sale.
@@ -514,7 +497,7 @@ export function SimBirthdaySection({ token }: { token?: string }) {
       setKhoKhop({});
       return;
     }
-    const duoi = [...new Set(dsKhach.map((k) => duoiTheoDob(k.dob, kichBan)).filter(Boolean))];
+    const duoi = [...new Set(dsKhach.flatMap((k) => cacDuoi(k.dob)))];
     if (duoi.length === 0) {
       setKhoKhop({});
       return;
@@ -526,7 +509,7 @@ export function SimBirthdaySection({ token }: { token?: string }) {
       .then((r) => { if (!bo) setKhoKhop(r.khop ?? {}); })
       .catch(() => { if (!bo) setKhoKhop({}); });
     return () => { bo = true; };
-  }, [token, dsKhach, kichBan, goi]);
+  }, [token, dsKhach, goi]);
 
   // Nạp khách tự-trùng (part 100). Không phụ thuộc bộ lọc kịch bản.
   useEffect(() => {
@@ -914,7 +897,6 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                 )}
               </p>
             </div>
-            <KichBanToggle kichBan={kichBan} setKichBan={setKichBan} />
           </div>
 
           <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-2.5 text-xs">
@@ -1007,7 +989,6 @@ export function SimBirthdaySection({ token }: { token?: string }) {
               </span>
             </div>
           </div>
-          <KichBanToggle kichBan={kichBan} setKichBan={setKichBan} />
         </div>
 
         <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-2.5 text-xs">
@@ -1031,12 +1012,11 @@ export function SimBirthdaySection({ token }: { token?: string }) {
             {dsHienThi.map((kh) => {
               const chiSo = part * 100 + dsKhach.indexOf(kh);
               // Gộp 2 nguồn số (#50): số THẬT còn bán trên kho web (đánh dấu xanh,
-              // xếp trước vì bán được ngay) + số kho sinh nhật. Dedupe, tối đa 8.
-              const duoi = duoiTheoDob(kh.dob, kichBan);
-              const soKho = duoi ? khoKhop[duoi] ?? [] : [];
+              // xếp trước vì bán được ngay) + số kho sinh nhật. Gộp mọi kịch bản (#57).
+              const soKho = [...new Set(cacDuoi(kh.dob).flatMap((d) => khoKhop[d] ?? []))];
               const webSet = new Set(soKho);
               const soGop = [...new Set([...soKho, ...dsSoTuGoiY(kh.sim_goi_y)])].slice(0, 8);
-              const tin = soanTin(chiSo, soGop, kichBan);
+              const tin = soanTin(chiSo, soGop, "ddmmyy");
               const tt = trangThaiKhach(kh.msisdn);
               const koZ = tt === "ko_zalo";
               const coZ = tt === "co_zalo";
@@ -1070,7 +1050,7 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                                 : "bg-gold/15 text-gold ring-gold/30",
                             )}
                           >
-                            {chamSo(s, kichBan)}
+                            {chamSo(s, "ddmmyy")}
                           </span>
                         );
                       })}
