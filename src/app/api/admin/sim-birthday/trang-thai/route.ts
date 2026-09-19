@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
   const gate = await requireAdmin(req);
   if ("response" in gate) return gate.response;
   try {
-    const body = (await req.json().catch(() => ({}))) as { msisdn?: string; loai?: string };
+    const body = (await req.json().catch(() => ({}))) as { msisdn?: string; loai?: string; noi_dung?: string };
     const bang = bangCua(body.loai);
     const msisdn = chuanMsisdn(body.msisdn);
     if (!bang || !msisdn) return jsonNoStore({ error: "Thiếu msisdn / loai" }, 400);
@@ -56,9 +56,14 @@ export async function POST(req: NextRequest) {
     // Ghi kèm thời điểm bấm (now) để mục "đã gửi" log giờ:phút:giây (#53); trả
     // về dòng vừa ghi để client hiện ngay "đã nhắn lúc … bởi …".
     const nowIso = new Date().toISOString();
+    const ghi: Record<string, unknown> = { msisdn, created_by: gate.user.email, created_at: nowIso };
+    // Chỉ bảng đã-nhắn có cột noi_dung (text tin đã gửi — "nhắn cái gì" #54).
+    if (bang === "sim_birthday_da_nhan" && typeof body.noi_dung === "string") {
+      ghi.noi_dung = body.noi_dung.slice(0, 1000);
+    }
     const { data, error } = await db
       .from(bang)
-      .upsert({ msisdn, created_by: gate.user.email, created_at: nowIso }, { onConflict: "msisdn" })
+      .upsert(ghi, { onConflict: "msisdn" })
       .select("msisdn,created_at,created_by")
       .single();
     if (error) throw new Error(error.message);

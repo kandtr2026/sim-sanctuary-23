@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { BarList } from "./BarList";
 import { StatCard } from "./StatCard";
+import { SimBirthdayKanban } from "./SimBirthdayKanban";
 import { cn } from "@/lib/utils";
 
 /**
@@ -556,7 +557,7 @@ export function SimBirthdaySection({ token }: { token?: string }) {
 
   // Bấm "Đã gửi Zalo" (#53): toggle. Bật → ghi giờ + user (server trả về);
   // bấm lại → gỡ (sửa lỡ tay). Optimistic, có giờ tạm trước khi server phản hồi.
-  const danhDauDaNhan = async (msisdn: string) => {
+  const danhDauDaNhan = async (msisdn: string, tin?: string) => {
     const dangCo = Boolean(daNhan[msisdn]);
     if (dangCo) {
       setDaNhan((m) => {
@@ -576,7 +577,8 @@ export function SimBirthdaySection({ token }: { token?: string }) {
       const res = await fetch("/api/admin/sim-birthday/trang-thai", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ msisdn, loai: "da_nhan" }),
+        // Lưu luôn text tin đã gửi ("nhắn cái gì" — #54) để kanban hiện log.
+        body: JSON.stringify({ msisdn, loai: "da_nhan", noi_dung: tin }),
       });
       const d = (await res.json().catch(() => ({}))) as { created_at?: string; created_by?: string | null };
       if (res.ok && d.created_at) {
@@ -686,6 +688,9 @@ export function SimBirthdaySection({ token }: { token?: string }) {
         nằm tách hẳn kho số đang bán trên web — không số nào của tab này xuất hiện ngoài
         storefront, và cũng không trộn ngược lại. Khi nào A Khoa lệnh sáp nhập thì mới tính.
       </div>
+
+      {/* ── Kanban theo dõi khách (#54) — đặt trên cùng làm màn quản lý tiến trình ── */}
+      <SimBirthdayKanban token={token} />
 
       {/* ── Thẻ tổng quan ── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -990,7 +995,7 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                     )}
                     <button
                       type="button"
-                      onClick={() => void danhDauDaNhan(kh.msisdn)}
+                      onClick={() => void danhDauDaNhan(kh.msisdn, tin)}
                       className={cn(
                         "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
                         nhan
@@ -1297,7 +1302,7 @@ export function SimBirthdaySection({ token }: { token?: string }) {
                     )}
                     <button
                       type="button"
-                      onClick={() => void danhDauDaNhan(kh.msisdn)}
+                      onClick={() => void danhDauDaNhan(kh.msisdn, tin)}
                       className={cn(
                         "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
                         nhan
