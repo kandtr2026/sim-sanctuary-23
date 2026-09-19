@@ -56,7 +56,11 @@ const gio = (iso: string | null): string => {
   }).format(d).replace(",", "");
 };
 
-const capCua = (r: KanbanRow): 1 | 2 | 3 => (r.ket_qua ? 3 : r.nhan_at ? 2 : 1);
+// 4 bước (#55 tách "chưa phân loại" khỏi "đã check"):
+//   1 chưa phân loại (đã tiếp cận nhưng chưa rõ có/ko Zalo)
+//   2 đã check (đã đánh Có/Ko Zalo) · 3 đã nhắn · 4 kết quả
+const capCua = (r: KanbanRow): 1 | 2 | 3 | 4 =>
+  r.ket_qua ? 4 : r.nhan_at ? 3 : r.co_zalo || r.ko_zalo ? 2 : 1;
 
 export function SimBirthdayKanban({ token }: { token?: string }) {
   const [rows, setRows] = useState<KanbanRow[]>([]);
@@ -115,12 +119,13 @@ export function SimBirthdayKanban({ token }: { token?: string }) {
     [token],
   );
 
-  const cot = (cap: 1 | 2 | 3) => rows.filter((r) => capCua(r) === cap);
+  const cot = (cap: 1 | 2 | 3 | 4) => rows.filter((r) => capCua(r) === cap);
 
-  const COT_DEF: { cap: 1 | 2 | 3; ten: string; mo_ta: string; mau: string }[] = [
-    { cap: 1, ten: "Đã check Zalo", mo_ta: "đã tiếp cận, chưa nhắn", mau: "text-sky-300" },
-    { cap: 2, ten: "Đã nhắn", mo_ta: "đã gửi tin, chờ kết quả", mau: "text-violet-300" },
-    { cap: 3, ten: "Kết quả", mo_ta: "đã chốt tình trạng", mau: "text-emerald-300" },
+  const COT_DEF: { cap: 1 | 2 | 3 | 4; ten: string; mo_ta: string; mau: string }[] = [
+    { cap: 1, ten: "Chưa phân loại Zalo", mo_ta: "đã tiếp cận, chưa rõ có/ko Zalo", mau: "text-muted-foreground" },
+    { cap: 2, ten: "Đã check Zalo", mo_ta: "đã rõ có / không Zalo", mau: "text-sky-300" },
+    { cap: 3, ten: "Đã nhắn", mo_ta: "đã gửi tin, chờ kết quả", mau: "text-violet-300" },
+    { cap: 4, ten: "Kết quả", mo_ta: "đã chốt tình trạng", mau: "text-emerald-300" },
   ];
 
   return (
@@ -187,14 +192,14 @@ export function SimBirthdayKanban({ token }: { token?: string }) {
           Chưa có khách nào được tác động. Mở/nhắn khách ở mục bên dưới, họ sẽ hiện lên đây.
         </p>
       ) : (
-        <div className="grid gap-3 p-4 lg:grid-cols-3">
+        <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-4">
           {COT_DEF.map((c) => {
             const dsCot = cot(c.cap);
             return (
               <div key={c.cap} className="rounded-lg border border-border bg-background/40">
                 <div className="flex items-center justify-between border-b border-border px-3 py-2">
                   <div>
-                    <span className={cn("text-xs font-semibold", c.mau)}>Level {c.cap} · {c.ten}</span>
+                    <span className={cn("text-xs font-semibold", c.mau)}>Màn {c.cap} · {c.ten}</span>
                     <p className="text-[10px] text-muted-foreground">{c.mo_ta}</p>
                   </div>
                   <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
