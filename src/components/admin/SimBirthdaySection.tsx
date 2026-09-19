@@ -701,7 +701,10 @@ export function SimBirthdaySection({ token }: { token?: string }) {
 
   const tong = thongKe?.tong;
   const kbDangChon = thongKe?.kich_ban.find((k) => k.ma === kichBan);
-  const tongKhachLoc = dsKhach[0]?.tong ?? 0;
+  // Màn 1 (chưa lọc) là tập khổng lồ nên RPC không đếm tổng (nặng) → lấy xấp xỉ
+  // từ thống kê (khach_sau_loc, lệch không đáng kể vì đã phân loại chỉ vài chục).
+  // Màn 2/3 tập nhỏ nên RPC trả tong chính xác.
+  const tongKhachLoc = manHinh === "chua-loc" ? (tong?.khach_sau_loc ?? 0) : (dsKhach[0]?.tong ?? 0);
   const soPart = Math.max(1, Math.ceil(tongKhachLoc / 100));
   const tongTt = tuTrung[0]?.tong ?? 0;
   const soPartTt = Math.max(1, Math.ceil(tongTt / 100));
