@@ -70,7 +70,19 @@ interface KhachRow {
   dau_so: string;
   so_sim: number;
   sim_goi_y: string | null;
+  da_mo?: boolean;
+  tong?: number;
 }
+
+/** Các màn hình thao tác (#55,#56): tách nhỏ cho dễ làm, không dồn 1 trang. */
+type ManHinh = "chua-loc" | "co-zalo" | "trung-kho" | "dang-dung-sn" | "kanban";
+const MAN_HINH: { id: ManHinh; ten: string }[] = [
+  { id: "chua-loc", ten: "① Chưa lọc Zalo" },
+  { id: "co-zalo", ten: "② Có Zalo · nhắn tin" },
+  { id: "kanban", ten: "Kanban" },
+  { id: "trung-kho", ten: "Trùng đuôi kho" },
+  { id: "dang-dung-sn", ten: "Đang dùng số SN" },
+];
 
 /** Khách đang dùng số có đuôi là chính ngày sinh của mình (#41). */
 interface TuTrungRow {
@@ -325,6 +337,27 @@ function PartNav({ part, soPart, doiPart }: { part: number; soPart: number; doiP
   );
 }
 
+/** Chọn kịch bản ghép (dùng chung Màn 1 & Màn 2). */
+function KichBanToggle({ kichBan, setKichBan }: { kichBan: string; setKichBan: (k: string) => void }) {
+  return (
+    <div className="inline-flex rounded-lg border border-border p-0.5">
+      {(["ddmmyy", "yymmdd", "ddmm"] as const).map((kb) => (
+        <button
+          key={kb}
+          type="button"
+          onClick={() => setKichBan(kb)}
+          className={cn(
+            "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+            kichBan === kb ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {kb === "ddmmyy" ? "Trùng ngày sinh" : kb === "yymmdd" ? "Ngược yy-mm-dd" : "Ngày + tháng"}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /**
  * TẠM ẨN phần "ghép kịch bản" (góp ý #38): A Khoa muốn ẩn từ dòng "Năm sinh"
  * trong bộ lọc trở xuống (kịch bản ghép / chi tiết / phân bố) để nêu lại kịch bản
@@ -339,6 +372,7 @@ export function SimBirthdaySection({ token }: { token?: string }) {
   const [bo0101, setBo0101] = useState(false);
   const [dauSo, setDauSo] = useState<string[]>([]);
   const [kichBan, setKichBan] = useState("ddmmyy");
+  const [manHinh, setManHinh] = useState<ManHinh>("chua-loc");
 
   const [thongKe, setThongKe] = useState<ThongKe | null>(null);
   const [dangTai, setDangTai] = useState(true);
@@ -451,24 +485,27 @@ export function SimBirthdaySection({ token }: { token?: string }) {
     };
   }, [token, kichBan, query, goi]);
 
-  // Đổi kịch bản / bộ lọc thì về part đầu (offset cũ có thể vượt tổng khách).
+  // Đổi kịch bản / bộ lọc / màn thì về part đầu (offset cũ có thể vượt tổng khách).
   useEffect(() => {
     setPart(0);
-  }, [kichBan, query]);
+  }, [kichBan, query, manHinh]);
 
-  // Nạp 100 khách của part đang xem (không dùng moi_ngay — lấy đủ danh sách).
+  // Nạp 100 khách của part đang xem theo MÀN: chua-loc (chưa phân loại) / co-zalo
+  // (đã có Zalo). Các màn khác (kanban/trùng-kho/tự-trùng) tự nạp riêng.
   useEffect(() => {
     if (!token) return;
+    if (manHinh !== "chua-loc" && manHinh !== "co-zalo") return;
+    const locTt = manHinh === "co-zalo" ? "co_zalo" : "chua";
     let bo = false;
     setDangTaiDs(true);
     goi<{ rows: KhachRow[] }>(
-      `/api/admin/sim-birthday?view=khach&kich_ban=${kichBan}&limit=100&offset=${part * 100}&${query}`,
+      `/api/admin/sim-birthday?view=khach-loc&kich_ban=${kichBan}&loc_tt=${locTt}&limit=100&offset=${part * 100}&${query}`,
     )
       .then((r) => { if (!bo) setDsKhach(r.rows ?? []); })
       .catch(() => { if (!bo) setDsKhach([]); })
       .finally(() => { if (!bo) setDangTaiDs(false); });
     return () => { bo = true; };
-  }, [token, kichBan, query, part, goi]);
+  }, [token, kichBan, query, part, manHinh, goi]);
 
   // Nạp số Available khớp đuôi ngày tháng trên KHO WEB cho part đang xem (#50):
   // gom các đuôi khác nhau của 100 khách rồi hỏi một lần, nhét vào tin cho Sale.
@@ -670,12 +707,19 @@ export function SimBirthdaySection({ token }: { token?: string }) {
 
   const tong = thongKe?.tong;
   const kbDangChon = thongKe?.kich_ban.find((k) => k.ma === kichBan);
-  const soPart = Math.max(1, Math.ceil((kbDangChon?.so_khach ?? 0) / 100));
+  const tongKhachLoc = dsKhach[0]?.tong ?? 0;
+  const soPart = Math.max(1, Math.ceil(tongKhachLoc / 100));
   const tongTt = tuTrung[0]?.tong ?? 0;
   const soPartTt = Math.max(1, Math.ceil(tongTt / 100));
   const tongTk = trungKho[0]?.tong ?? 0;
   const soPartTk = Math.max(1, Math.ceil(tongTk / 100));
-  const dsHienThi = dsKhach.filter((kh) => khopLoc(kh.msisdn));
+  // Màn 1 chỉ hiện khách CHƯA phân loại (đánh Có/Ko là biến mất khỏi màn); Màn 2
+  // chỉ hiện khách CÓ Zalo (hạ xuống Ko/khác là biến mất) — lọc client cho mượt.
+  const dsHienThi = dsKhach.filter((kh) =>
+    manHinh === "co-zalo"
+      ? trangThaiKhach(kh.msisdn) === "co_zalo"
+      : trangThaiKhach(kh.msisdn) === "chua_check",
+  );
   const ttHienThi = tuTrung.filter((kh) => khopLoc(kh.msisdn));
   const tkHienThi = trungKho.filter((kh) => khopLoc(kh.msisdn));
   const dauSoPhoBien = (thongKe?.phan_bo_dau_so ?? []).filter((d) => d.so_khach >= 1000);
@@ -688,9 +732,6 @@ export function SimBirthdaySection({ token }: { token?: string }) {
         nằm tách hẳn kho số đang bán trên web — không số nào của tab này xuất hiện ngoài
         storefront, và cũng không trộn ngược lại. Khi nào A Khoa lệnh sáp nhập thì mới tính.
       </div>
-
-      {/* ── Kanban theo dõi khách (#54) — đặt trên cùng làm màn quản lý tiến trình ── */}
-      <SimBirthdayKanban token={token} />
 
       {/* ── Thẻ tổng quan ── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -839,17 +880,120 @@ export function SimBirthdaySection({ token }: { token?: string }) {
         )}
       </section>
 
-      {/* ── Gửi Zalo theo part 100 khách (#39) ── */}
+      {/* ── Thanh chuyển màn (#55,#56) — tách việc cho dễ thao tác ── */}
+      <div className="flex flex-wrap gap-1.5 rounded-xl border border-border bg-card p-1.5 shadow-card">
+        {MAN_HINH.map((m) => (
+          <button
+            key={m.id}
+            type="button"
+            onClick={() => setManHinh(m.id)}
+            className={cn(
+              "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+              manHinh === m.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {m.ten}
+          </button>
+        ))}
+      </div>
+
+      {/* ── MÀN 1: Khách chưa lọc Zalo — chỉ phân loại (#55,#56) ── */}
+      {manHinh === "chua-loc" && (
+        <section className="rounded-xl border border-border bg-card shadow-card">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
+            <div>
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <Users className="h-4 w-4 text-primary" />
+                Màn 1 · Khách chưa lọc Zalo
+              </h3>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Mở Zalo từng khách, có thì bấm <span className="text-emerald-400">Có Zalo</span>, không thì{" "}
+                <span className="text-primary">Ko Zalo</span>. Phân loại xong khách rời màn này; người Có Zalo qua Màn 2 để nhắn.
+                {tongKhachLoc > 0 && (
+                  <> Còn <b className="text-foreground">{soVn(tongKhachLoc)}</b> khách chưa lọc.</>
+                )}
+              </p>
+            </div>
+            <KichBanToggle kichBan={kichBan} setKichBan={setKichBan} />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-2.5 text-xs">
+            <span className="text-muted-foreground">
+              Part <b className="text-foreground">{part + 1}</b>/{soPart}
+            </span>
+            <div className="ml-auto">
+              <PartNav part={part} soPart={soPart} doiPart={setPart} />
+            </div>
+          </div>
+
+          {dangTaiDs ? (
+            <div className="grid place-items-center py-16 text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" />
+            </div>
+          ) : dsHienThi.length === 0 ? (
+            <p className="py-12 text-center text-sm text-muted-foreground">
+              {dsKhach.length === 0 ? "Hết khách chưa lọc trong part này — qua part sau." : "Đã lọc xong part này 👍"}
+            </p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {dsHienThi.map((kh) => {
+                const daMoR = daMo.has(kh.msisdn);
+                return (
+                  <li key={kh.msisdn} className="flex flex-wrap items-center gap-x-3 gap-y-2 p-4">
+                    <span className={cn("text-sm", CLS_SDT_KHACH)}>{kh.msisdn}</span>
+                    <span className="text-xs text-muted-foreground">Sinh {ngaySinhVn(kh.dob)}</span>
+                    <span className="text-xs text-muted-foreground">· {soVn(kh.so_sim)} số khớp</span>
+                    {daMoR && (
+                      <span className="rounded-full bg-sky-500/15 px-2 py-0.5 text-[11px] font-medium text-sky-300">✓ đã mở</span>
+                    )}
+                    <div className="ml-auto flex flex-wrap gap-2">
+                      <a
+                        href={`https://zalo.me/${kh.msisdn}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => danhDauDaMo(kh.msisdn)}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
+                          daMoR ? "border-sky-500/40 bg-sky-500/10 text-sky-300" : "border-border text-foreground hover:border-primary/40",
+                        )}
+                      >
+                        {daMoR ? "✓ Đã mở Zalo" : "Mở Zalo"}
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => void datTrangThai(kh.msisdn, "co_zalo")}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-emerald-500/40"
+                      >
+                        Có Zalo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void datTrangThai(kh.msisdn, "ko_zalo")}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/40"
+                      >
+                        Ko Zalo
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {/* ── MÀN 2: Khách có Zalo — nhắn tin (trước là mục Gửi Zalo #39) ── */}
+      {manHinh === "co-zalo" && (
       <section className="rounded-xl border border-border bg-card shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
           <div>
             <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <MessageSquareQuote className="h-4 w-4 text-primary" />
-              Gửi Zalo cho khách — mỗi part 100 người
+              Màn 2 · Khách có Zalo — nhắn tin
             </h3>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Mỗi khách có sẵn tin nhắn (xoay vòng đỡ dính spam, KHÔNG nhắc ngày sinh) + danh sách số
-              đẹp dạng ngày tháng. Sale mở Zalo khách, dán tin rồi gửi.
+              Chỉ hiện khách đã xác nhận CÓ Zalo. Mỗi khách có tin soạn sẵn (KHÔNG nhắc ngày sinh) + số
+              đẹp; dán gửi rồi bấm &ldquo;Đã gửi&rdquo;.
             </p>
             {/* Chú giải màu số (góp ý #51): tách rõ nguồn số để A Khoa nhìn phát biết. */}
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
@@ -863,45 +1007,14 @@ export function SimBirthdaySection({ token }: { token?: string }) {
               </span>
             </div>
           </div>
-          <div className="inline-flex rounded-lg border border-border p-0.5">
-            {(["ddmmyy", "yymmdd", "ddmm"] as const).map((kb) => (
-              <button
-                key={kb}
-                type="button"
-                onClick={() => setKichBan(kb)}
-                className={cn(
-                  "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
-                  kichBan === kb ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {kb === "ddmmyy" ? "Trùng ngày sinh" : kb === "yymmdd" ? "Ngược yy-mm-dd" : "Ngày + tháng"}
-              </button>
-            ))}
-          </div>
+          <KichBanToggle kichBan={kichBan} setKichBan={setKichBan} />
         </div>
 
         <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-2.5 text-xs">
           <span className="text-muted-foreground">
-            {kbDangChon ? (
-              <>
-                Tổng <b className="text-foreground">{soVn(kbDangChon.so_khach)}</b> khách ·{" "}
-              </>
-            ) : null}
-            Part <b className="text-foreground">{part + 1}</b>/{soPart}
+            Tổng <b className="text-foreground">{soVn(tongKhachLoc)}</b> khách có Zalo · Part{" "}
+            <b className="text-foreground">{part + 1}</b>/{soPart}
           </span>
-          <label className="flex items-center gap-1.5 text-muted-foreground">
-            Lọc:
-            <select
-              value={locTt}
-              onChange={(e) => setLocTt(e.target.value as typeof locTt)}
-              className="rounded-lg border border-border bg-background px-2 py-1 text-xs text-foreground"
-            >
-              <option value="all">Tất cả</option>
-              <option value="chua_check">Chưa check</option>
-              <option value="co_zalo">Zalo OK</option>
-              <option value="ko_zalo">Ko có Zalo</option>
-            </select>
-          </label>
           <div className="ml-auto">
             <PartNav part={part} soPart={soPart} doiPart={setPart} />
           </div>
@@ -1042,8 +1155,10 @@ export function SimBirthdaySection({ token }: { token?: string }) {
           </ul>
         )}
       </section>
+      )}
 
-      {/* ── Khách đang dùng số sinh nhật của mình (#41) ── */}
+      {/* ── MÀN: Khách đang dùng số sinh nhật của mình (#41) ── */}
+      {manHinh === "dang-dung-sn" && (
       <section className="rounded-xl border border-border bg-card shadow-card">
         <div className="border-b border-border p-4">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
@@ -1167,8 +1282,13 @@ export function SimBirthdaySection({ token }: { token?: string }) {
           </div>
         )}
       </section>
+      )}
 
-      {/* ── Khách trùng 6 số đuôi với kho chonso (A Khoa yêu cầu tách mục riêng) ── */}
+      {/* ── MÀN: Kanban theo dõi khách (#54) ── */}
+      {manHinh === "kanban" && <SimBirthdayKanban token={token} />}
+
+      {/* ── MÀN: Khách trùng 6 số đuôi với kho chonso (A Khoa yêu cầu tách mục riêng) ── */}
+      {manHinh === "trung-kho" && (
       <section className="rounded-xl border border-border bg-card shadow-card">
         <div className="border-b border-border p-4">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
@@ -1349,6 +1469,7 @@ export function SimBirthdaySection({ token }: { token?: string }) {
           </ul>
         )}
       </section>
+      )}
 
       {HIEN_GHEP && (
       <>

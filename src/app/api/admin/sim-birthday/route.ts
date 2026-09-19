@@ -86,6 +86,20 @@ export async function GET(req: NextRequest) {
       return jsonNoStore({ rows: data ?? [] });
     }
 
+    if (view === "khach-loc") {
+      // Khách theo trạng thái Zalo cho màn 1 (chưa lọc) / màn 2 (có Zalo) (#55,#56).
+      const locTt = sp.get("loc_tt") === "co_zalo" ? "co_zalo" : "chua";
+      const { data, error } = await db.rpc("sim_birthday_khach_loc", {
+        p_kich_ban: docKichBan(sp),
+        ...boLoc,
+        p_loc_tt: locTt,
+        p_limit: Math.min(Math.max(Number(sp.get("limit")) || 100, 1), 500),
+        p_offset: Math.max(Number(sp.get("offset")) || 0, 0),
+      });
+      if (error) throw new Error(error.message);
+      return jsonNoStore({ rows: data ?? [] });
+    }
+
     if (view === "trung-kho") {
       // Khách có 6 số đuôi SĐT trùng đúng số trong kho chonso (cả kho sinh nhật
       // lẫn kho web). Lọc lô theo nguong_lo như các view khác.
