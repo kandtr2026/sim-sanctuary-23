@@ -629,6 +629,13 @@ const SimBrowser = ({
               </div>
             )}
           </div>
+
+          {/* Đơn hàng gần đây — bản MOBILE/tablet (desktop hiện ở cột phải bên dưới).
+              Trước đây khối này chỉ nằm trong <aside hidden lg:block> nên mobile
+              không thấy social proof "sim đã bán gần đây" (A Khoa 22/09). */}
+          <div className="lg:hidden mt-6">
+            <RightSidebar />
+          </div>
         </section>
 
         <aside className="hidden lg:block w-[220px] flex-shrink-0">
