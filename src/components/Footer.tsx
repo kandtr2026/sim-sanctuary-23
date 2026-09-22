@@ -1,8 +1,19 @@
 import { MapPin, Phone, Mail, Clock, Navigation, Youtube } from "lucide-react";
 import Link from "next/link";
 
-// Kênh YouTube chính thức của shop (A Khoa cung cấp handle @Chonsomobifonecom).
+// Kênh mạng xã hội chính thức của shop (A Khoa 22/09) — handle sạch, bỏ tracking.
 const YOUTUBE_URL = "https://www.youtube.com/@Chonsomobifonecom";
+const TIKTOK_CHANNELS = [
+  { url: "https://www.tiktok.com/@vienthongnamkhanghcm", label: "TikTok · Viễn Thông Nam Khang" },
+  { url: "https://www.tiktok.com/@simdepsongkhoa", label: "TikTok · Sim Đẹp Song Khoa" },
+];
+
+// lucide-react không có icon TikTok → SVG nốt nhạc đơn giản, vẫn nhận diện được.
+const TikTokIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
+    <path d="M16.5 3c.35 2.02 1.62 3.5 3.5 3.82v2.6c-1.28 0-2.5-.38-3.5-1.02v6.7c0 3.4-2.85 6.12-6.25 5.9-3-.2-5.4-2.72-5.3-5.72.1-3 2.62-5.4 5.62-5.3.3 0 .6.03.88.1v2.72a2.7 2.7 0 0 0-.9-.16c-1.5 0-2.68 1.28-2.6 2.8.08 1.4 1.28 2.52 2.68 2.44 1.42-.03 2.52-1.2 2.52-2.63V3h2.85z" />
+  </svg>
+);
 
 // Google Maps Place ID của cửa hàng (43A Đường số 9, Tân Hưng, TPHCM) — dùng
 // cho nút "Chỉ đường" + schema. Embed iframe dùng pb string đầy đủ (Google
@@ -140,17 +151,32 @@ const Footer = () => {
               </li>
             </ul>
 
-            {/* Nút kênh YouTube của shop (A Khoa 22/09) */}
-            <a
-              href={YOUTUBE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Kênh YouTube CHONSOMOBIFONE"
-              className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg transition-colors min-h-[44px] text-sm"
-            >
-              <Youtube className="w-5 h-5" />
-              Kênh YouTube của shop
-            </a>
+            {/* Kênh mạng xã hội của shop: YouTube + 2 kênh TikTok (A Khoa 22/09) */}
+            <div className="mt-4 space-y-2">
+              <a
+                href={YOUTUBE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Kênh YouTube CHONSOMOBIFONE"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg transition-colors min-h-[44px] text-sm"
+              >
+                <Youtube className="w-5 h-5" />
+                Kênh YouTube
+              </a>
+              {TIKTOK_CHANNELS.map((ch) => (
+                <a
+                  key={ch.url}
+                  href={ch.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={ch.label}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-header-foreground/10 hover:bg-header-foreground/20 border border-header-foreground/20 text-header-foreground font-semibold rounded-lg transition-colors min-h-[44px] text-sm"
+                >
+                  <TikTokIcon className="w-4 h-4 flex-shrink-0" />
+                  {ch.label}
+                </a>
+              ))}
+            </div>
           </div>
         </div>
 
