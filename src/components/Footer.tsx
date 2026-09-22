@@ -1,5 +1,8 @@
-import { MapPin, Phone, Mail, Clock, Navigation } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Navigation, Youtube } from "lucide-react";
 import Link from "next/link";
+
+// Kênh YouTube chính thức của shop (A Khoa cung cấp handle @Chonsomobifonecom).
+const YOUTUBE_URL = "https://www.youtube.com/@Chonsomobifonecom";
 
 // Google Maps Place ID của cửa hàng (43A Đường số 9, Tân Hưng, TPHCM) — dùng
 // cho nút "Chỉ đường" + schema. Embed iframe dùng pb string đầy đủ (Google
@@ -136,6 +139,18 @@ const Footer = () => {
                 <span>8:00 - 21:00 hàng ngày</span>
               </li>
             </ul>
+
+            {/* Nút kênh YouTube của shop (A Khoa 22/09) */}
+            <a
+              href={YOUTUBE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Kênh YouTube CHONSOMOBIFONE"
+              className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg transition-colors min-h-[44px] text-sm"
+            >
+              <Youtube className="w-5 h-5" />
+              Kênh YouTube của shop
+            </a>
           </div>
         </div>
 
