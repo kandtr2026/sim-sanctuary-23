@@ -15,6 +15,7 @@ import {
   getBirthDateFallbackSims,
   getInStockBirthYears,
   countBirthYearSims,
+  getHopTuoiSimsByYear,
   isPlausibleBirthYear,
   BIRTH_YEAR_MIN_INVENTORY,
 } from "@/lib/serverSimData";
@@ -175,6 +176,11 @@ export default async function SimNamSinhPage({ params, searchParams }: Props) {
     }
   }
 
+  // Kho không có số trùng đúng ngày/năm sinh → nhúng sẵn vài số HỢP MỆNH theo
+  // năm sinh ngay trong block fallback (thay vì chỉ link đi). Tái dùng cache kho
+  // nên không thêm egress. Chỉ tính khi thật sự rơi vào nhánh trống.
+  const hopTuoi = snapshotSims.length === 0 ? await getHopTuoiSimsByYear(Number(year), 6) : null;
+
   const faqItems = [
     {
       q: `Sim năm sinh ${year} là gì?`,
@@ -263,6 +269,8 @@ export default async function SimNamSinhPage({ params, searchParams }: Props) {
             day={hasBirthDate ? sp.d : undefined}
             month={hasBirthDate ? sp.m : undefined}
             fallbackSims={fallbackSims}
+            hopTuoiSims={hopTuoi?.sims}
+            hopTuoiMenh={hopTuoi?.menh}
           />
 
           {/* Bảng giá thật + ItemList/Product/Offer trong HTML thô. 38 trang này

@@ -16,6 +16,7 @@
 import { normalizeSIM, parsePrice, formatSIMNumber, detectSimTags, detectNetwork, PRICE_RANGES } from "@/lib/simUtils";
 import type { NormalizedSIM } from "@/lib/simUtils";
 import { diemTongHop } from "@/lib/phongThuy";
+import { buildProfile, scoreInventory, tinhCanChi, type NguHanh } from "@/lib/simHopTuoi";
 import {
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY,
@@ -1000,6 +1001,38 @@ export const getInStockBirthYears = async (
     .filter(([, n]) => n >= minInventory)
     .map(([year]) => year)
     .sort();
+};
+
+export interface HopTuoiSuggestion {
+  menh: NguHanh; // mệnh nạp âm suy từ năm sinh
+  sims: NormalizedSIM[]; // top SIM hợp mệnh (đã còn hàng, giá > 0)
+}
+
+/**
+ * Gợi ý SIM hợp tuổi theo NĂM SINH — dùng cho block fallback của /sim-nam-sinh
+ * khi kho không có số trùng đúng ngày/năm sinh. Chỉ có năm sinh nên dựng profile
+ * mặc định (giờ Tý, giới tính nam): điểm ngũ hành (nạp âm theo năm), tổng nút và
+ * quẻ dịch vẫn đúng theo năm/con số; riêng âm–dương chỉ là xấp xỉ (phụ thuộc giờ
+ * sinh & giới tính) nên copy vẫn mời khách vào công cụ đầy đủ để chấm chính xác.
+ *
+ * Tái dùng getServerSims() (đã cache trong cùng ISR/build worker) nên KHÔNG phát
+ * sinh thêm request/egress Supabase — quan trọng khi project đang cận quota.
+ */
+export const getHopTuoiSimsByYear = async (
+  year: number,
+  limit = 6,
+): Promise<HopTuoiSuggestion> => {
+  const menh = tinhCanChi(year).menh;
+  const sims = await getServerSims();
+  if (sims.length === 0) return { menh, sims: [] };
+
+  const profile = buildProfile(year, 0, "nam");
+  const scored = scoreInventory(sims, profile, limit);
+  const byId = new Map(sims.map((s) => [s.id, s]));
+  const top = scored
+    .map((s) => byId.get(s.id))
+    .filter((s): s is NormalizedSIM => Boolean(s));
+  return { menh, sims: top };
 };
 
 // ── Trang riêng từng số `/sim/[digits]` ──────────────────────────────────────

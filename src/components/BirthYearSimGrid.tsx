@@ -58,6 +58,8 @@ const BirthYearSimGrid = ({
   day,
   month,
   fallbackSims,
+  hopTuoiSims,
+  hopTuoiMenh,
 }: {
   year: string;
   sims: NormalizedSIM[];
@@ -65,6 +67,8 @@ const BirthYearSimGrid = ({
   day?: string;
   month?: string;
   fallbackSims?: NormalizedSIM[];
+  hopTuoiSims?: NormalizedSIM[];
+  hopTuoiMenh?: string;
 }) => {
   const dd = day ? day.padStart(2, "0") : "";
   const mm = month ? month.padStart(2, "0") : "";
@@ -83,6 +87,10 @@ const BirthYearSimGrid = ({
     // chủ động sang tư vấn sim phong thủy hợp tuổi, nội dung đổi theo giai đoạn đời
     // (dưới 22 học hành · 22–30 công việc · trên 30 thăng tiến). Task 2B.
     const lifeStage = getBirthYearLifeStage(year);
+    // Ưu tiên số hợp mệnh (chấm điểm theo năm sinh); nếu chưa có thì mới dùng
+    // fallbackSims chung. Cùng một lưới thẻ để không lặp hai khối gợi ý.
+    const embeddedIsHopTuoi = Boolean(hopTuoiSims && hopTuoiSims.length > 0);
+    const embedded = embeddedIsHopTuoi ? hopTuoiSims! : fallbackSims ?? [];
     return (
       <div id="kho-sim" className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
         <h2 className="mb-3 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
@@ -110,15 +118,30 @@ const BirthYearSimGrid = ({
           </Link>
         </div>
 
-        {fallbackSims && fallbackSims.length > 0 && (
+        {embedded.length > 0 && (
           <div className="mt-6">
-            <p className="mb-1 font-semibold text-foreground">Vài số đẹp đang có sẵn trong kho</p>
-            <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
-              Các số dưới đây <strong className="text-foreground">chưa trùng đúng {nhanNgay}</strong>,
-              chỉ là gợi ý để Quý khách tham khảo thêm.
-            </p>
+            {embeddedIsHopTuoi ? (
+              <>
+                <p className="mb-1 font-semibold text-foreground">
+                  Gợi ý sim hợp mệnh{hopTuoiMenh ? ` ${hopTuoiMenh}` : ""} — chọn theo năm sinh {year}
+                </p>
+                <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
+                  Các số dưới đây được chấm điểm hợp mệnh theo năm sinh {year} (chưa trùng đúng{" "}
+                  {nhanNgay}). Nhập thêm giờ sinh &amp; giới tính ở công cụ Sim hợp tuổi để chấm chính
+                  xác hơn.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="mb-1 font-semibold text-foreground">Vài số đẹp đang có sẵn trong kho</p>
+                <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
+                  Các số dưới đây <strong className="text-foreground">chưa trùng đúng {nhanNgay}</strong>,
+                  chỉ là gợi ý để Quý khách tham khảo thêm.
+                </p>
+              </>
+            )}
             <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3 md:gap-3">
-              {fallbackSims.map((sim) => (
+              {embedded.map((sim) => (
                 <div key={sim.id} className="min-w-0">
                   <SIMCardNew sim={sim} />
                 </div>
