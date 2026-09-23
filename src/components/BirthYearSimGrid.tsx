@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Sparkles } from "lucide-react";
 import SIMCardNew from "@/components/SIMCardNew";
 import type { NormalizedSIM } from "@/lib/simUtils";
+import { getBirthYearLifeStage } from "@/lib/birthYearLifeStage";
 
 /**
  * Format số theo ngày sinh khớp: 0903714793 (khớp d1m1yy "4793" = 4.7.93)
@@ -64,47 +66,56 @@ const BirthYearSimGrid = ({
   month?: string;
   fallbackSims?: NormalizedSIM[];
 }) => {
-  const heading = day && month
-    ? `Kho SIM Sinh ${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`
-    : `Kho SIM Năm Sinh ${year}`;
+  const dd = day ? day.padStart(2, "0") : "";
+  const mm = month ? month.padStart(2, "0") : "";
+  const hasDate = Boolean(day && month);
+  // Nhãn ngữ cảnh dùng chung: theo ngày sinh đầy đủ hay chỉ theo năm.
+  const nhanNgay = hasDate ? `${dd}/${mm}/${year}` : `năm ${year}`;
+  // Heading cho nhánh CÓ số — nói đúng thứ khách sắp thấy (task 2A).
+  const headingCoSo = hasDate
+    ? `Có số trùng ngày sinh ${dd}/${mm}/${year} trong kho`
+    : `Có số chứa năm sinh ${year} trong kho`;
+  // Link sang công cụ sim hợp tuổi, prefill sẵn ngày sinh nếu có (khỏi nhập lại).
+  const phongThuyHref = `/sim-phong-thuy?nam=${year}${hasDate ? `&ngay=${day}&thang=${month}` : ""}`;
 
   if (sims.length === 0) {
-    const nhanNgay =
-      day && month ? `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}` : `năm ${year}`;
+    // Không có số trùng đúng ngày/năm sinh → KHÔNG để khách cụt hứng. Chuyển hướng
+    // chủ động sang tư vấn sim phong thủy hợp tuổi, nội dung đổi theo giai đoạn đời
+    // (dưới 22 học hành · 22–30 công việc · trên 30 thăng tiến). Task 2B.
+    const lifeStage = getBirthYearLifeStage(year);
     return (
       <div id="kho-sim" className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
         <h2 className="mb-3 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
           <span className="h-8 w-1 rounded-full bg-primary" />
-          {heading}
+          {hasDate ? `Sim theo ngày sinh ${dd}/${mm}/${year}` : `Sim theo năm sinh ${year}`}
         </h2>
-        <p className="mb-4 leading-relaxed text-muted-foreground">
-          Kho hiện chưa có số nào chứa đúng {nhanNgay}. Kho đổi hàng liên tục nên Quý khách có thể
-          xem lại sau.
+        <p className="mb-5 leading-relaxed text-muted-foreground">
+          Hiện kho chưa có số chứa đúng {nhanNgay} của Quý khách. Chọn Số Mobifone sẽ gợi ý sim
+          phong thủy hợp tuổi, hợp mệnh và mục tiêu sử dụng để Quý khách vẫn chọn được số phù hợp.
         </p>
 
-        {/* Ngõ ra thay vì ngõ cụt: trang này chỉ tìm số CHỨA đúng ngày sinh, còn công cụ phong thủy
-            chấm điểm cả kho theo mệnh và quẻ dịch nên luôn có số phù hợp. Khách đang muốn "số của
-            riêng tôi" thì đây đúng là bước tiếp theo, không phải một lời mời chung. */}
-        <div className="rounded-lg border border-gold/30 bg-gold/5 p-4 md:p-5">
-          <p className="mb-1.5 font-semibold text-foreground">
-            Cần số ngay? Chọn theo phong thủy thay vì theo con số ngày sinh
+        {/* Tư vấn theo giai đoạn đời — ngõ ra chủ động thay cho "xem lại sau".
+            Nội dung suy từ năm sinh qua getBirthYearLifeStage(). */}
+        <div className="rounded-lg border border-gold/30 bg-gold/5 p-5 md:p-6">
+          <p className="mb-1.5 flex items-center gap-2 font-semibold text-foreground">
+            <Sparkles className="h-4 w-4 flex-shrink-0 text-gold" />
+            {lifeStage.title}
           </p>
-          <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
-            Công cụ Sim hợp tuổi chấm điểm toàn bộ kho theo mệnh, ngũ hành và quẻ dịch của Quý khách,
-            nên luôn có số phù hợp dù dãy số không chứa {nhanNgay}.
-          </p>
+          <p className="mb-4 text-sm leading-relaxed text-muted-foreground">{lifeStage.body}</p>
           <Link
-            href={`/sim-phong-thuy?nam=${year}${day && month ? `&ngay=${day}&thang=${month}` : ""}`}
+            href={phongThuyHref}
             className="inline-flex items-center justify-center rounded-lg bg-gold px-6 py-2.5 font-bold text-header-bg shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:bg-gold-light"
           >
-            Xem sim hợp tuổi {year}
+            {lifeStage.cta}
           </Link>
         </div>
 
         {fallbackSims && fallbackSims.length > 0 && (
           <div className="mt-6">
-            <p className="mb-3 font-semibold text-foreground">
-              Hoặc tham khảo các số đẹp khác đang có trong kho:
+            <p className="mb-1 font-semibold text-foreground">Vài số đẹp đang có sẵn trong kho</p>
+            <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
+              Các số dưới đây <strong className="text-foreground">chưa trùng đúng {nhanNgay}</strong>,
+              chỉ là gợi ý để Quý khách tham khảo thêm.
             </p>
             <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3 md:gap-3">
               {fallbackSims.map((sim) => (
@@ -124,7 +135,7 @@ const BirthYearSimGrid = ({
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h2 className="flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
           <span className="h-8 w-1 rounded-full bg-primary" />
-          {heading}
+          {headingCoSo}
           {totalCount !== undefined && totalCount > 0 && (
             <span className="text-sm font-semibold text-muted-foreground">({totalCount.toLocaleString("vi-VN")} số)</span>
           )}
@@ -148,7 +159,7 @@ const BirthYearSimGrid = ({
       <p className="mt-4 border-t border-border pt-3 text-sm text-muted-foreground">
         Chưa thấy số đúng ngày sinh của Quý khách?{" "}
         <Link
-          href={`/sim-phong-thuy?nam=${year}${day && month ? `&ngay=${day}&thang=${month}` : ""}`}
+          href={phongThuyHref}
           className="font-semibold text-primary underline-offset-2 hover:underline"
         >
           Chọn theo phong thủy — chấm điểm toàn bộ kho theo mệnh của Quý khách

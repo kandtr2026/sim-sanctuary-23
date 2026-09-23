@@ -15,8 +15,14 @@ import {
 
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
-const CURRENT_YEAR = new Date().getFullYear();
-const YEARS = Array.from({ length: CURRENT_YEAR - 1949 }, (_, i) => CURRENT_YEAR - i);
+// Khoảng năm phải khớp isPlausibleBirthYear (serverSimData: 1955–2025). Nếu form
+// đưa năm ngoài dải này thì /sim-nam-sinh/[year] sẽ notFound() → khách cụt hứng.
+const YEAR_MIN = 1955;
+const YEAR_MAX = 2025;
+const YEARS = Array.from({ length: YEAR_MAX - YEAR_MIN + 1 }, (_, i) => YEAR_MAX - i);
+// Giá trị sentinel cho ô Ngày/Tháng khi khách muốn bỏ trống (tìm theo năm sinh).
+// Radix Select không nhận value rỗng nên phải dùng một token riêng.
+const NONE = "none";
 
 const normalize = (n: number): string => String(n).padStart(2, "0");
 
@@ -44,31 +50,53 @@ export default function SimNamSinhFinder() {
   const [month, setMonth] = useState<string>("");
   const [year, setYear] = useState<string>("");
 
+  // Ngày/tháng đi theo CẶP: có cả hai → tìm theo ngày sinh; bỏ trống cả hai →
+  // tìm theo năm sinh. Chọn lẻ một trong hai là trạng thái chưa hợp lệ.
+  const dayChosen = day !== "" && day !== NONE;
+  const monthChosen = month !== "" && month !== NONE;
+  const hasDayMonth = dayChosen && monthChosen;
+  const partialDate = dayChosen !== monthChosen; // đúng một ô được chọn
+  const canSearch = !!year && !partialDate;
+
   const handleSearch = () => {
-    if (!day || !month || !year) return;
-    router.push(`/sim-nam-sinh/${year}?d=${normalize(Number(day))}&m=${normalize(Number(month))}`);
+    if (!canSearch) return;
+    if (hasDayMonth) {
+      router.push(`/sim-nam-sinh/${year}?d=${normalize(Number(day))}&m=${normalize(Number(month))}`);
+    } else {
+      // Chỉ theo năm sinh.
+      router.push(`/sim-nam-sinh/${year}`);
+    }
   };
 
   return (
     <div className="relative rounded-2xl p-6 md:p-9" style={panelHeroStyle}>
-      <div className="flex items-center gap-3 mb-6">
-        <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: CHAMPAGNE }} />
-        <h2 className="text-[22px] md:text-2xl font-semibold flex items-center gap-2" style={{ color: "#F5F5F5", letterSpacing: "-0.01em" }}>
-          <Calendar className="w-5 h-5" style={{ color: CHAMPAGNE }} />
-          Tìm SIM theo ngày sinh của Quý khách
-        </h2>
+      <div className="mb-6">
+        <div className="flex items-center gap-3">
+          <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: CHAMPAGNE }} />
+          <h2 className="text-[22px] md:text-2xl font-semibold flex items-center gap-2" style={{ color: "#F5F5F5", letterSpacing: "-0.01em" }}>
+            <Calendar className="w-5 h-5" style={{ color: CHAMPAGNE }} />
+            Tìm SIM theo ngày sinh của Quý khách
+          </h2>
+        </div>
+        <p className="mt-2 pl-4 text-sm" style={{ color: "rgba(237,237,237,0.65)" }}>
+          Nhập <strong style={{ color: CHAMPAGNE }}>ngày/tháng/năm sinh</strong>, hoặc chỉ chọn{" "}
+          <strong style={{ color: CHAMPAGNE }}>năm sinh</strong> — Ngày và Tháng có thể để trống.
+        </p>
       </div>
 
       <div className="grid grid-cols-3 gap-3 md:gap-4">
         <div className="space-y-2">
           <Label htmlFor="ns-day" style={{ color: "rgba(237,237,237,0.8)" }} className="text-sm">
-            Ngày
+            Ngày <span style={{ color: "rgba(237,237,237,0.45)" }}>(tùy chọn)</span>
           </Label>
           <Select value={day} onValueChange={setDay}>
             <SelectTrigger id="ns-day" className={selectClass}>
               <SelectValue placeholder="Ngày" />
             </SelectTrigger>
             <SelectContent className="bg-[#1B1618] border-white/10 text-white max-h-72">
+              <SelectItem value={NONE} className="text-white/70 text-base">
+                — Bỏ trống —
+              </SelectItem>
               {DAYS.map((d) => (
                 <SelectItem key={d} value={String(d)} className="text-white text-base">
                   {d}
@@ -80,13 +108,16 @@ export default function SimNamSinhFinder() {
 
         <div className="space-y-2">
           <Label htmlFor="ns-month" style={{ color: "rgba(237,237,237,0.8)" }} className="text-sm">
-            Tháng
+            Tháng <span style={{ color: "rgba(237,237,237,0.45)" }}>(tùy chọn)</span>
           </Label>
           <Select value={month} onValueChange={setMonth}>
             <SelectTrigger id="ns-month" className={selectClass}>
               <SelectValue placeholder="Tháng" />
             </SelectTrigger>
             <SelectContent className="bg-[#1B1618] border-white/10 text-white max-h-72">
+              <SelectItem value={NONE} className="text-white/70 text-base">
+                — Bỏ trống —
+              </SelectItem>
               {MONTHS.map((m) => (
                 <SelectItem key={m} value={String(m)} className="text-white text-base">
                   {m}
@@ -98,7 +129,7 @@ export default function SimNamSinhFinder() {
 
         <div className="space-y-2">
           <Label htmlFor="ns-year" style={{ color: "rgba(237,237,237,0.8)" }} className="text-sm">
-            Năm sinh
+            Năm sinh <span style={{ color: CHAMPAGNE }}>*</span>
           </Label>
           <Select value={year} onValueChange={setYear}>
             <SelectTrigger id="ns-year" className={selectClass}>
@@ -115,29 +146,38 @@ export default function SimNamSinhFinder() {
         </div>
       </div>
 
-      {day && month && year && (
+      {partialDate ? (
+        <p className="mt-4 text-sm" style={{ color: "#E8A79F" }}>
+          Quý khách chọn <strong className="font-semibold">đủ cả Ngày và Tháng</strong>, hoặc để trống
+          cả hai để tìm theo năm sinh.
+        </p>
+      ) : hasDayMonth && year ? (
         <p className="mt-4 text-sm" style={{ color: "rgba(237,237,237,0.7)" }}>
-          Ngày sinh{" "}
+          Tìm số trùng đúng ngày sinh{" "}
           <strong className="font-semibold" style={{ color: CHAMPAGNE }}>
             {normalize(Number(day))}/{normalize(Number(month))}/{year}
           </strong>{" "}
-          — chúng tôi sẽ lọc những số có{" "}
+          trong kho.
+        </p>
+      ) : year ? (
+        <p className="mt-4 text-sm" style={{ color: "rgba(237,237,237,0.7)" }}>
+          Tìm những số có năm sinh{" "}
           <strong className="font-semibold" style={{ color: CHAMPAGNE }}>
             {year}
           </strong>{" "}
-          trong dãy
+          trong dãy.
         </p>
-      )}
+      ) : null}
 
       <Button
         onClick={handleSearch}
-        disabled={!day || !month || !year}
+        disabled={!canSearch}
         size="lg"
         className="mt-5 w-full md:w-auto text-white border-0 text-base font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
         style={ctaStyle}
       >
         <Search className="w-4 h-4 mr-2" />
-        Xem SIM năm sinh
+        {hasDayMonth ? "Tìm sim theo ngày sinh" : "Tìm sim theo năm sinh"}
       </Button>
 
       <p className="mt-4 text-xs" style={{ color: "rgba(237,237,237,0.5)" }}>

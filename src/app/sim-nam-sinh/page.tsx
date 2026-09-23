@@ -39,7 +39,7 @@ const faqData: FaqItem[] = [
   },
   {
     question: "Không có sim đúng ngày sinh của Quý khách thì sao?",
-    answer: "Kho đổi hàng liên tục nên Quý khách có thể xem lại sau, hoặc chuyển sang chọn theo phong thủy: công cụ Sim hợp tuổi chấm điểm toàn bộ kho theo mệnh, ngũ hành và quẻ dịch của Quý khách, nên luôn có số phù hợp dù dãy số không chứa năm sinh.",
+    answer: "Quý khách vẫn chọn được số phù hợp: chúng tôi chuyển sang gợi ý theo phong thủy hợp tuổi — công cụ Sim hợp tuổi chấm điểm toàn bộ kho theo mệnh, ngũ hành và quẻ dịch của Quý khách, nên luôn có số hợp dù dãy số không chứa năm sinh. Kho cũng đổi hàng liên tục nên Quý khách có thể xem lại sau.",
   },
   {
     question: "Mua sim năm sinh có đăng ký thông tin chính chủ không?",
@@ -101,8 +101,8 @@ export default function SimNamSinhPage() {
                 </span>
               </h1>
               <p style={{ color: "rgba(237, 237, 237, 0.7)" }} className="mx-auto max-w-xl text-sm md:text-base leading-relaxed">
-                Quý khách chọn ngày/tháng/năm sinh, chúng tôi lọc sẵn những số có năm sinh trong dãy. Giá niêm yết
-                công khai, đăng ký thông tin chính chủ, giao toàn quốc.
+                Quý khách nhập ngày/tháng/năm sinh — hoặc chỉ chọn năm sinh — chúng tôi lọc sẵn những số có năm sinh
+                trong dãy. Chưa có số đúng ngày sinh, chúng tôi gợi ý sim hợp tuổi để Quý khách vẫn chọn được số phù hợp.
               </p>
             </div>
 
