@@ -49,10 +49,9 @@ const PREFIX_FILTERS = [
 ];
 
 const SORT_OPTIONS: { label: string; value: SortOption }[] = [
-  { label: "Đề xuất", value: "mix" },
+  { label: "Điểm phong thuỷ thấp dần", value: "beauty" },
   { label: "Giá thấp đến cao", value: "price_asc" },
   { label: "Giá cao đến thấp", value: "price_desc" },
-  { label: "Điểm phong thuỷ cao", value: "beauty" },
 ];
 
 const ITEMS_PER_PAGE = 60;
@@ -72,7 +71,7 @@ const CategorySimGrid = ({
   const [activeSearch, setActiveSearch] = useState("");
   const [selectedPrice, setSelectedPrice] = useState<string | null>(null);
   const [selectedPrefix, setSelectedPrefix] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<SortOption>("mix");
+  const [sortBy, setSortBy] = useState<SortOption>("beauty");
   const [currentPage, setCurrentPage] = useState(1);
 
   // Debounce ô tìm kiếm ~300ms
@@ -139,7 +138,7 @@ const CategorySimGrid = ({
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE) || 1;
   const hasActiveSearch = activeSearch.trim().length > 0;
-  const hasActiveFilters = Boolean(selectedPrice || selectedPrefix || hasActiveSearch || sortBy !== "mix");
+  const hasActiveFilters = Boolean(selectedPrice || selectedPrefix || hasActiveSearch || sortBy !== "beauty");
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,7 +151,7 @@ const CategorySimGrid = ({
     setActiveSearch("");
     setSelectedPrice(null);
     setSelectedPrefix(null);
-    setSortBy("mix");
+    setSortBy("beauty");
     setCurrentPage(1);
   };
 
