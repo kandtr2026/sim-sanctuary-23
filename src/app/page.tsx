@@ -81,7 +81,7 @@ const DISCOVERY_LINKS: { href: string; label: string }[] = [
   { href: "/sim-nam-sinh", label: "Sim có năm sinh" },
   { href: "/sim-gia", label: "Sim theo tầm giá" },
   { href: "/sim-tam-hoa", label: "Sim tam hoa" },
-  { href: "/sim-tam-hoa-kep", label: "Sim tam hoa kép" },
+  { href: "/sim-tu-quy-giua", label: "Sim tứ quý giữa" },
   { href: "/sim-ganh-dao", label: "Sim gánh đảo" },
   { href: "/sim-lap-kep", label: "Sim lặp kép" },
   { href: "/sim-de-nho", label: "Sim dễ nhớ" },

@@ -1,8 +1,9 @@
 /**
  * Thống kê tồn kho cho HAI cụm trang programmatic mới:
  *
- *   1. Trang theo DẠNG SỐ  — /sim-tam-hoa, /sim-tam-hoa-kep, /sim-ganh-dao,
+ *   1. Trang theo DẠNG SỐ  — /sim-tam-hoa, /sim-tu-quy-giua, /sim-ganh-dao,
  *      /sim-lap-kep, /sim-de-nho, /sim-taxi, /sim-tien-len
+ *      (/sim-tam-hoa-kep đã gộp vào /sim-tam-hoa ngày 24/09, chỉ còn 301)
  *   2. Trang theo KHOẢNG GIÁ — /sim-gia, /sim-gia/[dai]
  *
  * Vì sao có file này: mỗi trang cần nói "khoảng giá thật" và "còn bao nhiêu số"

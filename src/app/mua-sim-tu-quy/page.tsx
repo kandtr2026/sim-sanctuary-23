@@ -196,6 +196,10 @@ export default async function MuaSimTuQuyPage() {
               <p>
                 Người Việt chọn số theo mệnh và theo tuổi, và tứ quý được xem là dạng đậm nghĩa nhất — một chữ số lặp bốn lần thì hàm ý của nó cũng được nhân lên. 1111 là khởi đầu, 6666 là lộc, 8888 là phát tài, 9999 là quyền lực. Bên cạnh giá trị sử dụng hằng ngày, nhiều khách hàng còn giữ sim tứ quý như một tài sản có thể lên giá theo thời gian.
               </p>
+              <p>
+                Kho trên trang này là tứ quý ở đuôi số (…8888). Số có cụm bốn số giống nhau nằm giữa dãy, như 0879.1111.66 hay 078.9999.700, Quý khách xem ở trang{" "}
+                <a href="/sim-tu-quy-giua" className="font-medium text-primary underline-offset-2 hover:underline">sim tứ quý giữa</a>.
+              </p>
             </div>
           </section>
 

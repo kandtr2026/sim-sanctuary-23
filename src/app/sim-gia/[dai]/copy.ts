@@ -34,7 +34,9 @@ export interface BandCopy {
 /** Tag dạng số → trang danh mục tương ứng, cho khối liên kết theo dữ liệu thật. */
 export const TAG_HREF: Record<string, string> = {
   "Tam hoa": "/sim-tam-hoa",
-  "Tam hoa kép": "/sim-tam-hoa-kep",
+  // A Khoa 24/09: gộp tam hoa kép vào tam hoa (trang cũ 301 về /sim-tam-hoa).
+  "Tam hoa kép": "/sim-tam-hoa",
+  "Tứ quý giữa": "/sim-tu-quy-giua",
   "Gánh đảo": "/sim-ganh-dao",
   "Lặp kép": "/sim-lap-kep",
   "Dễ nhớ": "/sim-de-nho",

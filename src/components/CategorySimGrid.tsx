@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Search, ChevronLeft, ChevronRight, X, ArrowUpDown, Filter, Sparkles, Phone, Compass } from "lucide-react";
 import SIMCardNew from "@/components/SIMCardNew";
 import type { NormalizedSIM, QuyType, SortOption } from "@/lib/simUtils";
+import type { MidQuyRun } from "@/lib/highlightUtils";
 
 interface CategorySimGridProps {
   /** Heading shown above the grid. */
@@ -28,6 +29,12 @@ interface CategorySimGridProps {
    * Matches the quý badges the homepage SimBrowser passes to the same cards.
    */
   quyFilter?: QuyType | null;
+  /**
+   * CHỈ hiển thị (không gửi lên /api/sims): tô cụm quý NẰM GIỮA dãy trên thẻ,
+   * vd 4 → tứ quý giữa 0879.1111.66. Lọc kho vẫn do `matchTags` lo. Đừng dùng
+   * `quyFilter` cho quý giữa: nó thành bộ lọc quyType "Tứ quý" = quý ĐUÔI.
+   */
+  highlightQuyRun?: MidQuyRun;
 }
 
 const PRICE_FILTERS = [
@@ -75,6 +82,7 @@ const CategorySimGrid = ({
   matchLastDigits,
   matchAll,
   quyFilter,
+  highlightQuyRun,
 }: CategorySimGridProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
@@ -412,7 +420,13 @@ const CategorySimGrid = ({
       ) : displaySims.length > 0 ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {displaySims.map((sim) => (
-            <SIMCardNew key={sim.id} sim={sim} quyFilter={quyFilter} searchQuery={activeSearch} />
+            <SIMCardNew
+              key={sim.id}
+              sim={sim}
+              quyFilter={quyFilter}
+              searchQuery={activeSearch}
+              highlightQuyRun={highlightQuyRun}
+            />
           ))}
         </div>
       ) : (

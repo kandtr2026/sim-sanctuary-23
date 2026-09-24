@@ -67,7 +67,9 @@ const ROUTES: StaticRoute[] = [
   // Trang theo DẠNG SỐ — tag đã gắn sẵn cho cả kho, mỗi trang là một cụm từ khoá
   // riêng mà trước đây site không có trang nào phủ (đối thủ có ~60 trang dạng này).
   { path: "/sim-tam-hoa", changeFrequency: "weekly", priority: 0.8, dynamic: true },
-  { path: "/sim-tam-hoa-kep", changeFrequency: "weekly", priority: 0.7, dynamic: true },
+  // KHÔNG khai "/sim-tam-hoa-kep": A Khoa 24/09 gộp vào /sim-tam-hoa, trang cũ chỉ
+  // còn `permanentRedirect` (cùng lý do với /sim-hop-menh ở trên).
+  { path: "/sim-tu-quy-giua", changeFrequency: "weekly", priority: 0.7, dynamic: true },
   { path: "/sim-ganh-dao", changeFrequency: "weekly", priority: 0.7, dynamic: true },
   { path: "/sim-lap-kep", changeFrequency: "weekly", priority: 0.7, dynamic: true },
   { path: "/sim-de-nho", changeFrequency: "weekly", priority: 0.7, dynamic: true },

@@ -7,7 +7,7 @@
 
 import React from 'react';
 import type { QuyType } from '@/lib/simUtils';
-import { blocksToDigitSet, planSimDisplay } from '@/lib/simDisplay';
+import { blocksToDigitSet, planSimDisplay, type DigitBlock } from '@/lib/simDisplay';
 
 /**
  * Get the best highlight digits for a suggestion card.
@@ -204,11 +204,79 @@ export const quyDisplayNumber = (
   displayNumber: string,
   rawDigits: string,
   quyType: QuyType
-): string =>
-  createQuyHighlightedNumber(displayNumber, rawDigits, quyType)
+): string => nodesToText(createQuyHighlightedNumber(displayNumber, rawDigits, quyType));
+
+/** Ghép node (chuỗi + span một-con-chữ) về đúng chuỗi mắt khách thấy. */
+const nodesToText = (nodes: React.ReactNode[]): string =>
+  nodes
     .map((node) => {
       if (typeof node === 'string') return node;
       if (React.isValidElement<{ children?: string }>(node)) return node.props.children ?? '';
       return '';
     })
     .join('');
+
+/** Độ dài cụm quý giữa: 4 = tứ quý giữa, 5 = ngũ quý giữa, 6 = lục quý giữa (từ 6 trở lên). */
+export type MidQuyRun = 4 | 5 | 6;
+
+/**
+ * Tìm cụm quý NẰM GIỮA dãy, khớp đúng luật danh mục "Tứ/Ngũ/Lục quý giữa" ở
+ * `supabase/functions/_shared/simCategories.ts` (`midRuns`): cụm chữ số giống
+ * nhau liền nhau, bỏ số 0 đầu, KHÔNG chạm số cuối; riêng tứ quý giữa phải bắt
+ * đầu sau 3 số đầu (cụm dính đầu số như 0333.3…, 0911.11… không tính).
+ * Tứ/ngũ quý giữa tính ĐÚNG 4/5 số, lục quý giữa từ 6 số trở lên.
+ *
+ * Không dùng lại `createQuyHighlightedNumber` được: nhánh "Tứ quý" của nó chỉ
+ * nhận cụm ĐUÔI, nhánh ngũ/lục lấy cụm dài nhất ở bất kỳ đâu (kể cả dính đầu số).
+ */
+export const findMidQuyRun = (rawDigits: string, run: MidQuyRun): DigitBlock | null => {
+  const d = (rawDigits || '').replace(/\D/g, '');
+  const from = run === 4 ? 3 : 1;
+  let i = 1;
+  while (i < d.length) {
+    let j = i;
+    while (j + 1 < d.length && d[j + 1] === d[i]) j++;
+    const len = j - i + 1;
+    if (j < d.length - 1 && i >= from && (run === 6 ? len >= 6 : len === run)) {
+      return { start: i, end: j + 1 };
+    }
+    i = j + 1;
+  }
+  return null;
+};
+
+/**
+ * Tô cụm quý giữa dãy, chấm lại thành đầu.CỤM.đuôi để cụm liền một khối:
+ *
+ *   0879111166 → 0879.1111.66
+ *   0789999700 → 078.9999.700
+ *   0929500002 → 0929.5.0000.2   (đầu 5 số tách 4 số đầu mạng cho dễ đọc)
+ *
+ * Trả về [displayNumber] khi số không có cụm quý giữa, để caller render kiểu thường.
+ */
+export const createMidQuyHighlightedNumber = (
+  displayNumber: string,
+  rawDigits: string,
+  run: MidQuyRun
+): React.ReactNode[] => {
+  const digits = (rawDigits || '').replace(/\D/g, '');
+  const found = findMidQuyRun(digits, run);
+  if (!found) return [displayNumber];
+
+  const prefix = digits.slice(0, found.start);
+  const head = prefix.length > 4 ? `${prefix.slice(0, 4)}.${prefix.slice(4)}` : prefix;
+  return [
+    React.createElement('span', { key: 'pre', className: 'opacity-80' }, head),
+    '.',
+    React.createElement('span', { key: 'quy', className: 'font-extrabold text-gold' }, digits.slice(found.start, found.end)),
+    '.',
+    React.createElement('span', { key: 'suf', className: 'opacity-80' }, digits.slice(found.end)),
+  ];
+};
+
+/** Chuỗi phẳng của `createMidQuyHighlightedNumber` — cho aria-label và Zalo. */
+export const midQuyDisplayNumber = (
+  displayNumber: string,
+  rawDigits: string,
+  run: MidQuyRun
+): string => nodesToText(createMidQuyHighlightedNumber(displayNumber, rawDigits, run));

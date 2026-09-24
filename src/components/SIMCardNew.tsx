@@ -5,7 +5,15 @@ import { Star, Cake, MessageCircle } from 'lucide-react';
 import type { NormalizedSIM, QuyType } from '@/lib/simUtils';
 import { matchesQuyType, formatPrice, formatBirthDateDisplayLenient, formatSIMNumber } from '@/lib/simUtils';
 import { cn } from '@/lib/utils';
-import { createHighlightedNumber, createQuyHighlightedNumber, quyDisplayNumber } from '@/lib/highlightUtils';
+import {
+  createHighlightedNumber,
+  createMidQuyHighlightedNumber,
+  createQuyHighlightedNumber,
+  findMidQuyRun,
+  midQuyDisplayNumber,
+  quyDisplayNumber,
+  type MidQuyRun,
+} from '@/lib/highlightUtils';
 import { planSimDisplay } from '@/lib/simDisplay';
 import ChipDiemPT from '@/components/ChipDiemPT';
 import ChipNguHanh from '@/components/ChipNguHanh';
@@ -31,6 +39,12 @@ interface SIMCardNewProps {
    * (vd d1m1yy 4 số), nên grid tự format và override cardDisplay.
    */
   birthDateDisplay?: string | null;
+  /**
+   * CHỈ hiển thị: tô cụm quý NẰM GIỮA dãy (4 = tứ quý giữa 0879.1111.66).
+   * Khác `quyFilter` (luôn là quý ĐUÔI với "Tứ quý"). Số không có cụm giữa thì
+   * thẻ hiện như thường.
+   */
+  highlightQuyRun?: MidQuyRun;
 }
 
 /**
@@ -45,7 +59,7 @@ interface SIMCardNewProps {
  */
 export const formatDiscountAmount = (amount: number): string => `Giảm ${formatPrice(amount)}`;
 
-const SIMCardNew = ({ sim, quyFilter, searchQuery = '', birthDateDisplay }: SIMCardNewProps) => {
+const SIMCardNew = ({ sim, quyFilter, searchQuery = '', birthDateDisplay, highlightQuyRun }: SIMCardNewProps) => {
   // Build rawNumber from ALL possible sources
   const rawNumber = (() => {
     const sources = [sim.rawDigits, sim.displayNumber, sim.formattedNumber];
@@ -97,11 +111,16 @@ const SIMCardNew = ({ sim, quyFilter, searchQuery = '', birthDateDisplay }: SIMC
   // Lưới quý (tứ/ngũ/lục) cũng chấm lại quanh cụm quý. Dùng lại cho aria-label
   // và popup đặt mua để khách thấy đúng một dạng số.
   const activeQuy = quyFilter && matchesQuyType(sim.rawDigits, quyFilter) ? quyFilter : null;
+  // Cụm quý giữa (trang /sim-tu-quy-giua): chỉ tô khi số thật sự có cụm đó.
+  const activeMidQuy =
+    highlightQuyRun && findMidQuyRun(sim.rawDigits || rawNumber, highlightQuyRun) ? highlightQuyRun : null;
   const searchDisplay = searchQuery?.trim()
     ? planSimDisplay(sim.rawDigits || rawNumber, searchQuery, cardDisplay).display
     : activeQuy
       ? quyDisplayNumber(cardDisplay, sim.rawDigits, activeQuy)
-      : cardDisplay;
+      : activeMidQuy
+        ? midQuyDisplayNumber(cardDisplay, sim.rawDigits || rawNumber, activeMidQuy)
+        : cardDisplay;
 
   const formatWithHighlight = (displayNumber: string): React.ReactNode => {
     // Active quý filter: tôn cái DẠNG quý lên (vd *77777* ở giữa dãy số),
@@ -111,6 +130,12 @@ const SIMCardNew = ({ sim, quyFilter, searchQuery = '', birthDateDisplay }: SIMC
       if (quyHighlighted.length !== 1 || typeof quyHighlighted[0] !== 'string') {
         return <>{quyHighlighted}</>;
       }
+    }
+
+    // Trang quý giữa: tôn cụm giữa dãy lên (0879.1111.66), đứng trước dạng
+    // ngày sinh vì đây là lý do số có mặt trên trang.
+    if (activeMidQuy) {
+      return <>{createMidQuyHighlightedNumber(displayNumber, sim.rawDigits || rawNumber, activeMidQuy)}</>;
     }
 
     // SIM năm sinh: ngày sinh (phần sau dấu chấm đầu tiên) tô vàng — khách thấy

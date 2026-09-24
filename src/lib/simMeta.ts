@@ -38,7 +38,8 @@ export const TAG_META: Record<string, TagMeta> = {
   "Tam hoa kép": {
     label: "Tam hoa kép",
     blurb: "sáu số cuối là hai bộ ba giống nhau (000.111), dãy bề thế mà vẫn dễ đọc.",
-    path: "/sim-tam-hoa-kep",
+    // A Khoa 24/09: gộp tam hoa kép vào tam hoa (trang cũ 301 về /sim-tam-hoa).
+    path: "/sim-tam-hoa",
   },
   "Tam hoa": {
     label: "Tam hoa",
@@ -58,6 +59,7 @@ export const TAG_META: Record<string, TagMeta> = {
   "Tứ quý giữa": {
     label: "Tứ quý giữa",
     blurb: "bốn số giống nhau liền nhau nằm giữa dãy, đọc lên có một nhịp chắc.",
+    path: "/sim-tu-quy-giua",
   },
   Taxi: {
     label: "Taxi",

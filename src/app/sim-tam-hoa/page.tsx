@@ -47,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const faqItems = [
   {
     q: "Sim tam hoa là gì?",
-    a: "Tam hoa là ba chữ số giống nhau đứng liền nhau ở cuối dãy — 0906.839.222, 0938.366.000. Cách gọi đến từ chỗ ba con số cùng mặt xếp thành một cụm, đọc lên nghe như một nhịp duy nhất. Trên kho này, một số vào nhóm tam hoa khi ba chữ số cuối giống nhau và cả dãy chỉ có đúng một cụm ba số như vậy; có hai cụm thì thuộc nhóm tam hoa kép, còn bốn số cuối giống nhau đã là tứ quý.",
+    a: "Tam hoa là ba chữ số giống nhau đứng liền nhau ở cuối dãy — 0906.839.222, 0938.366.000. Cách gọi đến từ chỗ ba con số cùng mặt xếp thành một cụm, đọc lên nghe như một nhịp duy nhất. Trên kho này, một số vào nhóm tam hoa khi đúng ba chữ số cuối giống nhau. Dạng tam hoa kép — sáu số cuối AAA.BBB như 0903.111.222 — nằm chung trong danh sách tam hoa này; còn bốn số cuối giống nhau đã là tứ quý.",
   },
   {
     q: "Sim tam hoa giá bao nhiêu?",
@@ -151,16 +151,13 @@ export default async function SimTamHoaPage() {
                 thành một cụm.
               </p>
               <p>
-                Trên kho này, luật nhận số tam hoa rất chặt: ba chữ số cuối phải giống nhau, và cả dãy chỉ có đúng một
-                cụm ba số như thế. Dãy nào có hai cụm (0901.111.222) được xếp sang{" "}
-                <a href="/sim-tam-hoa-kep" className="font-medium text-primary underline-offset-2 hover:underline">
-                  tam hoa kép
-                </a>
-                ; dãy có bốn số cuối giống nhau đã bước sang{" "}
+                Trên kho này, luật nhận số tam hoa rất rõ: đúng ba chữ số cuối giống nhau. Dạng{" "}
+                <strong className="text-foreground">tam hoa kép</strong> — sáu số cuối AAA.BBB như 0903.111.222 — nằm
+                chung trong danh sách tam hoa này; dãy có bốn số cuối giống nhau đã bước sang{" "}
                 <a href="/mua-sim-tu-quy" className="font-medium text-primary underline-offset-2 hover:underline">
                   tứ quý
                 </a>
-                . Nhờ vậy con số Quý khách thấy dưới đây đúng là số tam hoa, không lẫn nhóm khác.
+                . Nhờ vậy con số Quý khách thấy dưới đây đúng là số đuôi tam hoa, không lẫn tứ quý.
               </p>
             </div>
           </section>
@@ -269,8 +266,8 @@ export default async function SimTamHoaPage() {
               Các dạng số gần với tam hoa
             </h2>
             <ul className="flex flex-wrap gap-3 text-sm">
-              <li><a href="/sim-tam-hoa-kep" className="font-medium text-primary underline-offset-2 hover:underline">Sim tam hoa kép</a></li>
               <li><a href="/mua-sim-tu-quy" className="font-medium text-primary underline-offset-2 hover:underline">Sim tứ quý</a></li>
+              <li><a href="/sim-tu-quy-giua" className="font-medium text-primary underline-offset-2 hover:underline">Sim tứ quý giữa</a></li>
               <li><a href="/sim-ngu-quy" className="font-medium text-primary underline-offset-2 hover:underline">Sim ngũ quý</a></li>
               <li><a href="/sim-lap-kep" className="font-medium text-primary underline-offset-2 hover:underline">Sim lặp kép</a></li>
               <li><a href="/sim-ganh-dao" className="font-medium text-primary underline-offset-2 hover:underline">Sim gánh đảo</a></li>
