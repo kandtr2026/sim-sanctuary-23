@@ -602,7 +602,7 @@ export const sortSIMs = (sims: NormalizedSIM[], sortBy: SortOption): NormalizedS
     case 'price_desc':
       return sorted.sort((a, b) => b.price - a.price);
     case 'beauty':
-      return sorted.sort((a, b) => b.beautyScore - a.beautyScore);
+      return sorted.sort((a, b) => diemPt(b) - diemPt(a) || b.beautyScore - a.beautyScore || a.price - b.price);
     case 'suffix_beauty':
       return sorted.sort((a, b) => {
         // Priority for ending patterns
