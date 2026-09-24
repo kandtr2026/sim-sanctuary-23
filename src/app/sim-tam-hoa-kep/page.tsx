@@ -16,9 +16,9 @@ const ZALO_URL = "https://zalo.me/0933686666";
 // Chuỗi tag đúng như trong ALL_SIM_TAGS (src/lib/simUtils.ts).
 const TAG = "Tam hoa kép";
 
-const TITLE = "Sim Tam Hoa Kép Mobifone | Hai Cụm Ba Số Trong Dãy";
+const TITLE = "Sim Tam Hoa Kép Mobifone | Sáu Số Cuối Dạng AAA.BBB";
 const DESCRIPTION =
-  "Sim tam hoa kép Mobifone: hai cụm ba số giống nhau trong cùng dãy, kiểu 111.222 hay 999.777. Giá công khai từng số, hàng có sẵn, đăng ký thông tin chính chủ.";
+  "Sim tam hoa kép Mobifone: sáu số cuối là hai bộ ba giống nhau đứng liền, kiểu 111.222 hay 999.777. Giá công khai từng số, hàng có sẵn, đăng ký thông tin chính chủ.";
 const CANONICAL = `${BASE_URL}/sim-tam-hoa-kep`;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -33,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       title: TITLE,
-      description: "Sim tam hoa kép Mobifone — hai cụm ba số giống nhau trong một dãy. Giá công khai.",
+      description: "Sim tam hoa kép Mobifone — sáu số cuối là hai bộ ba đứng liền, kiểu 111.222. Giá công khai.",
       url: CANONICAL,
       images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
     },
@@ -43,11 +43,11 @@ export async function generateMetadata(): Promise<Metadata> {
 const faqItems = [
   {
     q: "Sim tam hoa kép là gì?",
-    a: "Tam hoa kép là dãy số chứa hai cụm ba số giống nhau, mỗi cụm một con số khác nhau — 0901.111.222, 0799.977.799. Hai cụm có thể nằm sát nhau hoặc cách nhau vài chữ số. Điểm nhận biết: trong cùng một số điện thoại có hai lần ba chữ số cùng mặt đứng liền.",
+    a: "Tam hoa kép là số có sáu số cuối gồm hai bộ ba giống nhau đứng liền nhau, dạng AAA.BBB với hai con số khác nhau — 0387.000.111, 0901.111.222, 098.1999.111. Hai cụm ba nằm cách nhau hoặc nằm giữa dãy thì không tính. Điểm nhận biết: tách sáu số cuối làm đôi, mỗi nửa là ba chữ số cùng mặt.",
   },
   {
     q: "Tam hoa kép khác tam hoa thường ở đâu?",
-    a: "Tam hoa thường có một cụm ba số ở đuôi. Tam hoa kép có hai cụm, nên dãy số vừa dài phần dễ nhớ vừa hiếm hơn. Nguồn hàng ít hơn tam hoa đơn nhiều lần, và đó là lý do chính khiến giá của nhóm này cao hơn ở cùng đầu số.",
+    a: "Tam hoa thường chỉ cần ba số cuối giống nhau (…222). Tam hoa kép đòi thêm ba số liền trước cũng là một bộ ba, khác con số (…111.222). Vì vậy mỗi số tam hoa kép đồng thời là tam hoa và thuộc nhóm dễ nhớ — một số nằm trong nhiều nhóm cùng lúc — nhưng chiều ngược lại thì không. Nguồn hàng ít hơn tam hoa đơn nhiều lần, và đó là lý do chính khiến giá của nhóm này cao hơn ở cùng đầu số.",
   },
   {
     q: "Sim tam hoa kép giá bao nhiêu?",
@@ -98,7 +98,7 @@ export default async function SimTamHoaKepPage() {
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
               {stats.count > 0
-                ? `Nhóm số khan: cả kho còn ${stats.count.toLocaleString("vi-VN")} dãy có hai cụm ba số, giá từ ${formatTrieu(stats.min)}. Đăng ký thông tin chính chủ, nhận SIM kiểm tra rồi thanh toán.`
+                ? `Nhóm số khan: cả kho còn ${stats.count.toLocaleString("vi-VN")} số có sáu số cuối là hai bộ ba đứng liền, giá từ ${formatTrieu(stats.min)}. Đăng ký thông tin chính chủ, nhận SIM kiểm tra rồi thanh toán.`
                 : "Nhóm số khan, kho đang trống tạm thời. Quý khách để lại yêu cầu qua Zalo để nhận tin khi có dãy mới."}
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
@@ -124,7 +124,7 @@ export default async function SimTamHoaKepPage() {
           {/* Kho + ô tìm lên đầu để khách vừa vào tìm được ngay (góp ý #32) */}
           <CategorySimGrid
             title="Sim Tam Hoa Kép Mới Cập Nhật"
-            searchPlaceholder="Nhập số cần tìm, hoặc *888999 để thử một cặp cụ thể"
+            searchPlaceholder="Nhập số cần tìm, hoặc *888999 để tìm đúng đuôi mong muốn"
             emptyText="Nhóm này về lẻ và đi rất nhanh nên kho có lúc trống. Quý khách nhắn Zalo 0933686666, đội ngũ tư vấn sẽ báo ngay khi có dãy phù hợp."
             matchTags={[TAG]}
           />
@@ -139,20 +139,23 @@ export default async function SimTamHoaKepPage() {
               <p>
                 Đặt hai số cạnh nhau: <strong className="text-foreground">0906.839.222</strong> và{" "}
                 <strong className="text-foreground">0901.111.222</strong>. Số đầu có một cụm ba con số giống nhau, gọi là
-                tam hoa. Số sau có hai cụm — 111 rồi 222 — và đó là{" "}
+                tam hoa. Số sau có sáu số cuối là hai cụm — 111 rồi 222 — đứng liền nhau, và đó là{" "}
                 <strong className="text-foreground">tam hoa kép</strong>.
               </p>
               <p>
-                Hai cụm không bắt buộc phải sát nhau. Dãy <strong className="text-foreground">0799.977.799</strong> cũng
-                thuộc nhóm này: cụm 999 nằm giữa, cụm 777 theo sau. Luật nhận số của kho chỉ đòi một điều — trong cùng
-                một số thuê bao có hai lần ba chữ số cùng mặt đứng liền nhau, mỗi lần một con số khác nhau.
+                Luật nhận số của kho chỉ nhìn vào sáu số cuối: phải là hai bộ ba đứng liền, dạng AAA.BBB, mỗi bộ một
+                con số khác nhau — như <strong className="text-foreground">0387.000.111</strong> hay{" "}
+                <strong className="text-foreground">098.1999.111</strong>. Hai cụm ba nằm cách nhau, hoặc nằm giữa dãy,
+                thì không tính là tam hoa kép.
               </p>
               <p>
-                Nguồn hàng vì thế hẹp hơn nhiều so với{" "}
+                Vì ba số cuối luôn giống nhau, mỗi số tam hoa kép cũng là một số tam hoa và thuộc nhóm dễ nhớ — một số
+                nằm trong nhiều nhóm cùng lúc. Nhưng chỉ số ít tam hoa có ba số liền trước cũng là một bộ ba, nên nguồn
+                hàng hẹp hơn nhiều so với{" "}
                 <a href="/sim-tam-hoa" className="font-medium text-primary underline-offset-2 hover:underline">
                   tam hoa đơn
                 </a>
-                . Kho tam hoa kép chỉ bằng khoảng một phần ba tam hoa đơn, và dãy có cặp 8–9 thường có chủ rất sớm.
+                , và dãy có cặp 8–9 thường có chủ rất sớm.
               </p>
             </div>
           </section>
@@ -181,7 +184,7 @@ export default async function SimTamHoaKepPage() {
                   </tr>
                   <tr className="border-b border-border">
                     <td className="py-2 pr-4 font-medium text-foreground">Tam hoa kép</td>
-                    <td className="py-2 pr-4">Hai cụm ba số (…111.222)</td>
+                    <td className="py-2 pr-4">Sáu số cuối là hai bộ ba liền nhau (…111.222)</td>
                     <td className="py-2">Muốn dãy có nhịp, khan hàng, giữ giá</td>
                   </tr>
                   <tr>
@@ -193,7 +196,7 @@ export default async function SimTamHoaKepPage() {
               </table>
             </div>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              Cùng một đầu số, tam hoa kép nằm giữa hai nhóm kia về giá. Anh Chị cần dãy nói được vị thế mà chưa muốn
+              Cùng một đầu số, tam hoa kép nằm giữa hai nhóm kia về giá. Quý khách cần dãy nói được vị thế mà chưa muốn
               lên tầm tứ quý thì đây là bậc hợp lý nhất.
             </p>
           </section>

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { calculateBeautyScore, detectSimCategories, isVIPSim } from "../_shared/simCategories.ts";
 
 // ---------------------------------------------------------------------------
 // sync-sims: đồng bộ kho SIM từ Google Sheet vào bảng `sims` trên Supabase.
@@ -44,7 +45,7 @@ const SYNC_STATE_KEY = 'sims_sheet';
  * là hàm thuần của chúng + phiên bản luật, nên bump version ở đây là cách buộc
  * một lượt ghi lại toàn bộ sau khi sửa luật, mà không phải băm thêm ~10 cột.
  */
-const FINGERPRINT_VERSION = 'v2';
+const FINGERPRINT_VERSION = 'v3'; // v3 (09/2026): danh mục kiểu simthanglong, 1 số nhiều danh mục
 
 /**
  * Dưới ngưỡng này thì ô giá là lỗi nhập tay hoặc lệch đơn vị, không phải giá
@@ -181,183 +182,13 @@ const detectNetwork = (digits: string): string => {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-// CHẤM ĐIỂM SIM — BẢN SAO 1:1 CỦA src/lib/simUtils.ts
+// CHẤM ĐIỂM SIM — import THẲNG file luật dùng chung với web
 //
-// ⚠️ NGUỒN CHÂN LÝ LÀ src/lib/simUtils.ts. Deno không import được từ `src/`
-// (alias `@/`, module graph của Next), nên luật buộc phải nhân bản ở đây. Cùng
-// một SIM có thể được chấm ở HAI nơi: job này ghi vào `sims.tags/beauty_score/
-// is_vip`, còn `simsDbRowToNormalized` (src/lib/serverSimData.ts:246) tự chấm
-// lại khi `tags` rỗng. Hai bản lệch nhau ⇒ cùng một số có điểm khác nhau tuỳ
-// đường đọc, và facet/sort "đẹp nhất" sẽ mâu thuẫn với chính nó.
-//
-// SỬA LUẬT Ở simUtils.ts THÌ PHẢI SỬA Ở ĐÂY, rồi bump FINGERPRINT_VERSION để
-// buộc ghi lại toàn bộ. Có test đối chiếu: xem mục "Verify" trong bàn giao —
-// script so 51.639 số giữa hai bản, phải khớp 100% (tags, điểm, VIP).
-//
-// Đã đối chiếu: detectSimTags / calculateBeautyScore / isVIPSim /
-// tryParseBirthDateLenient của simUtils.ts (bản 2026-08-29).
+// Trước 09/2026 luật tag/điểm/VIP bị chép tay ở đây ("bản sao 1:1 của simUtils")
+// và đã lệch nhau (bản này còn gắn 'Ông địa' sau khi web bỏ). Giờ cả hai cùng
+// import supabase/functions/_shared/simCategories.ts — sửa luật ở ĐÓ, rồi bump
+// FINGERPRINT_VERSION bên trên để lượt sync kế tiếp ghi lại toàn bộ cột suy ra.
 // ═══════════════════════════════════════════════════════════════════════════
-
-/** Số ngày trong tháng (1-based). Loại "31.11" khỏi sim năm sinh. */
-const NGAY_TRONG_THANG = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
-const laNamNhuan = (y: number): boolean => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
-
-/** Port của `tryParseBirthDateLenient` (simUtils.ts:363) — chỉ phần cần cho tag. */
-const parseBirthDateLenient = (rawDigits: string): boolean => {
-  const digits = String(rawDigits ?? '').replace(/\D/g, '');
-  if (digits.length < 4) return false;
-
-  const tryDate = (d: number, m: number, y: number): boolean => {
-    if (d < 1 || m < 1 || m > 12) return false;
-    const maxDay = NGAY_TRONG_THANG[m - 1] + (m === 2 && laNamNhuan(y) ? 1 : 0);
-    return d <= maxDay;
-  };
-  const expand2DigitYear = (yy: number): number | null => (yy <= 29 ? 2000 + yy : yy >= 50 ? 1900 + yy : null);
-  const is4DigitYear = (y: number): boolean => y >= 1950 && y <= 2035;
-
-  // Thứ tự combo GIỮ NGUYÊN theo simUtils (ưu tiên năm 4 chữ số).
-  const combos: [number, number, number][] = [
-    [2, 2, 4], // DDMMYYYY
-    [2, 1, 4], // DDMYYYY
-    [1, 1, 4], // DMYYYY
-    [2, 2, 2], // DDMMYY
-    [2, 1, 2], // DDMYY
-  ];
-
-  for (const [dLen, mLen, yLen] of combos) {
-    const tailLen = dLen + mLen + yLen;
-    if (tailLen > digits.length) continue;
-    const prefixLen = digits.length - tailLen;
-    if (prefixLen < 3 || prefixLen > 4) continue;
-
-    const tail = digits.slice(-tailLen);
-    const d = Number(tail.slice(0, dLen));
-    const m = Number(tail.slice(dLen, dLen + mLen));
-    const yStr = tail.slice(dLen + mLen);
-
-    let y: number | null = null;
-    if (yLen === 4) {
-      const yFull = Number(yStr);
-      if (is4DigitYear(yFull)) y = yFull;
-    } else {
-      y = expand2DigitYear(Number(yStr));
-    }
-    if (y === null) continue;
-    if (!tryDate(d, m, y)) continue;
-    return true;
-  }
-  return false;
-};
-
-/** Port 1:1 của `detectSimTags` (simUtils.ts:129). Thứ tự tag giữ nguyên. */
-const detectSimTags = (rawDigits: string): string[] => {
-  const tags: string[] = [];
-  const digitsOnly = rawDigits.replace(/\D/g, '');
-  const last3 = digitsOnly.slice(-3);
-  const last4 = digitsOnly.slice(-4);
-  const last6 = digitsOnly.slice(-6);
-
-  // Lục/Ngũ quý: 6/5 chữ số giống nhau LIỀN NHAU ở BẤT KỲ vị trí. Tứ quý: 4 số
-  // ĐUÔI giống nhau và số phải đúng 10 chữ số. Ba tag này loại trừ nhau.
-  const anySame6 = /(\d)\1{5}/.test(digitsOnly);
-  const anySame5 = /(\d)\1{4}/.test(digitsOnly);
-  const allSameLast4 = digitsOnly.length === 10 && last4.length === 4 && /^(\d)\1{3}$/.test(last4);
-
-  if (anySame6) tags.push('Lục quý');
-  else if (anySame5) tags.push('Ngũ quý');
-  else if (allSameLast4) tags.push('Tứ quý');
-
-  // Tam hoa / Tam hoa kép (loại trừ nhau, và chỉ khi chưa có tag quý).
-  if (!tags.some((t) => t.includes('quý'))) {
-    const tripleMatches = rawDigits.match(/(\d)\1{2}/g) || [];
-    const distinctTripleDigits = new Set<string>();
-    for (const match of tripleMatches) distinctTripleDigits.add(match[0]);
-
-    if (distinctTripleDigits.size >= 2) {
-      tags.push('Tam hoa kép');
-    } else if (distinctTripleDigits.size === 1) {
-      if (rawDigits.length === 10 && last3[0] === last3[1] && last3[1] === last3[2] && !tags.some((t) => t.includes('quý'))) {
-        tags.push('Tam hoa');
-      }
-    }
-  }
-
-  // Phong thuỷ (cùng tồn tại được).
-  if (/39$|79$/.test(rawDigits)) tags.push('Thần tài');
-  if (/68$|86$/.test(rawDigits)) tags.push('Lộc phát');
-  if (/38$|78$/.test(rawDigits)) tags.push('Ông địa');
-
-  if (/0123$|1234$|2345$|3456$|4567$|5678$|6789$/.test(rawDigits)) tags.push('Tiến lên');
-
-  // Gánh đảo: ABBA ở 4 số cuối, A ≠ B.
-  if (last4.length === 4 && last4[0] === last4[3] && last4[1] === last4[2] && last4[0] !== last4[1]) {
-    tags.push('Gánh đảo');
-  }
-
-  // Lặp kép: AABB (4 số cuối) hoặc AABBCC (6 số cuối).
-  if (!tags.some((t) => t.includes('quý') || t === 'Tam hoa kép')) {
-    if (/^(\d)\1(\d)\2$/.test(last4) && last4[0] !== last4[2]) tags.push('Lặp kép');
-    else if (/^(\d)\1(\d)\2(\d)\3$/.test(last6)) tags.push('Lặp kép');
-  }
-
-  // Năm sinh: parser linh hoạt trước, fallback 4 số cuối là năm 1980–2029.
-  if (parseBirthDateLenient(rawDigits)) {
-    tags.push('Năm sinh');
-  } else {
-    const year = parseInt(rawDigits.slice(-4), 10);
-    if (year >= 1980 && year <= 2029) tags.push('Năm sinh');
-  }
-
-  // Taxi = ABABAB hoặc ABCABC trên 6 số cuối.
-  const tail6 = rawDigits.slice(-6);
-  const isTaxi2 = tail6.length === 6 &&
-    tail6[0] === tail6[2] && tail6[2] === tail6[4] &&
-    tail6[1] === tail6[3] && tail6[3] === tail6[5] &&
-    tail6[0] !== tail6[1];
-  const block3a = tail6.slice(0, 3);
-  const block3b = tail6.slice(3, 6);
-  const isAllSameDigit = block3a[0] === block3a[1] && block3a[1] === block3a[2];
-  const isTaxi3 = tail6.length === 6 && block3a === block3b && !isAllSameDigit;
-  if (isTaxi2 || isTaxi3) tags.push('Taxi');
-
-  // Dễ nhớ (ABAB ở 4 số cuối) — chỉ khi chưa có tag mạnh hơn.
-  if (!tags.some((t) => ['Lặp kép', 'Tứ quý', 'Ngũ quý', 'Lục quý', 'Tam hoa kép', 'Taxi'].includes(t))) {
-    if (/^(\d{2})\1$/.test(last4)) tags.push('Dễ nhớ');
-  }
-
-  return tags;
-};
-
-/** Ngưỡng VIP theo giá — mặc định của simUtils.ts (calculateBeautyScore/isVIPSim). */
-const VIP_PRICE_THRESHOLD = 50_000_000;
-
-/** Port 1:1 của `calculateBeautyScore` (simUtils.ts:246). */
-const calculateBeautyScore = (tags: string[], price: number): number => {
-  let score = 0;
-  if (tags.includes('Lục quý')) score += 100;
-  if (tags.includes('Ngũ quý')) score += 80;
-  if (tags.includes('Tứ quý')) score += 60;
-  if (tags.includes('Tam hoa kép')) score += 55;
-  if (tags.includes('Tam hoa')) score += 40;
-  if (tags.includes('Thần tài')) score += 25;
-  if (tags.includes('Lộc phát')) score += 25;
-  if (tags.includes('Ông địa')) score += 20;
-  if (tags.includes('Tiến lên')) score += 20;
-  if (tags.includes('Gánh đảo')) score += 20;
-  if (tags.includes('Lặp kép')) score += 20;
-  if (tags.includes('Năm sinh')) score += 15;
-  if (tags.includes('Dễ nhớ')) score += 10;
-  if (tags.includes('Taxi')) score += 5;
-  if (price >= VIP_PRICE_THRESHOLD) score += 10;
-  return score;
-};
-
-/** Port 1:1 của `isVIPSim` (simUtils.ts:272). */
-const isVIPSim = (tags: string[], price: number): boolean => {
-  const vipTags = ['Lục quý', 'Ngũ quý', 'Tứ quý', 'Tam hoa kép'];
-  return vipTags.some((t) => tags.includes(t)) || price >= VIP_PRICE_THRESHOLD;
-};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // VÂN TAY DỮ LIỆU (thay cho so sánh SỐ DÒNG)
@@ -542,7 +373,7 @@ serve(async (req) => {
         ? 'available'
         : STATUS_INVALID_PRICE;
 
-      const tags = detectSimTags(digits);
+      const tags = [...detectSimCategories(digits)];
 
       toUpsert.push({
         id: simId,

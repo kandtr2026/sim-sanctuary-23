@@ -18,7 +18,7 @@ const TAG = "Taxi";
 
 const TITLE = "Sim Taxi Là Gì? Kho Sim Taxi Mobifone 417417, 070070";
 const DESCRIPTION =
-  "Sim taxi là số có sáu chữ số cuối lặp thành cụm: 417.417 hay 07.07.07. Nghe một lần đọc lại được ngay. Kho Mobifone giá công khai, đăng ký thông tin chính chủ.";
+  "Sim taxi có đuôi lặp nguyên khối: 417.417, 07.07.07 hay 3560.3560. Nghe một lần đọc lại được ngay. Kho Mobifone giá công khai, đăng ký thông tin chính chủ.";
 const CANONICAL = `${BASE_URL}/sim-taxi`;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -33,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       title: TITLE,
-      description: "Sim taxi Mobifone — sáu số cuối lặp thành cụm 417.417, 07.07.07. Giá công khai.",
+      description: "Sim taxi Mobifone — đuôi lặp nguyên khối 417.417, 07.07.07, 3560.3560. Giá công khai.",
       url: CANONICAL,
       images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
     },
@@ -43,11 +43,11 @@ export async function generateMetadata(): Promise<Metadata> {
 const faqItems = [
   {
     q: "Sim taxi là gì?",
-    a: "Sim taxi là số có sáu chữ số cuối lặp lại thành cụm. Hai dạng được tính: cụm ba số lặp một lần — 0938.417.417, 0764.979.979 — và cặp hai số lặp ba lần, kiểu 07.07.07. Tên gọi đến từ giới taxi và xe tải: số in lên thân xe phải đọc được khi xe đang chạy, nên nhà xe săn đúng dạng số này.",
+    a: "Sim taxi là số có đuôi lặp nguyên khối: một cụm số đứng liền nhau nhiều lần ở cuối dãy. Ba dạng được tính: cụm ba số lặp hai lần — 0938.417.417, 0764.979.979; cặp hai số lặp ba lần, kiểu 07.07.07; và cụm bốn số lặp hai lần ở tám số cuối, kiểu 08.3560.3560 hay 07.8718.8718. Hiếm hơn nữa là cả dãy mười số chia đôi thành hai khối năm số giống nhau, như 08773.08773. Tên gọi đến từ giới taxi và xe tải: số in lên thân xe phải đọc được khi xe đang chạy, nên nhà xe săn đúng dạng số này.",
   },
   {
     q: "Sim taxi và sim lặp kép khác nhau ở đâu?",
-    a: "Lặp kép chỉ lặp hai cặp ở bốn số cuối (…2288). Sim taxi lặp cả một cụm ba số hoặc lặp cặp tới ba lần, tức phần có cấu trúc dài tới sáu chữ số. Nhìn trên danh thiếp, dãy taxi tách thành hai khối giống nhau nên mắt nhận ra ngay.",
+    a: "Lặp kép chỉ xét bốn số cuối: hai cặp kép liền nhau (…2288) hoặc một cặp lặp lại (…8585). Sim taxi lặp cả một cụm ba, bốn số hoặc lặp cặp tới ba lần, tức phần có cấu trúc dài từ sáu chữ số trở lên. Hai nhóm có chỗ giao nhau: dãy kiểu 40.40.40 có bốn số cuối 4040 nên vừa là taxi vừa là lặp kép, Quý khách sẽ gặp nó ở cả hai trang. Nhìn trên danh thiếp, dãy taxi tách thành những khối giống nhau nên mắt nhận ra ngay.",
   },
   {
     q: "Sim taxi giá bao nhiêu?",
@@ -59,7 +59,7 @@ const faqItems = [
   },
   {
     q: "Kho sim taxi có nhiều số không?",
-    a: "Nhóm này khan hơn hẳn tam hoa hay gánh đảo vì cần tới sáu chữ số xếp đúng dạng. Danh sách trên trang cập nhật theo kho mỗi 5 phút; nếu chưa thấy cụm Quý khách muốn, đội ngũ tư vấn sẽ báo khi có dãy mới qua Zalo 0933686666.",
+    a: "Nhóm này khan hơn hẳn tam hoa hay gánh đảo vì cần ít nhất sáu chữ số cuối xếp đúng dạng, dạng cụm bốn số còn cần tới tám. Danh sách trên trang cập nhật theo kho mỗi 5 phút; nếu chưa thấy cụm Quý khách muốn, đội ngũ tư vấn sẽ báo khi có dãy mới qua Zalo 0933686666.",
   },
 ];
 
@@ -98,8 +98,8 @@ export default async function SimTaxiPage() {
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
               {stats.count > 0
-                ? `Sáu số cuối tách thành hai khối giống nhau, đọc từ xa vẫn đúng. Kho còn ${stats.count.toLocaleString("vi-VN")} số, giá từ ${formatTrieu(stats.min)}.`
-                : "Sáu số cuối tách thành hai khối giống nhau. Nhóm khan hàng — Quý khách nhắn Zalo để nhận tin khi có dãy mới."}
+                ? `Đuôi số tách thành những khối giống hệt nhau, đọc từ xa vẫn đúng. Kho còn ${stats.count.toLocaleString("vi-VN")} số, giá từ ${formatTrieu(stats.min)}.`
+                : "Đuôi số tách thành những khối giống hệt nhau. Nhóm khan hàng — Quý khách nhắn Zalo để nhận tin khi có dãy mới."}
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a
@@ -143,17 +143,19 @@ export default async function SimTaxiPage() {
                 <strong className="text-foreground">sim taxi</strong>.
               </p>
               <p>
-                Trên kho này, một số được xếp vào nhóm taxi khi sáu chữ số cuối lặp thành cụm. Cách đọc rất nhanh: che
-                ba số cuối lại, nếu ba số còn lại giống hệt phần bị che thì đó là số taxi.
+                Trên kho này, một số được xếp vào nhóm taxi khi đuôi lặp nguyên khối: cụm ba hoặc bốn chữ số đứng liền
+                hai lần, hay cặp hai số đứng liền ba lần. Cách đọc rất nhanh: chia đuôi thành các khối bằng nhau —
+                417.417, 07.07.07, 3560.3560 — nếu các khối giống hệt nhau thì đó là số taxi. Một số có thể thuộc nhiều
+                nhóm cùng lúc, nên dãy taxi đôi khi cũng xuất hiện ở trang lặp kép hay gánh đảo.
               </p>
             </div>
           </section>
 
-          {/* ── 2. Hai dạng taxi ──────────────────────────────────────────── */}
+          {/* ── 2. Các dạng taxi ──────────────────────────────────────────── */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
               <span className="h-8 w-1 rounded-full bg-primary" />
-              Hai dạng số taxi Quý khách sẽ thấy trong kho
+              Các dạng số taxi Quý khách sẽ thấy trong kho
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-xl border border-border bg-secondary/30 p-4">
@@ -169,12 +171,15 @@ export default async function SimTaxiPage() {
                 <p className="font-mono text-lg tracking-widest text-gold">0938.68.68.68</p>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   Cặp <strong className="text-foreground">68</strong> nhắc lại ba lần. Nhóm này hiếm và đắt hơn dạng 1,
-                  đặc biệt khi cặp lặp là 68, 79 hay 86.
+                  đặc biệt khi cặp lặp là 68, 79 hay 86. Bốn số cuối 6868 là một cặp lặp lại, nên dãy dạng này đồng
+                  thời thuộc nhóm lặp kép.
                 </p>
               </div>
             </div>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              Dãy lặp cụm nhưng cả cụm cùng một con số (…888.888) không nằm ở đây — số đó thuộc nhóm{" "}
+              Ngoài hai dạng trên, kho còn tính dạng dài hơn: cụm bốn số lặp hai lần ở tám số cuối, như 08.3560.3560
+              hay 07.8718.8718, và hiếm hơn nữa là cả dãy chia đôi thành hai khối năm số, như 08773.08773. Dãy lặp cụm
+              nhưng cả cụm cùng một con số (…888.888) không nằm ở đây — số đó thuộc nhóm{" "}
               <a href="/sim-ngu-quy" className="font-medium text-primary underline-offset-2 hover:underline">
                 ngũ quý, lục quý
               </a>
@@ -192,7 +197,7 @@ export default async function SimTaxiPage() {
                 Kho còn <strong className="text-foreground">{stats.count.toLocaleString("vi-VN")}</strong> số taxi. Dãy
                 mềm nhất <strong className="text-foreground">{formatTrieu(stats.min)}</strong>, mức giữa{" "}
                 <strong className="text-foreground">{formatTrieu(stats.median)}</strong>, còn dãy đắt nhất lên tới{" "}
-                {formatTrieu(stats.max)} — khoảng cách này đến từ cụm được lặp, không phải từ đầu số. Anh Chị nên chốt
+                {formatTrieu(stats.max)} — khoảng cách này đến từ cụm được lặp, không phải từ đầu số. Quý khách nên chốt
                 cụm số muốn trước, rồi mới xét ngân sách.
               </p>
               <div className="overflow-x-auto">

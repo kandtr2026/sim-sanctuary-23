@@ -1,4 +1,5 @@
 import type { NormalizedSIM } from "@/lib/simUtils";
+import { CATEGORY_PRIORITY } from "@/lib/simCategories";
 
 /**
  * Ý nghĩa từng DẠNG SỐ, dùng chung cho trang riêng `/sim/[digits]` và trang
@@ -16,12 +17,12 @@ export interface TagMeta {
 export const TAG_META: Record<string, TagMeta> = {
   "Lục quý": {
     label: "Lục quý",
-    blurb: "sáu số giống nhau liền nhau — hàng cực hiếm, thuộc phân khúc sưu tầm.",
+    blurb: "sáu số cuối giống nhau — hàng cực hiếm, thuộc phân khúc sưu tầm.",
     path: "/sim-ngu-quy",
   },
   "Ngũ quý": {
     label: "Ngũ quý",
-    blurb: "năm số giống nhau liền nhau, gây ấn tượng mạnh, nằm trong nhóm VIP.",
+    blurb: "năm số cuối giống nhau, gây ấn tượng mạnh, nằm trong nhóm VIP.",
     path: "/sim-ngu-quy",
   },
   "Tứ quý": {
@@ -29,15 +30,39 @@ export const TAG_META: Record<string, TagMeta> = {
     blurb: "bốn số cuối giống nhau, đọc một nhịp là nhớ, được săn làm số phong thủy.",
     path: "/mua-sim-tu-quy",
   },
+  "Lục quý giữa": {
+    label: "Lục quý giữa",
+    blurb: "sáu số giống nhau liền nhau nằm giữa dãy, nhìn qua là thấy cả khối.",
+    path: "/sim-ngu-quy",
+  },
   "Tam hoa kép": {
     label: "Tam hoa kép",
-    blurb: "hai bộ ba số giống nhau, dãy bề thế mà vẫn dễ đọc.",
+    blurb: "sáu số cuối là hai bộ ba giống nhau (000.111), dãy bề thế mà vẫn dễ đọc.",
     path: "/sim-tam-hoa-kep",
   },
   "Tam hoa": {
     label: "Tam hoa",
-    blurb: "ba số cuối giống nhau, gọn gàng, dễ nhớ khi trao cho khách.",
+    blurb: "đúng ba số cuối giống nhau, gọn gàng, dễ nhớ khi trao cho khách.",
     path: "/sim-tam-hoa",
+  },
+  "Lặp kép": {
+    label: "Lặp kép",
+    blurb: "bốn số cuối là hai cặp lặp lại (2288 hoặc 2929), nghe một lần là ghi đúng.",
+    path: "/sim-lap-kep",
+  },
+  "Ngũ quý giữa": {
+    label: "Ngũ quý giữa",
+    blurb: "năm số giống nhau liền nhau nằm giữa dãy, tách hẳn thành một khối.",
+    path: "/sim-ngu-quy",
+  },
+  "Tứ quý giữa": {
+    label: "Tứ quý giữa",
+    blurb: "bốn số giống nhau liền nhau nằm giữa dãy, đọc lên có một nhịp chắc.",
+  },
+  Taxi: {
+    label: "Taxi",
+    blurb: "đuôi lặp nguyên khối (07.07.07, 417.417, 3560.3560), in lên thân xe vẫn đọc được khi xe chạy.",
+    path: "/sim-taxi",
   },
   "Thần tài": {
     label: "Thần tài",
@@ -48,30 +73,29 @@ export const TAG_META: Record<string, TagMeta> = {
     label: "Lộc phát",
     blurb: "đuôi 68/86, đọc chệch thành “lộc phát”, ý nghĩa thịnh vượng.",
     path: "/sim-loc-phat",
-  },  "Tiến lên": {
+  },
+  "Tiến lên": {
     label: "Tiến lên",
-    blurb: "bốn số cuối tăng dần liên tiếp, ngụ ý thăng tiến, đi lên.",
+    blurb: "các số cuối tăng dần đều (789, 1357, 05.06.07), ngụ ý thăng tiến, đi lên.",
     path: "/sim-tien-len",
-  },
-  "Gánh đảo": {
-    label: "Gánh đảo",
-    blurb: "bốn số cuối đối xứng dạng ABBA, đọc xuôi hay ngược đều như nhau.",
-    path: "/sim-ganh-dao",
-  },
-  "Lặp kép": {
-    label: "Lặp kép",
-    blurb: "các cặp số lặp lại tạo nhịp điệu, nghe một lần là ghi đúng.",
-    path: "/sim-lap-kep",
   },
   "Dễ nhớ": {
     label: "Dễ nhớ",
     blurb: "cấu trúc lặp đơn giản, thuận cho hotline bán hàng.",
     path: "/sim-de-nho",
   },
-  Taxi: {
-    label: "Taxi",
-    blurb: "sáu số cuối lặp thành khối, in lên thân xe vẫn đọc được khi xe chạy.",
-    path: "/sim-taxi",
+  "Gánh đảo": {
+    label: "Gánh đảo",
+    blurb: "đuôi đối xứng, đọc xuôi hay ngược đều như nhau (1221, 860.068).",
+    path: "/sim-ganh-dao",
+  },
+  "Số độc": {
+    label: "Số độc",
+    blurb: "đuôi thuộc nhóm số hiếm dân chơi sim săn riêng (1102, 4953, 6688…).",
+  },
+  "Đầu số cổ": {
+    label: "Đầu số cổ",
+    blurb: "đầu số đời đầu của nhà mạng (0902–0909…), dùng lâu năm nên tạo cảm giác uy tín.",
   },
   "Năm sinh": {
     label: "Năm sinh",
@@ -80,22 +104,11 @@ export const TAG_META: Record<string, TagMeta> = {
   },
 };
 
-/** Thứ tự ưu tiên khi chọn "dạng chính" của một số (đẹp/hiếm hơn xếp trước). */
-const TAG_PRIORITY = [
-  "Lục quý",
-  "Ngũ quý",
-  "Tứ quý",
-  "Tam hoa kép",
-  "Tam hoa",
-  "Thần tài",
-  "Lộc phát",
-  "Tiến lên",
-  "Gánh đảo",
-  "Lặp kép",
-  "Taxi",
-  "Dễ nhớ",
-  "Năm sinh",
-] as const;
+/**
+ * Thứ tự "dạng chính" của một số = đúng thứ tự nhãn của detector
+ * (CATEGORY_PRIORITY, bóc theo nhãn simthanglong). Chỉ giữ dạng có meta.
+ */
+const TAG_PRIORITY = CATEGORY_PRIORITY.filter((t) => t in TAG_META);
 
 /** Map danh sách tag thô → meta, đã sắp theo độ hiếm/đẹp. Dùng chung cho trang
  *  số (từ sim.tags) lẫn trang tra cứu (từ detectSimTags trên digits bất kỳ). */

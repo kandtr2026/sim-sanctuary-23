@@ -69,8 +69,12 @@ const benefits = [
   { icon: Users, text: "Đội ngũ tư vấn trực 24/7" },
 ];
 
+// Trang gộp ngũ/lục quý ở ĐUÔI lẫn nằm GIỮA dãy: từ 09/2026 detector tách "quý
+// giữa" thành danh mục riêng (luật simthanglong), còn trang này vẫn bán cả hai.
+const NGU_LUC_QUY_TAGS = ["Ngũ quý", "Lục quý", "Ngũ quý giữa", "Lục quý giữa"];
+
 export default async function SimNguQuyPage() {
-  const featuredSims = await getCategorySnapshotMix({ tags: ["Ngũ quý", "Lục quý"] }, 10);
+  const featuredSims = await getCategorySnapshotMix({ tags: NGU_LUC_QUY_TAGS }, 10);
   return (
     <>
       <main className="min-h-screen bg-background">
@@ -117,7 +121,7 @@ export default async function SimNguQuyPage() {
             title="Sim Ngũ Quý, Lục Quý Mới Cập Nhật"
             searchPlaceholder="Nhập số cần tìm, hoặc *88888 / *99999 để xem đuôi ngũ quý"
             emptyText="Kho đang trống ở nhóm này — ngũ quý về lẻ và đi rất nhanh. Quý khách để lại yêu cầu qua Zalo 0933686666, đội ngũ tư vấn sẽ báo khi có dãy phù hợp."
-            matchTags={["Ngũ quý", "Lục quý"]}
+            matchTags={NGU_LUC_QUY_TAGS}
             quyFilter="Ngũ quý"
           />
 

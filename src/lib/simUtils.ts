@@ -1,5 +1,9 @@
 // SIM Utility Functions - Tag Detection, Scoring, and Analysis
 import { diemTongHop, nguHanhCuaSo, type NguHanh } from "./phongThuy";
+import { calculateBeautyScore, detectSimCategories, isVIPSim } from "./simCategories";
+
+// Điểm đẹp / VIP dùng chung với edge function sync-sims — xem src/lib/simCategories.ts.
+export { VIP_TAGS, VIP_PRICE_THRESHOLD, calculateBeautyScore, isVIPSim } from "./simCategories";
 
 export interface NormalizedSIM {
   id: string;
@@ -107,11 +111,13 @@ export const checkQuyPosition = (
   return matchesQuyType(rawDigits, quyType);
 };
 
-// All SIM tag types
+// All SIM tag types (danh mục số — luật ở src/lib/simCategories.ts — cộng VIP)
 export const ALL_SIM_TAGS = [
   'Lục quý', 'Ngũ quý', 'Tứ quý', 'Tam hoa', 'Tam hoa kép',
+  'Lục quý giữa', 'Ngũ quý giữa', 'Tứ quý giữa',
   'Lộc phát', 'Thần tài',
   'Năm sinh', 'Tiến lên', 'Gánh đảo', 'Lặp kép', 'Dễ nhớ', 'Taxi',
+  'Số độc', 'Đầu số cổ',
   'VIP'
 ] as const;
 
@@ -140,157 +146,16 @@ export const detectNetwork = (rawDigits: string): NormalizedSIM['network'] => {
   return 'Khác';
 };
 
-// Detect all SIM tags with high confidence
-export const detectSimTags = (rawDigits: string): string[] => {
-  const tags: string[] = [];
-  const digitsOnly = rawDigits.replace(/\D/g, '');
-  const last2 = digitsOnly.slice(-2);
-  const last3 = digitsOnly.slice(-3);
-  const last4 = digitsOnly.slice(-4);
-  const last6 = digitsOnly.slice(-6);
-
-  // Quý patterns (mutually exclusive - most specific wins)
-  // Lục quý / Ngũ quý: 6/5 chữ số giống nhau LIỀN NHAU ở BẤT KỲ VỊ TRÍ NÀO
-  // (khớp với isHexAnywhere / isQuintAnywhere trong SimBrowser). Tứ quý vẫn
-  // tính ở đuôi (4 số cuối giống nhau) vì đó là quy ước của trang tứ quý.
-  const anySame6 = /(\d)\1{5}/.test(digitsOnly);
-  const anySame5 = /(\d)\1{4}/.test(digitsOnly);
-  const allSameLast4 = digitsOnly.length === 10 && last4.length === 4 && /^(\d)\1{3}$/.test(last4);
-
-  if (anySame6) {
-    tags.push('Lục quý');
-  } else if (anySame5) {
-    tags.push('Ngũ quý');
-  } else if (allSameLast4) {
-    tags.push('Tứ quý');
-  }
-
-  // Tam hoa / Tam hoa kép detection (mutually exclusive)
-  // Find all triple identical consecutive digits (xxx) anywhere in the number
-  // Count distinct digits that form triples
-  if (!tags.some(t => t.includes('quý'))) {
-    const tripleMatches = rawDigits.match(/(\d)\1{2}/g) || [];
-    const distinctTripleDigits = new Set<string>();
-    for (const match of tripleMatches) {
-      distinctTripleDigits.add(match[0]); // Add the digit that forms the triple
-    }
-    
-    // Apply tagging logic:
-    // - If 2+ distinct triple digits → "Tam hoa kép" ONLY
-    // - If exactly 1 distinct triple digit → "Tam hoa" ONLY
-    if (distinctTripleDigits.size >= 2) {
-      // keep Tam hoa kép logic unchanged
-      tags.push('Tam hoa kép');
-    } else if (distinctTripleDigits.size === 1) {
-      // redefine Tam hoa: only if sim is 10 digits and the last 3 digits are identical
-      if (rawDigits.length === 10 && last3[0] === last3[1] && last3[1] === last3[2] && !tags.some(t => t.includes('quý'))) {
-        tags.push('Tam hoa');
-      }
-    }
-  }
-
-  // Phong thủy patterns (can coexist)
-  if (/39$|79$/.test(rawDigits)) tags.push('Thần tài');
-  if (/68$|86$/.test(rawDigits)) tags.push('Lộc phát');
-  // Tiến lên (ascending last 4)
-  if (/0123$|1234$|2345$|3456$|4567$|5678$|6789$/.test(rawDigits)) {
-    tags.push('Tiến lên');
-  }
-
-  // Gánh đảo (ABBA pattern in last 4, A != B)
-  if (last4.length === 4 && 
-      last4[0] === last4[3] && 
-      last4[1] === last4[2] && 
-      last4[0] !== last4[1]) {
-    tags.push('Gánh đảo');
-  }
-
-  // Lặp kép (AABB in last 4 or AABBCC in last 6)
-  if (!tags.some(t => t.includes('quý') || t === 'Tam hoa kép')) {
-    if (/^(\d)\1(\d)\2$/.test(last4) && last4[0] !== last4[2]) {
-      tags.push('Lặp kép');
-    } else if (/^(\d)\1(\d)\2(\d)\3$/.test(last6)) {
-      tags.push('Lặp kép');
-    }
-  }
-
-  // Năm sinh: ưu tiên parser linh hoạt (web tự xử lý, bắt được DDMMYY/DMYYYY/
-  // DDMYY/DDMYYYY — ~1.451 trong 49k). Fallback: 4 số cuối là năm 1980-2029.
-  if (tryParseBirthDateLenient(rawDigits) !== null) {
-    tags.push('Năm sinh');
-  } else {
-    const yearMatch = rawDigits.slice(-4);
-    const year = parseInt(yearMatch, 10);
-    if (year >= 1980 && year <= 2029) {
-      tags.push('Năm sinh');
-    }
-  }
-
-  // Taxi = ABABAB or ABCABC on last 6 digits
-  const tail6 = rawDigits.slice(-6);
-  // Taxi 2: ABABAB (ab.ab.ab) - positions 0,2,4 same AND 1,3,5 same AND different digits
-  const isTaxi2 = tail6.length === 6 &&
-    tail6[0] === tail6[2] && tail6[2] === tail6[4] &&
-    tail6[1] === tail6[3] && tail6[3] === tail6[5] &&
-    tail6[0] !== tail6[1];
-  // Taxi 3: ABCABC (abc.abc) - first 3 = last 3, and block is NOT all same digit
-  const block3a = tail6.slice(0, 3);
-  const block3b = tail6.slice(3, 6);
-  const isAllSameDigit = block3a[0] === block3a[1] && block3a[1] === block3a[2];
-  const isTaxi3 = tail6.length === 6 &&
-    block3a === block3b &&
-    !isAllSameDigit;
-  if (isTaxi2 || isTaxi3) {
-    tags.push('Taxi');
-  }
-
-  // Dễ nhớ (ABAB patterns) - only if not already tagged with quý/lặp/Taxi
-  if (!tags.some(t => ['Lặp kép', 'Tứ quý', 'Ngũ quý', 'Lục quý', 'Tam hoa kép', 'Taxi'].includes(t))) {
-    // ABAB pattern in last 4
-    if (/^(\d{2})\1$/.test(last4)) {
-      tags.push('Dễ nhớ');
-    }
-  }
-
-  return tags;
-};
-
-// Calculate beauty score for sorting
-export const calculateBeautyScore = (tags: string[], price: number, vipThreshold: number = 50000000): number => {
-  let score = 0;
-
-  // Tag scores (based on prompt)
-  if (tags.includes('Lục quý')) score += 100;
-  if (tags.includes('Ngũ quý')) score += 80;
-  if (tags.includes('Tứ quý')) score += 60;
-  if (tags.includes('Tam hoa kép')) score += 55;
-  if (tags.includes('Tam hoa')) score += 40;
-  if (tags.includes('Thần tài')) score += 25;
-  if (tags.includes('Lộc phát')) score += 25;  if (tags.includes('Tiến lên')) score += 20;
-  if (tags.includes('Gánh đảo')) score += 20;
-  if (tags.includes('Lặp kép')) score += 20;
-  if (tags.includes('Năm sinh')) score += 15;
-  if (tags.includes('Dễ nhớ')) score += 10;
-  if (tags.includes('Taxi')) score += 5;
-
-  // VIP bonus
-  if (price >= vipThreshold) score += 10;
-
-  return score;
-};
-
 /**
- * SIM VIP = có 1 trong 4 DẠNG CAO CẤP dưới đây, HOẶC giá ≥ ngưỡng VIP.
- * Đây là nguồn định nghĩa DUY NHẤT (dashboard hiển thị đúng bộ này).
- * 4 dạng cao cấp loại trừ nhau trong detectSimTags nên dùng để phân rã sạch.
+ * Mọi danh mục số của một số, xếp theo độ ưu tiên ([0] = nhãn chính).
+ *
+ * Luật kiểu simthanglong (09/2026): MỘT SỐ THUỘC NHIỀU DANH MỤC — 0876.010.010
+ * vừa Taxi vừa Gánh đảo vừa Dễ nhớ; trang danh mục X liệt kê mọi số thuộc X.
+ * Bản cũ ở đây loại trừ chéo (có quý thì không lặp kép, có taxi thì không dễ
+ * nhớ…) nên trang danh mục hụt số, và lặp kép bỏ sót dạng ABAB. Luật thật nằm
+ * ở src/lib/simCategories.ts (dùng chung với sync-sims).
  */
-export const VIP_TAGS = ['Lục quý', 'Ngũ quý', 'Tứ quý', 'Tam hoa kép'] as const;
-export const VIP_PRICE_THRESHOLD = 50_000_000;
-
-// Determine if SIM is VIP
-export const isVIPSim = (tags: string[], price: number, vipThreshold: number = VIP_PRICE_THRESHOLD): boolean => {
-  return VIP_TAGS.some((t) => tags.includes(t)) || price >= vipThreshold;
-};
+export const detectSimTags = (rawDigits: string): string[] => [...detectSimCategories(rawDigits)];
 
 // Số ngày trong tháng (1-based index). Dùng để loại "31.11" ra khỏi sim năm sinh.
 const NGAY_TRONG_THANG = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];

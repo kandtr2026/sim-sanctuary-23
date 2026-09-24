@@ -18,7 +18,7 @@ const TAG = "Tiến lên";
 
 const TITLE = "Sim Tiến Lên Mobifone | Đuôi 1234, 3456, 6789 Giá Rõ";
 const DESCRIPTION =
-  "Sim tiến lên Mobifone có bốn số cuối tăng liền: 1234, 3456, 6789. Dãy số đi lên, đọc trôi, khách nhớ nhanh. Giá niêm yết công khai, 30 phút giao toàn quốc.";
+  "Sim tiến lên Mobifone có đuôi số đi lên đều: 789, 3456, 1357, 05.06.07. Đọc trôi, khách nhớ nhanh. Giá niêm yết công khai, 30 phút giao toàn quốc.";
 const CANONICAL = `${BASE_URL}/sim-tien-len`;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -33,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       title: TITLE,
-      description: "Sim tiến lên Mobifone — bốn số cuối tăng liền 1234, 3456, 6789. Giá công khai.",
+      description: "Sim tiến lên Mobifone — đuôi số đi lên đều như 789, 3456, 1357, 05.06.07. Giá công khai.",
       url: CANONICAL,
       images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
     },
@@ -43,23 +43,23 @@ export async function generateMetadata(): Promise<Metadata> {
 const faqItems = [
   {
     q: "Sim tiến lên là gì?",
-    a: "Sim tiến lên có bốn chữ số cuối tăng liên tiếp từng đơn vị: 0123, 1234, 2345, 3456, 4567, 5678, 6789. Ví dụ thật trong kho: 0765.363.456 với đuôi 3456. Cả bảy dãy trên đều được tính, ngoài ra không có dạng nào khác — số tăng nhưng cách quãng như 1357 không thuộc nhóm này.",
+    a: "Sim tiến lên là số có phần đuôi đi lên đều theo một trong bốn dạng: ba số cuối tăng từng đơn vị như …012, …234, …789 (đuôi dài hơn như 1234, 3456, 23456 cũng tính); bốn số cuối tăng bước 2 như 0246, 1357, 2468, 3579; ba cặp cuối tiến đều như 05.06.07, 21.22.23 hoặc 07.17.27, 30.40.50; và hai đuôi riêng 8910, 9899. Ví dụ thật trong kho: 0765.363.456 với đuôi 3456. Dãy tăng phải nằm ở cuối số — 0981.567.894 có 567 ở giữa nên không tính.",
   },
   {
     q: "Đuôi tiến lên nào đắt nhất?",
-    a: "Đuôi 6789 đứng đầu vì kết ở số 9 và đọc lên nghe như một câu chúc đi lên tới đỉnh; kế đến là 5678 và 4567. Ba dãy mở đầu bằng số nhỏ — 0123, 1234, 2345 — có giá mềm hơn, phù hợp khi Quý khách cần một số đẹp mà giữ ngân sách.",
+    a: "Trong các đuôi bốn số tăng liền, 6789 đứng đầu vì kết ở số 9 và đọc lên nghe như một câu chúc đi lên tới đỉnh; kế đến là 5678 và 4567. Ba dãy mở đầu bằng số nhỏ — 0123, 1234, 2345 — có giá mềm hơn, phù hợp khi Quý khách cần một số đẹp mà giữ ngân sách. Các dạng còn lại như …789, 1357 hay 05.06.07 thì giá tùy từng số, Quý khách xem trực tiếp trong kho.",
   },
   {
     q: "Sim tiến lên giá bao nhiêu?",
-    a: "Mặt bằng giá của nhóm này gọn hơn nhiều dạng số khác vì cấu trúc chỉ có bảy khả năng. Bảng phía dưới lấy trực tiếp từ kho tại thời điểm cập nhật, nên Quý khách thấy đúng giá đang bán cho từng dãy.",
+    a: "Nhóm này gồm nhiều dạng đuôi nên giá trải theo từng dạng và từng đầu số. Bảng giá trên trang lấy trực tiếp từ kho tại thời điểm cập nhật, nên Quý khách thấy đúng giá đang bán cho từng số.",
   },
   {
     q: "Vì sao sim tiến lên được xem là số cầu tiến?",
-    a: "Người Việt đọc dãy số tăng dần thành ý đi lên: công việc, sự nghiệp, thu nhập nhích lên từng bước. Đây là quan niệm dân gian, không phải điều gì bảo đảm. Lợi ích chắc chắn hơn nằm ở chỗ khác: dãy tăng liên tiếp thì người nghe nhớ được sau một lần.",
+    a: "Người Việt đọc dãy số tăng dần thành ý đi lên: công việc, sự nghiệp, thu nhập nhích lên từng bước. Đây là quan niệm dân gian, không phải điều gì bảo đảm. Lợi ích chắc chắn hơn nằm ở chỗ khác: dãy tăng đều thì người nghe nhớ được sau một lần.",
   },
   {
     q: "Kho có sẵn đuôi tiến lên trên đầu số 090, 093 không?",
-    a: "Có, nhưng nhóm này ít hàng nên đầu số cổ thường hết trước. Danh sách trên trang cập nhật theo kho mỗi 5 phút. Quý khách muốn giữ chỗ cho một đuôi cụ thể thì nhắn Zalo 0933686666, đội ngũ tư vấn sẽ báo khi có số về.",
+    a: "Có, tùy thời điểm — đuôi tiến lên trên đầu số cổ thường hết trước. Danh sách trên trang cập nhật theo kho mỗi 5 phút. Quý khách muốn giữ chỗ cho một đuôi cụ thể thì nhắn Zalo 0933686666, đội ngũ tư vấn sẽ báo khi có số về.",
   },
 ];
 
@@ -98,8 +98,8 @@ export default async function SimTienLenPage() {
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
               {stats.count > 0
-                ? `Bốn số cuối tăng từng bước, đọc một hơi là hết. Kho còn ${stats.count.toLocaleString("vi-VN")} số, giá từ ${formatTrieu(stats.min)}, đăng ký thông tin chính chủ.`
-                : "Bốn số cuối tăng từng bước, đọc một hơi là hết. Nhóm ít hàng — Quý khách nhắn Zalo để nhận tin khi có số về."}
+                ? `Đuôi số đi lên từng bước, đọc một hơi là hết. Kho còn ${stats.count.toLocaleString("vi-VN")} số, giá từ ${formatTrieu(stats.min)}, đăng ký thông tin chính chủ.`
+                : "Đuôi số đi lên từng bước, đọc một hơi là hết. Kho đang tạm hết — Quý khách nhắn Zalo để nhận tin khi có số về."}
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a
@@ -125,40 +125,42 @@ export default async function SimTienLenPage() {
           <CategorySimGrid
             title="Sim Tiến Lên Mới Cập Nhật"
             searchPlaceholder="Nhập số cần tìm, hoặc *6789 / *3456 để thử một đuôi"
-            emptyText="Nhóm này chỉ có bảy dãy đuôi nên kho hết nhanh. Quý khách nhắn Zalo 0933686666 kèm đuôi muốn tìm, đội ngũ tư vấn sẽ báo khi có số về."
+            emptyText="Chưa có số tiến lên khớp với tìm kiếm. Quý khách nhắn Zalo 0933686666 kèm đuôi muốn tìm, đội ngũ tư vấn sẽ báo khi có số về."
             matchTags={[TAG]}
           />
 
-          {/* ── 1. Mở bài: cả nhóm chỉ có bảy dãy ─────────────────────────── */}
+          {/* ── 1. Mở bài: bốn dạng đuôi được tính là tiến lên ─────────────── */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
               <span className="h-8 w-1 rounded-full bg-primary" />
-              Cả nhóm sim tiến lên chỉ có bảy dãy đuôi
+              Bốn dạng đuôi được tính là sim tiến lên
             </h2>
             <div className="space-y-4 leading-relaxed text-muted-foreground">
               <p>
-                Đếm thử: 0123, 1234, 2345, 3456, 4567, 5678, 6789. Hết. Muốn bốn chữ số cuối tăng liên tiếp từng đơn vị
-                thì chỉ có bảy cách xếp, không có cách thứ tám. Đó là điều khiến{" "}
-                <strong className="text-foreground">sim tiến lên</strong> khan hơn hầu hết dạng số khác — nguồn hàng bị
-                khóa bởi chính cấu trúc.
+                Một số thuộc nhóm <strong className="text-foreground">sim tiến lên</strong> khi phần đuôi đi lên đều
+                theo một trong bốn dạng. Một: ba số cuối tăng từng đơn vị như …012, …234, …789 — đuôi dài hơn như
+                1234, 3456, 23456 cũng thuộc dạng này. Hai: bốn số cuối tăng bước 2 như 0246, 1357, 2468, 3579. Ba:
+                ba cặp cuối tiến đều, giữ hàng chục và tăng hàng đơn vị (05.06.07, 21.22.23), hoặc giữ hàng đơn vị và
+                tăng hàng chục (07.17.27, 30.40.50). Bốn: hai đuôi riêng 8910 (8-9-10) và 9899 (98-99).
               </p>
               <p>
                 Một số thật trong kho: <strong className="text-foreground">0765.363.456</strong>, đuôi 3456. Dãy tăng
-                cách quãng như 1357 hay tăng ba chữ số như 456 không được tính vào danh sách này, nên mọi số Quý khách
-                thấy dưới đây đều đúng một trong bảy dãy trên.
+                phải nằm ở cuối số mới được tính — 0981.567.894 có 567 ở giữa nên không thuộc nhóm này. Một số có thể
+                cùng lúc thuộc nhóm khác, như đuôi 3579 vừa tiến lên vừa thần tài; danh sách trên trang liệt kê mọi
+                số có đuôi tiến lên, kể cả những số như vậy.
               </p>
             </div>
           </section>
 
-          {/* ── 2. Bảng bảy đuôi ──────────────────────────────────────────── */}
+          {/* ── 2. Bảng đuôi bốn số tăng liền (dạng quen thuộc nhất) ───────── */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
               <span className="h-8 w-1 rounded-full bg-primary" />
-              Bảy đuôi tiến lên — chọn đuôi nào
+              Đuôi bốn số tăng liền — chọn đuôi nào
             </h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <caption className="sr-only">Bảy dãy đuôi tiến lên và mặt bằng giá</caption>
+                <caption className="sr-only">Bảy đuôi bốn số tăng liền và mặt bằng giá</caption>
                 <thead>
                   <tr className="border-b border-border text-left">
                     <th scope="col" className="py-2 pr-4 font-semibold text-foreground">Đuôi</th>
@@ -170,7 +172,7 @@ export default async function SimTienLenPage() {
                   <tr className="border-b border-border">
                     <td className="py-2 pr-4 font-medium text-foreground">…6789</td>
                     <td className="py-2 pr-4">Đi lên tới đỉnh, kết ở số 9</td>
-                    <td className="py-2">Cao nhất nhóm</td>
+                    <td className="py-2">Cao nhất bảng</td>
                   </tr>
                   <tr className="border-b border-border">
                     <td className="py-2 pr-4 font-medium text-foreground">…5678 / …4567</td>
@@ -180,19 +182,20 @@ export default async function SimTienLenPage() {
                   <tr className="border-b border-border">
                     <td className="py-2 pr-4 font-medium text-foreground">…3456 / …2345</td>
                     <td className="py-2 pr-4">Thuận đường, dễ đọc</td>
-                    <td className="py-2">Trung bình — nhiều hàng nhất</td>
+                    <td className="py-2">Trung bình — nhiều hàng nhất bảng</td>
                   </tr>
                   <tr>
                     <td className="py-2 pr-4 font-medium text-foreground">…1234 / …0123</td>
                     <td className="py-2 pr-4">Khởi đầu, bắt nhịp từ đầu</td>
-                    <td className="py-2">Mềm nhất nhóm</td>
+                    <td className="py-2">Mềm nhất bảng</td>
                   </tr>
                 </tbody>
               </table>
             </div>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              Anh Chị mở cửa hàng mới hay cần thêm số cho công việc thì hai dòng cuối là chỗ đáng xem trước: cùng lợi
-              thế dễ nhớ, giá nhẹ hơn nhóm kết ở số 9 đáng kể.
+              Bảng gom bảy đuôi bốn số tăng liền — dạng quen thuộc nhất của sim tiến lên; các dạng khác như …789, 1357
+              hay 05.06.07 nằm chung trong danh sách kho phía trên. Quý khách mở cửa hàng mới hay cần thêm số cho công việc thì hai
+              dòng cuối là chỗ đáng xem trước: cùng lợi thế dễ nhớ, giá nhẹ hơn nhóm kết ở số 9 đáng kể.
             </p>
           </section>
           {/* ── 3. Khoảng giá thật ─────────────────────────────────────────── */}

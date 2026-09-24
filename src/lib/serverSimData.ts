@@ -241,7 +241,9 @@ const SUPABASE_REST = `${SUPABASE_URL}/rest/v1`;
 // hằng số này là kích thước trang thật; xem chú thích ở đó.
 const SUPABASE_SIMS_PAGE = 1000;
 
-const SIMS_SELECT = 'id,raw_digits,display_number,original_price,final_price,effective_price,network,tags,beauty_score,is_vip';
+// Không kéo cột `tags`: web tự suy tag từ số (xem simsDbRowToNormalized) — bớt
+// egress cho mỗi lượt crawl kho, project đang sát quota.
+const SIMS_SELECT = 'id,raw_digits,display_number,original_price,final_price,effective_price,network,beauty_score,is_vip';
 
 /**
  * Điều kiện "được phép bán" khi đọc bảng `sims`.
@@ -265,24 +267,18 @@ interface SimsDbRow {
   final_price: number | null;
   effective_price: number;
   network: string | null;
-  tags: string[];
   beauty_score: number;
   is_vip: boolean;
 }
 
 const simsDbRowToNormalized = (r: SimsDbRow): NormalizedSIM => {
   const rawDigits = r.raw_digits;
-  // Bảng `sims` trên Supabase hiện lưu `tags` là MẢNG RỖNG cho mọi hàng (job
-  // sync chưa ghi tag). `r.tags ?? detect()` không bắt được mảng rỗng, nên trước
-  // đây mọi SIM đọc từ DB đều không có tag — kéo theo `getCategorySnapshot({tags})`
-  // trả về rỗng và bảng "tứ quý nổi bật" + ItemList/Product schema của
-  // /mua-sim-tu-quy, /sim-ngu-quy biến mất khỏi HTML mà không ai thấy lỗi.
-  // Coi mảng rỗng là "chưa có tag" và tự suy ra bằng detector dùng chung.
-  // A Khoa 14/09: bỏ loại "Ông địa" — gạt tag này ra kể cả khi DB còn lưu (đuôi
-  // 38/78), để nó biến mất khỏi mọi nơi (lọc, nhãn, thống kê).
-  const tags = (r.tags && r.tags.length > 0 ? r.tags : detectSimTags(rawDigits)).filter(
-    (t) => t !== "Ông địa",
-  );
+  // Tag LUÔN suy lại từ số bằng detector dùng chung, KHÔNG đọc cột `sims.tags`.
+  // Tag là hàm thuần của số: cột DB chỉ là bản chụp của luật ở lần sync gần nhất
+  // (từng rỗng toàn bảng, từng còn 'Ông địa' sau khi A Khoa bỏ 14/09). Tin cột đó
+  // thì mỗi lần đổi luật web lại lệch DB tới lượt sync kế tiếp. Chi phí: vài ms
+  // cho cả kho, và snapshot đã cache.
+  const tags = detectSimTags(rawDigits);
   const price = r.effective_price || r.final_price || r.original_price || 0;
   // Chỉ mang `original_price` sang khi nó THẬT SỰ cao hơn giá bán — tức đang giảm
   // giá thật. Bằng nhau (hiện là 100% kho: 51.636 dòng có Final_Price = GIÁ BÁN)

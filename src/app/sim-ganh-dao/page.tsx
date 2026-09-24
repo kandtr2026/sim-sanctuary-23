@@ -18,7 +18,7 @@ const TAG = "Gánh đảo";
 
 const TITLE = "Sim Gánh Đảo Là Gì? Kho Sim Gánh Đảo Mobifone";
 const DESCRIPTION =
-  "Sim gánh đảo có bốn số cuối đối xứng kiểu 3993, 4004 — cặp giữa được hai số giống nhau gánh hai bên. Kho Mobifone giá công khai, 30 phút giao toàn quốc.";
+  "Sim gánh đảo có đuôi đọc xuôi ngược như nhau: bốn số cuối 3993, 4004 hoặc dài hơn như 860.068, 0624.4260. Kho Mobifone giá công khai, 30 phút giao toàn quốc.";
 const CANONICAL = `${BASE_URL}/sim-ganh-dao`;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -33,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       title: TITLE,
-      description: "Sim gánh đảo Mobifone — bốn số cuối đối xứng 3993, 4004. Giá công khai, chính chủ.",
+      description: "Sim gánh đảo Mobifone — đuôi đối xứng 3993, 4004, 860.068. Giá công khai, chính chủ.",
       url: CANONICAL,
       images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
     },
@@ -43,11 +43,11 @@ export async function generateMetadata(): Promise<Metadata> {
 const faqItems = [
   {
     q: "Sim gánh đảo là gì?",
-    a: "Gánh đảo là bốn số cuối xếp đối xứng theo dạng A-B-B-A: 0903.03.3993, 0767.004.004 phần đuôi 4004, 0938.929.229 phần đuôi 9229. Cặp số giống nhau nằm giữa, hai bên là hai con số giống nhau khác — dân trong nghề đọc là hai đầu gánh cặp giữa, đọc ngược hay đọc xuôi đều ra một dãy.",
+    a: "Gánh đảo là đuôi số xếp đối xứng, đọc ngược hay đọc xuôi đều ra một dãy. Dạng quen nhất là bốn số cuối A-B-B-A: 0903.03.3993, 0767.004.004 phần đuôi 4004, 0938.929.229 phần đuôi 9229. Cặp số giống nhau nằm giữa, hai bên là hai con số giống nhau khác — dân trong nghề đọc là hai đầu gánh cặp giữa. Kho cũng tính dạng đối xứng dài hơn: sáu số cuối như 860.068, 010.010, hoặc tám số cuối như 0624.4260.",
   },
   {
     q: "Gánh đảo khác sim gánh thường thế nào?",
-    a: "Sim gánh thường chỉ cần ba số cuối dạng A-B-A, ví dụ 393. Gánh đảo dài hơn một chữ số và cân hai bên: A-B-B-A. Kho này chỉ xếp vào nhóm gánh đảo những dãy đúng bốn số cuối đối xứng, nên số Quý khách thấy dưới đây đều đọc xuôi ngược như nhau.",
+    a: "Sim gánh thường chỉ cần ba số cuối dạng A-B-A, ví dụ 393. Gánh đảo dài hơn và cân hai bên: ngắn nhất là bốn số cuối A-B-B-A. Kho này xếp vào nhóm gánh đảo những dãy có bốn, sáu hoặc tám số cuối đối xứng, nên số Quý khách thấy dưới đây đều có phần đuôi đọc xuôi ngược như nhau.",
   },
   {
     q: "Sim gánh đảo giá bao nhiêu?",
@@ -98,8 +98,8 @@ export default async function SimGanhDaoPage() {
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
               {stats.count > 0
-                ? `Bốn số cuối đọc xuôi ngược như nhau. Kho còn ${stats.count.toLocaleString("vi-VN")} số, giá từ ${formatTrieu(stats.min)} — dạng số cân đối dễ tiếp cận nhất.`
-                : "Bốn số cuối đọc xuôi ngược như nhau. Kho đang cập nhật, Quý khách nhắn Zalo để nhận danh sách số mới."}
+                ? `Đuôi số đọc xuôi ngược như nhau. Kho còn ${stats.count.toLocaleString("vi-VN")} số, giá từ ${formatTrieu(stats.min)} — dạng số cân đối dễ tiếp cận nhất.`
+                : "Đuôi số đọc xuôi ngược như nhau. Kho đang cập nhật, Quý khách nhắn Zalo để nhận danh sách số mới."}
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a
@@ -137,8 +137,9 @@ export default async function SimGanhDaoPage() {
             </h2>
             <div className="space-y-4 leading-relaxed text-muted-foreground">
               <p>
-                Gánh đảo là <strong className="text-foreground">bốn số cuối xếp đối xứng</strong>: con số ngoài cùng bên
-                trái trùng với con số ngoài cùng bên phải, hai số ở giữa giống nhau. Viết theo chữ cái là A-B-B-A.
+                Gánh đảo là <strong className="text-foreground">đuôi số xếp đối xứng</strong>, đọc xuôi hay ngược đều
+                như nhau. Dạng cơ bản nằm ở bốn số cuối: con số ngoài cùng bên trái trùng với con số ngoài cùng bên
+                phải, hai số ở giữa giống nhau. Viết theo chữ cái là A-B-B-A.
               </p>
               <div className="rounded-xl border border-border bg-secondary/30 p-4">
                 <p className="mb-2 text-sm font-semibold text-foreground">Tách một số ra để thấy rõ</p>
@@ -149,8 +150,10 @@ export default async function SimGanhDaoPage() {
                 </p>
               </div>
               <p>
-                Cùng luật này còn có 0767.004.004 (đuôi 4004) và 0938.929.229 (đuôi 9229). Dãy nào chỉ đối xứng ba số như
-                393 thì thuộc sim gánh thường, không nằm trong danh sách này.
+                Cùng luật này còn có 0767.004.004 (đuôi 4004) và 0938.929.229 (đuôi 9229). Kho cũng tính dạng đối xứng
+                dài hơn: sáu số cuối như 860.068 hay 010.010, tám số cuối như 0624.4260 — gấp đôi quanh điểm giữa, đọc
+                ngược vẫn ra nguyên đoạn. Một số có thể thuộc nhiều nhóm cùng lúc: đuôi 010.010 vừa là gánh đảo vừa là
+                sim taxi. Dãy nào chỉ đối xứng ba số như 393 thì thuộc sim gánh thường, không nằm trong danh sách này.
               </p>
             </div>
           </section>
@@ -195,8 +198,8 @@ export default async function SimGanhDaoPage() {
                 Kho còn <strong className="text-foreground">{stats.count.toLocaleString("vi-VN")}</strong> số gánh đảo.
                 Thấp nhất <strong className="text-foreground">{formatTrieu(stats.min)}</strong>, mức giữa{" "}
                 <strong className="text-foreground">{formatTrieu(stats.median)}</strong>, và ba phần tư số hàng nằm dưới{" "}
-                {formatTrieu(stats.p75)}. Dãy cao nhất hiện tại {formatTrieu(stats.max)} — thuộc nhóm cặp giữa 8, 9 trên
-                đầu số cổ.
+                {formatTrieu(stats.p75)}. Dãy cao nhất hiện tại {formatTrieu(stats.max)}; mức giá cao thường rơi vào
+                cặp giữa 8, 9 trên đầu số cổ.
               </p>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">

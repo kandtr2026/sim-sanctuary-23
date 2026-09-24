@@ -162,7 +162,7 @@ describe('querySimsFromDb — giá trị đầu/đuôi không phải chữ số'
     expect(params.getAll('is_vip')).toHaveLength(0);
     expect(params.getAll('or')).toHaveLength(0);
     expect(params.get('select')).toBe(
-      'id,raw_digits,display_number,original_price,final_price,effective_price,network,tags,beauty_score,is_vip',
+      'id,raw_digits,display_number,original_price,final_price,effective_price,network,beauty_score,is_vip',
     );
   });
 });

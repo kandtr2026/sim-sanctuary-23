@@ -18,7 +18,7 @@ const TAG = "Lặp kép";
 
 const TITLE = "Sim Lặp Kép Mobifone | Đuôi Kép Đôi 2288, 5500, 6688";
 const DESCRIPTION =
-  "Sim lặp kép Mobifone có đuôi hai cặp số liền nhau: 2288, 5500, 6688. Đọc một nhịp là khách nhớ. Giá niêm yết từng số, đăng ký thông tin chính chủ, giao nhanh.";
+  "Sim lặp kép Mobifone: bốn số cuối là hai cặp kép 2288, 6688 hoặc một cặp lặp lại 2929, 8585. Đọc một nhịp là nhớ. Giá niêm yết, đăng ký thông tin chính chủ.";
 const CANONICAL = `${BASE_URL}/sim-lap-kep`;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -33,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       title: TITLE,
-      description: "Sim lặp kép Mobifone — đuôi hai cặp số liền nhau 2288, 6688. Giá công khai, chính chủ.",
+      description: "Sim lặp kép Mobifone — đuôi 2288, 6688 hoặc 2929, 8585. Giá công khai, chính chủ.",
       url: CANONICAL,
       images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
     },
@@ -43,11 +43,11 @@ export async function generateMetadata(): Promise<Metadata> {
 const faqItems = [
   {
     q: "Sim lặp kép là gì?",
-    a: "Lặp kép là đuôi số gồm hai cặp giống nhau đứng liền nhau — 0703.222.288 phần đuôi 2288, 0934.005.500 phần đuôi 5500, 0909.578.866 phần đuôi 8866. Kho cũng xếp vào nhóm này những dãy có ba cặp liền nhau ở sáu số cuối, kiểu 11.22.33.",
+    a: "Lặp kép là bốn số cuối chia thành hai cặp, theo một trong hai dạng. Hai cặp kép liền nhau (AABB): 0703.222.288 phần đuôi 2288, 0934.005.500 phần đuôi 5500, 0909.578.866 phần đuôi 8866. Hoặc một cặp lặp lại (ABAB): đuôi 2929, 8585, 0404. Dãy ba cặp liền nhau kiểu 11.22.33 cũng thuộc nhóm này, vì bốn số cuối 2233 đã là hai cặp kép.",
   },
   {
     q: "Sim lặp kép và sim kép bằng có giống nhau không?",
-    a: "Không. Kép bằng là hai số cuối giống nhau (…88). Lặp kép cần hai cặp liền nhau (…2288), tức bốn chữ số cuối chia thành hai đôi. Dãy dài phần lặp nên nhịp đọc rõ hơn, và nguồn hàng cũng hẹp hơn kép bằng.",
+    a: "Không. Kép bằng là hai số cuối giống nhau (…88). Lặp kép cần cả bốn chữ số cuối chia thành hai đôi: hai cặp kép liền nhau (…2288) hoặc một cặp lặp lại (…2929). Dãy dài phần lặp nên nhịp đọc rõ hơn, và nguồn hàng cũng hẹp hơn kép bằng.",
   },
   {
     q: "Sim lặp kép giá bao nhiêu?",
@@ -140,24 +140,26 @@ export default async function SimLapKepPage() {
                 Một số bình thường có đuôi 2837, khách phải nghe đủ bốn con số rời. Đuôi{" "}
                 <strong className="text-foreground">22.88</strong> thì khác: hai nhịp là xong, và người nghe gần như
                 không cần nhắc lại. Đó là lợi thế thật của <strong className="text-foreground">sim lặp kép</strong> —
-                đuôi số chia thành hai cặp giống nhau đứng liền nhau.
+                bốn số cuối chia thành hai cặp: hai cặp kép liền nhau như 22.88, hoặc một cặp lặp lại như 29.29.
               </p>
               <p>
                 Ví dụ trong kho: <strong className="text-foreground">0703.222.288</strong> (đuôi 2288),{" "}
                 <strong className="text-foreground">0934.005.500</strong> (đuôi 5500),{" "}
-                <strong className="text-foreground">0909.578.866</strong> (đuôi 8866). Ngoài dạng bốn số, kho còn xếp vào
-                nhóm này các dãy có ba cặp liền nhau ở sáu số cuối, kiểu 11.22.33 — nhịp đọc còn gọn hơn nữa.
+                <strong className="text-foreground">0909.578.866</strong> (đuôi 8866). Dạng một cặp lặp lại gồm các đuôi
+                như 2929, 8585, 0404 — đọc &ldquo;hai chín, hai chín&rdquo; là đủ. Dãy có ba cặp liền nhau kiểu 11.22.33
+                cũng nằm trong nhóm, vì bốn số cuối 2233 đã là hai cặp kép — nhịp đọc còn gọn hơn nữa.
               </p>
               <p>
-                Cần phân biệt với hai nhóm gần kề: đuôi bốn số giống nhau là{" "}
+                Đuôi bốn số giống nhau là{" "}
                 <a href="/mua-sim-tu-quy" className="font-medium text-primary underline-offset-2 hover:underline">
                   tứ quý
                 </a>
-                , còn đuôi một cặp lặp lại như 8585 nằm ở{" "}
+                , không tính là lặp kép. Riêng đuôi một cặp lặp lại như 8585 thì vừa thuộc lặp kép, vừa thuộc{" "}
                 <a href="/sim-de-nho" className="font-medium text-primary underline-offset-2 hover:underline">
                   sim dễ nhớ
                 </a>
-                . Danh sách dưới đây chỉ gồm dãy đúng dạng hai cặp.
+                , nên Quý khách sẽ gặp nó ở cả hai trang. Danh sách dưới đây gồm mọi dãy có bốn số cuối đúng một trong
+                hai dạng trên.
               </p>
             </div>
           </section>
@@ -203,7 +205,7 @@ export default async function SimLapKepPage() {
               </table>
             </div>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              Anh Chị cần một hotline dễ đọc mà không phải trả cho lớp ý nghĩa thì hai dòng cuối bảng là chỗ đáng xem
+              Quý khách cần một hotline dễ đọc mà không phải trả cho lớp ý nghĩa thì hai dòng cuối bảng là chỗ đáng xem
               trước.
             </p>
           </section>

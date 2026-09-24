@@ -18,7 +18,7 @@ const TAG = "Dễ nhớ";
 
 const TITLE = "Sim Dễ Nhớ Mobifone | Đuôi Lặp 8585, 6969, 8686";
 const DESCRIPTION =
-  "Sim dễ nhớ Mobifone có bốn số cuối là một cặp lặp lại: 8585, 6969, 8686. Hotline gọn cho chủ shop và người bán hàng. Giá rõ từng số, giao toàn quốc.";
+  "Sim dễ nhớ Mobifone có đuôi lặp một nhịp ngắn: 8585, 838, 777, 7778, 122.722. Hotline gọn cho chủ shop và người bán hàng. Giá rõ từng số, giao toàn quốc.";
 const CANONICAL = `${BASE_URL}/sim-de-nho`;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -33,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       title: TITLE,
-      description: "Sim dễ nhớ Mobifone — bốn số cuối là một cặp lặp lại 8585, 6969. Giá công khai.",
+      description: "Sim dễ nhớ Mobifone — đuôi lặp một nhịp ngắn như 8585, 838, 7778. Giá công khai.",
       url: CANONICAL,
       images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
     },
@@ -43,19 +43,19 @@ export async function generateMetadata(): Promise<Metadata> {
 const faqItems = [
   {
     q: "Sim dễ nhớ trên trang này được chọn theo luật nào?",
-    a: "Bốn chữ số cuối phải là một cặp lặp lại đúng hai lần: 0902.888.585 (đuôi 8585), 0902.908.686 (đuôi 8686), 0909.936.969 (đuôi 6969). Cách chọn này giữ danh sách sạch, tránh cảnh gắn nhãn dễ nhớ cho những dãy chỉ nghe êm tai mà không có cấu trúc.",
+    a: "Số được xếp vào nhóm dễ nhớ khi đuôi có một nhịp lặp ngắn, nhìn là thấy. Các dạng chính: cặp số lặp lại (…8585, …6969); ba số cuối đối xứng kiểu 8-3-8 (…838, …505), hoặc nhịp ấy nằm ngay trước số cuối (…1910); ba số cuối giống nhau (…777) hay ba số giống nhau rồi đến một số khác (…7778); hai cụm ba số cuối chỉ lệch nhau một chữ (122.722, 580.589), hoặc hai cụm bốn số cuối chỉ lệch một chữ (1970.1980); cùng vài biến thể lặp tương tự như …99669, 888.478. Một số có thể thuộc nhiều nhóm cùng lúc: …6969 vừa là sim lặp kép vừa dễ nhớ, …777 vừa là tam hoa vừa dễ nhớ. Trang này liệt kê mọi số có cấu trúc dễ nhớ, kể cả những số đã nằm ở nhóm khác.",
   },
   {
-    q: "Vì sao dãy lặp cặp lại dễ nhớ hơn?",
-    a: "Người nghe không ghi bốn con số rời mà ghi một cặp rồi nhân đôi. Đuôi 8585 chỉ chiếm một ô nhớ thay vì bốn. Với người phải đọc số cho khách mỗi ngày, khác biệt này thấy ngay trong số lần phải nhắc lại.",
+    q: "Vì sao đuôi có nhịp lặp lại dễ nhớ hơn?",
+    a: "Người nghe không ghi từng con số rời mà ghi theo khuôn. Đuôi 8585 là một cặp nhân đôi, đuôi 838 là hai số 8 kẹp số 3, đuôi 7778 là ba số 7 rồi đến số 8: mỗi đuôi chỉ chiếm một ô nhớ thay vì ba, bốn ô. Với người phải đọc số cho khách mỗi ngày, khác biệt này thấy ngay trong số lần phải nhắc lại.",
   },
   {
     q: "Sim dễ nhớ giá bao nhiêu?",
-    a: "Cặp được lặp quyết định giá: 68, 86, 79, 39 cao nhất vì trùng nhóm tài lộc; các cặp trung tính như 52, 41 mềm hơn nhiều. Đầu số 090, 093 cộng thêm một bậc so với 07x. Từng số đều hiện giá niêm yết trong kho.",
+    a: "Những con số tạo nên đuôi quyết định giá: đuôi chứa cặp tài lộc 68, 86, 79, 39 (…6868, …7979) hoặc ba số giống nhau (…777) thường ở mức cao; các dạng trung tính như …505, …1910 hay cặp 52, 41 mềm hơn nhiều. Đầu số 090, 093 cộng thêm một bậc so với 07x. Từng số đều hiện giá niêm yết trong kho.",
   },
   {
     q: "Chọn sim dễ nhớ hay sim phong thủy?",
-    a: "Nếu số dùng để nhận đơn, nhận cuộc gọi từ khách lạ, dãy dễ đọc mang lại lợi ích rõ hơn. Nếu Quý khách coi số như một phần hình ảnh cá nhân thì nên xét thêm ngũ hành. Nhiều số trong danh sách này đạt cả hai vì cặp lặp đã là 68 hay 79.",
+    a: "Nếu số dùng để nhận đơn, nhận cuộc gọi từ khách lạ, dãy dễ đọc mang lại lợi ích rõ hơn. Nếu Quý khách coi số như một phần hình ảnh cá nhân thì nên xét thêm ngũ hành. Nhiều số trong danh sách này đạt cả hai vì phần lặp ở đuôi đã là 68 hay 79 (…6868, …7979).",
   },
   {
     q: "Đặt sim dễ nhớ có mất phí giữ số không?",
@@ -86,7 +86,7 @@ export default async function SimDeNhoPage() {
           style={{ minHeight: "clamp(300px, 38vw, 380px)" }}
           className="relative flex items-center bg-gradient-to-b from-primary via-primary-dark to-primary text-primary-foreground"
         >
-          <CategoryHeroArt numerals={["6688"]} />
+          <CategoryHeroArt numerals={["8585"]} />
           <div className="container relative mx-auto px-4 py-6 text-center">
             <div className="mb-2 flex justify-center">
               <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/30 bg-gold/15">
@@ -98,8 +98,8 @@ export default async function SimDeNhoPage() {
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
               {stats.count > 0
-                ? `Một cặp số lặp lại ở đuôi, khách nghe một lần là ghi đúng. Kho còn ${stats.count.toLocaleString("vi-VN")} số, giá từ ${formatTrieu(stats.min)}.`
-                : "Một cặp số lặp lại ở đuôi, khách nghe một lần là ghi đúng. Kho đang cập nhật, Quý khách nhắn Zalo để nhận số mới."}
+                ? `Đuôi lặp một nhịp ngắn như 8585, 838 hay 7778, khách nghe một lần là ghi đúng. Kho còn ${stats.count.toLocaleString("vi-VN")} số, giá từ ${formatTrieu(stats.min)}.`
+                : "Đuôi lặp một nhịp ngắn như 8585, 838 hay 7778, khách nghe một lần là ghi đúng. Kho đang cập nhật, Quý khách nhắn Zalo để nhận số mới."}
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a
@@ -143,22 +143,23 @@ export default async function SimDeNhoPage() {
               </p>
               <p>
                 Cách chữa gọn nhất là chọn dãy có cấu trúc. Danh sách này gom những số có{" "}
-                <strong className="text-foreground">bốn chữ số cuối là một cặp lặp lại</strong> — 8585, 6969, 8686. Người
-                nghe chỉ cần ghi một cặp rồi nhân đôi, nên tỷ lệ đọc đúng ngay lần đầu cao hơn hẳn.
+                <strong className="text-foreground">đuôi lặp một nhịp ngắn</strong>: cặp số lặp lại (8585, 6969), ba số
+                đối xứng (838, 505), ba số giống nhau (777, 7778), hay hai cụm số chỉ lệch nhau một chữ (122.722). Người
+                nghe chỉ cần nhớ một khuôn thay vì từng chữ số rời, nên tỷ lệ đọc đúng ngay lần đầu cao hơn hẳn.
               </p>
               <p>
-                Kho cố ý dùng luật chặt như vậy. Nhãn &ldquo;dễ nhớ&rdquo; nếu gắn theo cảm tính thì mỗi người hiểu một
-                kiểu; gắn theo cấu trúc thì Quý khách kiểm được bằng mắt, và mọi số trong danh sách đều đạt cùng một
-                chuẩn.
+                Nhãn &ldquo;dễ nhớ&rdquo; nếu gắn theo cảm tính thì mỗi người hiểu một kiểu. Kho gắn theo khuôn lặp ở
+                đuôi, nên Quý khách kiểm được bằng mắt: số nào trong danh sách cũng chỉ ra được đoạn lặp của nó. Một số
+                có thể đồng thời thuộc nhóm khác, như đuôi 6969 cũng là sim lặp kép, đuôi 777 cũng là sim tam hoa.
               </p>
             </div>
           </section>
 
-          {/* ── 2. Chọn cặp nào ───────────────────────────────────────────── */}
+          {/* ── 2. Chọn đuôi nào ──────────────────────────────────────────── */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
               <span className="h-8 w-1 rounded-full bg-primary" />
-              Cặp số nào nên chọn cho việc của Quý khách
+              Đuôi số nào nên chọn cho việc của Quý khách
             </h2>
             <div className="space-y-3">
               <div className="rounded-lg border border-border bg-secondary/25 p-4">
@@ -169,9 +170,9 @@ export default async function SimDeNhoPage() {
                 </p>
               </div>
               <div className="rounded-lg border border-border bg-secondary/25 p-4">
-                <h3 className="mb-1 font-semibold text-foreground">Số dùng cá nhân: 8585, 9292, 5151</h3>
+                <h3 className="mb-1 font-semibold text-foreground">Số dùng cá nhân: 8585, 9292, 505, 1910</h3>
                 <p className="text-sm leading-relaxed text-muted-foreground">
-                  Nhịp đọc vẫn gọn, giá mềm hơn nhóm trên vì không nằm trong các cặp được săn. Phù hợp khi Quý khách cần
+                  Nhịp đọc vẫn gọn, giá mềm hơn nhóm trên vì không trùng các cặp tài lộc được săn. Phù hợp khi Quý khách cần
                   thêm một số cho công việc riêng.
                 </p>
               </div>
