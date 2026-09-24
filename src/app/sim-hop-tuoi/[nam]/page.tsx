@@ -103,7 +103,7 @@ export default async function SimHopTuoiYearPage({ params }: Props) {
   const profile = profileForYear(info.nam);
   const pool = await getRankedPool(profile);
   // Mỗi năm lấy một lát khác nhau trong nhóm điểm cao nhất: hai năm cùng mệnh và
-  // cùng âm/dương cung phi (vd 1963 với 2000) vốn được engine trả về danh sách
+  // cùng âm/dương cung phi (vd 1962 với 2000) vốn được engine trả về danh sách
   // giống hệt — xoay lát để 61 trang không in cùng một bảng số.
   const picked = pickRotated(pool, info.nam, ROWS_PER_PAGE);
   const priceSims = picked.map((p) => p.sim);

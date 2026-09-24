@@ -32,12 +32,12 @@ const faqData = [
   {
     question: "Công cụ tìm SIM hợp tuổi hoạt động như thế nào?",
     answer:
-      "Quý khách nhập ngày sinh (dương lịch), giờ sinh và giới tính. Hệ thống tính mệnh theo nạp âm Can–Chi, cung phi Bát Trạch và trạng thái Âm–Dương, sau đó chấm điểm từng SIM trong kho theo ngũ hành, âm dương, tổng nút, quẻ Kinh Dịch và Bát Cực Linh Số.",
+      "Quý khách nhập ngày sinh (chọn Dương lịch hoặc Âm lịch), giờ sinh và giới tính. Ngày dương lịch được quy về năm âm lịch (sinh trước Tết thì tính theo năm trước), rồi hệ thống tính mệnh theo nạp âm Can–Chi, cung phi Bát Trạch và trạng thái Âm–Dương, sau đó chấm điểm từng SIM trong kho theo ngũ hành, âm dương, tổng nút và quẻ Kinh Dịch. Bát Cực Linh Số dùng để lọc số khi Quý khách chọn mục tiêu.",
   },
   {
     question: "Mệnh được tính như thế nào?",
     answer:
-      "Mệnh (Kim, Mộc, Thủy, Hỏa, Thổ) được xác định từ Thiên Can – Địa Chi của năm sinh theo nạp âm 60 hoa giáp. Ví dụ người sinh năm 1990 (Canh Ngọ) thuộc mệnh Thổ (Lộ Bàng Thổ).",
+      "Mệnh (Kim, Mộc, Thủy, Hỏa, Thổ) được xác định từ Thiên Can – Địa Chi của năm sinh âm lịch theo nạp âm 60 hoa giáp. Ví dụ người sinh năm 1990 (Canh Ngọ) thuộc mệnh Thổ (Lộ Bàng Thổ); riêng người sinh trước Tết Canh Ngọ (27/01/1990 dương lịch) vẫn thuộc tuổi Kỷ Tỵ, mệnh Mộc (Đại Lâm Mộc).",
   },
   {
     question: "Tổng nút là gì và vì sao nên chọn sim nhiều nút?",
@@ -52,7 +52,7 @@ const faqData = [
   {
     question: "Làm sao để đặt mua SIM sau khi xem kết quả?",
     answer:
-      "Quý khách bấm ĐẶT MUA ở số đã chọn, điền thông tin nhận hàng hoặc bấm Chat Zalo để nhân viên giữ số ngay. Giao SIM toàn quốc 30 phút, đăng ký chính chủ, nhận hàng kiểm tra mới thanh toán.",
+      "Quý khách bấm ĐẶT MUA ở số đã chọn, điền thông tin nhận hàng hoặc bấm Chat Zalo để nhân viên giữ số ngay. Giao SIM toàn quốc 30 phút, đăng ký thông tin chính chủ, nhận hàng kiểm tra mới thanh toán.",
   },
 ];
 
@@ -84,8 +84,8 @@ const PILLARS = [
     body: "4 số cuối chia 80 lấy quẻ. Ưu tiên SIM có quẻ Cát / Đại cát như 'Làm ăn phát đạt', 'Tên tuổi 4 phương', 'Thuận lợi xương thịnh'.",
   },
   {
-    title: "5. Bát Cực Linh Số cát vượng",
-    body: "Ưu tiên các cặp sao cát vượng như Sinh Khí, Diên Niên, Thiên Y, Phục Vị để trợ mệnh, hạn chế sao hung tinh.",
+    title: "5. (Phụ) Cặp số đẹp & cấu trúc đuôi",
+    body: "Cộng điểm nhỏ cho đuôi tam hoa, tứ quý, sảnh tiến và các cặp đuôi được ưa chuộng như 68, 86, 39, 79. Bát Cực Linh Số (Sinh Khí, Thiên Y, Diên Niên, Phục Vị…) không cộng vào điểm, mà dùng để lọc khi Quý khách chọn mục tiêu kích hoạt.",
   },
 ];
 

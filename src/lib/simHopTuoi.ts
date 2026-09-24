@@ -17,12 +17,13 @@
 // ============================================================================
 
 import { getHexagramFromSuffix, HexagramLevel } from "./hexagrams";
-import { PRICE_RANGES, type NormalizedSIM } from "./simUtils";
-import { hopTuoiSo, mucTieuCuaSo, diemMucTieu, nguHanhCuaSo as nguHanhDaySo } from "./phongThuy";
+import { PRICE_RANGES, searchSIM, type NormalizedSIM } from "./simUtils";
+import { mucTieuCuaSo, MUC_TIEU } from "./phongThuy";
 import {
   chamBatCuc,
   locTheoBatCuc,
   phanTichBatCuc,
+  NL_META,
   type BatCucFilter,
   type NangLuong,
 } from "./batCuc";
@@ -94,7 +95,10 @@ export interface CanChi {
   napAm: string; // tên nạp âm
 }
 
-/** Tính Thiên Can – Địa Chi – nạp âm từ năm sinh (dương lịch). */
+/**
+ * Tính Thiên Can – Địa Chi – nạp âm từ NĂM ÂM LỊCH (năm Can Chi). Ngày sinh
+ * dương lịch trước Tết phải đổi sang năm trước bằng `namAmLich` (src/lib/amLich.ts).
+ */
 export const tinhCanChi = (year: number): CanChi => {
   const idx = ((year - 4) % 60 + 60) % 60;
   return {
@@ -137,23 +141,23 @@ const reduceToSingle = (n: number): number => {
 };
 
 /**
- * Tính quái số (Cung Phi Bát Trạch) từ năm sinh + giới tính.
- *  - S = rút gọn 2 số cuối năm sinh về 1 chữ số
- *  - Nam: quái = 10 − S   (nếu 10 → 1)
- *  - Nữ : quái = 5 + S    (nếu > 9 → trừ 9 cho tới khi ≤ 9)
+ * Tính quái số (Cung Phi Bát Trạch) từ năm sinh (âm lịch) + giới tính.
+ *  - R = tổng TẤT CẢ chữ số của năm, rút gọn về 1 chữ số
+ *  - Nam: quái = 11 − R   (nếu > 9 → trừ 9)
+ *  - Nữ : quái = 4 + R    (nếu > 9 → trừ 9)
  *  - Quái 5: Nam → Khôn (Thổ), Nữ → Cấn (Thổ)
+ * Công thức này tương đương bản quen thuộc "10 − S / 5 + S" (S = rút gọn 2 số
+ * cuối) cho năm 19xx, và "9 − S / 6 + S" cho năm 20xx. Bản cũ chỉ dùng 2 số
+ * cuối nên SAI cho mọi năm từ 2000 (vd nam 2000 ra Khảm, đúng phải là Ly).
  */
 export const tinhCungPhi = (year: number, gender: GioiTinh): CungPhi => {
-  const yy = year % 100;
-  const s = reduceToSingle(Math.floor(yy / 10) + (yy % 10));
-  let so: number;
-  if (gender === "nam") {
-    so = 10 - s;
-    if (so === 10) so = 1;
-  } else {
-    so = 5 + s;
-    while (so > 9) so -= 9;
-  }
+  const R = reduceToSingle(
+    String(Math.abs(Math.trunc(year)))
+      .split("")
+      .reduce((a, d) => a + Number(d), 0),
+  );
+  let so = gender === "nam" ? 11 - R : 4 + R;
+  while (so > 9) so -= 9;
 
   if (so === 5) {
     return gender === "nam"
@@ -248,8 +252,10 @@ export const buildProfile = (nam: number, gioIndex: number, gioiTinh: GioiTinh):
 // Điểm mỗi con số trong quan hệ với mệnh người dùng
 //   +2: hành số SINH mệnh người (Thổ sinh Kim → số Thổ tốt cho người Kim)
 // +1.5: hành số ĐỒNG mệnh người
-//    0: hành số TRUNG tính
 //   -1: mệnh người khắc hành số (Kim khắc Mộc → số Mộc cho người Kim)
+//       VÀ mệnh người sinh hành số (Kim sinh Thủy → số Thủy cho người Kim) —
+//       hiện hai quan hệ này cùng -1 (ngũ hành không có cặp "trung tính").
+//       Có đề xuất tách "mệnh sinh số" thành -0.5; chờ A Khoa duyệt vì đổi thứ hạng.
 //   -2: hành số khắc mệnh người (Hỏa khắc Kim → số Hỏa xấu cho người Kim)
 const DIGIT_POINT = (menh: NguHanh, digitHanh: NguHanh): number => {
   const rel = quanHeNguHanh(digitHanh, menh); // digitHanh → menh
@@ -277,10 +283,71 @@ export interface ScoredSim {
   batCucScore: number; // 0–10 (Bát Cực Linh Số)
   nlChuDao: NangLuong | null; // năng lượng chủ đạo của SIM
   nlCounts: Record<NangLuong, number>; // chi tiết đếm năng lượng
-  simHanh?: NguHanh;
-  quanHe?: string;
+  simHanh: NguHanh; // hành chiếm ưu thế — CÙNG bảng DIGIT_NGU_HANH dùng để chấm điểm
+  quanHe: string; // nhãn quan hệ simHanh ↔ mệnh
+  verdict: string; // "Rất hợp tuổi" / "Hợp tuổi" / "Trung bình" / "Không hợp" — theo điểm
+  tone: ToneHopTuoi;
   mucTieu?: string[];
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// XẾP LOẠI HỢP TUỔI — MỘT bộ ngưỡng dùng chung cho thẻ SIM lẫn phần bói số
+// ────────────────────────────────────────────────────────────────────────────
+
+export type ToneHopTuoi = "gold" | "emerald" | "amber" | "red";
+
+export const NGUONG_HOP_TUOI = { ratHop: 8.5, hop: 7, binhHoa: 5.5 } as const;
+
+/** Xếp loại theo ĐIỂM (đã làm tròn 1 số lẻ như hiển thị). */
+export const xepLoaiHopTuoi = (score: number): { verdict: string; tone: ToneHopTuoi } => {
+  if (score >= NGUONG_HOP_TUOI.ratHop) return { verdict: "Rất hợp tuổi", tone: "gold" };
+  if (score >= NGUONG_HOP_TUOI.hop) return { verdict: "Hợp tuổi", tone: "emerald" };
+  if (score >= NGUONG_HOP_TUOI.binhHoa) return { verdict: "Trung bình", tone: "amber" };
+  return { verdict: "Không hợp", tone: "red" };
+};
+
+/**
+ * Hành chiếm ưu thế của dãy số, đếm theo DIGIT_NGU_HANH (đúng bảng chấm điểm).
+ * Hòa số lượng → chọn hành có điểm cao hơn với mệnh (DIGIT_POINT), rồi theo thứ tự cố định.
+ */
+export const hanhChinhCuaSo = (digits: string, menh: NguHanh): NguHanh => {
+  const dem: Record<NguHanh, number> = { Kim: 0, Mộc: 0, Thủy: 0, Hỏa: 0, Thổ: 0 };
+  for (const ch of digits) {
+    const h = DIGIT_NGU_HANH[ch];
+    if (h) dem[h]++;
+  }
+  const thuTu: NguHanh[] = ["Kim", "Mộc", "Thủy", "Hỏa", "Thổ"];
+  let best: NguHanh = menh;
+  let bestDem = -1;
+  let bestDiem = -Infinity;
+  for (const h of thuTu) {
+    const diem = DIGIT_POINT(menh, h);
+    if (dem[h] > bestDem || (dem[h] === bestDem && diem > bestDiem)) {
+      best = h;
+      bestDem = dem[h];
+      bestDiem = diem;
+    }
+  }
+  return best;
+};
+
+/** Nhãn quan hệ giữa hành của SỐ và mệnh người dùng (cùng bộ chữ với hopTuoiSo). */
+export const nhanQuanHeSo = (simHanh: NguHanh, menh: NguHanh): string => {
+  if (TUONG_SINH[simHanh] === menh) return "Tương sinh — rất hợp";
+  if (simHanh === menh) return "Tương hòa — hợp";
+  if (TUONG_SINH[menh] === simHanh) return "Bình hòa";
+  if (TUONG_KHAC[simHanh] === menh) return "Tương khắc — cân nhắc";
+  return "Bình thường"; // mệnh khắc số
+};
+
+/** Câu mô tả quan hệ (dùng trong lời khuyên bói số). */
+const moTaQuanHeSo = (simHanh: NguHanh, menh: NguHanh): string => {
+  if (TUONG_SINH[simHanh] === menh) return `hành ${simHanh} sinh cho mệnh ${menh}`;
+  if (simHanh === menh) return `cùng hành ${menh} với mệnh`;
+  if (TUONG_SINH[menh] === simHanh) return `mệnh ${menh} sinh cho hành ${simHanh}, hơi hao lực`;
+  if (TUONG_KHAC[simHanh] === menh) return `hành ${simHanh} khắc mệnh ${menh}`;
+  return `mệnh ${menh} khắc hành ${simHanh}, dùng ổn`;
+};
 
 const clamp = (n: number, min = 0, max = 10): number => Math.min(Math.max(n, min), max);
 
@@ -291,16 +358,24 @@ const clamp = (n: number, min = 0, max = 10): number => Math.min(Math.max(n, min
  *  - Giờ sinh Dương → tăng thêm xu hướng chọn số Âm (giờ Âm thì ngược lại).
  * Điểm cao khi số chẵn/lẻ nghiêng đúng hướng bù trừ cho năng lượng của người dùng.
  */
+/**
+ * Tỉ lệ số chẵn (Âm) lý tưởng cho người dùng, theo cung phi + giờ sinh.
+ * > 0.5 → cần bổ khuyết Âm; < 0.5 → cần bổ khuyết Dương; = 0.5 → cân bằng.
+ */
+export const amDuongTarget = (profile: HopTuoiProfile): number => {
+  // Xu hướng cần số ÂM (chẵn): +1 nếu cung phi Dương, +1 nếu giờ Dương.
+  const wantYin = profile.cungPhi.amDuong === "Dương" ? 1 : 0;
+  const wantYinHour = profile.gioAmDuong === "Dương" ? 1 : 0;
+  return 0.4 + 0.2 * wantYin + 0.2 * wantYinHour; // 0.4..0.8
+};
+
 const tinhAmDuongScore = (digits: string, profile: HopTuoiProfile): number => {
   const total = digits.length;
   if (total === 0) return 5;
   const even = digits.split("").filter((d) => Number(d) % 2 === 0).length;
   const evenRatio = even / total; // 0..1 (Âm phần)
 
-  // Xu hướng cần số ÂM (chẵn): +1 nếu cung phi Dương, +1 nếu giờ Dương, +0.5 lẻ.
-  const wantYin = profile.cungPhi.amDuong === "Dương" ? 1 : 0;
-  const wantYinHour = profile.gioAmDuong === "Dương" ? 1 : 0;
-  const target = 0.4 + 0.2 * wantYin + 0.2 * wantYinHour; // 0.4..0.8
+  const target = amDuongTarget(profile);
 
   const diff = Math.abs(evenRatio - target);
   // diff 0 → 10 điểm; diff ~0.5 → gần 0
@@ -389,16 +464,20 @@ export const scoreSim = (sim: NormalizedSIM, profile: HopTuoiProfile): ScoredSim
   const batCuc = chamBatCuc(digits);
   const phanTich = phanTichBatCuc(digits);
 
-  const simHanh = (nguHanhDaySo(digits).chinh as NguHanh) || profile.menh;
-  const hq = hopTuoiSo(digits, profile.nam);
+  // Hành của số + quan hệ với mệnh: đếm theo CÙNG bảng DIGIT_NGU_HANH đã dùng để
+  // chấm nguHanhScore — trước đây lấy bảng Hà Đồ khác (phongThuy.ts) nên số điểm
+  // ngũ hành cao vẫn bị ghi "Tương khắc — cân nhắc".
+  const simHanh = hanhChinhCuaSo(digits, profile.menh);
   const mt = mucTieuCuaSo(digits).map((m) => m.label);
+  const roundedScore = Math.round(score * 10) / 10;
+  const xepLoai = xepLoaiHopTuoi(roundedScore);
 
   return {
     id: sim.id,
     digits,
     formattedNumber: sim.formattedNumber,
     price: sim.price,
-    score: Math.round(score * 10) / 10,
+    score: roundedScore,
     nguHanhScore: Math.round(nguHanhScore * 10) / 10,
     amDuongScore: Math.round(amDuongScore * 10) / 10,
     nutScore: Math.round(nutScore * 10) / 10,
@@ -412,7 +491,9 @@ export const scoreSim = (sim: NormalizedSIM, profile: HopTuoiProfile): ScoredSim
     nlChuDao: phanTich.chuDao,
     nlCounts: batCuc.chiTiet,
     simHanh,
-    quanHe: hq?.muc ?? "Tương hòa",
+    quanHe: nhanQuanHeSo(simHanh, profile.menh),
+    verdict: xepLoai.verdict,
+    tone: xepLoai.tone,
     mucTieu: mt,
   };
 };
@@ -423,6 +504,8 @@ export interface SingleSimEvaluation {
   score: number;
   verdict: string;
   verdictColor: string;
+  tone: ToneHopTuoi; // cùng tầng với nhãn thẻ SIM (xepLoaiHopTuoi)
+  amDuongTarget: number; // > 0.5 cần bổ khuyết Âm, < 0.5 cần bổ khuyết Dương
   simHanh: NguHanh;
   quanHe: string;
   hexagram: string;
@@ -465,37 +548,48 @@ export function evaluateSingleSim(rawDigits: string, profile: HopTuoiProfile): S
     last6: clean.slice(-6),
   };
   const scored = scoreSim(dummySim, profile);
-  const NL_CAT_SET = new Set(["SinhKhí", "ThiênY", "DiênNiên", "PhụcVị"]);
-  const NL_HUNG_SET = new Set(["TuyệtMệnh", "NgũQuỷ", "LụcSát", "HọaHại"]);
   let catStars = 0;
   let hungStars = 0;
-  for (const [k, v] of Object.entries(scored.nlCounts)) {
-    if (NL_CAT_SET.has(k)) catStars += v;
-    if (NL_HUNG_SET.has(k)) hungStars += v;
+  for (const [k, v] of Object.entries(scored.nlCounts) as [NangLuong, number][]) {
+    if (NL_META[k].loai === "cát") catStars += v;
+    else hungStars += v;
   }
   const evenCount = clean.split("").filter((d) => Number(d) % 2 === 0).length;
   const oddCount = clean.length - evenCount;
 
-  let verdict = "Đạt chuẩn phong thủy";
-  let verdictColor = "text-emerald-500";
-  let advice = "";
+  // Verdict dùng CÙNG ngưỡng điểm với nhãn trên thẻ SIM (xepLoaiHopTuoi) để một số
+  // không bị thẻ gọi "Rất hợp tuổi" mà phần bói lại gọi "Trung bình". Số sao hung
+  // vẫn được nêu thật trong lời khuyên.
+  const f = dummySim.formattedNumber;
+  const f1 = `ngũ hành số thiên ${scored.simHanh} (${moTaQuanHeSo(scored.simHanh, profile.menh)})`;
+  const f2 = scored.hexagram ? `quẻ ${scored.hexagram} (${scored.hexagramLevel})` : `quẻ ${scored.hexagramLevel}`;
+  const f3 = `Bát Cực ${catStars} cặp cát, ${hungStars} cặp hung`;
+  const chiTiet = `${f1}; ${f2}; ${f3}`;
 
-  if (scored.score >= 8.5 && hungStars === 0) {
-    verdict = "Đại Cát — Rất hợp mệnh";
+  let verdict: string;
+  let verdictColor: string;
+  let advice: string;
+  const { tone } = scored;
+
+  if (tone === "gold") {
+    verdict = "Đại Cát — Rất hợp tuổi";
     verdictColor = "text-gold";
-    advice = `Số ${dummySim.formattedNumber} có năng lượng rất vượng (${catStars} sao cát, 0 sao hung), tương sinh tốt cho bản mệnh ${profile.napAm}. Quý khách hoàn toàn an tâm tiếp tục sử dụng!`;
-  } else if (scored.score >= 7.0 && hungStars <= 1) {
+    advice =
+      hungStars === 0
+        ? `Số ${f} đạt ${scored.score}/10 — mức Rất hợp tuổi với mệnh ${profile.napAm}: ${chiTiet}. Quý khách hoàn toàn an tâm tiếp tục sử dụng!`
+        : `Số ${f} đạt ${scored.score}/10 — mức Rất hợp tuổi với mệnh ${profile.napAm}: ${chiTiet}. Điểm tổng cao nên dùng tốt; nếu muốn trọn vẹn hơn, Quý khách có thể chọn số không có cặp hung trong danh sách bên dưới.`;
+  } else if (tone === "emerald") {
     verdict = "Cát lành — Hợp tuổi";
     verdictColor = "text-emerald-400";
-    advice = `Số ${dummySim.formattedNumber} ở mức Cát lành, cân bằng âm dương và tương hợp với mệnh ${profile.menh}. Có thể sử dụng tốt cho công việc và liên lạc hàng ngày.`;
-  } else if (scored.score >= 5.5) {
-    verdict = "Bình hòa — Trung bình";
+    advice = `Số ${f} ở mức Cát lành (${scored.score}/10): ${chiTiet}. Có thể sử dụng tốt cho công việc và liên lạc hàng ngày.`;
+  } else if (tone === "amber") {
+    verdict = "Trung bình — Dùng được";
     verdictColor = "text-amber-400";
-    advice = `Số ${dummySim.formattedNumber} đạt mức trung bình, quẻ dịch và năng lượng Bát Cực ở mức bình hòa (${hungStars} sao hung). Nếu làm ăn kinh doanh lớn, Quý khách nên chọn dãy số có năng lượng Sinh Khí / Thiên Y mạnh hơn bên dưới để trợ vận tài lộc.`;
+    advice = `Số ${f} đạt mức trung bình (${scored.score}/10): ${chiTiet}. Nếu làm ăn kinh doanh lớn, Quý khách nên chọn dãy số có năng lượng Sinh Khí / Thiên Y mạnh hơn bên dưới để trợ vận tài lộc.`;
   } else {
-    verdict = "Hung — Khắc mệnh";
+    verdict = "Không hợp — Nên cân nhắc";
     verdictColor = "text-red-500";
-    advice = `Số ${dummySim.formattedNumber} có điểm tương hợp thấp (${scored.score}/10 điểm), chứa ${hungStars} sao hung tinh và quẻ dịch chưa thuận. Khuyên Quý khách nên đổi sang sim có ngũ hành tương sinh và quẻ Đại Cát trong danh sách dưới đây!`;
+    advice = `Số ${f} có điểm tương hợp thấp (${scored.score}/10): ${chiTiet}. Quý khách nên cân nhắc đổi sang số có điểm hợp tuổi cao hơn trong danh sách dưới đây.`;
   }
 
   return {
@@ -504,8 +598,10 @@ export function evaluateSingleSim(rawDigits: string, profile: HopTuoiProfile): S
     score: scored.score,
     verdict,
     verdictColor,
-    simHanh: scored.simHanh || profile.menh,
-    quanHe: scored.quanHe || "Tương hòa",
+    tone,
+    amDuongTarget: amDuongTarget(profile),
+    simHanh: scored.simHanh,
+    quanHe: scored.quanHe,
     hexagram: scored.hexagram,
     hexagramLevel: scored.hexagramLevel,
     nut: scored.nut,
@@ -528,7 +624,29 @@ export interface ScoreInventoryOptions {
   priceRange?: string;
   prefix?: string;
   sortBy?: "score_desc" | "price_asc" | "price_desc";
+  /** Chỉ giữ SIM có điểm ≥ ngưỡng này (mặc định 0 = không lọc, giữ hành vi cũ). */
+  minScore?: number;
 }
+
+/** Số cặp CÁT tối thiểu để một SIM được xem là "kích hoạt" mục tiêu. */
+export const MUC_TIEU_MIN_CAP = 2;
+/** Trọng số cộng điểm mục tiêu khi xếp "Điểm phong thuỷ cao nhất" có chọn mục tiêu. */
+const MUC_TIEU_SORT_WEIGHT = 0.3;
+
+/**
+ * Điểm mục tiêu CHỈ tính năng lượng CÁT của mục tiêu đó (bỏ Lục Sát — sao hung —
+ * đang nằm trong nhóm "Tình duyên" của MUC_TIEU). Trả null nếu SIM bị năng lượng
+ * hung chi phối (chủ đạo là sao hung) hoặc id mục tiêu không hợp lệ.
+ */
+export const diemMucTieuCat = (digits: string, mucTieuId: string): number | null => {
+  const meta = MUC_TIEU.find((m) => m.id === mucTieuId);
+  if (!meta) return null;
+  const r = phanTichBatCuc(digits);
+  if (r.chuDao && NL_META[r.chuDao].loai === "hung") return null;
+  return meta.nangLuong
+    .filter((nl) => NL_META[nl].loai === "cát")
+    .reduce((sum, nl) => sum + r.counts[nl], 0);
+};
 
 export interface ScoreInventoryResult {
   total: number;
@@ -549,49 +667,58 @@ export const scoreInventoryAdvanced = (
     priceRange,
     prefix,
     sortBy = "score_desc",
+    minScore = 0,
   } = options;
 
   let candidates = sims.filter((s) => s.price > 0 && s.rawDigits && s.rawDigits.length >= 10);
 
-  // Prefix filter
+  // Prefix filter — bỏ phần tử rỗng ("090," không được khớp mọi số)
   if (prefix) {
-    const pfxList = prefix.split(",");
-    candidates = candidates.filter((s) => pfxList.some((p) => s.rawDigits.startsWith(p)));
-  }
-
-  // Price range filter
-  if (priceRange !== undefined && priceRange !== null && priceRange !== "") {
-    const rangeIndices = priceRange.split(",").map(Number);
-    candidates = candidates.filter((s) =>
-      rangeIndices.some((idx) => {
-        const r = PRICE_RANGES[idx];
-        return r ? s.price >= r.min && s.price <= r.max : false;
-      })
-    );
-  }
-
-  // Search query filter (support 09*, *68, contains)
-  if (searchQuery && searchQuery.trim()) {
-    const cleanSearch = searchQuery.trim().replace(/[^0-9*]/g, "");
-    const digitsOnly = cleanSearch.replace(/\*/g, "");
-    if (cleanSearch.includes("*")) {
-      if (cleanSearch.startsWith("*") && !cleanSearch.endsWith("*")) {
-        const suf = cleanSearch.slice(1);
-        candidates = candidates.filter((s) => s.rawDigits.endsWith(suf));
-      } else if (!cleanSearch.startsWith("*") && cleanSearch.endsWith("*")) {
-        const pre = cleanSearch.slice(0, -1);
-        candidates = candidates.filter((s) => s.rawDigits.startsWith(pre));
-      } else if (digitsOnly) {
-        candidates = candidates.filter((s) => s.rawDigits.includes(digitsOnly));
-      }
-    } else if (digitsOnly) {
-      candidates = candidates.filter((s) => s.rawDigits.includes(digitsOnly));
+    const pfxList = prefix
+      .split(",")
+      .map((p) => p.replace(/\D/g, ""))
+      .filter(Boolean);
+    if (pfxList.length > 0) {
+      candidates = candidates.filter((s) => pfxList.some((p) => s.rawDigits.startsWith(p)));
     }
   }
 
-  // Muc tieu filter
-  if (mucTieu && mucTieu !== "all") {
-    candidates = candidates.filter((s) => diemMucTieu(s.rawDigits, mucTieu as any) > 0);
+  // Price range filter — chỉ nhận chỉ số hợp lệ ("5," không được kéo thêm mức 0)
+  if (priceRange !== undefined && priceRange !== null && priceRange !== "") {
+    const rangeIndices = priceRange
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => /^\d+$/.test(s))
+      .map(Number)
+      .filter((i) => i < PRICE_RANGES.length);
+    if (rangeIndices.length > 0) {
+      candidates = candidates.filter((s) =>
+        rangeIndices.some((idx) => {
+          const r = PRICE_RANGES[idx];
+          return s.price >= r.min && s.price <= r.max;
+        })
+      );
+    }
+  }
+
+  // Search query — dùng chung searchSIM của toàn site: '*' là wildcard neo hai
+  // đầu ("09*79" = đầu 09, đuôi 79; "*8*8"; "07*555*"), không có '*' = "chứa".
+  if (searchQuery && searchQuery.trim()) {
+    const q = searchQuery.replace(/[^0-9*=]/g, "");
+    candidates = candidates.filter((s) => searchSIM(s, q));
+  }
+
+  // Mục tiêu: chỉ giữ SIM có ≥ MUC_TIEU_MIN_CAP cặp CÁT của mục tiêu và không bị
+  // sao hung chi phối; điểm mục tiêu giữ lại để xếp hạng.
+  const diemMt = new Map<string, number>();
+  const coMucTieu = Boolean(mucTieu && mucTieu !== "all" && MUC_TIEU.some((m) => m.id === mucTieu));
+  if (coMucTieu) {
+    candidates = candidates.filter((s) => {
+      const g = diemMucTieuCat(s.rawDigits, mucTieu as string);
+      if (g === null || g < MUC_TIEU_MIN_CAP) return false;
+      diemMt.set(s.rawDigits, g);
+      return true;
+    });
   }
 
   // Bat cuc filter
@@ -599,14 +726,20 @@ export const scoreInventoryAdvanced = (
     candidates = candidates.filter((s) => locTheoBatCuc(s.rawDigits, batCucFilter));
   }
 
-  // Score candidates
-  const scored: ScoredSim[] = candidates.map((s) => scoreSim(s, profile));
+  // Score candidates (+ ngưỡng điểm hợp tuổi nếu có)
+  let scored: ScoredSim[] = candidates.map((s) => scoreSim(s, profile));
+  if (minScore > 0) {
+    scored = scored.filter((s) => s.score >= minScore);
+  }
 
   // Sort
   if (sortBy === "price_asc") {
     scored.sort((a, b) => a.price - b.price || b.score - a.score);
   } else if (sortBy === "price_desc") {
     scored.sort((a, b) => b.price - a.price || b.score - a.score);
+  } else if (coMucTieu) {
+    const key = (s: ScoredSim) => s.score + MUC_TIEU_SORT_WEIGHT * (diemMt.get(s.digits) ?? 0);
+    scored.sort((a, b) => key(b) - key(a) || b.score - a.score || a.price - b.price);
   } else {
     scored.sort((a, b) => b.score - a.score || a.price - b.price || b.queScore - a.queScore);
   }

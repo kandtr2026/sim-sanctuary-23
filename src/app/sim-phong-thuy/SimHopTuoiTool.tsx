@@ -30,11 +30,12 @@ import {
 } from "lucide-react";
 import { formatPrice } from "@/lib/simUtils";
 import { formatSimQuyAware } from "@/lib/simDisplay";
-import type { HopTuoiProfile, ScoredSim, SingleSimEvaluation } from "@/lib/simHopTuoi";
+import { NL_META } from "@/lib/batCuc";
+import type { HopTuoiProfile, ScoredSim, SingleSimEvaluation, ToneHopTuoi } from "@/lib/simHopTuoi";
 
 interface ApiResponse {
   profile: HopTuoiProfile;
-  birth: { ngay: number; thang: number; nam: number };
+  birth: { ngay: number; thang: number; nam: number; namAm?: number; lich?: "dl" | "al" };
   gioiTinh: "nam" | "nu";
   singleEvaluation: SingleSimEvaluation | null;
   total: number;
@@ -73,7 +74,8 @@ const PRICE_FILTERS = [
   { label: "3 – 5 triệu", value: "2" },
   { label: "5 – 10 triệu", value: "3" },
   { label: "10 – 50 triệu", value: "4" },
-  { label: "> 50 triệu", value: "5" },
+  // PRICE_RANGES[5] chỉ là 50–100 triệu → phải gộp 5..8 để không giấu số ≥ 100 triệu.
+  { label: "> 50 triệu", value: "5,6,7,8" },
 ];
 
 const PREFIX_FILTERS = [
@@ -100,26 +102,86 @@ const MENH_LUCKY_DIGITS: Record<string, string[]> = {
   Thổ: ["9", "2", "5", "8"],
 };
 
+// Năm sinh chọn được: 1940 → năm hiện tại (khớp route API + bảng âm lịch).
+const YEAR_MAX = new Date().getFullYear();
+const YEAR_MIN = 1940;
+
+type SortKey = "score_desc" | "price_asc" | "price_desc";
+
+// Màu nhãn hợp tuổi — cùng tầng xepLoaiHopTuoi (src/lib/simHopTuoi.ts).
+const TONE_TEXT: Record<ToneHopTuoi, string> = {
+  gold: "text-gold",
+  emerald: "text-emerald-400",
+  amber: "text-amber-400",
+  red: "text-destructive",
+};
+const TONE_BADGE: Record<ToneHopTuoi, string> = {
+  gold: "bg-gold/15 text-gold border-gold/30",
+  emerald: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+  amber: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+  red: "bg-destructive/15 text-destructive border-destructive/30",
+};
+
+/** Chuẩn hoá tham số số nguyên đọc từ URL ("05" → "5"; ngoài khoảng → fallback). */
+const normInt = (v: string | null, min: number, max: number, fb: string): string => {
+  const n = Number(v);
+  return v && Number.isInteger(n) && n >= min && n <= max ? String(n) : fb;
+};
+
+/** Số ngày tối đa của tháng: âm lịch tối đa 30, dương lịch theo tháng/năm thật. */
+const maxNgayTrongThang = (lich: "dl" | "al", thang: string, nam: string): number =>
+  lich === "al" ? 30 : new Date(Number(nam), Number(thang), 0).getDate();
+
+/** Ngày sinh ban đầu từ URL (link từ /sim-nam-sinh, /sim-hop-tuoi/[nam] …). */
+const docNgaySinhTuUrl = (sp: { get(k: string): string | null; has(k: string): boolean }) => {
+  const lich: "dl" | "al" = sp.get("lich") === "al" ? "al" : "dl";
+  const thang = normInt(sp.get("thang"), 1, 12, "8");
+  const nam = normInt(sp.get("nam"), YEAR_MIN, YEAR_MAX, "1990");
+  const ngayRaw = normInt(sp.get("ngay"), 1, 31, "15");
+  const ngay = String(Math.min(Number(ngayRaw), maxNgayTrongThang(lich, thang, nam)));
+  const gio = normInt(sp.get("gio"), 0, 11, "5");
+  return { lich, thang, nam, ngay, gio, daNhap: sp.has("nam") };
+};
+
+type FetchOverrides = {
+  page?: number;
+  mucTieu?: string;
+  price?: string | null;
+  prefix?: string | null;
+  sortBy?: SortKey;
+  soCanXem?: string;
+};
+
+/** Ô số đang LỌC kho (có '*' hoặc 2–9 chữ số) — 10 số là bói, không lọc. */
+const soDangLocKho = (so: string): boolean => {
+  const d = so.replace(/\D/g, "");
+  return so.includes("*") || (d.length >= 2 && d.length < 10);
+};
+
 export default function SimHopTuoiTool() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const simListRef = useRef<HTMLDivElement>(null);
   const evalRef = useRef<HTMLDivElement>(null);
 
-  // Form input state
+  // Form input state — ngày sinh từ URL được chuẩn hoá ("05" → "5") để 3 ô select
+  // hiện đúng giá trị đã gửi lên API.
+  const [init] = useState(() => docNgaySinhTuUrl(searchParams));
   const [soCanXem, setSoCanXem] = useState(() => searchParams.get("so") || "");
-  const [ngay, setNgay] = useState(() => searchParams.get("ngay") || "15");
-  const [thang, setThang] = useState(() => searchParams.get("thang") || "8");
-  const [nam, setNam] = useState(() => searchParams.get("nam") || "1990");
-  const [gio, setGio] = useState(() => searchParams.get("gio") || "5");
-  const [lichType, setLichType] = useState<"dl" | "al">("dl");
+  const [ngay, setNgay] = useState(init.ngay);
+  const [thang, setThang] = useState(init.thang);
+  const [nam, setNam] = useState(init.nam);
+  const [gio, setGio] = useState(init.gio);
+  const [lichType, setLichType] = useState<"dl" | "al">(init.lich);
   const [gioiTinh, setGioiTinh] = useState<"nam" | "nu">(() => (searchParams.get("gt") === "nu" ? "nu" : "nam"));
+  // Chưa nhập ngày sinh (đang xem hồ sơ mẫu 15/08/1990) → ghi rõ là "ví dụ".
+  const [daNhap, setDaNhap] = useState(init.daNhap);
 
   // Secondary filter state
   const [mucTieu, setMucTieu] = useState("all");
   const [selectedPrice, setSelectedPrice] = useState<string | null>(null);
   const [selectedPrefix, setSelectedPrefix] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<"score_desc" | "price_asc" | "price_desc">("score_desc");
+  const [sortBy, setSortBy] = useState<SortKey>("score_desc");
   const [page, setPage] = useState(1);
   const limit = 30;
 
@@ -127,15 +189,28 @@ export default function SimHopTuoiTool() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [data, setData] = useState<ApiResponse | null>(null);
+  // Chỉ nhận kết quả của request MỚI NHẤT (bấm nhanh không bị response cũ ghi đè).
+  const reqIdRef = useRef(0);
+  // Giá trị ô số đã gửi ở request gần nhất — để biết bộ lọc số có đang áp không.
+  const lastSoRef = useRef("");
 
   // Auto-search on mount
   useEffect(() => {
-    fetchSims(1, false);
+    fetchSims({ page: 1 }, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchSims = async (overridePage?: number, shouldScroll = true) => {
-    const curPage = overridePage ?? page;
+  // Mọi bộ lọc truyền giá trị VỪA chọn qua `o` — không đọc state trong closure cũ
+  // (lỗi cũ: setX() rồi setTimeout(fetchSims) → gửi giá trị trước đó, trễ 1 nhịp).
+  // price/prefix dùng `'key' in o` vì null ("Tất cả") là giá trị hợp lệ.
+  const fetchSims = async (o: FetchOverrides = {}, shouldScroll = true) => {
+    const id = ++reqIdRef.current;
+    const curPage = o.page ?? page;
+    const curMucTieu = o.mucTieu ?? mucTieu;
+    const curPrice = "price" in o ? (o.price ?? null) : selectedPrice;
+    const curPrefix = "prefix" in o ? (o.prefix ?? null) : selectedPrefix;
+    const curSort = o.sortBy ?? sortBy;
+    const curSo = (o.soCanXem ?? soCanXem).trim();
     const offset = (curPage - 1) * limit;
 
     const ngayN = Number(ngay);
@@ -143,10 +218,18 @@ export default function SimHopTuoiTool() {
     const namN = Number(nam);
     if (!ngayN || !thangN || !namN) {
       setError("Vui lòng nhập đủ ngày, tháng và năm sinh.");
+      setIsLoading(false);
       return;
     }
-    if (namN < 1950 || namN > 2029) {
-      setError("Năm sinh hợp lệ từ 1950 đến 2029.");
+    if (namN < YEAR_MIN || namN > YEAR_MAX) {
+      setError(`Năm sinh hợp lệ từ ${YEAR_MIN} đến ${YEAR_MAX}.`);
+      setIsLoading(false);
+      return;
+    }
+    const soDigits = curSo.replace(/\D/g, "");
+    if (!curSo.includes("*") && soDigits.length >= 11 && !(soDigits.length === 11 && soDigits.startsWith("84"))) {
+      setError("Số điện thoại cần đúng 10 chữ số (ví dụ 0901234567).");
+      setIsLoading(false);
       return;
     }
 
@@ -160,29 +243,36 @@ export default function SimHopTuoiTool() {
         nam: String(namN),
         gio,
         gioitinh: gioiTinh,
+        lich: lichType,
         limit: String(limit),
         offset: String(offset),
-        sortBy,
+        sortBy: curSort,
       });
 
-      if (soCanXem.trim()) {
-        params.set("soCanXem", soCanXem.trim());
+      if (curSo) {
+        params.set("soCanXem", curSo);
       }
-      if (mucTieu !== "all") {
-        params.set("mucTieu", mucTieu);
+      if (curMucTieu !== "all") {
+        params.set("mucTieu", curMucTieu);
       }
-      if (selectedPrice !== null) {
-        params.set("priceRange", selectedPrice);
+      if (curPrice !== null) {
+        params.set("priceRange", curPrice);
       }
-      if (selectedPrefix !== null) {
-        params.set("prefix", selectedPrefix);
+      if (curPrefix !== null) {
+        params.set("prefix", curPrefix);
       }
 
       const res = await fetch(`/api/sim-hop-tuoi?${params.toString()}`);
       if (!res.ok) {
-        throw new Error("Lỗi khi tải dữ liệu phong thủy");
+        const j = await res.json().catch(() => null);
+        if (id !== reqIdRef.current) return;
+        // Bỏ kết quả cũ để không hiện hồ sơ/danh sách của lần tra trước dưới thông báo lỗi.
+        setData(null);
+        throw new Error(j?.error || "Lỗi khi tải dữ liệu phong thủy");
       }
       const json: ApiResponse = await res.json();
+      if (id !== reqIdRef.current) return;
+      lastSoRef.current = curSo;
       setData(json);
 
       if (shouldScroll) {
@@ -194,25 +284,35 @@ export default function SimHopTuoiTool() {
           }
         }, 150);
       }
-    } catch (err: any) {
-      setError(err?.message || "Không thể tải dữ liệu, vui lòng thử lại.");
+    } catch (err: unknown) {
+      if (id === reqIdRef.current) {
+        setError(err instanceof Error && err.message ? err.message : "Không thể tải dữ liệu, vui lòng thử lại.");
+      }
     } finally {
-      setIsLoading(false);
+      if (id === reqIdRef.current) setIsLoading(false);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setDaNhap(true);
     setPage(1);
-    fetchSims(1, true);
+    fetchSims({ page: 1 }, true);
   };
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
-    fetchSims(newPage, true);
+    fetchSims({ page: newPage }, true);
   };
 
-  const totalPages = data ? Math.ceil(data.total / limit) : 1;
+  // Giữ ngày hợp lệ khi đổi tháng/năm/loại lịch (31 → 28/29/30…).
+  const kepNgay = (lich: "dl" | "al", t: string, y: string) => {
+    const max = maxNgayTrongThang(lich, t, y);
+    if (Number(ngay) > max) setNgay(String(max));
+  };
+  const maxNgay = maxNgayTrongThang(lichType, thang, nam);
+
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / limit)) : 1;
 
   return (
     <div className="space-y-6">
@@ -246,7 +346,14 @@ export default function SimHopTuoiTool() {
               {soCanXem && (
                 <button
                   type="button"
-                  onClick={() => setSoCanXem("")}
+                  onClick={() => {
+                    setSoCanXem("");
+                    // Đang bói / đang lọc theo số → tải lại để bỏ kết quả cũ ngay.
+                    if (data && lastSoRef.current) {
+                      setPage(1);
+                      fetchSims({ page: 1, soCanXem: "" }, false);
+                    }
+                  }}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -266,7 +373,7 @@ export default function SimHopTuoiTool() {
                 onChange={(e) => setNgay(e.target.value)}
                 className="w-full rounded-xl border border-border bg-card px-2.5 py-2 text-xs sm:text-sm text-foreground focus:border-primary focus:outline-none"
               >
-                {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                {Array.from({ length: maxNgay }, (_, i) => i + 1).map((d) => (
                   <option key={d} value={d}>
                     Ngày {d}
                   </option>
@@ -280,7 +387,10 @@ export default function SimHopTuoiTool() {
               </label>
               <select
                 value={thang}
-                onChange={(e) => setThang(e.target.value)}
+                onChange={(e) => {
+                  setThang(e.target.value);
+                  kepNgay(lichType, e.target.value, nam);
+                }}
                 className="w-full rounded-xl border border-border bg-card px-2.5 py-2 text-xs sm:text-sm text-foreground focus:border-primary focus:outline-none"
               >
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
@@ -297,10 +407,13 @@ export default function SimHopTuoiTool() {
               </label>
               <select
                 value={nam}
-                onChange={(e) => setNam(e.target.value)}
+                onChange={(e) => {
+                  setNam(e.target.value);
+                  kepNgay(lichType, thang, e.target.value);
+                }}
                 className="w-full rounded-xl border border-border bg-card px-2.5 py-2 text-xs sm:text-sm text-foreground focus:border-primary focus:outline-none"
               >
-                {Array.from({ length: 75 }, (_, i) => 2024 - i).map((y) => (
+                {Array.from({ length: YEAR_MAX - YEAR_MIN + 1 }, (_, i) => YEAR_MAX - i).map((y) => (
                   <option key={y} value={y}>
                     {y}
                   </option>
@@ -335,7 +448,10 @@ export default function SimHopTuoiTool() {
               <div className="flex rounded-xl border border-border bg-card p-0.5">
                 <button
                   type="button"
-                  onClick={() => setLichType("dl")}
+                  onClick={() => {
+                    setLichType("dl");
+                    kepNgay("dl", thang, nam);
+                  }}
                   className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all ${
                     lichType === "dl"
                       ? "bg-primary text-primary-foreground shadow"
@@ -346,7 +462,10 @@ export default function SimHopTuoiTool() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setLichType("al")}
+                  onClick={() => {
+                    setLichType("al");
+                    kepNgay("al", thang, nam);
+                  }}
                   className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all ${
                     lichType === "al"
                       ? "bg-primary text-primary-foreground shadow"
@@ -446,11 +565,7 @@ export default function SimHopTuoiTool() {
               </div>
               <span
                 className={`rounded-lg px-2.5 py-1 text-xs font-bold border ${
-                  data.singleEvaluation.score >= 8
-                    ? "bg-gold/15 text-gold border-gold/30"
-                    : data.singleEvaluation.score >= 6.5
-                    ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
-                    : "bg-destructive/15 text-destructive border-destructive/30"
+                  TONE_BADGE[data.singleEvaluation.tone] ?? TONE_BADGE.amber
                 }`}
               >
                 {data.singleEvaluation.verdict}
@@ -495,7 +610,10 @@ export default function SimHopTuoiTool() {
                 )}
               </div>
               <div className="text-[10px] text-muted-foreground">
-                Chủ đạo: {data.singleEvaluation.nlChuDao || "Hài hòa"}
+                Chủ đạo:{" "}
+                {data.singleEvaluation.nlChuDao
+                  ? NL_META[data.singleEvaluation.nlChuDao].label
+                  : "Hài hòa"}
               </div>
             </div>
 
@@ -507,7 +625,12 @@ export default function SimHopTuoiTool() {
                 {data.singleEvaluation.nut} Nút · {data.singleEvaluation.evenCount} Âm / {data.singleEvaluation.oddCount} Dương
               </div>
               <div className="text-[10px] text-muted-foreground">
-                {data.profile.cungPhi.amDuong === "Dương" ? "Cần bổ khuyết Âm" : "Cần bổ khuyết Dương"}
+                {/* Theo cả cung phi lẫn giờ sinh — cùng mục tiêu mà điểm Âm Dương đang chấm */}
+                {data.singleEvaluation.amDuongTarget > 0.5
+                  ? "Cần bổ khuyết Âm"
+                  : data.singleEvaluation.amDuongTarget < 0.5
+                  ? "Cần bổ khuyết Dương"
+                  : "Âm Dương cân bằng"}
               </div>
             </div>
           </div>
@@ -530,7 +653,12 @@ export default function SimHopTuoiTool() {
             <div className="flex items-center gap-2">
               <span className="h-4 w-1 rounded-full bg-primary" />
               <span className="text-xs sm:text-sm font-bold text-foreground">
-                Hồ sơ tuổi {data.birth.nam} ({data.profile.napAm})
+                Hồ sơ tuổi {data.profile.thienCan} {data.profile.diaChi} {data.profile.nam} ({data.profile.napAm})
+                {data.birth.namAm !== undefined && data.birth.namAm !== data.birth.nam && (
+                  <span className="font-normal text-muted-foreground">
+                    {" "}· sinh {data.birth.ngay}/{data.birth.thang}/{data.birth.nam} dương lịch, trước Tết âm lịch
+                  </span>
+                )}
               </span>
               <span className="text-[11px] text-muted-foreground hidden sm:inline">
                 · {data.gioiTinh === "nam" ? "Nam mệnh" : "Nữ mệnh"} (Giờ {data.profile.gioLabel})
@@ -559,6 +687,12 @@ export default function SimHopTuoiTool() {
               </span>
             </div>
           </div>
+          {!daNhap && (
+            <p className="mt-1.5 text-[11px] text-muted-foreground">
+              Ví dụ cho người sinh {data.birth.ngay}/{data.birth.thang}/{data.birth.nam} — Quý khách nhập ngày sinh của mình
+              rồi bấm TÌM để xem đúng tuổi.
+            </p>
+          )}
         </section>
       )}
 
@@ -581,7 +715,7 @@ export default function SimHopTuoiTool() {
                     onClick={() => {
                       setMucTieu(m.id);
                       setPage(1);
-                      setTimeout(() => fetchSims(1, false), 50);
+                      fetchSims({ page: 1, mucTieu: m.id }, false);
                     }}
                     className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all ${
                       active
@@ -614,7 +748,7 @@ export default function SimHopTuoiTool() {
                       onClick={() => {
                         setSelectedPrice(p.value);
                         setPage(1);
-                        setTimeout(() => fetchSims(1, false), 50);
+                        fetchSims({ page: 1, price: p.value }, false);
                       }}
                       className={`shrink-0 rounded-md px-2 py-0.5 text-[11px] font-medium transition-all ${
                         active
@@ -644,7 +778,7 @@ export default function SimHopTuoiTool() {
                       onClick={() => {
                         setSelectedPrefix(p.value);
                         setPage(1);
-                        setTimeout(() => fetchSims(1, false), 50);
+                        fetchSims({ page: 1, prefix: p.value }, false);
                       }}
                       className={`shrink-0 rounded-md px-2 py-0.5 text-[11px] font-medium transition-all ${
                         active
@@ -667,10 +801,10 @@ export default function SimHopTuoiTool() {
               <select
                 value={sortBy}
                 onChange={(e) => {
-                  const val = e.target.value as any;
+                  const val = e.target.value as SortKey;
                   setSortBy(val);
                   setPage(1);
-                  setTimeout(() => fetchSims(1, false), 50);
+                  fetchSims({ page: 1, sortBy: val }, false);
                 }}
                 className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground focus:border-primary focus:outline-none"
               >
@@ -714,11 +848,17 @@ export default function SimHopTuoiTool() {
               <button
                 type="button"
                 onClick={() => {
+                  // Ô số đang lọc kho (có '*' / 2–9 chữ số) cũng là một bộ lọc → xoá luôn.
+                  const clearSo = soDangLocKho(lastSoRef.current) || soDangLocKho(soCanXem);
                   setSelectedPrice(null);
                   setSelectedPrefix(null);
                   setMucTieu("all");
                   setPage(1);
-                  setTimeout(() => fetchSims(1, false), 50);
+                  if (clearSo) setSoCanXem("");
+                  fetchSims(
+                    { page: 1, mucTieu: "all", price: null, prefix: null, ...(clearSo ? { soCanXem: "" } : {}) },
+                    false,
+                  );
                 }}
                 className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow"
               >
@@ -751,8 +891,8 @@ export default function SimHopTuoiTool() {
                           <Star className="h-3 w-3 fill-gold" />
                           <span>{sim.score} /10</span>
                         </div>
-                        <span className="mt-0.5 text-[10px] font-semibold text-emerald-400">
-                          {sim.score >= 8.5 ? "★ Rất hợp tuổi" : "★ Hợp tuổi"}
+                        <span className={`mt-0.5 text-[10px] font-semibold ${TONE_TEXT[sim.tone] ?? "text-muted-foreground"}`}>
+                          {sim.tone === "gold" || sim.tone === "emerald" ? `★ ${sim.verdict}` : sim.verdict}
                         </span>
                       </div>
                     </div>
@@ -773,7 +913,7 @@ export default function SimHopTuoiTool() {
                           <Flame className="h-3 w-3 text-primary" /> Ngũ Hành:
                         </span>
                         <span className="font-semibold text-foreground text-[11px]">
-                          Hành {sim.simHanh || "Hỏa"} ({sim.quanHe || "Tương sinh"})
+                          Hành {sim.simHanh} ({sim.quanHe})
                         </span>
                       </div>
 
@@ -781,9 +921,17 @@ export default function SimHopTuoiTool() {
                         <span className="text-muted-foreground flex items-center gap-1 shrink-0 text-[11px]">
                           <Sparkles className="h-3 w-3 text-gold" /> Bát Cực:
                         </span>
-                        <span className="font-semibold text-emerald-400 truncate text-[11px]">
-                          NL {sim.nlChuDao || "Sinh Khí"}
-                        </span>
+                        {sim.nlChuDao ? (
+                          <span
+                            className={`font-semibold truncate text-[11px] ${
+                              NL_META[sim.nlChuDao].loai === "cát" ? "text-emerald-400" : "text-destructive"
+                            }`}
+                          >
+                            NL {NL_META[sim.nlChuDao].label}
+                          </span>
+                        ) : (
+                          <span className="font-semibold text-muted-foreground truncate text-[11px]">Cân bằng</span>
+                        )}
                       </div>
 
                       <div className="flex items-center justify-between gap-2">
@@ -791,7 +939,7 @@ export default function SimHopTuoiTool() {
                           <ShieldCheck className="h-3 w-3 text-primary" /> Tổng Nút:
                         </span>
                         <span className="font-semibold text-foreground text-[11px]">
-                          {sim.nut} nút ({sim.nut >= 7 ? "Đại cát" : "Cát"})
+                          {sim.nut} nút ({sim.nut >= 7 ? "Đại cát" : sim.nut >= 5 ? "Trung bình" : "Thấp"})
                         </span>
                       </div>
                     </div>
