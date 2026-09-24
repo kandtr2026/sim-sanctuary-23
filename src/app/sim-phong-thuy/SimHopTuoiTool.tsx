@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -25,9 +25,8 @@ import {
   Info,
   X,
   Flame,
-  Calendar,
-  Clock,
-  User,
+  ShoppingCart,
+  BookOpen,
 } from "lucide-react";
 import { formatPrice } from "@/lib/simUtils";
 import { formatSimQuyAware } from "@/lib/simDisplay";
@@ -69,12 +68,12 @@ const MUC_TIEU_OPTIONS = [
 
 const PRICE_FILTERS = [
   { label: "Tất cả giá", value: null },
-  { label: "Dưới 1 triệu", value: "0" },
+  { label: "< 1 triệu", value: "0" },
   { label: "1 – 3 triệu", value: "1" },
   { label: "3 – 5 triệu", value: "2" },
   { label: "5 – 10 triệu", value: "3" },
   { label: "10 – 50 triệu", value: "4" },
-  { label: "Trên 50 triệu", value: "5" },
+  { label: "> 50 triệu", value: "5" },
 ];
 
 const PREFIX_FILTERS = [
@@ -104,6 +103,7 @@ const MENH_LUCKY_DIGITS: Record<string, string[]> = {
 export default function SimHopTuoiTool() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   // Form input state
   const [soCanXem, setSoCanXem] = useState(() => searchParams.get("so") || "");
@@ -127,13 +127,13 @@ export default function SimHopTuoiTool() {
   const [error, setError] = useState("");
   const [data, setData] = useState<ApiResponse | null>(null);
 
-  // Auto-search once on mount
+  // Auto-search on mount
   useEffect(() => {
-    fetchSims();
+    fetchSims(1, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchSims = async (overridePage?: number) => {
+  const fetchSims = async (overridePage?: number, shouldScroll = true) => {
     const curPage = overridePage ?? page;
     const offset = (curPage - 1) * limit;
 
@@ -183,6 +183,12 @@ export default function SimHopTuoiTool() {
       }
       const json: ApiResponse = await res.json();
       setData(json);
+
+      if (shouldScroll && resultsRef.current) {
+        setTimeout(() => {
+          resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      }
     } catch (err: any) {
       setError(err?.message || "Không thể tải dữ liệu, vui lòng thử lại.");
     } finally {
@@ -193,266 +199,251 @@ export default function SimHopTuoiTool() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    fetchSims(1);
+    fetchSims(1, true);
   };
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
-    fetchSims(newPage);
-    window.scrollTo({ top: 400, behavior: "smooth" });
+    fetchSims(newPage, true);
   };
 
   const totalPages = data ? Math.ceil(data.total / limit) : 1;
 
   return (
-    <div className="space-y-8">
-      {/* ── 1. FORM TRA CỨU PHONG THỦY 2 CHIỀU (CHUẨN BÁT TỰ & BÓI SIM) ───── */}
-      <section className="relative overflow-hidden rounded-3xl border border-primary/40 bg-gradient-to-b from-[#1c1417] via-[#141012] to-[#0e0a0c] p-6 sm:p-8 shadow-2xl">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-6 border-b border-border/50 pb-4">
-            <div>
-              <div className="flex items-center gap-2 text-gold">
-                <Compass className="h-5 w-5 animate-pulse text-gold" />
-                <span className="text-xs font-bold uppercase tracking-wider">
-                  Công Cụ Bát Tự &amp; Kinh Dịch
-                </span>
-              </div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-foreground mt-1">
-                Tra Cứu SIM Hợp Tuổi &amp; Bói Điểm SIM Đang Dùng
-              </h2>
+    <div className="space-y-6">
+      {/* ── 1. FORM TRA CỨU PHONG THỦY 2 CHIỀU (GỌN GÀNG, CHUẨN THAO TÁC) ──── */}
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-primary/30 bg-gradient-to-b from-[#1b1416] to-[#110d0f] p-4 sm:p-6 shadow-xl">
+        <div className="flex items-center justify-between gap-2 mb-3 pb-3 border-b border-border/40">
+          <div className="flex items-center gap-1.5 text-gold text-xs font-bold uppercase tracking-wider">
+            <Compass className="h-4 w-4 text-gold" />
+            <span>Công Cụ Bát Tự &amp; Kinh Dịch</span>
+          </div>
+          <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+            Kho 50.000+ SIM MobiFone
+          </span>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3.5">
+          {/* Ô nhập số điện thoại bói / tìm */}
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              Số điện thoại (đang dùng để bói cát hung / hoặc số cần tìm):
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={soCanXem}
+                onChange={(e) => setSoCanXem(e.target.value)}
+                placeholder="Nhập 10 số đang dùng để bói cát hung - hoặc gõ 090*, *79 để tìm trong kho"
+                className="w-full rounded-xl border border-primary/40 bg-background/90 px-3.5 py-2.5 pl-10 text-xs sm:text-sm font-medium text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all"
+              />
+              <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
+              {soCanXem && (
+                <button
+                  type="button"
+                  onClick={() => setSoCanXem("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
-            <span className="rounded-full bg-primary/20 border border-primary/40 px-3 py-1 text-xs font-semibold text-primary">
-              Kho 50.000+ SIM MobiFone
-            </span>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Hàng 1: Ô Bói số đang dùng / Tra cứu nhanh */}
+          {/* Ngày / Tháng / Năm sinh — GOM THÀNH 1 HÀNG 3 CỘT CÂN ĐỐI */}
+          <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                Số cần xem phong thủy / Đầu số muốn tìm:
+              <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                Ngày sinh:
               </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={soCanXem}
-                  onChange={(e) => setSoCanXem(e.target.value)}
-                  placeholder="Nhập 10 số đang dùng để bói cát hung (ví dụ 0903123456) - hoặc gõ 090*, *68 để lọc..."
-                  className="w-full rounded-2xl border border-primary/50 bg-background/90 px-4 py-3.5 pl-11 text-sm sm:text-base font-medium text-foreground placeholder:text-muted-foreground/60 shadow-inner focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
-                />
-                <Phone className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-primary" />
-                {soCanXem && (
-                  <button
-                    type="button"
-                    onClick={() => setSoCanXem("")}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-              <p className="mt-1 text-[11px] text-muted-foreground/80 flex items-center gap-1">
-                <Info className="h-3 w-3 text-gold" />
-                <span>Mẹo: Nhập đủ 10 số để hệ thống chấm điểm toàn diện SIM Quý khách đang dùng.</span>
-              </p>
-            </div>
-
-            {/* Hàng 2: Ngày tháng năm sinh + Giờ sinh + Lịch + Giới tính */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              {/* Ngày */}
-              <div>
-                <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
-                  Ngày sinh:
-                </label>
-                <select
-                  value={ngay}
-                  onChange={(e) => setNgay(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
-                >
-                  {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                    <option key={d} value={d}>
-                      Ngày {d}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Tháng */}
-              <div>
-                <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
-                  Tháng sinh:
-                </label>
-                <select
-                  value={thang}
-                  onChange={(e) => setThang(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
-                >
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                    <option key={m} value={m}>
-                      Tháng {m}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Năm */}
-              <div>
-                <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
-                  Năm sinh:
-                </label>
-                <select
-                  value={nam}
-                  onChange={(e) => setNam(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
-                >
-                  {Array.from({ length: 75 }, (_, i) => 2024 - i).map((y) => (
-                    <option key={y} value={y}>
-                      {y}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Giờ sinh */}
-              <div className="col-span-2 sm:col-span-1 lg:col-span-1">
-                <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
-                  Khung giờ:
-                </label>
-                <select
-                  value={gio}
-                  onChange={(e) => setGio(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-card px-2.5 py-2 text-xs sm:text-sm text-foreground focus:border-primary focus:outline-none truncate"
-                >
-                  {GIO_SINH_OPTIONS.map((g) => (
-                    <option key={g.value} value={g.value}>
-                      {g.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Loại lịch */}
-              <div>
-                <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
-                  Loại lịch:
-                </label>
-                <div className="flex rounded-xl border border-border bg-card p-1">
-                  <button
-                    type="button"
-                    onClick={() => setLichType("dl")}
-                    className={`flex-1 rounded-lg py-1 text-xs font-semibold transition-all ${
-                      lichType === "dl"
-                        ? "bg-primary text-primary-foreground shadow"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Dương lịch
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setLichType("al")}
-                    className={`flex-1 rounded-lg py-1 text-xs font-semibold transition-all ${
-                      lichType === "al"
-                        ? "bg-primary text-primary-foreground shadow"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Âm lịch
-                  </button>
-                </div>
-              </div>
-
-              {/* Giới tính */}
-              <div>
-                <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
-                  Giới tính:
-                </label>
-                <div className="flex rounded-xl border border-border bg-card p-1">
-                  <button
-                    type="button"
-                    onClick={() => setGioiTinh("nam")}
-                    className={`flex-1 rounded-lg py-1 text-xs font-semibold transition-all ${
-                      gioiTinh === "nam"
-                        ? "bg-primary text-primary-foreground shadow"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Nam
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setGioiTinh("nu")}
-                    className={`flex-1 rounded-lg py-1 text-xs font-semibold transition-all ${
-                      gioiTinh === "nu"
-                        ? "bg-primary text-primary-foreground shadow"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Nữ
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {error && (
-              <div className="flex items-center gap-2 rounded-xl bg-destructive/15 border border-destructive/30 p-3 text-xs text-destructive">
-                <AlertCircle className="h-4 w-4 shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            {/* Nút bấm hành động chính */}
-            <div className="pt-2 flex justify-center">
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full sm:w-auto min-w-[280px] rounded-2xl bg-gradient-to-r from-primary to-primary-dark px-8 py-6 text-base font-bold text-primary-foreground shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
+              <select
+                value={ngay}
+                onChange={(e) => setNgay(e.target.value)}
+                className="w-full rounded-xl border border-border bg-card px-2.5 py-2 text-xs sm:text-sm text-foreground focus:border-primary focus:outline-none"
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Đang tính toán phong thủy...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-5 w-5 text-gold" />
-                    TÌM SIM HỢP TUỔI &amp; BÓI CÁT HUNG
-                  </>
-                )}
-              </Button>
+                {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                  <option key={d} value={d}>
+                    Ngày {d}
+                  </option>
+                ))}
+              </select>
             </div>
-          </form>
-        </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                Tháng sinh:
+              </label>
+              <select
+                value={thang}
+                onChange={(e) => setThang(e.target.value)}
+                className="w-full rounded-xl border border-border bg-card px-2.5 py-2 text-xs sm:text-sm text-foreground focus:border-primary focus:outline-none"
+              >
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                  <option key={m} value={m}>
+                    Tháng {m}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                Năm sinh:
+              </label>
+              <select
+                value={nam}
+                onChange={(e) => setNam(e.target.value)}
+                className="w-full rounded-xl border border-border bg-card px-2.5 py-2 text-xs sm:text-sm text-foreground focus:border-primary focus:outline-none"
+              >
+                {Array.from({ length: 75 }, (_, i) => 2024 - i).map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Khung giờ sinh + Lịch + Giới tính */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div>
+              <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                Khung giờ sinh:
+              </label>
+              <select
+                value={gio}
+                onChange={(e) => setGio(e.target.value)}
+                className="w-full rounded-xl border border-border bg-card px-2.5 py-2 text-xs sm:text-sm text-foreground focus:border-primary focus:outline-none truncate"
+              >
+                {GIO_SINH_OPTIONS.map((g) => (
+                  <option key={g.value} value={g.value}>
+                    {g.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                Loại lịch:
+              </label>
+              <div className="flex rounded-xl border border-border bg-card p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setLichType("dl")}
+                  className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all ${
+                    lichType === "dl"
+                      ? "bg-primary text-primary-foreground shadow"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Dương lịch
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLichType("al")}
+                  className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all ${
+                    lichType === "al"
+                      ? "bg-primary text-primary-foreground shadow"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Âm lịch
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                Giới tính:
+              </label>
+              <div className="flex rounded-xl border border-border bg-card p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setGioiTinh("nam")}
+                  className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all ${
+                    gioiTinh === "nam"
+                      ? "bg-primary text-primary-foreground shadow"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Nam
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGioiTinh("nu")}
+                  className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all ${
+                    gioiTinh === "nu"
+                      ? "bg-primary text-primary-foreground shadow"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Nữ
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-2 rounded-xl bg-destructive/15 border border-destructive/30 p-2.5 text-xs text-destructive">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Nút bấm hành động chính */}
+          <div className="pt-1 flex justify-center">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full sm:w-auto min-w-[260px] rounded-xl bg-gradient-to-r from-primary to-primary-dark py-5 text-sm sm:text-base font-bold text-primary-foreground shadow-lg hover:brightness-110 active:scale-[0.99] transition-all"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang tính toán phong thủy...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4 text-gold" />
+                  TÌM SIM HỢP TUỔI &amp; BÓI CÁT HUNG
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
       </section>
+
+      {/* Anchor để scroll tới sau khi bấm nút */}
+      <div ref={resultsRef} className="scroll-mt-4" />
 
       {/* ── 2. CARD KẾT QUẢ BÓI SIM ĐANG DÙNG (NẾU NHẬP 10 SỐ) ──────────────── */}
       {data?.singleEvaluation && (
-        <section className="relative overflow-hidden rounded-3xl border-2 border-gold/40 bg-gradient-to-br from-[#201815] to-[#120e10] p-6 sm:p-8 shadow-2xl">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/20 pb-4">
+        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-gold/40 bg-gradient-to-br from-[#1e1715] to-[#120e10] p-4 sm:p-6 shadow-xl">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gold/20 pb-3">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold/20 text-gold border border-gold/30">
-                <Phone className="h-5 w-5" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gold/20 text-gold border border-gold/30">
+                <Phone className="h-4 w-4" />
               </div>
               <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-gold">
-                  Luận giải chi tiết số đang dùng
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gold">
+                  Luận giải số đang dùng
                 </span>
-                <h3 className="font-mono text-2xl sm:text-3xl font-black tracking-wide text-foreground">
+                <h3 className="font-mono text-xl sm:text-2xl font-black text-foreground">
                   {data.singleEvaluation.formattedNumber}
                 </h3>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <div className="text-right">
-                <div className="text-xs text-muted-foreground">Điểm phong thủy</div>
-                <div className="text-2xl sm:text-3xl font-black text-gold">
+                <div className="text-[10px] text-muted-foreground">Điểm số</div>
+                <div className="text-xl sm:text-2xl font-black text-gold">
                   {data.singleEvaluation.score}
-                  <span className="text-sm font-normal text-muted-foreground">/10</span>
+                  <span className="text-xs font-normal text-muted-foreground">/10</span>
                 </div>
               </div>
               <span
-                className={`rounded-xl px-3 py-1.5 text-xs sm:text-sm font-bold border ${
+                className={`rounded-lg px-2.5 py-1 text-xs font-bold border ${
                   data.singleEvaluation.score >= 8
                     ? "bg-gold/15 text-gold border-gold/30"
                     : data.singleEvaluation.score >= 6.5
@@ -465,137 +456,119 @@ export default function SimHopTuoiTool() {
             </div>
           </div>
 
-          {/* 4 thông số học thuật cốt lõi */}
-          <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {/* Quẻ Kinh Dịch */}
-            <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
-              <div className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                <Compass className="h-3.5 w-3.5 text-gold" /> Quẻ Kinh Dịch
+          {/* 4 thông số học thuật */}
+          <div className="mt-3.5 grid grid-cols-2 lg:grid-cols-4 gap-2">
+            <div className="rounded-xl border border-border/50 bg-background/50 p-2.5">
+              <div className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1">
+                <Compass className="h-3 w-3 text-gold" /> Quẻ Kinh Dịch
               </div>
-              <div className="mt-1 text-sm font-bold text-foreground">
+              <div className="mt-0.5 text-xs font-bold text-foreground truncate">
                 {data.singleEvaluation.hexagram || "Chưa xác định"}
               </div>
-              <div className="mt-1">
-                <span className="inline-block rounded-md bg-gold/10 px-2 py-0.5 text-[11px] font-semibold text-gold">
-                  {data.singleEvaluation.hexagramLevel}
-                </span>
-              </div>
+              <span className="inline-block mt-0.5 rounded bg-gold/10 px-1.5 py-0.2 text-[10px] font-semibold text-gold">
+                {data.singleEvaluation.hexagramLevel}
+              </span>
             </div>
 
-            {/* Ngũ Hành Sim */}
-            <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
-              <div className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                <Flame className="h-3.5 w-3.5 text-primary" /> Ngũ Hành Sim
+            <div className="rounded-xl border border-border/50 bg-background/50 p-2.5">
+              <div className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1">
+                <Flame className="h-3 w-3 text-primary" /> Ngũ Hành Sim
               </div>
-              <div className="mt-1 text-sm font-bold text-foreground">
+              <div className="mt-0.5 text-xs font-bold text-foreground">
                 Hành {data.singleEvaluation.simHanh}
               </div>
-              <div className="mt-1 text-xs text-muted-foreground">
+              <div className="text-[10px] text-muted-foreground truncate">
                 {data.singleEvaluation.quanHe} với mệnh {data.profile.menh}
               </div>
             </div>
 
-            {/* Bát Cực Linh Số */}
-            <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
-              <div className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-gold" /> Bát Cực Linh Số
+            <div className="rounded-xl border border-border/50 bg-background/50 p-2.5">
+              <div className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1">
+                <Sparkles className="h-3 w-3 text-gold" /> Bát Cực Linh Số
               </div>
-              <div className="mt-1 text-xs font-bold text-foreground flex items-center gap-2">
-                <span className="text-emerald-400">✓ {data.singleEvaluation.catStars} sao Cát</span>
+              <div className="mt-0.5 text-[11px] font-bold text-foreground flex items-center gap-1.5">
+                <span className="text-emerald-400">✓ {data.singleEvaluation.catStars} Cát</span>
                 {data.singleEvaluation.hungStars > 0 && (
-                  <span className="text-destructive">✗ {data.singleEvaluation.hungStars} sao Hung</span>
+                  <span className="text-destructive">✗ {data.singleEvaluation.hungStars} Hung</span>
                 )}
               </div>
-              <div className="mt-1 text-[11px] text-muted-foreground">
+              <div className="text-[10px] text-muted-foreground">
                 Chủ đạo: {data.singleEvaluation.nlChuDao || "Hài hòa"}
               </div>
             </div>
 
-            {/* Âm Dương & Nút */}
-            <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
-              <div className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Tổng Nút &amp; Âm Dương
+            <div className="rounded-xl border border-border/50 bg-background/50 p-2.5">
+              <div className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1">
+                <ShieldCheck className="h-3 w-3 text-primary" /> Nút &amp; Âm Dương
               </div>
-              <div className="mt-1 text-sm font-bold text-foreground">
+              <div className="mt-0.5 text-xs font-bold text-foreground">
                 {data.singleEvaluation.nut} Nút · {data.singleEvaluation.evenCount} Âm / {data.singleEvaluation.oddCount} Dương
               </div>
-              <div className="mt-1 text-xs text-muted-foreground">
+              <div className="text-[10px] text-muted-foreground">
                 {data.profile.cungPhi.amDuong === "Dương" ? "Cần bổ khuyết Âm" : "Cần bổ khuyết Dương"}
               </div>
             </div>
           </div>
 
           {/* Lời khuyên tư vấn phong thủy */}
-          <div className="mt-5 rounded-2xl border border-gold/30 bg-gold/5 p-4 sm:p-5 flex items-start gap-3">
-            <Info className="h-5 w-5 text-gold shrink-0 mt-0.5" />
-            <div className="space-y-1 text-xs sm:text-sm leading-relaxed text-foreground/90">
-              <strong className="text-gold">Lời khuyên của chuyên gia CHONSOMOBIFONE: </strong>
+          <div className="mt-3.5 rounded-xl border border-gold/30 bg-gold/5 p-3 flex items-start gap-2.5 text-xs leading-relaxed text-foreground/90">
+            <Info className="h-4 w-4 text-gold shrink-0 mt-0.5" />
+            <div>
+              <strong className="text-gold">Lời khuyên chuyên gia: </strong>
               <span>{data.singleEvaluation.advice}</span>
             </div>
           </div>
         </section>
       )}
 
-      {/* ── 3. HỒ SƠ PHONG THỦY BÁT TỰ CỦA KHÁCH HÀNG ───────────────────────── */}
+      {/* ── 3. HỒ SƠ PHONG THỦY TINH GỌN (COMPACT STRIP) ────────────────────── */}
       {data?.profile && (
-        <section className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <h3 className="flex items-center gap-2 text-base sm:text-lg font-bold text-foreground">
-              <span className="h-5 w-1 rounded-full bg-primary" />
-              Hồ sơ Bát Tự phong thủy: Người sinh năm {data.birth.nam} ({data.profile.napAm})
-            </h3>
-            <span className="text-xs text-muted-foreground">
-              {data.gioiTinh === "nam" ? "Nam mệnh" : "Nữ mệnh"} · Giờ {data.profile.gioLabel}
-            </span>
-          </div>
+        <section className="rounded-xl border border-border/80 bg-card p-3 sm:p-4 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="h-4 w-1 rounded-full bg-primary" />
+              <span className="text-xs sm:text-sm font-bold text-foreground">
+                Hồ sơ tuổi {data.birth.nam} ({data.profile.napAm})
+              </span>
+              <span className="text-[11px] text-muted-foreground hidden sm:inline">
+                · {data.gioiTinh === "nam" ? "Nam mệnh" : "Nữ mệnh"} (Giờ {data.profile.gioLabel})
+              </span>
+            </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-            <div className="rounded-xl border border-border/80 bg-background/80 p-3">
-              <div className="text-[11px] font-semibold text-muted-foreground uppercase">Bản mệnh nạp âm</div>
-              <div className="mt-1 text-base sm:text-lg font-extrabold" style={{ color: MENH_COLORS[data.profile.menh] }}>
+            {/* 4 Chỉ số thu gọn trên 1 hàng */}
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span
+                className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-bold"
+                style={{
+                  background: `${MENH_COLORS[data.profile.menh]}20`,
+                  color: MENH_COLORS[data.profile.menh],
+                }}
+              >
                 Mệnh {data.profile.menh}
-              </div>
-              <div className="text-[11px] text-muted-foreground">{data.profile.napAm}</div>
-            </div>
-
-            <div className="rounded-xl border border-border/80 bg-background/80 p-3">
-              <div className="text-[11px] font-semibold text-muted-foreground uppercase">Cung phi Bát Trạch</div>
-              <div className="mt-1 text-base sm:text-lg font-extrabold text-foreground">
-                Cung {data.profile.cungPhi.cung}
-              </div>
-              <div className="text-[11px] text-muted-foreground">
-                Hành {data.profile.cungPhi.nguHanh} · {data.profile.cungPhi.amDuong}
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-border/80 bg-background/80 p-3">
-              <div className="text-[11px] font-semibold text-muted-foreground uppercase">Tính chất Âm Dương</div>
-              <div className="mt-1 text-base sm:text-lg font-extrabold text-foreground">
+              </span>
+              <span className="rounded-md bg-muted px-2 py-0.5 text-foreground font-medium">
+                Cung {data.profile.cungPhi.cung} ({data.profile.cungPhi.nguHanh})
+              </span>
+              <span className="rounded-md bg-muted px-2 py-0.5 text-foreground font-medium">
                 {data.profile.cungPhi.amDuong} Mạng
-              </div>
-              <div className="text-[11px] text-muted-foreground">Ưu tiên số cân bằng năng lượng</div>
-            </div>
-
-            <div className="rounded-xl border border-border/80 bg-background/80 p-3">
-              <div className="text-[11px] font-semibold text-muted-foreground uppercase">Con số vượng khí</div>
-              <div className="mt-1 text-base sm:text-lg font-extrabold text-gold tracking-widest font-mono">
-                {(MENH_LUCKY_DIGITS[data.profile.menh] || []).join(" · ")}
-              </div>
-              <div className="text-[11px] text-muted-foreground">Kích hoạt tài lộc bản mệnh</div>
+              </span>
+              <span className="rounded-md bg-gold/15 border border-gold/30 px-2 py-0.5 text-gold font-bold font-mono">
+                Số hợp: {(MENH_LUCKY_DIGITS[data.profile.menh] || []).join(", ")}
+              </span>
             </div>
           </div>
         </section>
       )}
 
-      {/* ── 4. BỘ LỌC ĐA CHIỀU MONG CẦU PHONG THỦY (Pills Filter) ───────────── */}
+      {/* ── 4. BỘ LỌC ĐA CHIỀU MONG CẦU (CUỘN NGANG MOBILE) ─────────────────── */}
       {data && (
-        <section className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-sm space-y-4">
-          {/* Lọc theo Mục tiêu phong thủy */}
+        <section className="rounded-xl border border-border bg-card p-3 sm:p-4 space-y-3">
+          {/* Mục tiêu phong thủy: Cuộn ngang mượt mà trên mobile */}
           <div>
-            <span className="block text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
-              <Star className="h-3.5 w-3.5 text-gold" /> Chọn mục tiêu kích hoạt phong thủy:
+            <span className="block text-[11px] font-semibold text-muted-foreground mb-1.5 flex items-center gap-1">
+              <Star className="h-3 w-3 text-gold" /> Chọn mục tiêu kích hoạt:
             </span>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
               {MUC_TIEU_OPTIONS.map((m) => {
                 const Icon = m.icon;
                 const active = mucTieu === m.id;
@@ -606,15 +579,15 @@ export default function SimHopTuoiTool() {
                     onClick={() => {
                       setMucTieu(m.id);
                       setPage(1);
-                      setTimeout(() => fetchSims(1), 50);
+                      setTimeout(() => fetchSims(1, false), 50);
                     }}
-                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all ${
                       active
-                        ? "bg-primary text-primary-foreground shadow-md scale-105"
-                        : "bg-background text-foreground/80 hover:bg-muted border border-border/80"
+                        ? "bg-primary text-primary-foreground shadow"
+                        : "bg-background text-foreground/80 hover:bg-muted border border-border/70"
                     }`}
                   >
-                    <Icon className="h-3.5 w-3.5 text-gold" />
+                    <Icon className="h-3 w-3 text-gold" />
                     {m.label}
                   </button>
                 );
@@ -622,14 +595,14 @@ export default function SimHopTuoiTool() {
             </div>
           </div>
 
-          {/* Lọc Mức giá + Đầu số + Sắp xếp */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-border/50">
+          {/* Mức giá + Đầu số + Sắp xếp: Gọn gàng */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-border/40">
             {/* Khoảng giá */}
             <div>
-              <span className="block text-[11px] font-semibold text-muted-foreground mb-1.5 flex items-center gap-1">
-                <DollarSign className="h-3 w-3 text-primary" /> Mức giá:
+              <span className="block text-[10px] font-semibold text-muted-foreground mb-1">
+                Mức giá:
               </span>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar">
                 {PRICE_FILTERS.map((p) => {
                   const active = selectedPrice === p.value;
                   return (
@@ -639,9 +612,9 @@ export default function SimHopTuoiTool() {
                       onClick={() => {
                         setSelectedPrice(p.value);
                         setPage(1);
-                        setTimeout(() => fetchSims(1), 50);
+                        setTimeout(() => fetchSims(1, false), 50);
                       }}
-                      className={`rounded-lg px-2 py-1 text-[11px] font-medium transition-all ${
+                      className={`shrink-0 rounded-md px-2 py-0.5 text-[11px] font-medium transition-all ${
                         active
                           ? "bg-primary text-primary-foreground font-bold"
                           : "bg-background text-foreground/70 hover:bg-muted border border-border/60"
@@ -656,10 +629,10 @@ export default function SimHopTuoiTool() {
 
             {/* Đầu số */}
             <div>
-              <span className="block text-[11px] font-semibold text-muted-foreground mb-1.5 flex items-center gap-1">
-                <Phone className="h-3 w-3 text-primary" /> Đầu số:
+              <span className="block text-[10px] font-semibold text-muted-foreground mb-1">
+                Đầu số:
               </span>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar">
                 {PREFIX_FILTERS.map((p) => {
                   const active = selectedPrefix === p.value;
                   return (
@@ -669,9 +642,9 @@ export default function SimHopTuoiTool() {
                       onClick={() => {
                         setSelectedPrefix(p.value);
                         setPage(1);
-                        setTimeout(() => fetchSims(1), 50);
+                        setTimeout(() => fetchSims(1, false), 50);
                       }}
-                      className={`rounded-lg px-2 py-1 text-[11px] font-medium transition-all ${
+                      className={`shrink-0 rounded-md px-2 py-0.5 text-[11px] font-medium transition-all ${
                         active
                           ? "bg-primary text-primary-foreground font-bold"
                           : "bg-background text-foreground/70 hover:bg-muted border border-border/60"
@@ -686,8 +659,8 @@ export default function SimHopTuoiTool() {
 
             {/* Sắp xếp */}
             <div>
-              <span className="block text-[11px] font-semibold text-muted-foreground mb-1.5 flex items-center gap-1">
-                <ArrowUpDown className="h-3 w-3 text-primary" /> Sắp xếp:
+              <span className="block text-[10px] font-semibold text-muted-foreground mb-1">
+                Sắp xếp:
               </span>
               <select
                 value={sortBy}
@@ -695,9 +668,9 @@ export default function SimHopTuoiTool() {
                   const val = e.target.value as any;
                   setSortBy(val);
                   setPage(1);
-                  setTimeout(() => fetchSims(1), 50);
+                  setTimeout(() => fetchSims(1, false), 50);
                 }}
-                className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground focus:border-primary focus:outline-none"
+                className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground focus:border-primary focus:outline-none"
               >
                 <option value="score_desc">Điểm phong thuỷ cao nhất</option>
                 <option value="price_asc">Giá từ thấp đến cao</option>
@@ -708,34 +681,33 @@ export default function SimHopTuoiTool() {
         </section>
       )}
 
-      {/* ── 5. DANH SÁCH THẺ SIM KẾT QUẢ (CARD UI CHUẨN SIMKINHDICH) ────────── */}
+      {/* ── 5. DANH SÁCH THẺ SIM (ĐẬP THẲNG VÀO TẦM MẮT) ───────────────────── */}
       {data && (
-        <section className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3">
+        <section className="space-y-3.5">
+          <div className="flex items-center justify-between gap-2 border-b border-border/50 pb-2">
             <div className="flex items-center gap-2">
-              <span className="h-6 w-1 rounded-full bg-primary" />
-              <h3 className="text-lg sm:text-xl font-bold text-foreground">
-                Danh sách SIM hợp tuổi ({data.profile.napAm})
+              <span className="h-5 w-1 rounded-full bg-primary" />
+              <h3 className="text-base sm:text-lg font-bold text-foreground">
+                Kho SIM hợp tuổi ({data.profile.napAm})
               </h3>
-              <span className="rounded-full bg-primary/10 border border-primary/30 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                Tìm thấy {data.total.toLocaleString("vi-VN")} SIM
+              <span className="rounded-full bg-primary/10 border border-primary/30 px-2 py-0.2 text-xs font-semibold text-primary">
+                {data.total.toLocaleString("vi-VN")} SIM
               </span>
             </div>
             <div className="text-xs text-muted-foreground">
-              Đang hiển thị {data.sims.length > 0 ? (page - 1) * limit + 1 : 0} –{" "}
-              {Math.min(page * limit, data.total)} trong tổng số {data.total} SIM
+              Trang {page} / {totalPages}
             </div>
           </div>
 
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
-              <p className="text-sm text-muted-foreground">Đang sàng lọc kho SIM hợp tuổi...</p>
+            <div className="flex flex-col items-center justify-center py-16">
+              <Loader2 className="h-7 w-7 animate-spin text-primary mb-2" />
+              <p className="text-xs text-muted-foreground">Đang sàng lọc kho SIM hợp tuổi...</p>
             </div>
           ) : data.sims.length === 0 ? (
-            <div className="rounded-2xl border border-border bg-card p-10 text-center space-y-3">
-              <p className="text-base text-muted-foreground">
-                Kho tạm hết số khớp tiêu chí này. Quý khách vui lòng nới rộng khoảng giá hoặc đổi đầu số.
+            <div className="rounded-xl border border-border bg-card p-8 text-center space-y-2.5">
+              <p className="text-sm text-muted-foreground">
+                Kho tạm hết số khớp tiêu chí này. Quý khách vui lòng đổi khoảng giá hoặc đầu số.
               </p>
               <button
                 type="button"
@@ -744,102 +716,116 @@ export default function SimHopTuoiTool() {
                   setSelectedPrefix(null);
                   setMucTieu("all");
                   setPage(1);
-                  setTimeout(() => fetchSims(1), 50);
+                  setTimeout(() => fetchSims(1, false), 50);
                 }}
-                className="rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground shadow hover:bg-primary-dark transition-all"
+                className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow"
               >
-                Xóa bộ lọc &amp; Xem lại toàn bộ
+                Xóa bộ lọc &amp; Xem lại
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
               {data.sims.map((sim) => (
                 <div
                   key={sim.id}
-                  className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-card hover:border-gold/50 hover:shadow-xl transition-all duration-200"
+                  className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-border bg-card p-4 shadow-sm hover:border-gold/40 hover:shadow-md transition-all"
                 >
                   <div>
-                    {/* Header Thẻ: Số SIM + Hộp Điểm Số */}
-                    <div className="flex items-start justify-between gap-2">
+                    {/* Header Thẻ: Số SIM + Điểm số */}
+                    <div className="flex items-start justify-between gap-1.5">
                       <div>
-                        <div className="font-mono text-2xl font-black tracking-wider text-gold group-hover:text-primary transition-colors">
+                        <Link
+                          href={`/sim/${sim.digits}`}
+                          className="font-mono text-xl sm:text-2xl font-black tracking-wide text-gold group-hover:text-primary transition-colors block"
+                        >
                           {formatSimQuyAware(sim.digits)}
-                        </div>
-                        <div className="mt-0.5 text-base font-extrabold text-foreground">
+                        </Link>
+                        <div className="mt-0.5 text-sm sm:text-base font-extrabold text-foreground">
                           {formatPrice(sim.price)}
                         </div>
                       </div>
-                      <div className="flex flex-col items-end">
-                        <div className="flex items-center gap-1 rounded-xl bg-gold/15 border border-gold/30 px-2.5 py-1 text-xs font-black text-gold">
+                      <div className="flex flex-col items-end shrink-0">
+                        <div className="flex items-center gap-1 rounded-lg bg-gold/15 border border-gold/30 px-2 py-0.5 text-xs font-black text-gold">
                           <Star className="h-3 w-3 fill-gold" />
                           <span>{sim.score} /10</span>
                         </div>
-                        <span className="mt-1 text-[10px] font-semibold text-emerald-400">
+                        <span className="mt-0.5 text-[10px] font-semibold text-emerald-400">
                           {sim.score >= 8.5 ? "★ Rất hợp tuổi" : "★ Hợp tuổi"}
                         </span>
                       </div>
                     </div>
 
                     {/* 4 Chỉ Số Phong Thủy Vàng */}
-                    <div className="mt-4 space-y-2 border-t border-border/50 pt-3 text-xs">
-                      {/* Quẻ Kinh Dịch */}
+                    <div className="mt-3 space-y-1.5 border-t border-border/40 pt-2.5 text-xs">
                       <div className="flex items-start justify-between gap-2">
-                        <span className="text-muted-foreground flex items-center gap-1 shrink-0">
+                        <span className="text-muted-foreground flex items-center gap-1 shrink-0 text-[11px]">
                           <Compass className="h-3 w-3 text-gold" /> Quẻ Dịch:
                         </span>
-                        <span className="font-semibold text-foreground text-right truncate">
+                        <span className="font-semibold text-foreground text-right truncate text-[11px]">
                           {sim.hexagram || `Quẻ ${sim.que}`}
                         </span>
                       </div>
 
-                      {/* Ngũ Hành Sim */}
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-muted-foreground flex items-center gap-1 shrink-0">
+                        <span className="text-muted-foreground flex items-center gap-1 shrink-0 text-[11px]">
                           <Flame className="h-3 w-3 text-primary" /> Ngũ Hành:
                         </span>
-                        <span className="font-semibold text-foreground">
+                        <span className="font-semibold text-foreground text-[11px]">
                           Hành {sim.simHanh || "Hỏa"} ({sim.quanHe || "Tương sinh"})
                         </span>
                       </div>
 
-                      {/* Bát Cực Linh Số */}
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-muted-foreground flex items-center gap-1 shrink-0">
+                        <span className="text-muted-foreground flex items-center gap-1 shrink-0 text-[11px]">
                           <Sparkles className="h-3 w-3 text-gold" /> Bát Cực:
                         </span>
-                        <span className="font-semibold text-emerald-400 truncate">
+                        <span className="font-semibold text-emerald-400 truncate text-[11px]">
                           NL {sim.nlChuDao || "Sinh Khí"}
                         </span>
                       </div>
 
-                      {/* Nút */}
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-muted-foreground flex items-center gap-1 shrink-0">
+                        <span className="text-muted-foreground flex items-center gap-1 shrink-0 text-[11px]">
                           <ShieldCheck className="h-3 w-3 text-primary" /> Tổng Nút:
                         </span>
-                        <span className="font-semibold text-foreground">
+                        <span className="font-semibold text-foreground text-[11px]">
                           {sim.nut} nút ({sim.nut >= 7 ? "Đại cát" : "Cát"})
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Nút Hành Động */}
-                  <div className="mt-5 grid grid-cols-2 gap-2 pt-3 border-t border-border/50">
+                  {/* 3 Nút Hành Động Toàn Diện */}
+                  <div className="mt-3.5 grid grid-cols-3 gap-1.5 pt-2.5 border-t border-border/40">
+                    {/* Chat Zalo */}
                     <a
                       href="https://zalo.me/0933686666"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-1 rounded-xl bg-gold/10 border border-gold/30 py-2.5 text-xs font-bold text-gold hover:bg-gold hover:text-black transition-all"
+                      data-sim-number={sim.digits}
+                      aria-label={`Chat Zalo số ${sim.digits}`}
+                      className="inline-flex items-center justify-center gap-1 rounded-lg bg-sky-500/15 border border-sky-500/30 py-2 text-[11px] font-bold text-sky-400 hover:bg-sky-500/25 transition-all text-center"
                     >
-                      <Phone className="h-3.5 w-3.5" />
-                      Chat Zalo
+                      <Phone className="h-3 w-3" />
+                      Zalo
                     </a>
+
+                    {/* Mua ngay */}
+                    <Link
+                      href={`/mua-ngay/${sim.digits}`}
+                      className="inline-flex items-center justify-center gap-1 rounded-lg bg-primary py-2 text-[11px] font-bold text-primary-foreground shadow hover:bg-primary-dark transition-all text-center"
+                    >
+                      <ShoppingCart className="h-3 w-3" />
+                      Mua ngay
+                    </Link>
+
+                    {/* Xem luận giải */}
                     <Link
                       href={`/sim/${sim.digits}`}
-                      className="inline-flex items-center justify-center gap-1 rounded-xl bg-primary py-2.5 text-xs font-bold text-primary-foreground shadow hover:bg-primary-dark transition-all"
+                      className="inline-flex items-center justify-center gap-1 rounded-lg bg-gold/10 border border-gold/30 py-2 text-[11px] font-bold text-gold hover:bg-gold hover:text-black transition-all text-center"
                     >
-                      Xem luận giải →
+                      <BookOpen className="h-3 w-3" />
+                      Chi tiết
                     </Link>
                   </div>
                 </div>
@@ -849,17 +835,17 @@ export default function SimHopTuoiTool() {
 
           {/* Phân trang */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 pt-6">
+            <div className="flex items-center justify-center gap-2 pt-4">
               <Button
                 variant="outline"
                 size="sm"
                 disabled={page <= 1}
                 onClick={() => handlePageChange(page - 1)}
-                className="rounded-xl border-border"
+                className="rounded-lg border-border text-xs"
               >
-                <ChevronLeft className="h-4 w-4 mr-1" /> Trang trước
+                <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Trước
               </Button>
-              <div className="text-xs font-semibold text-muted-foreground px-3">
+              <div className="text-xs font-semibold text-muted-foreground px-2">
                 Trang {page} / {totalPages}
               </div>
               <Button
@@ -867,9 +853,9 @@ export default function SimHopTuoiTool() {
                 size="sm"
                 disabled={page >= totalPages}
                 onClick={() => handlePageChange(page + 1)}
-                className="rounded-xl border-border"
+                className="rounded-lg border-border text-xs"
               >
-                Trang sau <ChevronRight className="h-4 w-4 ml-1" />
+                Sau <ChevronRight className="h-3.5 w-3.5 ml-1" />
               </Button>
             </div>
           )}
