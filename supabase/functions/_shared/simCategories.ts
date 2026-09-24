@@ -5,8 +5,9 @@
 // `../_shared/simCategories.ts`, Next import qua `src/lib/simCategories.ts`.
 // Trước đây luật bị chép tay hai nơi (simUtils.ts + sync-sims) và đã lệch nhau.
 //
-// Luật bóc từ simthanglong.vn (09/2026), đo trên ~20k số có nhãn của họ + 100 số
-// hỏi đủ 20 danh mục: nhãn chính khớp 99,94%, thành viên từng danh mục 99,5–100%.
+// Luật bóc từ simthanglong.vn (09/2026), đo trên ~21,6k số có nhãn của họ (nhãn
+// chính khớp 99,93%, kể cả 1.995 số held-out) + 4.574 số hỏi thẳng web họ đủ 20
+// danh mục (khớp trọn vector 99,98%; mọi danh mục precision/recall 100%).
 // Nguyên tắc của họ, giữ nguyên ở đây:
 //   1. MỘT SỐ THUỘC NHIỀU DANH MỤC (0876.010.010 = Taxi + Gánh đảo + Dễ nhớ).
 //      Mỗi luật là một "dạng thuần", không loại trừ nhau. Trang danh mục X liệt
@@ -100,15 +101,20 @@ export const CATEGORY_RULES: Record<string, Rule> = {
   Taxi: (d) =>
     tailRun(d) < 3 &&
     (periodRun(d, 2) >= 6 || periodRun(d, 3) >= 6 || periodRun(d, 4) >= 8 || periodRun(d, 5) >= 10),
-  // Lặp kép: 4 số cuối AABB hoặc ABAB (A ≠ B).
+  // Lặp kép: 4 số cuối AABB hoặc ABAB (A ≠ B), hoặc 6 số cuối là ba cặp kép
+  // (55.00.00, 11.99.99 — tứ quý có cặp đứng trước cũng vào đây).
   "Lặp kép": (d) => {
     const t = d.slice(-4);
-    return (t[0] === t[1] && t[2] === t[3] && t[0] !== t[2]) || (t[0] === t[2] && t[1] === t[3] && t[0] !== t[1]);
+    const t6 = d.slice(-6);
+    const baCap = t6[0] === t6[1] && t6[2] === t6[3] && t6[4] === t6[5] && !/^(\d)\1+$/.test(t6);
+    return (t[0] === t[1] && t[2] === t[3] && t[0] !== t[2]) || (t[0] === t[2] && t[1] === t[3] && t[0] !== t[1]) || baCap;
   },
   // Gánh đảo: 4 số cuối ABBA, hoặc 6/8 số cuối đối xứng (860.068, 0624.4260).
+  // ABBA mà liền trước là A (…1.1221) thì KHÔNG tính — simthanglong xếp dạng đó
+  // vào Dễ nhớ (AABBA), đã hỏi lại từng số để chắc.
   "Gánh đảo": (d) => {
     const t = d.slice(-4);
-    const abba = t[0] === t[3] && t[1] === t[2] && t[0] !== t[1];
+    const abba = t[0] === t[3] && t[1] === t[2] && t[0] !== t[1] && d[d.length - 5] !== t[0];
     return abba || isPalindrome(d.slice(-6)) || isPalindrome(d.slice(-8));
   },
   // Tiến lên: 3 số cuối tăng đều (789, 0123); 4 số bước 2 (1357, 2468);
@@ -131,6 +137,7 @@ export const CATEGORY_RULES: Record<string, Rule> = {
     const c = (i: number) => d[n + i];
     const t = d.slice(-6);
     if (tailRun(d) === 3) return true; // …777
+    if (/(310310|113113)$/.test(d)) return true; // 2 đuôi simthanglong xếp tay, không ra công thức
     if (c(-3) === c(-1) && c(-2) !== c(-1)) return true; // …ABA (5.838)
     if (c(-4) === c(-2) && c(-3) !== c(-2)) return true; // …ABAx (1910)
     if (hamming(t.slice(0, 3), t.slice(3)) === 1) return true; // ABC.ABD (122.722)

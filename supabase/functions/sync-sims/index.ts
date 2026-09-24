@@ -45,7 +45,7 @@ const SYNC_STATE_KEY = 'sims_sheet';
  * là hàm thuần của chúng + phiên bản luật, nên bump version ở đây là cách buộc
  * một lượt ghi lại toàn bộ sau khi sửa luật, mà không phải băm thêm ~10 cột.
  */
-const FINGERPRINT_VERSION = 'v3'; // v3 (09/2026): danh mục kiểu simthanglong, 1 số nhiều danh mục
+const FINGERPRINT_VERSION = 'v4'; // v3 (09/2026): danh mục kiểu simthanglong; v4: chỉnh lặp kép/gánh đảo/dễ nhớ theo 4.482 số hỏi lại
 
 /**
  * Dưới ngưỡng này thì ô giá là lỗi nhập tay hoặc lệch đơn vị, không phải giá

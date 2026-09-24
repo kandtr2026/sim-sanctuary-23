@@ -251,6 +251,25 @@ describe("các ranh giới dễ sai", () => {
     expect(detectSimCategories("0906244260")).toContain("Gánh đảo");
   });
 
+  // Ba ca dưới đây hỏi lại TỪNG SỐ trên simthanglong (tìm kiếm cô lập + ?c=), 09/2026.
+  it("lặp kép gồm 6 số cuối là ba cặp kép (tứ quý có cặp đứng trước)", () => {
+    expect(detectSimCategories("0879550000")).toEqual(["Tứ quý", "Lặp kép"]);
+    expect(detectSimCategories("0336119999")).toContain("Lặp kép");
+    expect(detectSimCategories("0983000000")).not.toContain("Lặp kép"); // 000000 là lục quý
+  });
+
+  it("gánh đảo: ABBA liền sau A (…1.1221) không tính, chỉ là dễ nhớ", () => {
+    expect(detectSimCategories("0394511221")).not.toContain("Gánh đảo");
+    expect(detectSimCategories("0394511221")).toContain("Dễ nhớ");
+    expect(detectSimCategories("0843113113")).toContain("Gánh đảo"); // …1.3113: trước ABBA là 1 ≠ 3 nên vẫn tính
+  });
+
+  it("dễ nhớ: hai đuôi simthanglong xếp tay 310310, 113113", () => {
+    expect(detectSimCategories("0562310310")).toEqual(["Taxi", "Dễ nhớ", "Năm sinh"]);
+    expect(detectSimCategories("0989113113")).toContain("Dễ nhớ");
+    expect(detectSimCategories("0876412412")).not.toContain("Dễ nhớ"); // taxi thường thì không
+  });
+
   it("tiến lên: 3 số tăng, bước 2, và cặp tiến đều", () => {
     expect(detectSimCategories("0879000123")).toContain("Tiến lên");
     expect(detectSimCategories("0925063579")).toContain("Tiến lên");
