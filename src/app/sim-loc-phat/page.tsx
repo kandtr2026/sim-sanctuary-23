@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { Phone, Star, Sparkles } from "lucide-react";
+import { Phone } from "lucide-react";
 import CategorySimGrid from "@/components/CategorySimGrid";
-import CategoryHeroArt from "@/components/CategoryHeroArt";
 import CategorySimPriceList from "@/components/CategorySimPriceList";
-import TrustCommitments from "@/components/TrustCommitments";
-import CustomerProof from "@/components/CustomerProof";
 import LeadMagnetCta from "@/components/LeadMagnetCta";
+import CustomerProof from "@/components/CustomerProof";
+import TrustCommitments from "@/components/TrustCommitments";
 import FaqAccordion from "@/components/FaqAccordion";
 import { buildBreadcrumb } from "@/lib/seo";
 import { getCategorySnapshot } from "@/lib/serverSimData";
@@ -67,137 +66,117 @@ export default async function SimLocPhatPage() {
   const snapshotSims = await getCategorySnapshot({ suffixes: ["68", "86"] }, 8);
   return (
     <>
-      <main className="min-h-screen bg-background">
-        <section
-          style={{ minHeight: "clamp(300px, 38vw, 380px)" }}
-          className="relative flex items-center bg-gradient-to-b from-primary via-primary-dark to-primary text-primary-foreground"
-        >
-          <CategoryHeroArt numerals={["68", "86"]} />
-          <div className="container relative mx-auto px-4 py-6 text-center">
-            <div className="mb-2 flex justify-center">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/30 bg-gold/15">
-                <Sparkles className="h-5 w-5 text-gold" />
-              </div>
+      <main className="min-h-screen bg-background pb-12">
+        <div className="container mx-auto px-4 pt-4 pb-2">
+          {/* Breadcrumb & Header nhỏ gọn chuẩn Sim Thăng Long */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+            <div>
+              <nav className="text-xs text-muted-foreground mb-1">
+                <a href="/" className="hover:underline">Trang chủ</a> / <span className="text-foreground">Sim Lộc Phát Mobifone</span>
+              </nav>
+              <h1 className="text-xl sm:text-2xl font-black text-foreground">
+                Sim Lộc Phát Mobifone — <span className="text-gold">Đuôi 68, 86, 6868</span>
+              </h1>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                Kho sim lộc phát Mobifone chính chủ: đuôi 68 (lộc phát), 86 (phát lộc). Giá niêm yết công khai, 30 phút giao toàn quốc.
+              </p>
             </div>
-            <h1 className="mx-auto mb-3 max-w-3xl text-2xl font-extrabold leading-tight sm:text-3xl md:text-4xl">
-              Sim Lộc Phát Mobifone — <span className="text-gold">đuôi 68, 86, 6868</span>
-            </h1>
-            <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Đọc thử trước khi chọn: 68 là lộc phát, 86 là phát lộc. Giá công khai từng số, đăng ký thông tin chính chủ, 30 phút giao toàn quốc.
-            </p>
-            <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
-              <a
-                href="#kho-sim"
-                className="flex items-center justify-center gap-2 rounded-lg bg-gold px-7 py-2.5 font-bold text-header-bg shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:bg-gold-light hover:shadow-xl"
-              >
-                <Star className="h-4 w-4" /> Xem kho sim lộc phát
-              </a>
-              <a
-                href={ZALO_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 rounded-lg border border-primary-foreground/25 bg-primary-foreground/10 px-7 py-2.5 font-semibold text-primary-foreground transition-all duration-200 hover:bg-primary-foreground/20"
-              >
-                <Phone className="h-4 w-4" /> Tư vấn chọn sim
-              </a>
-            </div>
+            <a
+              href={ZALO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 self-start md:self-center rounded-xl bg-gold px-4 py-2 text-xs sm:text-sm font-bold text-header-bg shadow-sm hover:bg-gold-light transition-all"
+            >
+              <Phone className="h-4 w-4" /> Chat Zalo tư vấn số
+            </a>
           </div>
-        </section>
 
-        <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
-          {/* Kho + ô tìm lên đầu để khách vừa vào tìm được ngay (góp ý #32) */}
+          {/* Kho sim đập vào mắt ngay lập tức! */}
           <CategorySimGrid
-            title="Sim Lộc Phát Đuôi 68, 86 Mới Cập Nhật"
-            searchPlaceholder="Nhập số cần tìm, hoặc *68 / *86 để xem đuôi lộc phát"
-            emptyText="Chưa có số nào khớp yêu cầu này. Quý khách thử *68, *86 hoặc 6868, hoặc gọi 0933.686.666 để đội ngũ tư vấn lọc kho theo ngân sách."
+            title="Kho Sim Lộc Phát Mobifone"
+            searchPlaceholder="Nhập số cần tìm, ví dụ *68, *86, 090*..."
+            emptyText="Chưa có số nào khớp yêu cầu này. Quý khách thử đổi khoảng giá hoặc đầu số, hoặc gọi 0933.686.666 để nhân viên hỗ trợ."
             matchSuffixes={["68", "86"]}
           />
 
-          <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
-            <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
-              <span className="h-8 w-1 rounded-full bg-primary" />
-              Sim lộc phát là gì? Đuôi 68 và 86 khác nhau ra sao
-            </h2>
-            <div className="space-y-4 leading-relaxed text-muted-foreground">
-              <p>
-                Đọc thành tiếng là thấy ngay: “sáu tám” nghe ra lộc phát, “tám sáu” nghe ra phát lộc. Mỗi lần Quý khách
-                xướng số cho đối tác, dãy số nói thay một lời chúc — và người nghe nhớ được ngay từ lần đầu. Đó là chỗ
-                đứng của đuôi 68 và 86 trong giới làm ăn. Về nghĩa, hai đuôi quy về cùng một mong muốn: tài lộc sinh sôi,
-                buôn bán thuận đường.
-              </p>
-              <p>
-                Khác biệt nằm ở nhịp đọc và độ hiếm. Các đuôi lặp như <strong className="text-foreground">6868</strong>{" "}
-                (lộc phát lộc phát), <strong className="text-foreground">6688</strong>,{" "}
-                <strong className="text-foreground">8686</strong> vừa dễ nhớ vừa nhấn ý nghĩa hai lần nên được săn nhiều
-                hơn. Riêng giá thì do đầu số quyết định trước tiên, sau đó tới độ đẹp của dãy: cùng đuôi 68, số đầu 090 hay
-                093 nằm ở mặt bằng khác hẳn đầu 07x.
-              </p>
-            </div>
-          </section>
+          {/* Khối bài viết SEO & Hướng dẫn (Gom gọn dưới chân trang cho Google Bot đọc, không làm phiền khách chọn số) */}
+          <div className="mt-10 space-y-6 pt-6 border-t border-border/60">
+            <details className="group rounded-2xl border border-border bg-card shadow-sm transition-all overflow-hidden">
+              <summary className="cursor-pointer p-4 font-bold text-foreground flex items-center justify-between hover:bg-muted/40 transition-colors">
+                <span className="flex items-center gap-2 text-sm sm:text-base">
+                  📖 Xem thêm ý nghĩa phong thuỷ sim Lộc Phát (68, 86) & Cách chọn số
+                </span>
+                <span className="text-xs text-primary group-open:rotate-180 transition-transform duration-200">
+                  ▼
+                </span>
+              </summary>
+              <div className="p-5 pt-2 space-y-6 border-t border-border/40">
+                <div>
+                  <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-primary">
+                    <span className="h-6 w-1 rounded-full bg-primary" />
+                    Sim lộc phát là gì? Đuôi 68 và 86 khác nhau ra sao
+                  </h2>
+                  <div className="space-y-3 leading-relaxed text-sm text-muted-foreground">
+                    <p>
+                      Đọc thành tiếng là thấy ngay: “sáu tám” nghe ra lộc phát, “tám sáu” nghe ra phát lộc. Mỗi lần Quý khách
+                      xướng số cho đối tác, dãy số nói thay một lời chúc — và người nghe nhớ được ngay từ lần đầu. Đó là chỗ
+                      đứng của đuôi 68 và 86 trong giới làm ăn. Về nghĩa, hai đuôi quy về cùng một mong muốn: tài lộc sinh sôi,
+                      buôn bán thuận đường.
+                    </p>
+                    <p>
+                      Khác biệt nằm ở nhịp đọc và độ hiếm. Các đuôi lặp như <strong className="text-foreground">6868</strong>{" "}
+                      (lộc phát lộc phát), <strong className="text-foreground">6688</strong>,{" "}
+                      <strong className="text-foreground">8686</strong> vừa dễ nhớ vừa nhấn ý nghĩa hai lần nên được săn nhiều
+                      hơn. Riêng giá thì do đầu số quyết định trước tiên, sau đó tới độ đẹp của dãy: cùng đuôi 68, số đầu 090 hay
+                      093 nằm ở mặt bằng khác hẳn đầu 07x.
+                    </p>
+                  </div>
+                </div>
 
-          {/* Bảng giá thật + ItemList/Product/Offer trong HTML thô */}
-          <CategorySimPriceList
-            title="Giá sim lộc phát đang bán"
-            sims={snapshotSims}
-            pageUrl={CANONICAL}
-            note="Bảng lấy 8 số đuôi 68 / 86 có giá thấp nhất trong kho tại thời điểm cập nhật."
-          />
+                <div>
+                  <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-primary">
+                    <span className="h-6 w-1 rounded-full bg-primary" />
+                    Cách chọn sim lộc phát hợp túi tiền
+                  </h2>
+                  <div className="space-y-3 leading-relaxed text-sm text-muted-foreground">
+                    <p>
+                      Sim lộc phát đuôi 68 hoặc 86 có phổ giá rất rộng: từ dưới 1 triệu (ở đầu 07x) cho đến vài chục triệu
+                      (ở đầu cổ 090, 093 có thế số tam hoa, gánh đảo). Tuỳ mục đích sử dụng làm sim liên lạc cá nhân hay làm
+                      hotline kinh doanh lâu dài, Quý khách có thể chọn đầu số và dải giá phù hợp.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </details>
 
-          <LeadMagnetCta />
+            {/* Bảng giá thật + ItemList/Product/Offer trong HTML thô */}
+            <CategorySimPriceList
+              title="Giá sim lộc phát đang bán"
+              sims={snapshotSims}
+              pageUrl={CANONICAL}
+              note="Bảng lấy 8 số đuôi 68 / 86 có giá thấp nhất trong kho tại thời điểm cập nhật."
+            />
 
-          <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
-            <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
-              <span className="h-8 w-1 rounded-full bg-primary" />
-              Giá sim lộc phát bao nhiêu?
-            </h2>
-            <p className="leading-relaxed text-muted-foreground">
-              Sim lộc phát có giá từ vài trăm nghìn đến vài chục triệu đồng. Đuôi 6868, 6688, số đầu 090/093 và những dãy
-              dễ nhớ nằm ở nhóm cao hơn. Giá hiện sẵn cạnh từng số trong kho, nên Quý khách so được nhiều số cùng lúc rồi
-              mới quyết, không phải hỏi giá từng số một.
-            </p>
-          </section>
+            <LeadMagnetCta />
+            <CustomerProof />
+            <TrustCommitments />
 
-          {/* Customer proof */}
-          <CustomerProof />
+            <FaqAccordion items={faqItems} />
 
-          <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
-            <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
-              <span className="h-8 w-1 rounded-full bg-primary" />
-              Ai nên dùng sim lộc phát
-            </h2>
-            <p className="leading-relaxed text-muted-foreground">
-              Chủ cửa hàng, người kinh doanh, người vừa mua xe hoặc mua nhà là nhóm chọn đuôi 68/86 nhiều nhất. Số đọc
-              qua điện thoại rất trôi, đối tác và khách hàng ghi lại một lần là xong.
-            </p>
-          </section>
-
-          {/* Trust */}
-          <TrustCommitments />
-
-          <FaqAccordion items={faqItems} />
-
-          <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
-            <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
-              <span className="h-8 w-1 rounded-full bg-primary" />
-              Xem thêm các dòng sim khác
-            </h2>
-            <ul className="flex flex-wrap gap-3 text-sm">
-              <li>
-                <a href="/sim-than-tai" className="font-medium text-primary underline-offset-2 hover:underline">
-                  Sim thần tài
-                </a>
-              </li>
-              <li>
-                <a href="/mua-sim-tu-quy" className="font-medium text-primary underline-offset-2 hover:underline">
-                  Sim tứ quý
-                </a>
-              </li>              <li>
-                <a href="/sim-phong-thuy-hop-menh" className="font-medium text-primary underline-offset-2 hover:underline">
-                  Sim phong thủy hợp mệnh
-                </a>
-              </li>
-            </ul>
-          </section>
+            <section className="rounded-xl border border-border bg-card p-6 shadow-card">
+              <h2 className="mb-4 flex items-center gap-3 text-lg font-bold text-primary">
+                <span className="h-6 w-1 rounded-full bg-primary" />
+                Xem thêm các dòng sim khác
+              </h2>
+              <ul className="flex flex-wrap gap-3 text-sm">
+                <li><a href="/sim-than-tai" className="font-medium text-primary underline-offset-2 hover:underline">Sim thần tài</a></li>
+                <li><a href="/mua-sim-tu-quy" className="font-medium text-primary underline-offset-2 hover:underline">Sim tứ quý</a></li>
+                <li><a href="/sim-phong-thuy-hop-menh" className="font-medium text-primary underline-offset-2 hover:underline">Sim phong thủy hợp mệnh</a></li>
+                <li><a href="/sim-nam-sinh" className="font-medium text-primary underline-offset-2 hover:underline">Sim năm sinh</a></li>
+                <li><a href="/mua-sim-gia-re" className="font-medium text-primary underline-offset-2 hover:underline">Sim giá rẻ</a></li>
+              </ul>
+            </section>
+          </div>
         </div>
       </main>
 
