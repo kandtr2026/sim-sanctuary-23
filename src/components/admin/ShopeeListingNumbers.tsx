@@ -15,10 +15,11 @@
  */
 
 import { useCallback, useState } from "react";
-import { Check, Loader2, PencilLine, Plus, PowerOff, Search, X } from "lucide-react";
+import { Check, Loader2, Package, PencilLine, Plus, PowerOff, Search, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { fetchCheapStock, type CheapSim } from "@/lib/cheapSimSheet";
 
 export interface ShopeeVariant {
   model_id: number;
@@ -35,9 +36,37 @@ interface KhoSim {
   formattedNumber: string;
   price: number;
   isVIP?: boolean;
+  /** Gói cước (TK179, M125M…) khi số lấy từ kho SIM giá rẻ; số đẹp thì rỗng. */
+  goiCuoc?: string;
 }
 
 const QUY_CHIPS = ["Tứ quý", "Ngũ quý", "Lục quý"] as const;
+
+/** Các gói cước có trong kho SIM giá rẻ (khớp normalizeGoiCuoc của sheet). */
+const KNOWN_GOI = ["TK179", "TK159", "TK135", "HN125M", "M125M", "MXH120", "PT90", "NA90"] as const;
+
+/**
+ * Kho SIM giá rẻ 229K (gói cước / đầu số) đọc từ Google Sheet Khosim_Shopee —
+ * cùng nguồn với trang /mua-sim-gia-re. Tải 1 lần rồi lọc tại client; cache ở
+ * cấp module (TTL 5') để mở nhiều listing không phải kéo lại ~13k dòng mỗi lần.
+ */
+let promoCache: { at: number; sims: CheapSim[] } | null = null;
+let promoInflight: Promise<CheapSim[]> | null = null;
+const PROMO_TTL = 5 * 60 * 1000;
+
+async function getPromoStock(): Promise<CheapSim[]> {
+  if (promoCache && Date.now() - promoCache.at < PROMO_TTL) return promoCache.sims;
+  if (promoInflight) return promoInflight;
+  promoInflight = fetchCheapStock()
+    .then((sims) => {
+      promoCache = { at: Date.now(), sims };
+      return sims;
+    })
+    .finally(() => {
+      promoInflight = null;
+    });
+  return promoInflight;
+}
 
 const formatVnd = (n: number) => (n > 0 ? n.toLocaleString("vi-VN") + "₫" : "—");
 
@@ -65,6 +94,30 @@ function guessFilter(itemName: string): { quyType?: string; search?: string } {
   const dau = itemName.match(/0\d{2}/); // đầu số 3 chữ, vd 093 → "093*"
   if (dau) return { search: dau[0] + "*" };
   return {};
+}
+
+type PickerSource = "dep" | "goicuoc";
+
+/** Gói cước xuất hiện trong tên listing (TK179, M125M…) → gợi ý kho SIM giá rẻ. */
+function guessGoi(itemName: string): string | null {
+  const s = itemName.toUpperCase();
+  return KNOWN_GOI.find((g) => s.includes(g)) ?? null;
+}
+
+/**
+ * Đoán kho nên tra khi mở picker:
+ *  - "goicuoc" (kho SIM giá rẻ 229K): TK179 · nguyên kit · data · hàng ~150–400K.
+ *  - "dep" (kho số đẹp): thần tài · tứ/ngũ/lục quý · số đẹp — giữ nguyên như cũ.
+ * Đoán sai vẫn đổi được bằng nút chuyển kho trong picker.
+ */
+function guessSource(itemName: string, variants: ShopeeVariant[]): PickerSource {
+  if (guessGoi(itemName)) return "goicuoc";
+  const s = itemName.toLowerCase();
+  if (/nguy[eê]n\s*kit|g[oó]i\s*c[uư][ơớ]c|\bkit\b|\bdata\b|gi[aá]\s*r[eẻ]/.test(s)) return "goicuoc";
+  const hasQuy = /qu(?:ý|y)/.test(s);
+  const price = suggestPrice(variants);
+  if (!hasQuy && price >= 150_000 && price <= 400_000) return "goicuoc";
+  return "dep";
 }
 
 /** Giá gợi ý khi thêm số mới: giữ mức đang bán trên listing (số còn hàng đầu tiên, không thì cao nhất). */
@@ -102,52 +155,85 @@ export default function ShopeeListingNumbers({
   const [picker, setPicker] = useState<PickerState | null>(null);
 
   // Kho picker
+  const [source, setSource] = useState<PickerSource>("dep");
   const [q, setQ] = useState("");
   const [quyType, setQuyType] = useState<string | null>(null);
+  const [goiPackage, setGoiPackage] = useState<string | null>(null);
   const [priceInput, setPriceInput] = useState("");
   const [results, setResults] = useState<KhoSim[]>([]);
   const [searching, setSearching] = useState(false);
 
   const soDangCo = new Set(variants.map((v) => v.label.replace(/\D/g, "")));
 
-  // Tìm số trong kho với bộ lọc TRUYỀN THẲNG (không đọc state) → gọi được ngay khi
-  // mở picker / đổi chip mà không cần chờ re-render, và không tìm lại mỗi lần gõ.
-  const runSearch = useCallback(async (quy: string | null, term: string) => {
-    setSearching(true);
-    try {
-      const params = new URLSearchParams();
-      if (quy) params.set("quyType", quy);
-      else if (term.trim()) params.set("search", term.trim());
-      params.set("sort", "price-asc");
-      params.set("limit", "40");
-      const data = await fetchJson<{ items: KhoSim[] }>(`/api/sims?${params.toString()}`);
-      setResults(data.items ?? []);
-    } catch (e) {
-      toast.error((e as Error).message);
-    } finally {
-      setSearching(false);
-    }
-  }, []);
+  // Tìm số với bộ lọc TRUYỀN THẲNG (không đọc state) → gọi được ngay khi mở
+  // picker / đổi chip mà không phải chờ re-render, và không tìm lại mỗi lần gõ.
+  // Nguồn "dep" = /api/sims (kho số đẹp); "goicuoc" = sheet SIM giá rẻ (lọc client).
+  const runSearch = useCallback(
+    async (opts: { source: PickerSource; quyType?: string | null; goi?: string | null; term: string }) => {
+      setSearching(true);
+      try {
+        if (opts.source === "goicuoc") {
+          const stock = await getPromoStock();
+          const term = opts.term.trim();
+          const digits = term.replace(/\D/g, "");
+          const isSuffix = term.startsWith("*");
+          let list = stock;
+          if (opts.goi) list = list.filter((s) => s.goiCuoc === opts.goi);
+          if (digits) {
+            if (isSuffix) list = list.filter((s) => s.rawDigits.endsWith(digits));
+            else if (digits.startsWith("0")) list = list.filter((s) => s.rawDigits.startsWith(digits));
+            else list = list.filter((s) => s.rawDigits.includes(digits));
+          }
+          setResults(
+            list.slice(0, 60).map((s) => ({
+              rawDigits: s.rawDigits,
+              displayNumber: s.displayNumber,
+              formattedNumber: s.displayNumber,
+              price: s.price,
+              goiCuoc: s.goiCuoc,
+            })),
+          );
+        } else {
+          const params = new URLSearchParams();
+          if (opts.quyType) params.set("quyType", opts.quyType);
+          else if (opts.term.trim()) params.set("search", opts.term.trim());
+          params.set("sort", "price-asc");
+          params.set("limit", "40");
+          const data = await fetchJson<{ items: KhoSim[] }>(`/api/sims?${params.toString()}`);
+          setResults(data.items ?? []);
+        }
+      } catch (e) {
+        toast.error((e as Error).message);
+      } finally {
+        setSearching(false);
+      }
+    },
+    [],
+  );
 
-  const openAdd = () => {
+  // Mở picker: tự chọn kho (số đẹp / gói cước) + lọc theo tên listing.
+  const openPicker = (state: PickerState) => {
+    const src = guessSource(itemName, variants);
     const g = guessFilter(itemName);
-    setQuyType(g.quyType ?? null);
+    const goi = guessGoi(itemName);
+    setSource(src);
+    setQuyType(src === "dep" ? g.quyType ?? null : null);
+    setGoiPackage(src === "goicuoc" ? goi : null);
     setQ(g.search ?? "");
     setResults([]);
+    setPicker(state);
+    void runSearch({ source: src, quyType: g.quyType ?? null, goi, term: g.search ?? "" });
+  };
+
+  const openAdd = () => {
     const p = suggestPrice(variants);
     setPriceInput(p ? String(p) : "");
-    setPicker({ mode: "add", price: p });
-    void runSearch(g.quyType ?? null, g.search ?? "");
+    openPicker({ mode: "add", price: p });
   };
 
   const openEdit = (v: ShopeeVariant) => {
-    const g = guessFilter(itemName);
-    setQuyType(g.quyType ?? null);
-    setQ(g.search ?? "");
-    setResults([]);
     setPriceInput(v.price ? String(v.price) : "");
-    setPicker({ mode: "edit", modelId: v.model_id, currentLabel: v.label, price: v.price });
-    void runSearch(g.quyType ?? null, g.search ?? "");
+    openPicker({ mode: "edit", modelId: v.model_id, currentLabel: v.label, price: v.price });
   };
 
   const closePicker = () => setPicker(null);
@@ -315,25 +401,88 @@ export default function ShopeeListingNumbers({
             </Button>
           </div>
 
-          {/* Chip loại + ô tìm + giá */}
+          {/* Chuyển kho: số đẹp ↔ SIM giá rẻ (gói cước) */}
+          <div className="mb-2 flex items-center gap-1 rounded-lg border border-border p-1 text-xs">
+            <button
+              type="button"
+              onClick={() => {
+                setSource("dep");
+                setGoiPackage(null);
+                void runSearch({ source: "dep", quyType, term: q });
+              }}
+              className={`flex flex-1 items-center justify-center gap-1 rounded-md px-2 py-1 transition-colors ${
+                source === "dep" ? "bg-gold/15 font-medium text-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Sparkles className="h-3.5 w-3.5" /> Kho số đẹp
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSource("goicuoc");
+                setQuyType(null);
+                void runSearch({ source: "goicuoc", goi: goiPackage, term: q });
+              }}
+              className={`flex flex-1 items-center justify-center gap-1 rounded-md px-2 py-1 transition-colors ${
+                source === "goicuoc" ? "bg-gold/15 font-medium text-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Package className="h-3.5 w-3.5" /> Kho SIM giá rẻ (gói cước)
+            </button>
+          </div>
+
+          {/* Chip lọc: quý (số đẹp) hoặc gói cước (SIM giá rẻ) */}
           <div className="mb-2 flex flex-wrap items-center gap-2">
-            {QUY_CHIPS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => {
-                  const nextQuy = quyType === c ? null : c;
-                  setQuyType(nextQuy);
-                  setQ("");
-                  void runSearch(nextQuy, "");
-                }}
-                className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
-                  quyType === c ? "border-gold bg-gold/10 text-foreground" : "border-border text-muted-foreground hover:border-gold/50"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
+            {source === "dep" ? (
+              QUY_CHIPS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => {
+                    const nextQuy = quyType === c ? null : c;
+                    setQuyType(nextQuy);
+                    setQ("");
+                    void runSearch({ source: "dep", quyType: nextQuy, term: "" });
+                  }}
+                  className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                    quyType === c ? "border-gold bg-gold/10 text-foreground" : "border-border text-muted-foreground hover:border-gold/50"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGoiPackage(null);
+                    void runSearch({ source: "goicuoc", goi: null, term: q });
+                  }}
+                  className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                    goiPackage === null ? "border-gold bg-gold/10 text-foreground" : "border-border text-muted-foreground hover:border-gold/50"
+                  }`}
+                >
+                  Tất cả gói
+                </button>
+                {KNOWN_GOI.map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => {
+                      const next = goiPackage === g ? null : g;
+                      setGoiPackage(next);
+                      void runSearch({ source: "goicuoc", goi: next, term: q });
+                    }}
+                    className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                      goiPackage === g ? "border-gold bg-gold/10 text-foreground" : "border-border text-muted-foreground hover:border-gold/50"
+                    }`}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </>
+            )}
           </div>
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <div className="relative min-w-[180px] flex-1">
@@ -342,10 +491,14 @@ export default function ShopeeListingNumbers({
                 value={q}
                 onChange={(e) => {
                   setQ(e.target.value);
-                  if (quyType) setQuyType(null);
+                  if (source === "dep" && quyType) setQuyType(null);
                 }}
-                onKeyDown={(e) => e.key === "Enter" && void runSearch(quyType, q)}
-                placeholder="Tìm số trong kho: *99999, 093*, 0938…"
+                onKeyDown={(e) => e.key === "Enter" && void runSearch({ source, quyType, goi: goiPackage, term: q })}
+                placeholder={
+                  source === "goicuoc"
+                    ? "Lọc đầu số trong gói: 0938, 0901, 093…"
+                    : "Tìm số trong kho: *99999, 093*, 0938…"
+                }
                 className="h-9 pl-9"
               />
             </div>
@@ -359,7 +512,12 @@ export default function ShopeeListingNumbers({
                 className="h-9 w-32 tabular-nums"
               />
             </div>
-            <Button size="sm" variant="secondary" onClick={() => void runSearch(quyType, q)} disabled={searching}>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => void runSearch({ source, quyType, goi: goiPackage, term: q })}
+              disabled={searching}
+            >
               {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} Tìm
             </Button>
           </div>
@@ -370,7 +528,11 @@ export default function ShopeeListingNumbers({
               <Loader2 className="h-5 w-5 animate-spin" />
             </div>
           ) : results.length === 0 ? (
-            <p className="py-4 text-center text-xs text-muted-foreground">Không có số phù hợp trong kho — đổi loại hoặc từ khoá tìm.</p>
+            <p className="py-4 text-center text-xs text-muted-foreground">
+              {source === "goicuoc"
+                ? "Không thấy số trong kho SIM giá rẻ — đổi gói hoặc bỏ bớt đầu số."
+                : "Không có số phù hợp trong kho — đổi loại hoặc từ khoá tìm."}
+            </p>
           ) : (
             <ul className="max-h-64 divide-y divide-border overflow-y-auto rounded-md border border-border">
               {results.map((sim) => {
@@ -379,7 +541,12 @@ export default function ShopeeListingNumbers({
                   <li key={sim.rawDigits} className="flex items-center justify-between gap-3 px-3 py-2">
                     <div className="min-w-0">
                       <span className="font-medium tabular-nums">{sim.formattedNumber || sim.displayNumber}</span>
-                      <span className="ml-2 text-xs text-muted-foreground tabular-nums">kho: {formatVnd(sim.price)}</span>
+                      {sim.goiCuoc ? (
+                        <span className="ml-2 rounded bg-gold/15 px-1.5 py-0.5 text-[10px] text-gold">{sim.goiCuoc}</span>
+                      ) : null}
+                      {source === "dep" && (
+                        <span className="ml-2 text-xs text-muted-foreground tabular-nums">kho: {formatVnd(sim.price)}</span>
+                      )}
                     </div>
                     <Button
                       size="sm"
@@ -397,7 +564,9 @@ export default function ShopeeListingNumbers({
             </ul>
           )}
           <p className="mt-2 text-[11px] text-muted-foreground">
-            Giá mặc định = mức đang bán trên listing (giữ nguyên giá). Sửa ô “Giá” nếu muốn khác.
+            {source === "goicuoc"
+              ? "Số lấy từ kho SIM giá rẻ 229K (Google Sheet). Giá đẩy lên Shopee = ô “Giá” (mặc định giữ giá listing đang bán)."
+              : "Giá mặc định = mức đang bán trên listing (giữ nguyên giá). Sửa ô “Giá” nếu muốn khác."}
           </p>
         </div>
       )}

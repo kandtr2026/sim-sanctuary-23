@@ -203,6 +203,75 @@ export const CHEAP_MIN_PRICE = 10_000;
 
 export const CHEAP_PRICE_BOUNDS = { min: CHEAP_MIN_PRICE, max: CHEAP_MAX_PRICE };
 
+/** Parse the `Sim_Sold` `select B` projection into an uppercased id set. */
+export const parseCheapSoldIds = (csv: string): Set<string> => {
+  const result = new Set<string>();
+  const lines = csv.trim().split('\n').filter(l => l.trim());
+  if (lines.length < 2) return result;
+
+  for (let i = 1; i < lines.length; i++) {
+    const val = stripQuotes(parseCSVLine(lines[i])[0] || '').toUpperCase();
+    if (val) result.add(val);
+  }
+  return result;
+};
+
+/**
+ * Parse the Tongkho `select A, C, D, E` projection: drops sold rows and
+ * duplicate ids, sorts deterministically. Shared by `useCheapSimData` (public
+ * page) and the Shopee admin số picker so both see the exact same stock.
+ */
+export const parseCheapRows = (csv: string, soldIds: Set<string>): CheapSim[] => {
+  const lines = csv.trim().split('\n').filter(l => l.trim());
+  if (lines.length < 2) return [];
+
+  const headers = parseCSVLine(lines[0]).map(normalizeHeader);
+  if (CHEAP_HEADER_GUARD.some((expected, i) => headers[i] !== expected)) {
+    console.warn('[cheapSimSheet] Unexpected sheet columns:', headers);
+    return [];
+  }
+
+  const sims: CheapSim[] = [];
+  const seen = new Set<string>();
+
+  for (let i = 1; i < lines.length; i++) {
+    const [simId, stb1, phanLoai, priceRaw] = parseCSVLine(lines[i]).map(stripQuotes);
+
+    if (simId && soldIds.has(simId.toUpperCase())) continue;
+
+    const sim = buildCheapSim(simId, stb1, priceRaw, CHEAP_PRICE_BOUNDS, phanLoai);
+    if (!sim) continue;
+
+    if (seen.has(sim.id)) continue;
+    seen.add(sim.id);
+
+    sims.push(sim);
+  }
+
+  sims.sort((a, b) => a.price - b.price || a.rawDigits.localeCompare(b.rawDigits));
+  return sims;
+};
+
+/**
+ * Download the whole 229K promo warehouse (0đ stock, sold rows removed) in one
+ * shot. Non-hook so the admin số picker can await it directly. The sold fetch is
+ * fatal for the same reason as in `useCheapSimData`: better a stale list than
+ * offering a number that is already gone.
+ */
+export const fetchCheapStock = async (signal?: AbortSignal): Promise<CheapSim[]> => {
+  const [mainCsv, soldCsv] = await Promise.all([
+    fetchSheetCsv(gvizUrl('Tongkho', `select A, C, D, E where G = '${CHEAP_KHO}'`), signal),
+    fetchSheetCsv(gvizUrl('Sim_Sold', 'select B'), signal),
+  ]);
+
+  const soldIds = parseCheapSoldIds(soldCsv);
+  if (soldIds.size === 0) throw new Error('Sim_Sold returned no rows');
+
+  const sims = parseCheapRows(mainCsv, soldIds);
+  if (sims.length === 0) throw new Error('No cheap SIMs after parsing');
+  return sims;
+};
+
 /**
  * gviz string literals are single-quoted and the query language has no reliable
  * escape, so ids are validated rather than escaped. Every real id in the sheet
