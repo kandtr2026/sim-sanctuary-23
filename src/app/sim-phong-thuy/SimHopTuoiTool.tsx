@@ -103,7 +103,8 @@ const MENH_LUCKY_DIGITS: Record<string, string[]> = {
 export default function SimHopTuoiTool() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const resultsRef = useRef<HTMLDivElement>(null);
+  const simListRef = useRef<HTMLDivElement>(null);
+  const evalRef = useRef<HTMLDivElement>(null);
 
   // Form input state
   const [soCanXem, setSoCanXem] = useState(() => searchParams.get("so") || "");
@@ -184,10 +185,14 @@ export default function SimHopTuoiTool() {
       const json: ApiResponse = await res.json();
       setData(json);
 
-      if (shouldScroll && resultsRef.current) {
+      if (shouldScroll) {
         setTimeout(() => {
-          resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 100);
+          if (json.singleEvaluation && evalRef.current) {
+            evalRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+          } else if (simListRef.current) {
+            simListRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }, 150);
       }
     } catch (err: any) {
       setError(err?.message || "Không thể tải dữ liệu, vui lòng thử lại.");
@@ -305,8 +310,8 @@ export default function SimHopTuoiTool() {
           </div>
 
           {/* Khung giờ sinh + Lịch + Giới tính */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="col-span-2 sm:col-span-1">
               <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
                 Khung giờ sinh:
               </label>
@@ -414,12 +419,9 @@ export default function SimHopTuoiTool() {
         </form>
       </section>
 
-      {/* Anchor để scroll tới sau khi bấm nút */}
-      <div ref={resultsRef} className="scroll-mt-4" />
-
       {/* ── 2. CARD KẾT QUẢ BÓI SIM ĐANG DÙNG (NẾU NHẬP 10 SỐ) ──────────────── */}
       {data?.singleEvaluation && (
-        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-gold/40 bg-gradient-to-br from-[#1e1715] to-[#120e10] p-4 sm:p-6 shadow-xl">
+        <section ref={evalRef} className="relative scroll-mt-6 overflow-hidden rounded-2xl sm:rounded-3xl border border-gold/40 bg-gradient-to-br from-[#1e1715] to-[#120e10] p-4 sm:p-6 shadow-xl">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gold/20 pb-3">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gold/20 text-gold border border-gold/30">
@@ -683,7 +685,7 @@ export default function SimHopTuoiTool() {
 
       {/* ── 5. DANH SÁCH THẺ SIM (ĐẬP THẲNG VÀO TẦM MẮT) ───────────────────── */}
       {data && (
-        <section className="space-y-3.5">
+        <section ref={simListRef} className="space-y-3.5 scroll-mt-6">
           <div className="flex items-center justify-between gap-2 border-b border-border/50 pb-2">
             <div className="flex items-center gap-2">
               <span className="h-5 w-1 rounded-full bg-primary" />
@@ -795,37 +797,24 @@ export default function SimHopTuoiTool() {
                     </div>
                   </div>
 
-                  {/* 3 Nút Hành Động Toàn Diện */}
-                  <div className="mt-3.5 grid grid-cols-3 gap-1.5 pt-2.5 border-t border-border/40">
-                    {/* Chat Zalo */}
-                    <a
-                      href="https://zalo.me/0933686666"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      data-sim-number={sim.digits}
-                      aria-label={`Chat Zalo số ${sim.digits}`}
-                      className="inline-flex items-center justify-center gap-1 rounded-lg bg-sky-500/15 border border-sky-500/30 py-2 text-[11px] font-bold text-sky-400 hover:bg-sky-500/25 transition-all text-center"
-                    >
-                      <Phone className="h-3 w-3" />
-                      Zalo
-                    </a>
-
+                  {/* 2 Nút Hành Động To Rõ, Tiện Bấm Bằng Ngón Cái */}
+                  <div className="mt-3.5 grid grid-cols-2 gap-2 pt-2.5 border-t border-border/40">
                     {/* Mua ngay */}
                     <Link
                       href={`/mua-ngay/${sim.digits}`}
-                      className="inline-flex items-center justify-center gap-1 rounded-lg bg-primary py-2 text-[11px] font-bold text-primary-foreground shadow hover:bg-primary-dark transition-all text-center"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-xs font-bold text-primary-foreground shadow-md hover:bg-primary-dark active:scale-[0.98] transition-all text-center"
                     >
-                      <ShoppingCart className="h-3 w-3" />
-                      Mua ngay
+                      <ShoppingCart className="h-3.5 w-3.5" />
+                      Đặt mua SIM
                     </Link>
 
                     {/* Xem luận giải */}
                     <Link
                       href={`/sim/${sim.digits}`}
-                      className="inline-flex items-center justify-center gap-1 rounded-lg bg-gold/10 border border-gold/30 py-2 text-[11px] font-bold text-gold hover:bg-gold hover:text-black transition-all text-center"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gold/10 border border-gold/30 py-2.5 text-xs font-bold text-gold hover:bg-gold hover:text-black active:scale-[0.98] transition-all text-center"
                     >
-                      <BookOpen className="h-3 w-3" />
-                      Chi tiết
+                      <BookOpen className="h-3.5 w-3.5" />
+                      Luận giải →
                     </Link>
                   </div>
                 </div>

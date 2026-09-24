@@ -92,19 +92,19 @@ const PILLARS = [
 export default function SimPhongThuyPage() {
   return (
     <>
-      <main className="flex-1 flex flex-col bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 pb-28">
-        <div className="flex-1 container mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      <main className="flex-1 flex flex-col bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 pb-36">
+        <div className="flex-1 container mx-auto px-3 sm:px-4 py-3 sm:py-6">
           <div className="max-w-6xl mx-auto">
-            {/* Header rút gọn tối đa để đẩy Form tra cứu lên tầm mắt ngay */}
-            <div className="text-center mb-4 sm:mb-6">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-gold/10 border border-gold/30 px-3 py-1 text-[11px] font-semibold text-gold mb-1.5">
+            {/* Header tối giản để đẩy Form tra cứu lên ngay màn hình đầu tiên */}
+            <div className="text-center mb-3 sm:mb-6">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-gold/10 border border-gold/30 px-2.5 py-0.5 text-[10px] sm:text-xs font-semibold text-gold mb-1">
                 <Sparkles className="h-3 w-3" />
                 <span>Bát Tự &amp; 80 Quẻ Kinh Dịch MobiFone</span>
               </div>
-              <h1 className="text-xl sm:text-3xl font-extrabold text-foreground tracking-tight">
+              <h1 className="text-lg sm:text-3xl font-extrabold text-foreground tracking-tight">
                 Tìm SIM Hợp Tuổi <span className="text-gold">Theo Phong Thủy</span>
               </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground/80 mt-1 max-w-lg mx-auto">
+              <p className="hidden sm:block text-xs sm:text-sm text-muted-foreground/80 mt-1 max-w-lg mx-auto">
                 Chấm điểm ngũ hành, âm dương, tổng nút và quẻ dịch trên kho hơn 50.000 SIM MobiFone.
               </p>
             </div>
