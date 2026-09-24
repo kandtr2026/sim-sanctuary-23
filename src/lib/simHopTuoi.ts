@@ -18,7 +18,7 @@
 
 import { getHexagramFromSuffix, HexagramLevel } from "./hexagrams";
 import { PRICE_RANGES, searchSIM, type NormalizedSIM } from "./simUtils";
-import { mucTieuCuaSo, MUC_TIEU } from "./phongThuy";
+import { mucTieuCuaSo, MUC_TIEU, HANH_CUA_CHU_SO } from "./phongThuy";
 import {
   chamBatCuc,
   locTheoBatCuc,
@@ -172,15 +172,11 @@ export const tinhCungPhi = (year: number, gender: GioiTinh): CungPhi => {
 // NGŨ HÀNH CỦA CON SỐ & QUAN HỆ SINH KHẮC
 // ────────────────────────────────────────────────────────────────────────────
 
-// Quy ước Hà Đồ khớp với nội dung blog + trang hợp mệnh của CHONSOMOBIFONE:
+// Quy ước Hà Đồ (bảng chuẩn toàn site, A Khoa chốt 24/09/2026):
 // 0,1 → Thủy · 2,5,8 → Thổ · 3,4 → Mộc · 6,7 → Kim · 9 → Hỏa
-const DIGIT_NGU_HANH: Record<string, NguHanh> = {
-  "0": "Thủy", "1": "Thủy",
-  "2": "Thổ", "5": "Thổ", "8": "Thổ",
-  "3": "Mộc", "4": "Mộc",
-  "6": "Kim", "7": "Kim",
-  "9": "Hỏa",
-};
+// KHÔNG chép bảng ở đây nữa — dùng lại HANH_CUA_CHU_SO của phongThuy.ts để chip
+// hành, lọc/đếm theo mệnh và engine chấm điểm luôn cùng MỘT bảng.
+const DIGIT_NGU_HANH: Readonly<Record<string, NguHanh>> = HANH_CUA_CHU_SO;
 
 /** Ngũ hành của một con số (theo Hà Đồ). */
 export const nguHanhCuaSo = (digit: string | number): NguHanh | null =>

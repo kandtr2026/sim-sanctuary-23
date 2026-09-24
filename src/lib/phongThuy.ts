@@ -3,7 +3,8 @@
 // server lẫn client). Ghép trên engine Bát Cực (batCuc) + quẻ (hexagrams):
 //   - diemTongHop: điểm tổng = Bát Cực + thưởng/phạt theo quẻ 4 số cuối
 //   - mucTieuCuaSo: số này HỢP mục tiêu nào (Tài lộc / Công danh / Tình duyên / Quý nhân)
-//   - nguHanhCuaSo: ngũ hành của dãy số (Hà Đồ: 1,6 Thủy · 2,7 Hỏa · 3,8 Mộc · 4,9 Kim · 5,0 Thổ)
+//   - nguHanhCuaSo: ngũ hành của dãy số (Hà Đồ: 0,1 Thủy · 2,5,8 Thổ · 3,4 Mộc · 6,7 Kim · 9 Hỏa)
+//     — HANH_CUA_CHU_SO là bảng chữ số → hành DUY NHẤT của toàn site (simHopTuoi dùng lại)
 //   - menhTheoNam / hopTuoiSo: hợp tuổi NHẸ — chỉ cần NĂM SINH (nạp âm ngũ hành), KHÔNG cần CCCD
 // ============================================================================
 import { chamBatCuc, phanTichBatCuc, type NangLuong } from "./batCuc";
@@ -90,15 +91,24 @@ export function diemMucTieu(digits: string, id: MucTieu): number {
 }
 
 // ── NGŨ HÀNH của dãy số (Hà Đồ) ─────────────────────────────────────────────
+// A Khoa chốt 24/09/2026: đây là bảng chữ số → hành CHUẨN, MỘT NGUỒN DUY NHẤT cho
+// toàn site (chip hành, lọc/đếm theo mệnh, hợp tuổi nhẹ, engine chấm điểm
+// simHopTuoi, trang hợp mệnh…). Site gọi bảng này là "Hà Đồ".
+//   0, 1 → Thủy · 2, 5, 8 → Thổ · 3, 4 → Mộc · 6, 7 → Kim · 9 → Hỏa
+// Đừng chép lại bảng ở nơi khác — import HANH_CUA_CHU_SO / chuSoCuaHanh.
 export type NguHanh = "Kim" | "Mộc" | "Thủy" | "Hỏa" | "Thổ";
 
-const HANH_CUA_CHU_SO: Record<string, NguHanh> = {
-  "1": "Thủy", "6": "Thủy",
-  "2": "Hỏa", "7": "Hỏa",
-  "3": "Mộc", "8": "Mộc",
-  "4": "Kim", "9": "Kim",
-  "5": "Thổ", "0": "Thổ",
-};
+export const HANH_CUA_CHU_SO: Readonly<Record<string, NguHanh>> = Object.freeze({
+  "0": "Thủy", "1": "Thủy",
+  "2": "Thổ", "5": "Thổ", "8": "Thổ",
+  "3": "Mộc", "4": "Mộc",
+  "6": "Kim", "7": "Kim",
+  "9": "Hỏa",
+});
+
+/** Các chữ số (0–9, tăng dần) thuộc hành `h` theo bảng chuẩn — VD Thổ → ["2","5","8"]. */
+export const chuSoCuaHanh = (h: NguHanh): string[] =>
+  "0123456789".split("").filter((d) => HANH_CUA_CHU_SO[d] === h);
 
 export const HANH_MAU: Record<NguHanh, string> = {
   Kim: "#eab308", // vàng ánh kim
@@ -113,6 +123,13 @@ export interface NguHanhSo {
   chinh: NguHanh; // hành nhiều nhất
 }
 
+/**
+ * Ngũ hành của cả dãy số: đếm MỌI chữ số theo HANH_CUA_CHU_SO (kể cả số 0 đầu,
+ * y như engine simHopTuoi.hanhChinhCuaSo đếm) → `chinh` = hành nhiều chữ số nhất.
+ * Hòa số lượng → lấy theo thứ tự cố định Kim → Mộc → Thủy → Hỏa → Thổ (không phụ
+ * thuộc mệnh người xem, để chip hành / lọc / đếm kho luôn ra một kết quả).
+ * Khi KHÔNG hòa, kết quả trùng hanhChinhCuaSo(digits, menh) với mọi mệnh.
+ */
 export function nguHanhCuaSo(digits: string): NguHanhSo {
   const clean = digitsOnly(digits);
   const phanBo: Record<NguHanh, number> = { Kim: 0, Mộc: 0, Thủy: 0, Hỏa: 0, Thổ: 0 };
@@ -165,6 +182,20 @@ const KHAC: Record<NguHanh, NguHanh> = { Mộc: "Thổ", Thổ: "Thủy", Thủy
 
 /** Số hành `h` sinh vượng cho mệnh nào (h → SINH[h]); dùng ở trang SIM theo mệnh. */
 export const nguHanhSinhRa = (h: NguHanh): NguHanh => SINH[h];
+
+/** Hành SINH cho mệnh `m` (ngược vòng tương sinh) — VD hanhSinhCho("Kim") = "Thổ". */
+export const hanhSinhCho = (m: NguHanh): NguHanh =>
+  (Object.keys(SINH) as NguHanh[]).find((h) => SINH[h] === m) ?? m;
+
+/**
+ * "Số hợp" của một mệnh, suy từ bảng chuẩn + tương sinh (không gõ tay):
+ * chữ số hành SINH cho mệnh, rồi chữ số ĐỒNG hành mệnh.
+ * VD Kim → 2, 5, 8 (Thổ sinh Kim) + 6, 7 · Thổ → 9 (Hỏa sinh Thổ) + 2, 5, 8.
+ */
+export const chuSoHopMenh = (m: NguHanh): string[] => [
+  ...chuSoCuaHanh(hanhSinhCho(m)),
+  ...chuSoCuaHanh(m),
+];
 
 export type HopTuoiTone = "tot" | "trungtinh" | "xau";
 

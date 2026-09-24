@@ -75,7 +75,7 @@ export default async function SimTheoMenhPage() {
           })}
         </div>
         <p className="mt-4 text-xs text-muted-foreground">
-          Ngũ hành tính theo Hà Đồ (1,6 Thủy · 2,7 Hỏa · 3,8 Mộc · 4,9 Kim · 5,0 Thổ) — đúng bằng
+          Ngũ hành tính theo Hà Đồ (0,1 Thủy · 2,5,8 Thổ · 3,4 Mộc · 6,7 Kim · 9 Hỏa) — đúng bằng
           badge hành hiển thị trên từng số. Mang tính tham khảo.
         </p>
       </div>

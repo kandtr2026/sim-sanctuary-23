@@ -4,7 +4,8 @@
  *
  * Phân loại chữ số KHÔNG gõ tay: suy ra từ `nguHanhCuaSo` + `quanHeNguHanh` +
  * `TUONG_SINH`/`TUONG_KHAC` của `src/lib/simHopTuoi.ts`, tức đúng thứ mà engine
- * dùng để chấm điểm. Sửa quy ước Hà Đồ bên engine thì bảng ở đây tự đổi theo.
+ * dùng để chấm điểm. Engine đọc bảng Hà Đồ chuẩn HANH_CUA_CHU_SO (src/lib/phongThuy.ts,
+ * một nguồn cho toàn site) — sửa bảng đó thì bảng ở đây tự đổi theo.
  *
  * Giọng chữ: phong thủy trình bày như quan niệm dân gian ("được tin là", "theo
  * quan niệm"), không khẳng định như khoa học, không hứa đổi vận.

@@ -5,6 +5,7 @@ import ArticleSimTable from "@/components/blog/ArticleSimTable";
 import { articleMetadata } from "@/lib/articleSeo";
 import { getArticle } from "@/content/tinTucArticles";
 import { tinhCanChi, type NguHanh } from "@/lib/simHopTuoi";
+import { chuSoCuaHanh } from "@/lib/phongThuy";
 
 const article = getArticle("sim-hop-menh-ngu-hanh");
 export const metadata = articleMetadata(article);
@@ -12,14 +13,10 @@ export const metadata = articleMetadata(article);
 // Bài có bảng SIM thật đọc từ kho → ISR mỗi giờ.
 export const revalidate = 3600;
 
-/** Số nào thuộc hành nào — theo Hà Đồ, khớp `DIGIT_NGU_HANH` trong src/lib/simHopTuoi.ts. */
-const DIGITS_BY_HANH: Record<NguHanh, string> = {
-  Thủy: "0, 1",
-  Thổ: "2, 5, 8",
-  Mộc: "3, 4",
-  Kim: "6, 7",
-  Hỏa: "9",
-};
+/** Số nào thuộc hành nào — SUY từ bảng Hà Đồ chuẩn HANH_CUA_CHU_SO (src/lib/phongThuy.ts), không gõ tay. */
+const DIGITS_BY_HANH = Object.fromEntries(
+  (["Thủy", "Thổ", "Mộc", "Kim", "Hỏa"] as NguHanh[]).map((h) => [h, chuSoCuaHanh(h).join(", ")]),
+) as Record<NguHanh, string>;
 
 /** Hành nào sinh ra mệnh này (nghịch của tương sinh) và hành nào khắc nó. */
 const MENH_RULES: {
@@ -133,9 +130,9 @@ export default function SimHopMenhNguHanhPage() {
       />
 
       <Note tone="tip" title="Vì sao số 5 và số 8 cùng thuộc Thổ">
-        Trong Hà Đồ, các số được xếp thành từng cặp sinh – thành theo phương vị, chứ không theo
-        thứ tự tăng dần. Vì vậy 2, 5, 8 cùng về Thổ, còn Hỏa chỉ có một số 9. Đó cũng là lý do
-        người mệnh Thổ có nhiều lựa chọn số hơn người mệnh Hỏa.
+        Các số được quy về ngũ hành theo vị trí trong chín cung phương vị, chứ không theo thứ tự
+        tăng dần: cung Khôn (2), trung cung (5) và cung Cấn (8) đều thuộc Thổ, còn Hỏa chỉ có cung
+        Ly (9). Đó cũng là lý do người mệnh Thổ có nhiều lựa chọn số hơn người mệnh Hỏa.
       </Note>
 
       <h2 id="hai-bang-quy-so">Hai bảng quy số khác nhau — biết để không rối</h2>

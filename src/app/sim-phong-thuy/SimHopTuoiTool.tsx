@@ -31,6 +31,7 @@ import {
 import { formatPrice } from "@/lib/simUtils";
 import { formatSimQuyAware } from "@/lib/simDisplay";
 import { NL_META } from "@/lib/batCuc";
+import { chuSoHopMenh, type NguHanh } from "@/lib/phongThuy";
 import type { HopTuoiProfile, ScoredSim, SingleSimEvaluation, ToneHopTuoi } from "@/lib/simHopTuoi";
 
 interface ApiResponse {
@@ -94,13 +95,11 @@ const MENH_COLORS: Record<string, string> = {
   Thổ: "#a16207",
 };
 
-const MENH_LUCKY_DIGITS: Record<string, string[]> = {
-  Kim: ["2", "5", "8", "6", "7"],
-  Mộc: ["0", "1", "3", "4"],
-  Thủy: ["6", "7", "0", "1"],
-  Hỏa: ["3", "4", "9"],
-  Thổ: ["9", "2", "5", "8"],
-};
+// "Số hợp" theo mệnh — SUY từ bảng Hà Đồ chuẩn (HANH_CUA_CHU_SO) + tương sinh,
+// không gõ tay: Kim 2,5,8,6,7 · Mộc 0,1,3,4 · Thủy 6,7,0,1 · Hỏa 3,4,9 · Thổ 9,2,5,8.
+const MENH_LUCKY_DIGITS: Record<string, string[]> = Object.fromEntries(
+  (["Kim", "Mộc", "Thủy", "Hỏa", "Thổ"] as NguHanh[]).map((m) => [m, chuSoHopMenh(m)]),
+);
 
 // Năm sinh chọn được: 1940 → năm hiện tại (khớp route API + bảng âm lịch).
 const YEAR_MAX = new Date().getFullYear();

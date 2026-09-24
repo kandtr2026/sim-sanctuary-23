@@ -6,6 +6,13 @@ import {
   hanhSinhRaNo,
 } from "../_lib/menhContent";
 import { TUONG_KHAC, TUONG_SINH } from "@/lib/simHopTuoi";
+import { chuSoCuaHanh } from "@/lib/phongThuy";
+
+// Câu quy ước in từ CHÍNH bảng chuẩn HANH_CUA_CHU_SO (không gõ tay) →
+// "0, 1 thuộc Thủy · 2, 5, 8 thuộc Thổ · 3, 4 thuộc Mộc · 6, 7 thuộc Kim · 9 thuộc Hỏa".
+const QUY_UOC_HA_DO = (["Thủy", "Thổ", "Mộc", "Kim", "Hỏa"] as NguHanh[])
+  .map((h) => `${chuSoCuaHanh(h).join(", ")} thuộc ${h}`)
+  .join(" · ");
 
 /**
  * Bảng chữ số nên ưu tiên / nên tránh theo bản mệnh.
@@ -98,8 +105,7 @@ export default function NguHanhDigitTable({ menh }: { menh: NguHanh }) {
       </div>
 
       <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-        Quy ước ngũ hành của chữ số theo Hà Đồ: 0, 1 thuộc Thủy · 2, 5, 8 thuộc Thổ · 3, 4 thuộc Mộc ·
-        6, 7 thuộc Kim · 9 thuộc Hỏa. Mệnh {menh} sinh {TUONG_SINH[menh]} và khắc {TUONG_KHAC[menh]}.
+        Quy ước ngũ hành của chữ số theo Hà Đồ: {QUY_UOC_HA_DO}. Mệnh {menh} sinh {TUONG_SINH[menh]} và khắc {TUONG_KHAC[menh]}.
         Đây là quan niệm dân gian, dùng để so sánh giữa các số — không phải cơ sở khoa học, cũng không
         phải lời hứa đổi vận.
       </p>

@@ -724,3 +724,17 @@ xanh · build xanh.
 3. **Trần 1000 hàng của PostgREST** (đúng cái bẫy Task 14): route export gọi RPC trả nhiều hàng thì file CSV chỉ có 1.000/30.572 dòng mà không báo lỗi. `sim_birthday_xuat_csv` trả nguyên khối CSV trong MỘT giá trị text.
 
 **Còn nợ:** giá cho 6.646 số (A Khoa ráp sau), chốt kênh chào bán.
+
+## [2026-09-24] Danh mục số kiểu simthanglong + Tứ quý giữa + sửa /sim-phong-thuy + thống nhất bảng ngũ hành số
+
+**Danh mục số (commit 6fbd64f, 0117799):** bóc luật simthanglong.vn (~21,6k số có nhãn + hỏi thẳng web họ 4.482 số × 20 danh mục → khớp 99,98%). 1 số thuộc NHIỀU danh mục; luật DUY NHẤT ở `supabase/functions/_shared/simCategories.ts` (web + sync-sims cùng import, sync-sims FINGERPRINT v4, đã deploy + chạy). Web tự suy tag từ số, không đọc cột `sims.tags`. Thêm Lục/Ngũ/Tứ quý giữa, Đầu số cổ, Số độc; vẫn không có Ông địa.
+
+**Trang (9498d88):** `/sim-tam-hoa-kep` → 308 `/sim-tam-hoa` (A Khoa chốt gộp: luật mới tam hoa kép = 6 số cuối AAA.BBB, kho chỉ 1 số). Mở `/sim-tu-quy-giua` (~1.600 số, thẻ tô cụm giữa).
+
+**/sim-phong-thuy (8305e70):** chip lọc trễ một nhịp (closure cũ), "> 50 triệu" sót ≥100tr, Xóa lọc kẹt, ô số wildcard sai, nút Âm lịch vô tác dụng + ngày dương lịch không quy năm âm (thêm `src/lib/amLich.ts`), cung phi sai năm 2000+, nhãn hành trên thẻ lệch bảng chấm điểm, mọi thẻ "Hợp tuổi" → 4 hạng theo điểm, kho mặc định bỏ số < 5,5 (trừ khi đang tìm dạng số).
+
+**Bảng ngũ hành chữ số (A Khoa chốt: bảng trang phong thủy làm chuẩn):** 0,1 Thủy · 2,5,8 Thổ · 3,4 Mộc · 6,7 Kim · 9 Hỏa — một nguồn `HANH_CUA_CHU_SO` (phongThuy.ts), simHopTuoi dùng lại. Bỏ bảng cũ 1,6 Thủy/2,7 Hỏa/3,8 Mộc/4,9 Kim/5,0 Thổ ở chip hành, /sim-theo-menh, lọc mệnh sidebar, HopTuoiBox, PhongThuyMenhTool (Thủy 1,6 → 0,1). Số /sim-theo-menh đổi: Mộc 13.420→5.441, Thủy 5.580→13.378 (số 0 đầu giờ là Thủy). Prompt blog-bot thêm bảng chuẩn.
+
+**Còn chờ A Khoa:** ~50/69 bài blog bot trong Supabase `blog_posts` dùng bảng ngũ hành lung tung — cần duyệt để sửa DB; điểm "mệnh sinh số" đang −1 như "mệnh khắc số"; có mở trang Đầu số cổ / Số độc không.
+
+---

@@ -90,7 +90,7 @@ export default async function SimPhongThuyHopMenhPage() {
               SIM Phong Thủy Hợp Mệnh — <span className="text-gold">chọn số theo mệnh Kim, Mộc, Thủy, Hỏa, Thổ</span>
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Quý khách chọn mệnh, chúng tôi lọc sẵn những số có đuôi tương sinh. Giá niêm yết công khai,
+              Quý khách chọn mệnh, chúng tôi lọc sẵn những số có đuôi hợp mệnh. Giá niêm yết công khai,
               đăng ký thông tin chính chủ, 30 phút giao toàn quốc.
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
@@ -124,22 +124,23 @@ export default async function SimPhongThuyHopMenhPage() {
                 <thead>
                   <tr className="border-b border-border bg-secondary/50">
                     <th className="px-4 py-3 text-left font-semibold text-foreground">Mệnh</th>
-                    <th className="px-4 py-3 text-left font-semibold text-foreground">Hành</th>
-                    <th className="px-4 py-3 text-left font-semibold text-foreground">Số may mắn</th>
+                    <th className="px-4 py-3 text-left font-semibold text-foreground">Hành sinh mệnh</th>
+                    <th className="px-4 py-3 text-left font-semibold text-foreground">Số cùng hành</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b border-border/50 hover:bg-secondary/30"><td className="px-4 py-3 font-bold text-foreground">Kim</td><td className="px-4 py-3 text-muted-foreground">Thổ sinh Kim</td><td className="px-4 py-3 text-primary font-semibold">6, 7</td></tr>
-                  <tr className="border-b border-border/50 hover:bg-secondary/30"><td className="px-4 py-3 font-bold text-foreground">Mộc</td><td className="px-4 py-3 text-muted-foreground">Thủy sinh Mộc</td><td className="px-4 py-3 text-primary font-semibold">3, 4</td></tr>
-                  <tr className="border-b border-border/50 hover:bg-secondary/30"><td className="px-4 py-3 font-bold text-foreground">Thủy</td><td className="px-4 py-3 text-muted-foreground">Kim sinh Thủy</td><td className="px-4 py-3 text-primary font-semibold">1, 6</td></tr>
-                  <tr className="border-b border-border/50 hover:bg-secondary/30"><td className="px-4 py-3 font-bold text-foreground">Hỏa</td><td className="px-4 py-3 text-muted-foreground">Mộc sinh Hỏa</td><td className="px-4 py-3 text-primary font-semibold">9</td></tr>
-                  <tr className="border-b border-border/50 hover:bg-secondary/30"><td className="px-4 py-3 font-bold text-foreground">Thổ</td><td className="px-4 py-3 text-muted-foreground">Hỏa sinh Thổ</td><td className="px-4 py-3 text-primary font-semibold">2, 5, 8</td></tr>
+                  <tr className="border-b border-border/50 hover:bg-secondary/30"><td className="px-4 py-3 font-bold text-foreground">Kim</td><td className="px-4 py-3 text-muted-foreground">Thổ sinh Kim — số 2, 5, 8</td><td className="px-4 py-3 text-primary font-semibold">6, 7</td></tr>
+                  <tr className="border-b border-border/50 hover:bg-secondary/30"><td className="px-4 py-3 font-bold text-foreground">Mộc</td><td className="px-4 py-3 text-muted-foreground">Thủy sinh Mộc — số 0, 1</td><td className="px-4 py-3 text-primary font-semibold">3, 4</td></tr>
+                  <tr className="border-b border-border/50 hover:bg-secondary/30"><td className="px-4 py-3 font-bold text-foreground">Thủy</td><td className="px-4 py-3 text-muted-foreground">Kim sinh Thủy — số 6, 7</td><td className="px-4 py-3 text-primary font-semibold">0, 1</td></tr>
+                  <tr className="border-b border-border/50 hover:bg-secondary/30"><td className="px-4 py-3 font-bold text-foreground">Hỏa</td><td className="px-4 py-3 text-muted-foreground">Mộc sinh Hỏa — số 3, 4</td><td className="px-4 py-3 text-primary font-semibold">9</td></tr>
+                  <tr className="border-b border-border/50 hover:bg-secondary/30"><td className="px-4 py-3 font-bold text-foreground">Thổ</td><td className="px-4 py-3 text-muted-foreground">Hỏa sinh Thổ — số 9</td><td className="px-4 py-3 text-primary font-semibold">2, 5, 8</td></tr>
                 </tbody>
               </table>
             </div>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              Số may mắn ở bảng trên dựa trên quan hệ tương sinh của ngũ hành: hành tương sinh với bản mệnh được ưu
-              tiên. Đây là quan niệm dân gian nên chỉ mang tính tham khảo. Muốn xem chi tiết hơn theo tuổi, Quý khách
+              Chữ số quy về ngũ hành theo Hà Đồ: 0, 1 Thủy · 2, 5, 8 Thổ · 3, 4 Mộc · 6, 7 Kim · 9 Hỏa. Số thuộc hành
+              sinh ra mệnh được ưu tiên nhất, kế đến là số cùng hành với mệnh. Đây là quan niệm dân gian nên chỉ mang
+              tính tham khảo. Muốn xem chi tiết hơn theo tuổi, Quý khách
               dùng công cụ{" "}
               <a href="/sim-phong-thuy" className="font-medium text-primary underline-offset-2 hover:underline">
                 xem sim phong thủy

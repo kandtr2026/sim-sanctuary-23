@@ -2,28 +2,25 @@
 
 import { useState } from 'react';
 import CategorySimGrid from '@/components/CategorySimGrid';
+import { chuSoCuaHanh, type NguHanh } from '@/lib/phongThuy';
 
 /**
- * Mệnh picker + SIM grid for the phong thủy hợp mệnh page. The mệnh → lucky
- * digit mapping mirrors the static table in page.tsx (both derive from the same
- * ngũ hành tương sinh convention); keeping it in one client component means
- * the filter state (which mệnh) can live next to the grid it filters.
+ * Mệnh picker + SIM grid for the phong thủy hợp mệnh page. The mệnh → digit
+ * mapping is DERIVED from the site-wide Hà Đồ table (HANH_CUA_CHU_SO in
+ * src/lib/phongThuy.ts: 0,1 Thủy · 2,5,8 Thổ · 3,4 Mộc · 6,7 Kim · 9 Hỏa) —
+ * never hard-code digits here. Keeping it in one client component means the
+ * filter state (which mệnh) can live next to the grid it filters.
  */
-const MENH_DIGITS: Record<string, string[]> = {
-  Kim: ['6', '7'],
-  Mộc: ['3', '4'],
-  Thủy: ['1', '6'],
-  Hỏa: ['9'],
-  Thổ: ['2', '5', '8'],
-};
+const MENH_THU_TU: NguHanh[] = ['Kim', 'Mộc', 'Thủy', 'Hỏa', 'Thổ'];
 
-const MENH_LABEL: Record<string, string> = {
-  Kim: 'Mệnh Kim (6, 7)',
-  Mộc: 'Mệnh Mộc (3, 4)',
-  Thủy: 'Mệnh Thủy (1, 6)',
-  Hỏa: 'Mệnh Hỏa (9)',
-  Thổ: 'Mệnh Thổ (2, 5, 8)',
-};
+// Module-level (stable references) — CategorySimGrid lists matchLastDigits in its deps.
+const MENH_DIGITS: Record<string, string[]> = Object.fromEntries(
+  MENH_THU_TU.map((h) => [h, chuSoCuaHanh(h)]),
+);
+
+const MENH_LABEL: Record<string, string> = Object.fromEntries(
+  MENH_THU_TU.map((h) => [h, `Mệnh ${h} (${MENH_DIGITS[h].join(', ')})`]),
+);
 
 const PhongThuyMenhTool = () => {
   const [menh, setMenh] = useState<string | null>(null);
