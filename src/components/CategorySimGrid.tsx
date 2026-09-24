@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, ChevronLeft, ChevronRight, X, ArrowUpDown, Filter, Sparkles } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, X, ArrowUpDown, Filter, Sparkles, Phone } from "lucide-react";
 import SIMCardNew from "@/components/SIMCardNew";
 import type { NormalizedSIM, QuyType, SortOption } from "@/lib/simUtils";
 
@@ -182,24 +182,27 @@ const CategorySimGrid = ({
 
   return (
     <section id="kho-sim" className="rounded-2xl border border-border/80 bg-card p-4 shadow-card md:p-6 scroll-mt-20">
-      {/* ── 1. HEADER & SỐ LƯỢNG KHO (Chuẩn Sim Thăng Long) ──────────────── */}
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-border/60 pb-4">
-        <div>
-          <h2 className="flex items-center gap-2.5 text-xl font-black text-foreground md:text-2xl">
-            <span className="h-6 w-1.5 rounded-full bg-primary" />
+      {/* ── 1. TIÊU ĐỀ 1 DÒNG DUY NHẤT & SỐ LƯỢNG KHO (Chuẩn Sim Thăng Long) ──────────────── */}
+      <div className="mb-4 flex items-center justify-between gap-3 border-b border-border/40 pb-3">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <span className="h-5 w-1.5 rounded-full bg-primary" />
+          <h1 className="text-lg sm:text-xl font-black text-foreground">
             {hasActiveSearch ? `Tìm kiếm: "${activeSearch}"` : title}
-          </h2>
-          <p className="mt-1 text-xs text-muted-foreground md:text-sm">
-            Kho số cập nhật liên tục · Giá niêm yết chính hãng · Đăng ký thông tin chính chủ
-          </p>
+          </h1>
+          <span className="inline-flex items-center gap-1 rounded-full bg-red-500/15 border border-red-500/30 px-2.5 py-0.5 text-xs font-bold text-red-500 dark:text-red-400">
+            <Sparkles className="h-3 w-3" />
+            <span>Số lượng: <strong>{total.toLocaleString("vi-VN")}</strong> SIM</span>
+          </span>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-center">
-          <div className="flex items-center gap-1.5 rounded-full bg-red-500/10 px-3.5 py-1.5 text-xs font-bold text-red-600 dark:text-red-400 border border-red-500/20">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>Số lượng: <strong className="text-red-600 dark:text-red-300 font-extrabold">{total.toLocaleString("vi-VN")}</strong> SIM</span>
-          </div>
-        </div>
+        <a
+          href="https://zalo.me/0933686666"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-gold px-3 py-1.5 text-xs font-bold text-header-bg hover:bg-gold-light transition-all"
+        >
+          <Phone className="h-3.5 w-3.5" /> Chat Zalo tư vấn
+        </a>
       </div>
 
       {/* ── 2. THANH TÌM KIẾM SỐ THÔNG MINH ─────────────────────────────── */}

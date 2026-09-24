@@ -67,33 +67,10 @@ export default async function SimLocPhatPage() {
   return (
     <>
       <main className="min-h-screen bg-background pb-12">
-        <div className="container mx-auto px-4 pt-4 pb-2">
-          {/* Breadcrumb & Header nhỏ gọn chuẩn Sim Thăng Long */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
-            <div>
-              <nav className="text-xs text-muted-foreground mb-1">
-                <a href="/" className="hover:underline">Trang chủ</a> / <span className="text-foreground">Sim Lộc Phát Mobifone</span>
-              </nav>
-              <h1 className="text-xl sm:text-2xl font-black text-foreground">
-                Sim Lộc Phát Mobifone — <span className="text-gold">Đuôi 68, 86, 6868</span>
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                Kho sim lộc phát Mobifone chính chủ: đuôi 68 (lộc phát), 86 (phát lộc). Giá niêm yết công khai, 30 phút giao toàn quốc.
-              </p>
-            </div>
-            <a
-              href={ZALO_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 self-start md:self-center rounded-xl bg-gold px-4 py-2 text-xs sm:text-sm font-bold text-header-bg shadow-sm hover:bg-gold-light transition-all"
-            >
-              <Phone className="h-4 w-4" /> Chat Zalo tư vấn số
-            </a>
-          </div>
-
-          {/* Kho sim đập vào mắt ngay lập tức! */}
+        <div className="container mx-auto px-4 pt-3 pb-2">
+          {/* Vào thẳng việc chính: Kho sim + Bộ lọc */}
           <CategorySimGrid
-            title="Kho Sim Lộc Phát Mobifone"
+            title="Sim Lộc Phát Mobifone"
             searchPlaceholder="Nhập số cần tìm, ví dụ *68, *86, 090*..."
             emptyText="Chưa có số nào khớp yêu cầu này. Quý khách thử đổi khoảng giá hoặc đầu số, hoặc gọi 0933.686.666 để nhân viên hỗ trợ."
             matchSuffixes={["68", "86"]}

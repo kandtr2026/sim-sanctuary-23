@@ -73,33 +73,10 @@ export default async function SimThanTaiPage() {
   return (
     <>
       <main className="min-h-screen bg-background pb-12">
-        <div className="container mx-auto px-4 pt-4 pb-2">
-          {/* Breadcrumb & Header nhỏ gọn chuẩn Sim Thăng Long */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
-            <div>
-              <nav className="text-xs text-muted-foreground mb-1">
-                <a href="/" className="hover:underline">Trang chủ</a> / <span className="text-foreground">Sim Thần Tài Mobifone</span>
-              </nav>
-              <h1 className="text-xl sm:text-2xl font-black text-foreground">
-                Sim Thần Tài Mobifone — <span className="text-gold">Đuôi 39, 79, 7939</span>
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                Kho sim thần tài Mobifone chính chủ: đuôi 39 (thần tài nhỏ), 79 (thần tài lớn). Giá công khai, nhận sim 30 phút.
-              </p>
-            </div>
-            <a
-              href={ZALO_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 self-start md:self-center rounded-xl bg-gold px-4 py-2 text-xs sm:text-sm font-bold text-header-bg shadow-sm hover:bg-gold-light transition-all"
-            >
-              <Phone className="h-4 w-4" /> Chat Zalo tư vấn số
-            </a>
-          </div>
-
-          {/* Kho sim đập vào mắt ngay lập tức! */}
+        <div className="container mx-auto px-4 pt-3 pb-2">
+          {/* Vào thẳng việc chính: Kho sim + Bộ lọc */}
           <CategorySimGrid
-            title="Kho Sim Thần Tài Mobifone"
+            title="Sim Thần Tài Mobifone"
             searchPlaceholder="Nhập số cần tìm, ví dụ *39, *79, 090*..."
             emptyText="Kho tạm hết số khớp bộ lọc này. Quý khách thử đổi khoảng giá hoặc đầu số, hoặc gọi 0933.686.666 để nhân viên hỗ trợ tìm nhanh."
             matchSuffixes={["39", "79"]}
