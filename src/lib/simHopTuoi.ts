@@ -17,7 +17,8 @@
 // ============================================================================
 
 import { getHexagramFromSuffix, HexagramLevel } from "./hexagrams";
-import type { NormalizedSIM } from "./simUtils";
+import { PRICE_RANGES, type NormalizedSIM } from "./simUtils";
+import { hopTuoiSo, mucTieuCuaSo, diemMucTieu, nguHanhCuaSo as nguHanhDaySo } from "./phongThuy";
 import {
   chamBatCuc,
   locTheoBatCuc,
@@ -276,6 +277,9 @@ export interface ScoredSim {
   batCucScore: number; // 0–10 (Bát Cực Linh Số)
   nlChuDao: NangLuong | null; // năng lượng chủ đạo của SIM
   nlCounts: Record<NangLuong, number>; // chi tiết đếm năng lượng
+  simHanh?: NguHanh;
+  quanHe?: string;
+  mucTieu?: string[];
 }
 
 const clamp = (n: number, min = 0, max = 10): number => Math.min(Math.max(n, min), max);
@@ -385,6 +389,10 @@ export const scoreSim = (sim: NormalizedSIM, profile: HopTuoiProfile): ScoredSim
   const batCuc = chamBatCuc(digits);
   const phanTich = phanTichBatCuc(digits);
 
+  const simHanh = (nguHanhDaySo(digits).chinh as NguHanh) || profile.menh;
+  const hq = hopTuoiSo(digits, profile.nam);
+  const mt = mucTieuCuaSo(digits).map((m) => m.label);
+
   return {
     id: sim.id,
     digits,
@@ -403,6 +411,209 @@ export const scoreSim = (sim: NormalizedSIM, profile: HopTuoiProfile): ScoredSim
     batCucScore: batCuc.score,
     nlChuDao: phanTich.chuDao,
     nlCounts: batCuc.chiTiet,
+    simHanh,
+    quanHe: hq?.muc ?? "Tương hòa",
+    mucTieu: mt,
+  };
+};
+
+export interface SingleSimEvaluation {
+  digits: string;
+  formattedNumber: string;
+  score: number;
+  verdict: string;
+  verdictColor: string;
+  simHanh: NguHanh;
+  quanHe: string;
+  hexagram: string;
+  hexagramLevel: HexagramLevel;
+  nut: number;
+  evenCount: number;
+  oddCount: number;
+  catStars: number;
+  hungStars: number;
+  nlChuDao: NangLuong | null;
+  mucTieu: string[];
+  advice: string;
+}
+
+export function evaluateSingleSim(rawDigits: string, profile: HopTuoiProfile): SingleSimEvaluation {
+  const clean = rawDigits.replace(/\D/g, "");
+  const digitCounts = Array(10).fill(0);
+  for (const ch of clean) {
+    const num = Number(ch);
+    if (!isNaN(num) && num >= 0 && num <= 9) digitCounts[num]++;
+  }
+  const dummySim: NormalizedSIM = {
+    id: "eval-" + clean,
+    rawDigits: clean,
+    displayNumber: clean,
+    formattedNumber: clean.length === 10 ? `${clean.slice(0, 4)}.${clean.slice(4, 7)}.${clean.slice(7)}` : clean,
+    price: 0,
+    network: "Mobifone",
+    isVIP: false,
+    tags: [],
+    beautyScore: 0,
+    sumDigits: clean.split("").reduce((a, b) => a + Number(b), 0),
+    digitCounts,
+    prefix3: clean.slice(0, 3),
+    prefix4: clean.slice(0, 4),
+    last2: clean.slice(-2),
+    last3: clean.slice(-3),
+    last4: clean.slice(-4),
+    last5: clean.slice(-5),
+    last6: clean.slice(-6),
+  };
+  const scored = scoreSim(dummySim, profile);
+  const NL_CAT_SET = new Set(["SinhKhí", "ThiênY", "DiênNiên", "PhụcVị"]);
+  const NL_HUNG_SET = new Set(["TuyệtMệnh", "NgũQuỷ", "LụcSát", "HọaHại"]);
+  let catStars = 0;
+  let hungStars = 0;
+  for (const [k, v] of Object.entries(scored.nlCounts)) {
+    if (NL_CAT_SET.has(k)) catStars += v;
+    if (NL_HUNG_SET.has(k)) hungStars += v;
+  }
+  const evenCount = clean.split("").filter((d) => Number(d) % 2 === 0).length;
+  const oddCount = clean.length - evenCount;
+
+  let verdict = "Đạt chuẩn phong thủy";
+  let verdictColor = "text-emerald-500";
+  let advice = "";
+
+  if (scored.score >= 8.5 && hungStars === 0) {
+    verdict = "Đại Cát — Rất hợp mệnh";
+    verdictColor = "text-gold";
+    advice = `Số ${dummySim.formattedNumber} có năng lượng rất vượng (${catStars} sao cát, 0 sao hung), tương sinh tốt cho bản mệnh ${profile.napAm}. Quý khách hoàn toàn an tâm tiếp tục sử dụng!`;
+  } else if (scored.score >= 7.0 && hungStars <= 1) {
+    verdict = "Cát lành — Hợp tuổi";
+    verdictColor = "text-emerald-400";
+    advice = `Số ${dummySim.formattedNumber} ở mức Cát lành, cân bằng âm dương và tương hợp với mệnh ${profile.menh}. Có thể sử dụng tốt cho công việc và liên lạc hàng ngày.`;
+  } else if (scored.score >= 5.5) {
+    verdict = "Bình hòa — Trung bình";
+    verdictColor = "text-amber-400";
+    advice = `Số ${dummySim.formattedNumber} đạt mức trung bình, quẻ dịch và năng lượng Bát Cực ở mức bình hòa (${hungStars} sao hung). Nếu làm ăn kinh doanh lớn, Quý khách nên chọn dãy số có năng lượng Sinh Khí / Thiên Y mạnh hơn bên dưới để trợ vận tài lộc.`;
+  } else {
+    verdict = "Hung — Khắc mệnh";
+    verdictColor = "text-red-500";
+    advice = `Số ${dummySim.formattedNumber} có điểm tương hợp thấp (${scored.score}/10 điểm), chứa ${hungStars} sao hung tinh và quẻ dịch chưa thuận. Khuyên Quý khách nên đổi sang sim có ngũ hành tương sinh và quẻ Đại Cát trong danh sách dưới đây!`;
+  }
+
+  return {
+    digits: clean,
+    formattedNumber: dummySim.formattedNumber,
+    score: scored.score,
+    verdict,
+    verdictColor,
+    simHanh: scored.simHanh || profile.menh,
+    quanHe: scored.quanHe || "Tương hòa",
+    hexagram: scored.hexagram,
+    hexagramLevel: scored.hexagramLevel,
+    nut: scored.nut,
+    evenCount,
+    oddCount,
+    catStars,
+    hungStars,
+    nlChuDao: scored.nlChuDao,
+    mucTieu: scored.mucTieu || [],
+    advice,
+  };
+}
+
+export interface ScoreInventoryOptions {
+  limit?: number;
+  offset?: number;
+  batCucFilter?: BatCucFilter;
+  searchQuery?: string;
+  mucTieu?: string;
+  priceRange?: string;
+  prefix?: string;
+  sortBy?: "score_desc" | "price_asc" | "price_desc";
+}
+
+export interface ScoreInventoryResult {
+  total: number;
+  sims: ScoredSim[];
+}
+
+export const scoreInventoryAdvanced = (
+  sims: NormalizedSIM[],
+  profile: HopTuoiProfile,
+  options: ScoreInventoryOptions = {}
+): ScoreInventoryResult => {
+  const {
+    limit = 30,
+    offset = 0,
+    batCucFilter,
+    searchQuery,
+    mucTieu,
+    priceRange,
+    prefix,
+    sortBy = "score_desc",
+  } = options;
+
+  let candidates = sims.filter((s) => s.price > 0 && s.rawDigits && s.rawDigits.length >= 10);
+
+  // Prefix filter
+  if (prefix) {
+    const pfxList = prefix.split(",");
+    candidates = candidates.filter((s) => pfxList.some((p) => s.rawDigits.startsWith(p)));
+  }
+
+  // Price range filter
+  if (priceRange !== undefined && priceRange !== null && priceRange !== "") {
+    const rangeIndices = priceRange.split(",").map(Number);
+    candidates = candidates.filter((s) =>
+      rangeIndices.some((idx) => {
+        const r = PRICE_RANGES[idx];
+        return r ? s.price >= r.min && s.price <= r.max : false;
+      })
+    );
+  }
+
+  // Search query filter (support 09*, *68, contains)
+  if (searchQuery && searchQuery.trim()) {
+    const cleanSearch = searchQuery.trim().replace(/[^0-9*]/g, "");
+    const digitsOnly = cleanSearch.replace(/\*/g, "");
+    if (cleanSearch.includes("*")) {
+      if (cleanSearch.startsWith("*") && !cleanSearch.endsWith("*")) {
+        const suf = cleanSearch.slice(1);
+        candidates = candidates.filter((s) => s.rawDigits.endsWith(suf));
+      } else if (!cleanSearch.startsWith("*") && cleanSearch.endsWith("*")) {
+        const pre = cleanSearch.slice(0, -1);
+        candidates = candidates.filter((s) => s.rawDigits.startsWith(pre));
+      } else if (digitsOnly) {
+        candidates = candidates.filter((s) => s.rawDigits.includes(digitsOnly));
+      }
+    } else if (digitsOnly) {
+      candidates = candidates.filter((s) => s.rawDigits.includes(digitsOnly));
+    }
+  }
+
+  // Muc tieu filter
+  if (mucTieu && mucTieu !== "all") {
+    candidates = candidates.filter((s) => diemMucTieu(s.rawDigits, mucTieu as any) > 0);
+  }
+
+  // Bat cuc filter
+  if (batCucFilter) {
+    candidates = candidates.filter((s) => locTheoBatCuc(s.rawDigits, batCucFilter));
+  }
+
+  // Score candidates
+  const scored: ScoredSim[] = candidates.map((s) => scoreSim(s, profile));
+
+  // Sort
+  if (sortBy === "price_asc") {
+    scored.sort((a, b) => a.price - b.price || b.score - a.score);
+  } else if (sortBy === "price_desc") {
+    scored.sort((a, b) => b.price - a.price || b.score - a.score);
+  } else {
+    scored.sort((a, b) => b.score - a.score || a.price - b.price || b.queScore - a.queScore);
+  }
+
+  return {
+    total: scored.length,
+    sims: scored.slice(offset, offset + limit),
   };
 };
 
@@ -417,19 +628,5 @@ export const scoreInventory = (
   limit = 12,
   batCucFilter?: BatCucFilter,
 ): ScoredSim[] => {
-  const scored: ScoredSim[] = [];
-  for (const sim of sims) {
-    if (sim.price <= 0) continue;
-    if (!sim.rawDigits || sim.rawDigits.length < 10) continue;
-    const s = scoreSim(sim, profile);
-    if (batCucFilter && !locTheoBatCuc(sim.rawDigits, batCucFilter)) continue;
-    scored.push(s);
-  }
-  scored.sort(
-    (a, b) =>
-      b.score - a.score ||
-      a.price - b.price ||
-      b.queScore - a.queScore,
-  );
-  return scored.slice(0, limit);
+  return scoreInventoryAdvanced(sims, profile, { limit, batCucFilter }).sims;
 };

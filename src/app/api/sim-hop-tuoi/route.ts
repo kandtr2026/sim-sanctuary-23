@@ -3,6 +3,8 @@ import { getServerSims } from "@/lib/serverSimData";
 import {
   buildProfile,
   scoreInventory,
+  scoreInventoryAdvanced,
+  evaluateSingleSim,
   type GioiTinh,
   type HopTuoiProfile,
   type ScoredSim,
@@ -89,17 +91,48 @@ export async function GET(req: NextRequest) {
     hoaGiaiCccd: cccdHoaGiai ? cccdHoaGiai.hoaGiai : [],
   };
 
-  // ── Chấm điểm + lọc ────────────────────────────────────────────────────
+  // ── Chấm điểm số khách nhập (phễu bói sim đang dùng) ───────────────────
+  const soCanXemRaw = (searchParams.get("soCanXem") ?? "").trim();
+  const soCanXemDigits = soCanXemRaw.replace(/\D/g, "");
+  const singleEvaluation =
+    soCanXemDigits.length === 10 ? evaluateSingleSim(soCanXemDigits, profile) : null;
+
+  // ── Bộ lọc nâng cao theo mong cầu phong thủy ───────────────────────────
+  const mucTieu = searchParams.get("mucTieu") || undefined;
+  const priceRange = searchParams.get("priceRange") || undefined;
+  const prefix = searchParams.get("prefix") || undefined;
+  const searchQuery =
+    searchParams.get("search") || (soCanXemRaw.includes("*") ? soCanXemRaw : undefined);
+  const sortBy = (searchParams.get("sortBy") as any) || "score_desc";
+  const limit = clampInt(searchParams.get("limit"), 1, 100, 30);
+  const offset = clampInt(searchParams.get("offset"), 0, 10000, 0);
+
+  // ── Chấm điểm + lọc toàn kho ───────────────────────────────────────────
   const sims = await getServerSims();
-  const topSims: ScoredSim[] =
-    sims.length > 0 ? scoreInventory(sims, profile, 12, batCucFilter) : [];
+  const inventoryResult =
+    sims.length > 0
+      ? scoreInventoryAdvanced(sims, profile, {
+          limit,
+          offset,
+          batCucFilter: hasBatCucFilter ? batCucFilter : undefined,
+          searchQuery,
+          mucTieu,
+          priceRange,
+          prefix,
+          sortBy,
+        })
+      : { total: 0, sims: [] };
 
   return Response.json(
     {
       profile,
       birth: { ngay, thang, nam },
-      total: topSims.length,
-      sims: topSims,
+      gioiTinh,
+      singleEvaluation,
+      total: inventoryResult.total,
+      sims: inventoryResult.sims,
+      limit,
+      offset,
       batCuc: hasBatCucFilter
         ? {
             filter: batCucFilter,

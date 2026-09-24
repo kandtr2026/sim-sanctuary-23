@@ -1,95 +1,99 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Search,
   Sparkles,
   Loader2,
   AlertCircle,
-  UserRound,
-  Moon,
-  Sun,
-  ChevronDown,
-  ChevronUp,
-  IdCard,
-  Zap,
+  CheckCircle2,
+  ChevronRight,
+  ChevronLeft,
   ShieldCheck,
+  Phone,
+  Compass,
+  ArrowUpDown,
+  Filter,
+  DollarSign,
+  Briefcase,
+  Heart,
+  Users,
+  Star,
+  Info,
+  X,
+  Flame,
+  Calendar,
+  Clock,
+  User,
 } from "lucide-react";
 import { formatPrice } from "@/lib/simUtils";
 import { formatSimQuyAware } from "@/lib/simDisplay";
-import type { HopTuoiProfile, ScoredSim } from "@/lib/simHopTuoi";
-import {
-  NANG_LUONG_LIST,
-  NL_META,
-  NL_ORDER,
-  type NangLuong,
-} from "@/lib/batCuc";
+import type { HopTuoiProfile, ScoredSim, SingleSimEvaluation } from "@/lib/simHopTuoi";
 
-// ===================== API RESPONSE =====================
 interface ApiResponse {
   profile: HopTuoiProfile;
   birth: { ngay: number; thang: number; nam: number };
+  gioiTinh: "nam" | "nu";
+  singleEvaluation: SingleSimEvaluation | null;
   total: number;
   sims: ScoredSim[];
-  batCuc?: {
-    filter: {
-      nlChuDao: NangLuong | null;
-      nlPhaiCo: NangLuong[];
-      nlLoaiTru: NangLuong[];
-      hoaGiaiCccd: NangLuong[];
-    };
-    cccd: {
-      cccd: string;
-      nangLuongHung: NangLuong[];
-      hoaGiai: NangLuong[];
-      capCuc: { cau: string; giaiThich: string }[];
-    } | null;
-  } | null;
+  limit: number;
+  offset: number;
 }
 
-// ===================== COUTURE STYLE TOKENS (giữ đồng bộ trang /sim-phong-thuy) =====================
-const CHAMPAGNE = "#D9B778";
-const HAIRLINE = "rgba(255,255,255,0.08)";
+const GIO_SINH_OPTIONS = [
+  { value: "0", label: "Giờ Tý (23h – 01h)" },
+  { value: "1", label: "Giờ Sửu (01h – 03h)" },
+  { value: "2", label: "Giờ Dần (03h – 05h)" },
+  { value: "3", label: "Giờ Mão (05h – 07h)" },
+  { value: "4", label: "Giờ Thìn (07h – 09h)" },
+  { value: "5", label: "Giờ Tỵ (09h – 11h)" },
+  { value: "6", label: "Giờ Ngọ (11h – 13h)" },
+  { value: "7", label: "Giờ Mùi (13h – 15h)" },
+  { value: "8", label: "Giờ Thân (15h – 17h)" },
+  { value: "9", label: "Giờ Dậu (17h – 19h)" },
+  { value: "10", label: "Giờ Tuất (19h – 21h)" },
+  { value: "11", label: "Giờ Hợi (21h – 23h)" },
+];
 
-const panelBase = "relative rounded-2xl p-6 md:p-9";
-const panelHeroStyle: React.CSSProperties = {
-  background: "linear-gradient(180deg, #1B1517 0%, #151113 100%)",
-  border: "1px solid rgba(217,183,120,0.30)",
-  boxShadow:
-    "0 24px 60px -34px rgba(217,183,120,0.30), inset 0 1px 0 rgba(255,255,255,0.05)",
-};
-const panelNeutralStyle: React.CSSProperties = {
-  background: "#161214",
-  border: `1px solid ${HAIRLINE}`,
-};
-const ctaStyle: React.CSSProperties = {
-  background: "linear-gradient(180deg, #C0392B 0%, #9E2A20 100%)",
-  boxShadow: "0 10px 24px -12px rgba(192,57,43,0.65)",
-  borderRadius: "12px",
+const MUC_TIEU_OPTIONS = [
+  { id: "all", label: "Tất cả mục tiêu", icon: Sparkles },
+  { id: "TaiLoc", label: "Tài lộc & Kinh doanh", icon: DollarSign },
+  { id: "CongDanh", label: "Công danh & Thăng tiến", icon: Briefcase },
+  { id: "TinhDuyen", label: "Tình cảm & Gia đạo", icon: Heart },
+  { id: "QuyNhan", label: "Quý nhân & Bình an", icon: Users },
+];
+
+const PRICE_FILTERS = [
+  { label: "Tất cả giá", value: null },
+  { label: "Dưới 1 triệu", value: "0" },
+  { label: "1 – 3 triệu", value: "1" },
+  { label: "3 – 5 triệu", value: "2" },
+  { label: "5 – 10 triệu", value: "3" },
+  { label: "10 – 50 triệu", value: "4" },
+  { label: "Trên 50 triệu", value: "5" },
+];
+
+const PREFIX_FILTERS = [
+  { label: "Tất cả đầu số", value: null },
+  { label: "Đầu 090", value: "090" },
+  { label: "Đầu 093", value: "093" },
+  { label: "Đầu 089", value: "089" },
+  { label: "Đầu 07x", value: "070,079,077,076,078" },
+];
+
+const MENH_COLORS: Record<string, string> = {
+  Kim: "#eab308",
+  Mộc: "#22c55e",
+  Thủy: "#0ea5e9",
+  Hỏa: "#ef4444",
+  Thổ: "#a16207",
 };
 
-// Màu badge theo mức độ cát/hung (khớp phong cách của tool cũ)
-const LEVEL_CLASS: Record<string, string> = {
-  "Đại cát": "bg-[#D4AF6E] text-[#1A1512] border-transparent",
-  Cát: "bg-white/[0.12] text-[#EDEDED] border-white/10",
-  "Bình thường": "bg-white/[0.06] text-[rgba(237,237,237,0.75)] border-white/10",
-  Hung: "bg-[rgba(192,57,43,0.16)] text-[#E8A79F] border-[rgba(192,57,43,0.4)]",
-  "Đại hung": "bg-[rgba(192,57,43,0.28)] text-[#F0B7AF] border-[rgba(192,57,43,0.55)]",
-};
-
-// Số may mắn theo mệnh (khớp bảng trang hợp mệnh + blog)
-const MENH_LUCKY_DIGITS: Record<HopTuoiProfile["menh"], string[]> = {
+const MENH_LUCKY_DIGITS: Record<string, string[]> = {
   Kim: ["2", "5", "8", "6", "7"],
   Mộc: ["0", "1", "3", "4"],
   Thủy: ["6", "7", "0", "1"],
@@ -97,80 +101,57 @@ const MENH_LUCKY_DIGITS: Record<HopTuoiProfile["menh"], string[]> = {
   Thổ: ["9", "2", "5", "8"],
 };
 
-// Màu badge năng lượng Bát Cực (cát = vàng, hung = đỏ)
-const NL_BADGE_CLASS: Record<NangLuong, string> = {
-  SinhKhí: "bg-[rgba(217,183,120,0.18)] text-[#E8CD9A] border-[rgba(217,183,120,0.45)]",
-  ThiênY: "bg-[rgba(217,183,120,0.14)] text-[#E8CD9A] border-[rgba(217,183,120,0.35)]",
-  DiênNiên: "bg-[rgba(217,183,120,0.10)] text-[#E8CD9A] border-[rgba(217,183,120,0.3)]",
-  PhụcVị: "bg-white/[0.08] text-[#EDEDED] border-white/15",
-  HọaHại: "bg-[rgba(192,57,43,0.14)] text-[#E8A79F] border-[rgba(192,57,43,0.4)]",
-  LụcSát: "bg-[rgba(192,57,43,0.16)] text-[#E8A79F] border-[rgba(192,57,43,0.45)]",
-  NgũQuỷ: "bg-[rgba(192,57,43,0.18)] text-[#F0B7AF] border-[rgba(192,57,43,0.5)]",
-  TuyệtMệnh: "bg-[rgba(192,57,43,0.26)] text-[#F0B7AF] border-[rgba(192,57,43,0.6)]",
-};
-
-const scoreColor = (score: number): string =>
-  score >= 8 ? "#D9B778" : score >= 6.5 ? "#EDEDED" : "#E8A79F";
-
-const toggleNl = (list: NangLuong[], nl: NangLuong): NangLuong[] => {
-  if (list.includes(nl)) return list.filter((x) => x !== nl);
-  if (list.length >= 5) return list;
-  return [...list, nl];
-};
-
-const SimHopTuoiTool = () => {
+export default function SimHopTuoiTool() {
   const router = useRouter();
-  // Trang /sim-nam-sinh dẫn khách sang đây khi kho không có số chứa đúng ngày
-  // sinh (?nam=&ngay=&thang=). Điền sẵn ngày sinh để khách khỏi nhập lại — bắt
-  // khách gõ lại đúng thứ vừa nhập ở trang trước là chỗ rơi đơn.
-  const qs = useSearchParams();
-  const soHopLe = (v: string | null, min: number, max: number, mac: string) => {
-    const n = Number(v);
-    return v && Number.isInteger(n) && n >= min && n <= max ? String(n) : mac;
-  };
+  const searchParams = useSearchParams();
 
-  // Form state
-  const [ngay, setNgay] = useState(() => soHopLe(qs.get("ngay"), 1, 31, "1"));
-  const [thang, setThang] = useState(() => soHopLe(qs.get("thang"), 1, 12, "1"));
-  const [nam, setNam] = useState(() => soHopLe(qs.get("nam"), 1950, 2029, "1990"));
-  const [gio, setGio] = useState("0");
-  const [gioiTinh, setGioiTinh] = useState<"nam" | "nu">("nam");
+  // Form input state
+  const [soCanXem, setSoCanXem] = useState(() => searchParams.get("so") || "");
+  const [ngay, setNgay] = useState(() => searchParams.get("ngay") || "15");
+  const [thang, setThang] = useState(() => searchParams.get("thang") || "8");
+  const [nam, setNam] = useState(() => searchParams.get("nam") || "1990");
+  const [gio, setGio] = useState(() => searchParams.get("gio") || "5");
+  const [lichType, setLichType] = useState<"dl" | "al">("dl");
+  const [gioiTinh, setGioiTinh] = useState<"nam" | "nu">(() => (searchParams.get("gt") === "nu" ? "nu" : "nam"));
 
-  // Bát Cực Linh Số + CCCD
-  const [cccd, setCccd] = useState("");
-  const [nlChuDao, setNlChuDao] = useState<NangLuong | null>(null);
-  const [nlPhaiCo, setNlPhaiCo] = useState<NangLuong[]>([]);
-  const [nlLoaiTru, setNlLoaiTru] = useState<NangLuong[]>([]);
-  const [batCucOpen, setBatCucOpen] = useState(false);
+  // Secondary filter state
+  const [mucTieu, setMucTieu] = useState("all");
+  const [selectedPrice, setSelectedPrice] = useState<string | null>(null);
+  const [selectedPrefix, setSelectedPrefix] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"score_desc" | "price_asc" | "price_desc">("score_desc");
+  const [page, setPage] = useState(1);
+  const limit = 30;
 
-  // Result state
-  const [isLooking, setIsLooking] = useState(false);
+  // Execution state
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [result, setResult] = useState<ApiResponse | null>(null);
+  const [data, setData] = useState<ApiResponse | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isLooking) return;
+  // Auto-search once on mount
+  useEffect(() => {
+    fetchSims();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const fetchSims = async (overridePage?: number) => {
+    const curPage = overridePage ?? page;
+    const offset = (curPage - 1) * limit;
 
     const ngayN = Number(ngay);
     const thangN = Number(thang);
     const namN = Number(nam);
     if (!ngayN || !thangN || !namN) {
-      setError("Quý khách vui lòng chọn đủ ngày, tháng và năm sinh.");
+      setError("Vui lòng nhập đủ ngày, tháng và năm sinh.");
       return;
     }
     if (namN < 1950 || namN > 2029) {
-      setError("Năm sinh cần nằm trong khoảng 1950 – 2029.");
-      return;
-    }
-    const cccdClean = cccd.replace(/\D/g, "");
-    if (cccdClean.length > 0 && cccdClean.length !== 12) {
-      setError("Số CCCD cần đủ 12 chữ số để phân tích phần hóa giải.");
+      setError("Năm sinh hợp lệ từ 1950 đến 2029.");
       return;
     }
 
     setError("");
-    setIsLooking(true);
+    setIsLoading(true);
+
     try {
       const params = new URLSearchParams({
         ngay: String(ngayN),
@@ -178,630 +159,722 @@ const SimHopTuoiTool = () => {
         nam: String(namN),
         gio,
         gioitinh: gioiTinh,
+        limit: String(limit),
+        offset: String(offset),
+        sortBy,
       });
-      if (cccdClean.length === 12) params.set("cccd", cccdClean);
-      if (nlChuDao) params.set("nlChuDao", nlChuDao);
-      if (nlPhaiCo.length) params.set("nlPhaiCo", nlPhaiCo.join(","));
-      if (nlLoaiTru.length) params.set("nlLoaiTru", nlLoaiTru.join(","));
 
-      const res = await fetch(`/api/sim-hop-tuoi?${params.toString()}`, {
-        method: "GET",
-      });
-      const body = (await res.json()) as ApiResponse & { error?: string };
-      if (!res.ok || body.error) {
-        setError(body.error ?? "Hệ thống chưa tra cứu được. Quý khách vui lòng thử lại.");
-        setResult(null);
-      } else {
-        setResult(body);
+      if (soCanXem.trim()) {
+        params.set("soCanXem", soCanXem.trim());
       }
-    } catch {
-      setError("Kết nối bị ngắt. Quý khách vui lòng thử lại.");
-      setResult(null);
+      if (mucTieu !== "all") {
+        params.set("mucTieu", mucTieu);
+      }
+      if (selectedPrice !== null) {
+        params.set("priceRange", selectedPrice);
+      }
+      if (selectedPrefix !== null) {
+        params.set("prefix", selectedPrefix);
+      }
+
+      const res = await fetch(`/api/sim-hop-tuoi?${params.toString()}`);
+      if (!res.ok) {
+        throw new Error("Lỗi khi tải dữ liệu phong thủy");
+      }
+      const json: ApiResponse = await res.json();
+      setData(json);
+    } catch (err: any) {
+      setError(err?.message || "Không thể tải dữ liệu, vui lòng thử lại.");
     } finally {
-      setIsLooking(false);
+      setIsLoading(false);
     }
   };
 
-  const handleBuyNow = (sim: ScoredSim) => {
-    router.push(`/mua-ngay/${encodeURIComponent(sim.id)}`);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(1);
+    fetchSims(1);
   };
 
-  const profile = result?.profile ?? null;
-  const luckyDigits = profile ? MENH_LUCKY_DIGITS[profile.menh] : [];
-  const cccdInfo = result?.batCuc?.cccd ?? null;
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchSims(newPage);
+    window.scrollTo({ top: 400, behavior: "smooth" });
+  };
+
+  const totalPages = data ? Math.ceil(data.total / limit) : 1;
 
   return (
-    <>
-      <style>{`
-        @keyframes spt-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-        @keyframes spt-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-        .spt-rise { animation: spt-rise 300ms cubic-bezier(0.16,1,0.3,1) both; }
-        .spt-card { transition: transform 200ms cubic-bezier(0.4,0,0.2,1), border-color 200ms cubic-bezier(0.4,0,0.2,1), box-shadow 200ms cubic-bezier(0.4,0,0.2,1); }
-        @media (hover: hover) { .spt-card:hover { transform: translateY(-2px); border-color: rgba(217,183,120,0.35); box-shadow: 0 16px 38px -20px rgba(0,0,0,0.8); } }
-        .spt-cta { transition: transform 180ms cubic-bezier(0.4,0,0.2,1), filter 180ms cubic-bezier(0.4,0,0.2,1); }
-        @media (hover: hover) { .spt-cta:hover { filter: brightness(1.08); } }
-        .spt-cta:active { transform: scale(0.98); }
-        .spt-skel { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.09) 37%, rgba(255,255,255,0.04) 63%); background-size: 200% 100%; animation: spt-shimmer 1200ms ease-in-out infinite; }
-        .spt-nl-btn { transition: border-color 160ms ease-out, background-color 160ms ease-out, opacity 160ms ease-out; }
-        .spt-nl-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-      `}</style>
+    <div className="space-y-8">
+      {/* ── 1. FORM TRA CỨU PHONG THỦY 2 CHIỀU (CHUẨN BÁT TỰ & BÓI SIM) ───── */}
+      <section className="relative overflow-hidden rounded-3xl border border-primary/40 bg-gradient-to-b from-[#1c1417] via-[#141012] to-[#0e0a0c] p-6 sm:p-8 shadow-2xl">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+        <div className="relative z-10">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6 border-b border-border/50 pb-4">
+            <div>
+              <div className="flex items-center gap-2 text-gold">
+                <Compass className="h-5 w-5 animate-pulse text-gold" />
+                <span className="text-xs font-bold uppercase tracking-wider">
+                  Công Cụ Bát Tự &amp; Kinh Dịch
+                </span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-extrabold text-foreground mt-1">
+                Tra Cứu SIM Hợp Tuổi &amp; Bói Điểm SIM Đang Dùng
+              </h2>
+            </div>
+            <span className="rounded-full bg-primary/20 border border-primary/40 px-3 py-1 text-xs font-semibold text-primary">
+              Kho 50.000+ SIM MobiFone
+            </span>
+          </div>
 
-      {/* ── PANEL HERO: form nhập bát tự ───────────────────────────────── */}
-      <div className={panelBase} style={panelHeroStyle}>
-        <div className="flex items-center gap-3 mb-6">
-          <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: CHAMPAGNE }} />
-          <h2 className="text-[22px] md:text-2xl font-semibold flex items-center gap-2" style={{ color: "#F5F5F5", letterSpacing: "-0.01em" }}>
-            <Search className="w-5 h-5" style={{ color: CHAMPAGNE }} />
-            Tìm SIM hợp tuổi cho Quý khách
-          </h2>
-        </div>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Hàng 1: Ô Bói số đang dùng / Tra cứu nhanh */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+                Số cần xem phong thủy / Đầu số muốn tìm:
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={soCanXem}
+                  onChange={(e) => setSoCanXem(e.target.value)}
+                  placeholder="Nhập 10 số đang dùng để bói cát hung (ví dụ 0903123456) - hoặc gõ 090*, *68 để lọc..."
+                  className="w-full rounded-2xl border border-primary/50 bg-background/90 px-4 py-3.5 pl-11 text-sm sm:text-base font-medium text-foreground placeholder:text-muted-foreground/60 shadow-inner focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+                />
+                <Phone className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-primary" />
+                {soCanXem && (
+                  <button
+                    type="button"
+                    onClick={() => setSoCanXem("")}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground/80 flex items-center gap-1">
+                <Info className="h-3 w-3 text-gold" />
+                <span>Mẹo: Nhập đủ 10 số để hệ thống chấm điểm toàn diện SIM Quý khách đang dùng.</span>
+              </p>
+            </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Ngày / tháng / năm sinh */}
-          <div className="grid grid-cols-3 gap-3 md:gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="ngay" style={{ color: "rgba(237,237,237,0.8)" }} className="text-sm">
-                Ngày
-              </Label>
-              <Select value={ngay} onValueChange={setNgay}>
-                <SelectTrigger id="ngay" className="h-12 md:h-14 rounded-xl text-base md:text-lg bg-black/40 border-white/10 text-white focus:border-[#D9B778] focus:ring-2 focus:ring-[#D9B778]/30">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#1B1618] border-white/10 text-white max-h-72">
+            {/* Hàng 2: Ngày tháng năm sinh + Giờ sinh + Lịch + Giới tính */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {/* Ngày */}
+              <div>
+                <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                  Ngày sinh:
+                </label>
+                <select
+                  value={ngay}
+                  onChange={(e) => setNgay(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                >
                   {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                    <SelectItem key={d} value={String(d)} className="text-white text-base">
-                      {d}
-                    </SelectItem>
+                    <option key={d} value={d}>
+                      Ngày {d}
+                    </option>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="thang" style={{ color: "rgba(237,237,237,0.8)" }} className="text-sm">
-                Tháng
-              </Label>
-              <Select value={thang} onValueChange={setThang}>
-                <SelectTrigger id="thang" className="h-12 md:h-14 rounded-xl text-base md:text-lg bg-black/40 border-white/10 text-white focus:border-[#D9B778] focus:ring-2 focus:ring-[#D9B778]/30">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#1B1618] border-white/10 text-white max-h-72">
+                </select>
+              </div>
+
+              {/* Tháng */}
+              <div>
+                <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                  Tháng sinh:
+                </label>
+                <select
+                  value={thang}
+                  onChange={(e) => setThang(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                >
                   {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                    <SelectItem key={m} value={String(m)} className="text-white text-base">
-                      {m}
-                    </SelectItem>
+                    <option key={m} value={m}>
+                      Tháng {m}
+                    </option>
                   ))}
-                </SelectContent>
-              </Select>
+                </select>
+              </div>
+
+              {/* Năm */}
+              <div>
+                <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                  Năm sinh:
+                </label>
+                <select
+                  value={nam}
+                  onChange={(e) => setNam(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                >
+                  {Array.from({ length: 75 }, (_, i) => 2024 - i).map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Giờ sinh */}
+              <div className="col-span-2 sm:col-span-1 lg:col-span-1">
+                <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                  Khung giờ:
+                </label>
+                <select
+                  value={gio}
+                  onChange={(e) => setGio(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-card px-2.5 py-2 text-xs sm:text-sm text-foreground focus:border-primary focus:outline-none truncate"
+                >
+                  {GIO_SINH_OPTIONS.map((g) => (
+                    <option key={g.value} value={g.value}>
+                      {g.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Loại lịch */}
+              <div>
+                <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                  Loại lịch:
+                </label>
+                <div className="flex rounded-xl border border-border bg-card p-1">
+                  <button
+                    type="button"
+                    onClick={() => setLichType("dl")}
+                    className={`flex-1 rounded-lg py-1 text-xs font-semibold transition-all ${
+                      lichType === "dl"
+                        ? "bg-primary text-primary-foreground shadow"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Dương lịch
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLichType("al")}
+                    className={`flex-1 rounded-lg py-1 text-xs font-semibold transition-all ${
+                      lichType === "al"
+                        ? "bg-primary text-primary-foreground shadow"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Âm lịch
+                  </button>
+                </div>
+              </div>
+
+              {/* Giới tính */}
+              <div>
+                <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                  Giới tính:
+                </label>
+                <div className="flex rounded-xl border border-border bg-card p-1">
+                  <button
+                    type="button"
+                    onClick={() => setGioiTinh("nam")}
+                    className={`flex-1 rounded-lg py-1 text-xs font-semibold transition-all ${
+                      gioiTinh === "nam"
+                        ? "bg-primary text-primary-foreground shadow"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Nam
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGioiTinh("nu")}
+                    className={`flex-1 rounded-lg py-1 text-xs font-semibold transition-all ${
+                      gioiTinh === "nu"
+                        ? "bg-primary text-primary-foreground shadow"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Nữ
+                  </button>
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="nam" style={{ color: "rgba(237,237,237,0.8)" }} className="text-sm">
-                Năm
-              </Label>
-              <Select value={nam} onValueChange={setNam}>
-                <SelectTrigger id="nam" className="h-12 md:h-14 rounded-xl text-base md:text-lg bg-black/40 border-white/10 text-white focus:border-[#D9B778] focus:ring-2 focus:ring-[#D9B778]/30">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#1B1618] border-white/10 text-white max-h-72">
-                  {Array.from({ length: 80 }, (_, i) => 1950 + i)
-                    .reverse()
-                    .map((y) => (
-                      <SelectItem key={y} value={String(y)} className="text-white text-base">
-                        {y}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+
+            {error && (
+              <div className="flex items-center gap-2 rounded-xl bg-destructive/15 border border-destructive/30 p-3 text-xs text-destructive">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* Nút bấm hành động chính */}
+            <div className="pt-2 flex justify-center">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full sm:w-auto min-w-[280px] rounded-2xl bg-gradient-to-r from-primary to-primary-dark px-8 py-6 text-base font-bold text-primary-foreground shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Đang tính toán phong thủy...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-5 w-5 text-gold" />
+                    TÌM SIM HỢP TUỔI &amp; BÓI CÁT HUNG
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      {/* ── 2. CARD KẾT QUẢ BÓI SIM ĐANG DÙNG (NẾU NHẬP 10 SỐ) ──────────────── */}
+      {data?.singleEvaluation && (
+        <section className="relative overflow-hidden rounded-3xl border-2 border-gold/40 bg-gradient-to-br from-[#201815] to-[#120e10] p-6 sm:p-8 shadow-2xl">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/20 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold/20 text-gold border border-gold/30">
+                <Phone className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-gold">
+                  Luận giải chi tiết số đang dùng
+                </span>
+                <h3 className="font-mono text-2xl sm:text-3xl font-black tracking-wide text-foreground">
+                  {data.singleEvaluation.formattedNumber}
+                </h3>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <div className="text-xs text-muted-foreground">Điểm phong thủy</div>
+                <div className="text-2xl sm:text-3xl font-black text-gold">
+                  {data.singleEvaluation.score}
+                  <span className="text-sm font-normal text-muted-foreground">/10</span>
+                </div>
+              </div>
+              <span
+                className={`rounded-xl px-3 py-1.5 text-xs sm:text-sm font-bold border ${
+                  data.singleEvaluation.score >= 8
+                    ? "bg-gold/15 text-gold border-gold/30"
+                    : data.singleEvaluation.score >= 6.5
+                    ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                    : "bg-destructive/15 text-destructive border-destructive/30"
+                }`}
+              >
+                {data.singleEvaluation.verdict}
+              </span>
             </div>
           </div>
 
-          {/* Giờ sinh */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="gio" style={{ color: "rgba(237,237,237,0.8)" }} className="text-sm">
-                Giờ sinh (âm lịch)
-              </Label>
-              <Select value={gio} onValueChange={setGio}>
-                <SelectTrigger id="gio" className="h-12 md:h-14 rounded-xl text-base md:text-lg bg-black/40 border-white/10 text-white focus:border-[#D9B778] focus:ring-2 focus:ring-[#D9B778]/30">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#1B1618] border-white/10 text-white max-h-72">
-                  {[
-                    "Tý (23h–1h)", "Sửu (1h–3h)", "Dần (3h–5h)", "Mão (5h–7h)",
-                    "Thìn (7h–9h)", "Tỵ (9h–11h)", "Ngọ (11h–13h)", "Mùi (13h–15h)",
-                    "Thân (15h–17h)", "Dậu (17h–19h)", "Tuất (19h–21h)", "Hợi (21h–23h)",
-                  ].map((label, idx) => (
-                    <SelectItem key={label} value={String(idx)} className="text-white text-base">
-                      Giờ {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* 4 thông số học thuật cốt lõi */}
+          <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Quẻ Kinh Dịch */}
+            <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
+              <div className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                <Compass className="h-3.5 w-3.5 text-gold" /> Quẻ Kinh Dịch
+              </div>
+              <div className="mt-1 text-sm font-bold text-foreground">
+                {data.singleEvaluation.hexagram || "Chưa xác định"}
+              </div>
+              <div className="mt-1">
+                <span className="inline-block rounded-md bg-gold/10 px-2 py-0.5 text-[11px] font-semibold text-gold">
+                  {data.singleEvaluation.hexagramLevel}
+                </span>
+              </div>
             </div>
 
-            {/* Giới tính */}
-            <div className="space-y-2">
-              <Label style={{ color: "rgba(237,237,237,0.8)" }} className="text-sm block">
-                Giới tính
-              </Label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setGioiTinh("nam")}
-                  aria-pressed={gioiTinh === "nam"}
-                  className={`flex items-center justify-center gap-2 h-12 md:h-14 rounded-xl border text-base font-semibold transition-colors ${
-                    gioiTinh === "nam"
-                      ? "border-[#D9B778] bg-[#D9B778]/15 text-[#F5F5F5]"
-                      : "border-white/10 bg-black/40 text-[rgba(237,237,237,0.6)] hover:border-white/25"
-                  }`}
-                >
-                  <UserRound className="w-5 h-5" style={{ color: CHAMPAGNE }} />
-                  Nam
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setGioiTinh("nu")}
-                  aria-pressed={gioiTinh === "nu"}
-                  className={`flex items-center justify-center gap-2 h-12 md:h-14 rounded-xl border text-base font-semibold transition-colors ${
-                    gioiTinh === "nu"
-                      ? "border-[#D9B778] bg-[#D9B778]/15 text-[#F5F5F5]"
-                      : "border-white/10 bg-black/40 text-[rgba(237,237,237,0.6)] hover:border-white/25"
-                  }`}
-                >
-                  <UserRound className="w-5 h-5" style={{ color: CHAMPAGNE }} />
-                  Nữ
-                </button>
+            {/* Ngũ Hành Sim */}
+            <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
+              <div className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                <Flame className="h-3.5 w-3.5 text-primary" /> Ngũ Hành Sim
+              </div>
+              <div className="mt-1 text-sm font-bold text-foreground">
+                Hành {data.singleEvaluation.simHanh}
+              </div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                {data.singleEvaluation.quanHe} với mệnh {data.profile.menh}
+              </div>
+            </div>
+
+            {/* Bát Cực Linh Số */}
+            <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
+              <div className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-gold" /> Bát Cực Linh Số
+              </div>
+              <div className="mt-1 text-xs font-bold text-foreground flex items-center gap-2">
+                <span className="text-emerald-400">✓ {data.singleEvaluation.catStars} sao Cát</span>
+                {data.singleEvaluation.hungStars > 0 && (
+                  <span className="text-destructive">✗ {data.singleEvaluation.hungStars} sao Hung</span>
+                )}
+              </div>
+              <div className="mt-1 text-[11px] text-muted-foreground">
+                Chủ đạo: {data.singleEvaluation.nlChuDao || "Hài hòa"}
+              </div>
+            </div>
+
+            {/* Âm Dương & Nút */}
+            <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
+              <div className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Tổng Nút &amp; Âm Dương
+              </div>
+              <div className="mt-1 text-sm font-bold text-foreground">
+                {data.singleEvaluation.nut} Nút · {data.singleEvaluation.evenCount} Âm / {data.singleEvaluation.oddCount} Dương
+              </div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                {data.profile.cungPhi.amDuong === "Dương" ? "Cần bổ khuyết Âm" : "Cần bổ khuyết Dương"}
               </div>
             </div>
           </div>
 
-          {/* ── Bát Cực Linh Số: CCCD + bộ lọc năng lượng ─────────────── */}
-          <div
-            className="rounded-xl overflow-hidden"
-            style={{ border: "1px solid rgba(217,183,120,0.25)", background: "rgba(0,0,0,0.25)" }}
-          >
-            <button
-              type="button"
-              onClick={() => setBatCucOpen((v) => !v)}
-              aria-expanded={batCucOpen}
-              className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left"
-            >
-              <span className="flex items-center gap-2.5">
-                <Zap className="w-4.5 h-4.5 w-5 h-5" style={{ color: CHAMPAGNE }} />
-                <span className="font-semibold text-[15px]" style={{ color: "#F5F5F5" }}>
-                  Kết hợp Bát Cực Linh Số
-                </span>
-                {(cccd || nlChuDao || nlPhaiCo.length > 0 || nlLoaiTru.length > 0) && (
-                  <span
-                    className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                    style={{ background: "rgba(217,183,120,0.18)", color: "#E8CD9A" }}
+          {/* Lời khuyên tư vấn phong thủy */}
+          <div className="mt-5 rounded-2xl border border-gold/30 bg-gold/5 p-4 sm:p-5 flex items-start gap-3">
+            <Info className="h-5 w-5 text-gold shrink-0 mt-0.5" />
+            <div className="space-y-1 text-xs sm:text-sm leading-relaxed text-foreground/90">
+              <strong className="text-gold">Lời khuyên của chuyên gia CHONSOMOBIFONE: </strong>
+              <span>{data.singleEvaluation.advice}</span>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── 3. HỒ SƠ PHONG THỦY BÁT TỰ CỦA KHÁCH HÀNG ───────────────────────── */}
+      {data?.profile && (
+        <section className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h3 className="flex items-center gap-2 text-base sm:text-lg font-bold text-foreground">
+              <span className="h-5 w-1 rounded-full bg-primary" />
+              Hồ sơ Bát Tự phong thủy: Người sinh năm {data.birth.nam} ({data.profile.napAm})
+            </h3>
+            <span className="text-xs text-muted-foreground">
+              {data.gioiTinh === "nam" ? "Nam mệnh" : "Nữ mệnh"} · Giờ {data.profile.gioLabel}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <div className="rounded-xl border border-border/80 bg-background/80 p-3">
+              <div className="text-[11px] font-semibold text-muted-foreground uppercase">Bản mệnh nạp âm</div>
+              <div className="mt-1 text-base sm:text-lg font-extrabold" style={{ color: MENH_COLORS[data.profile.menh] }}>
+                Mệnh {data.profile.menh}
+              </div>
+              <div className="text-[11px] text-muted-foreground">{data.profile.napAm}</div>
+            </div>
+
+            <div className="rounded-xl border border-border/80 bg-background/80 p-3">
+              <div className="text-[11px] font-semibold text-muted-foreground uppercase">Cung phi Bát Trạch</div>
+              <div className="mt-1 text-base sm:text-lg font-extrabold text-foreground">
+                Cung {data.profile.cungPhi.cung}
+              </div>
+              <div className="text-[11px] text-muted-foreground">
+                Hành {data.profile.cungPhi.nguHanh} · {data.profile.cungPhi.amDuong}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-border/80 bg-background/80 p-3">
+              <div className="text-[11px] font-semibold text-muted-foreground uppercase">Tính chất Âm Dương</div>
+              <div className="mt-1 text-base sm:text-lg font-extrabold text-foreground">
+                {data.profile.cungPhi.amDuong} Mạng
+              </div>
+              <div className="text-[11px] text-muted-foreground">Ưu tiên số cân bằng năng lượng</div>
+            </div>
+
+            <div className="rounded-xl border border-border/80 bg-background/80 p-3">
+              <div className="text-[11px] font-semibold text-muted-foreground uppercase">Con số vượng khí</div>
+              <div className="mt-1 text-base sm:text-lg font-extrabold text-gold tracking-widest font-mono">
+                {(MENH_LUCKY_DIGITS[data.profile.menh] || []).join(" · ")}
+              </div>
+              <div className="text-[11px] text-muted-foreground">Kích hoạt tài lộc bản mệnh</div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── 4. BỘ LỌC ĐA CHIỀU MONG CẦU PHONG THỦY (Pills Filter) ───────────── */}
+      {data && (
+        <section className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-sm space-y-4">
+          {/* Lọc theo Mục tiêu phong thủy */}
+          <div>
+            <span className="block text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
+              <Star className="h-3.5 w-3.5 text-gold" /> Chọn mục tiêu kích hoạt phong thủy:
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {MUC_TIEU_OPTIONS.map((m) => {
+                const Icon = m.icon;
+                const active = mucTieu === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => {
+                      setMucTieu(m.id);
+                      setPage(1);
+                      setTimeout(() => fetchSims(1), 50);
+                    }}
+                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
+                      active
+                        ? "bg-primary text-primary-foreground shadow-md scale-105"
+                        : "bg-background text-foreground/80 hover:bg-muted border border-border/80"
+                    }`}
                   >
-                    đang lọc
-                  </span>
-                )}
+                    <Icon className="h-3.5 w-3.5 text-gold" />
+                    {m.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Lọc Mức giá + Đầu số + Sắp xếp */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-border/50">
+            {/* Khoảng giá */}
+            <div>
+              <span className="block text-[11px] font-semibold text-muted-foreground mb-1.5 flex items-center gap-1">
+                <DollarSign className="h-3 w-3 text-primary" /> Mức giá:
               </span>
-              {batCucOpen ? (
-                <ChevronUp className="w-4 h-4" style={{ color: CHAMPAGNE }} />
-              ) : (
-                <ChevronDown className="w-4 h-4" style={{ color: CHAMPAGNE }} />
-              )}
-            </button>
-
-            {batCucOpen && (
-              <div className="px-4 pb-4 space-y-4 spt-rise">
-                {/* CCCD */}
-                <div className="space-y-2">
-                  <Label htmlFor="cccd" style={{ color: "rgba(237,237,237,0.8)" }} className="text-sm flex items-center gap-2">
-                    <IdCard className="w-4 h-4" style={{ color: CHAMPAGNE }} />
-                    Căn cước công dân (gợi ý hướng hóa giải)
-                  </Label>
-                  <input
-                    id="cccd"
-                    inputMode="numeric"
-                    maxLength={12}
-                    value={cccd}
-                    onChange={(e) => setCccd(e.target.value.replace(/\D/g, "").slice(0, 12))}
-                    placeholder="12 số CCCD (không bắt buộc)"
-                    className="h-12 md:h-13 w-full rounded-xl text-base md:text-lg bg-black/40 border border-white/10 text-white px-4 placeholder:text-white/25 focus:outline-none focus:border-[#D9B778] focus:ring-2 focus:ring-[#D9B778]/30"
-                  />
-                  <p style={{ color: "rgba(237,237,237,0.5)" }} className="text-xs">
-                    Nhập đủ 12 chữ số, hệ thống sẽ soi các năng lượng hung trong CCCD và ưu tiên những SIM
-                    mang năng lượng cát hóa giải tương ứng.
-                  </p>
-                </div>
-
-                {/* NL chủ đạo */}
-                <div className="space-y-2">
-                  <Label style={{ color: "rgba(237,237,237,0.8)" }} className="text-sm block">
-                    Năng lượng chủ đạo của SIM
-                  </Label>
-                  <Select
-                    value={nlChuDao ?? "tat-ca"}
-                    onValueChange={(v) => setNlChuDao(v === "tat-ca" ? null : (v as NangLuong))}
-                  >
-                    <SelectTrigger className="h-12 rounded-xl text-base bg-black/40 border-white/10 text-white focus:border-[#D9B778]">
-                      <SelectValue placeholder="Không giới hạn" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#1B1618] border-white/10 text-white max-h-72">
-                      <SelectItem value="tat-ca" className="text-white text-base">
-                        Không giới hạn
-                      </SelectItem>
-                      {NANG_LUONG_LIST.map((nl) => (
-                        <SelectItem key={nl.id} value={nl.id} className="text-white text-base">
-                          {nl.label} – {nl.yNghia.join(" • ")}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* NL phải có */}
-                <div className="space-y-2">
-                  <Label style={{ color: "rgba(237,237,237,0.8)" }} className="text-sm block">
-                    Năng lượng phải có
-                    <span className="ml-2 text-[11px]" style={{ color: "rgba(237,237,237,0.5)" }}>
-                      {nlPhaiCo.length}/5
-                    </span>
-                  </Label>
-                  <div className="flex flex-wrap gap-2">
-                    {NANG_LUONG_LIST.map((nl) => {
-                      const active = nlPhaiCo.includes(nl.id);
-                      return (
-                        <button
-                          key={`p-${nl.id}`}
-                          type="button"
-                          onClick={() => setNlPhaiCo((l) => toggleNl(l, nl.id))}
-                          aria-pressed={active}
-                          className={`spt-nl-btn rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                            active
-                              ? NL_BADGE_CLASS[nl.id]
-                              : "border-white/10 bg-black/30 text-[rgba(237,237,237,0.65)]"
-                          }`}
-                        >
-                          {nl.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* NL loại trừ */}
-                <div className="space-y-2">
-                  <Label style={{ color: "rgba(237,237,237,0.8)" }} className="text-sm block">
-                    Loại trừ năng lượng
-                    <span className="ml-2 text-[11px]" style={{ color: "rgba(237,237,237,0.5)" }}>
-                      {nlLoaiTru.length}/5
-                    </span>
-                  </Label>
-                  <div className="flex flex-wrap gap-2">
-                    {NANG_LUONG_LIST.map((nl) => {
-                      const active = nlLoaiTru.includes(nl.id);
-                      return (
-                        <button
-                          key={`e-${nl.id}`}
-                          type="button"
-                          onClick={() => setNlLoaiTru((l) => toggleNl(l, nl.id))}
-                          aria-pressed={active}
-                          className={`spt-nl-btn rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                            active
-                              ? "bg-[rgba(192,57,43,0.22)] text-[#F0B7AF] border-[rgba(192,57,43,0.55)]"
-                              : "border-white/10 bg-black/30 text-[rgba(237,237,237,0.65)]"
-                          }`}
-                        >
-                          {nl.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {(nlPhaiCo.length > 0 || nlLoaiTru.length > 0 || nlChuDao || cccd) && (
-                  <div className="flex gap-3 pt-1">
+              <div className="flex flex-wrap gap-1.5">
+                {PRICE_FILTERS.map((p) => {
+                  const active = selectedPrice === p.value;
+                  return (
                     <button
+                      key={p.label}
                       type="button"
                       onClick={() => {
-                        setCccd("");
-                        setNlChuDao(null);
-                        setNlPhaiCo([]);
-                        setNlLoaiTru([]);
+                        setSelectedPrice(p.value);
+                        setPage(1);
+                        setTimeout(() => fetchSims(1), 50);
                       }}
-                      className="text-xs font-medium underline underline-offset-4"
-                      style={{ color: "rgba(237,237,237,0.6)" }}
+                      className={`rounded-lg px-2 py-1 text-[11px] font-medium transition-all ${
+                        active
+                          ? "bg-primary text-primary-foreground font-bold"
+                          : "bg-background text-foreground/70 hover:bg-muted border border-border/60"
+                      }`}
                     >
-                      Xóa bộ lọc Bát Cực
+                      {p.label}
                     </button>
-                  </div>
-                )}
+                  );
+                })}
               </div>
-            )}
-          </div>
-
-          <p style={{ color: "rgba(237,237,237,0.5)" }} className="text-xs">
-            Quý khách chọn ngày sinh dương lịch, giờ sinh âm lịch và giới tính. Hệ thống tự tính mệnh (nạp âm),
-            cung phi, âm dương, Bát Cực Linh Số rồi chấm điểm SIM trong kho của CHONSOMOBIFONE.
-          </p>
-
-          {error && (
-            <div
-              role="alert"
-              className="flex items-center gap-2 text-sm rounded-xl p-3"
-              style={{ color: "#E8A79F", background: "rgba(192,57,43,0.12)", border: "1px solid rgba(192,57,43,0.4)" }}
-            >
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              {error}
-            </div>
-          )}
-
-          <Button
-            type="submit"
-            size="lg"
-            disabled={isLooking}
-            aria-busy={isLooking}
-            className="spt-cta w-full md:w-auto text-white border-0 text-base font-semibold"
-            style={ctaStyle}
-          >
-            {isLooking ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Đang tra cứu…
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 mr-2" />
-                Xem SIM hợp tuổi
-              </>
-            )}
-          </Button>
-        </form>
-      </div>
-
-      {/* ── KẾT QUẢ: hồ sơ phong thủy ───────────────────────────────────── */}
-      {result && profile && (
-        <div className={`${panelBase} spt-rise mt-10 md:mt-14`} style={panelNeutralStyle}>
-          <div className="flex items-center gap-3 mb-6">
-            <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: CHAMPAGNE }} />
-            <h2 className="text-[22px] md:text-2xl font-semibold" style={{ color: "#F5F5F5", letterSpacing: "-0.01em" }}>
-              Hồ sơ phong thủy của Quý khách
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-            {/* Mệnh */}
-            <div
-              className="rounded-xl p-4"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(217,183,120,0.25)" }}
-            >
-              <p className="text-xs mb-1.5" style={{ color: "rgba(237,237,237,0.65)" }}>Mệnh</p>
-              <p className="text-lg md:text-xl font-bold" style={{ color: "#D9B778" }}>{profile.menh}</p>
-              <p className="text-xs mt-1" style={{ color: "rgba(237,237,237,0.6)" }}>
-                {profile.thienCan} {profile.diaChi} · {profile.napAm}
-              </p>
             </div>
 
-            {/* Cung phi */}
-            <div
-              className="rounded-xl p-4"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
-            >
-              <p className="text-xs mb-1.5" style={{ color: "rgba(237,237,237,0.65)" }}>Cung phi</p>
-              <p className="text-lg md:text-xl font-bold text-white">{profile.cungPhi.cung}</p>
-              <p className="text-xs mt-1" style={{ color: "rgba(237,237,237,0.6)" }}>
-                {profile.cungPhi.nguHanh} · {profile.cungPhi.amDuong}
-              </p>
+            {/* Đầu số */}
+            <div>
+              <span className="block text-[11px] font-semibold text-muted-foreground mb-1.5 flex items-center gap-1">
+                <Phone className="h-3 w-3 text-primary" /> Đầu số:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {PREFIX_FILTERS.map((p) => {
+                  const active = selectedPrefix === p.value;
+                  return (
+                    <button
+                      key={p.label}
+                      type="button"
+                      onClick={() => {
+                        setSelectedPrefix(p.value);
+                        setPage(1);
+                        setTimeout(() => fetchSims(1), 50);
+                      }}
+                      className={`rounded-lg px-2 py-1 text-[11px] font-medium transition-all ${
+                        active
+                          ? "bg-primary text-primary-foreground font-bold"
+                          : "bg-background text-foreground/70 hover:bg-muted border border-border/60"
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* Âm dương */}
-            <div
-              className="rounded-xl p-4"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
-            >
-              <p className="text-xs mb-1.5" style={{ color: "rgba(237,237,237,0.65)" }}>Âm – Dương</p>
-              <p className="text-lg md:text-xl font-bold text-white">
-                {profile.cungPhi.amDuong === "Dương" ? <Sun className="inline w-5 h-5 mr-1" style={{ color: CHAMPAGNE }} /> : <Moon className="inline w-5 h-5 mr-1" style={{ color: CHAMPAGNE }} />}
-                {profile.cungPhi.amDuong === "Dương" ? "Dương mạng" : "Âm mạng"}
-              </p>
-              <p className="text-xs mt-1" style={{ color: "rgba(237,237,237,0.6)" }}>
-                Giờ {profile.gioLabel.split(" ")[0]} ({profile.gioAmDuong})
-              </p>
-            </div>
-
-            {/* Số may mắn */}
-            <div
-              className="rounded-xl p-4"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
-            >
-              <p className="text-xs mb-1.5" style={{ color: "rgba(237,237,237,0.65)" }}>Số may mắn</p>
-              <p className="text-lg md:text-xl font-bold tracking-wider" style={{ color: "#D9B778" }}>
-                {luckyDigits.join(" · ")}
-              </p>
-              <p className="text-xs mt-1" style={{ color: "rgba(237,237,237,0.6)" }}>
-                Hợp mệnh {profile.menh}
-              </p>
+            {/* Sắp xếp */}
+            <div>
+              <span className="block text-[11px] font-semibold text-muted-foreground mb-1.5 flex items-center gap-1">
+                <ArrowUpDown className="h-3 w-3 text-primary" /> Sắp xếp:
+              </span>
+              <select
+                value={sortBy}
+                onChange={(e) => {
+                  const val = e.target.value as any;
+                  setSortBy(val);
+                  setPage(1);
+                  setTimeout(() => fetchSims(1), 50);
+                }}
+                className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground focus:border-primary focus:outline-none"
+              >
+                <option value="score_desc">Điểm phong thuỷ cao nhất</option>
+                <option value="price_asc">Giá từ thấp đến cao</option>
+                <option value="price_desc">Giá từ cao đến thấp</option>
+              </select>
             </div>
           </div>
-        </div>
+        </section>
       )}
 
-      {/* ── PHÂN TÍCH CCCD & HÓA GIẢI ─────────────────────────────────── */}
-      {result && cccdInfo && (
-        <div className={`${panelBase} spt-rise mt-10 md:mt-14`} style={panelNeutralStyle}>
-          <div className="flex items-center gap-3 mb-2">
-            <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: CHAMPAGNE }} />
-            <h2 className="text-[22px] md:text-2xl font-semibold flex items-center gap-2" style={{ color: "#F5F5F5", letterSpacing: "-0.01em" }}>
-              <ShieldCheck className="w-5 h-5" style={{ color: CHAMPAGNE }} />
-              Hóa giải CCCD
-            </h2>
-          </div>
-          <p className="mb-5 text-sm" style={{ color: "rgba(237,237,237,0.6)" }}>
-            CCCD <span className="font-mono" style={{ color: "#D9B778" }}>{cccdInfo.cccd.replace(/(\d{4})(?=\d)/g, "$1 ")}</span>{" "}
-            đang mang những năng lượng hung dưới đây. Danh sách SIM bên dưới đã được lọc để bổ sung năng lượng cát hóa giải:
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <p className="text-xs mb-2" style={{ color: "rgba(237,237,237,0.65)" }}>
-                Năng lượng hung trong CCCD
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {cccdInfo.nangLuongHung.length === 0 ? (
-                  <p className="text-sm" style={{ color: "rgba(237,237,237,0.7)" }}>
-                    CCCD của Quý khách cân bằng, không có năng lượng hung.
-                  </p>
-                ) : (
-                  cccdInfo.nangLuongHung.map((nl) => (
-                    <Badge key={nl} className={`text-xs px-2.5 py-1 border font-medium ${NL_BADGE_CLASS[nl]}`}>
-                      {NL_META[nl].label}
-                    </Badge>
-                  ))
-                )}
-              </div>
+      {/* ── 5. DANH SÁCH THẺ SIM KẾT QUẢ (CARD UI CHUẨN SIMKINHDICH) ────────── */}
+      {data && (
+        <section className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="h-6 w-1 rounded-full bg-primary" />
+              <h3 className="text-lg sm:text-xl font-bold text-foreground">
+                Danh sách SIM hợp tuổi ({data.profile.napAm})
+              </h3>
+              <span className="rounded-full bg-primary/10 border border-primary/30 px-2.5 py-0.5 text-xs font-semibold text-primary">
+                Tìm thấy {data.total.toLocaleString("vi-VN")} SIM
+              </span>
             </div>
-
-            <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(217,183,120,0.25)" }}>
-              <p className="text-xs mb-2" style={{ color: "rgba(237,237,237,0.65)" }}>
-                Năng lượng cát cần bổ sung trong SIM
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {cccdInfo.hoaGiai.length === 0 ? (
-                  <p className="text-sm" style={{ color: "rgba(237,237,237,0.7)" }}>
-                    Không cần bổ sung hóa giải.
-                  </p>
-                ) : (
-                  cccdInfo.hoaGiai.map((nl) => (
-                    <Badge key={nl} className={`text-xs px-2.5 py-1 border font-medium ${NL_BADGE_CLASS[nl]}`}>
-                      {NL_META[nl].label}
-                    </Badge>
-                  ))
-                )}
-              </div>
+            <div className="text-xs text-muted-foreground">
+              Đang hiển thị {data.sims.length > 0 ? (page - 1) * limit + 1 : 0} –{" "}
+              {Math.min(page * limit, data.total)} trong tổng số {data.total} SIM
             </div>
           </div>
 
-          {cccdInfo.capCuc.length > 0 && (
-            <div className="mt-4 rounded-xl p-4" style={{ background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <p className="text-xs mb-2" style={{ color: "rgba(237,237,237,0.65)" }}>Chi tiết hóa giải từng cặp số</p>
-              <ul className="space-y-1.5">
-                {cccdInfo.capCuc.map((c, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm" style={{ color: "rgba(237,237,237,0.8)" }}>
-                    <span className="mt-1.5 inline-block w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: CHAMPAGNE }} />
-                    <span>
-                      <span className="font-mono" style={{ color: "#E8CD9A" }}>{c.cau}</span>
-                      <span className="text-[rgba(237,237,237,0.55)]"> → {c.giaiThich}</span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
+              <p className="text-sm text-muted-foreground">Đang sàng lọc kho SIM hợp tuổi...</p>
             </div>
-          )}
-        </div>
-      )}
-
-      {/* ── GỢI Ý SIM HỢP NHẤT ──────────────────────────────────────────── */}
-      {result && (
-        <div className={`${panelBase} spt-rise mt-10 md:mt-14`} style={panelNeutralStyle}>
-          <div className="flex items-center gap-3 mb-2">
-            <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: CHAMPAGNE }} />
-            <h2 className="text-[22px] md:text-2xl font-semibold" style={{ color: "#F5F5F5", letterSpacing: "-0.01em" }}>
-              SIM hợp nhất theo phong thủy
-            </h2>
-          </div>
-          <p className="mb-6 text-sm" style={{ color: "rgba(237,237,237,0.6)" }}>
-            Giúp Quý khách khoanh vùng nhanh: {result.total} SIM đang có trong kho đã được chấm điểm theo ngũ hành,
-            âm dương, tổng nút, quẻ dịch, cấu trúc số và Bát Cực Linh Số.
-          </p>
-
-          {result.sims.length === 0 ? (
-            <div className="text-center py-8">
-              <p style={{ color: "rgba(237,237,237,0.7)" }}>
-                Kho chưa có số khớp bộ tiêu chí này. Quý khách thử nới bộ lọc Bát Cực, hoặc gọi 0933.686.666
-                để đội ngũ tư vấn tìm số riêng.
+          ) : data.sims.length === 0 ? (
+            <div className="rounded-2xl border border-border bg-card p-10 text-center space-y-3">
+              <p className="text-base text-muted-foreground">
+                Kho tạm hết số khớp tiêu chí này. Quý khách vui lòng nới rộng khoảng giá hoặc đổi đầu số.
               </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedPrice(null);
+                  setSelectedPrefix(null);
+                  setMucTieu("all");
+                  setPage(1);
+                  setTimeout(() => fetchSims(1), 50);
+                }}
+                className="rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground shadow hover:bg-primary-dark transition-all"
+              >
+                Xóa bộ lọc &amp; Xem lại toàn bộ
+              </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {result.sims.map((sim) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {data.sims.map((sim) => (
                 <div
                   key={sim.id}
-                  className="spt-card rounded-lg p-5 flex flex-col gap-2.5"
-                  style={{
-                    background: "rgba(255,255,255,0.06)",
-                    backdropFilter: "blur(6px)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                  }}
+                  className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-card hover:border-gold/50 hover:shadow-xl transition-all duration-200"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="font-mono text-lg md:text-xl font-semibold truncate" style={{ color: "#D9B778" }}>
-                        {formatSimQuyAware(sim.digits)}
-                      </p>
-                      <p className="text-base md:text-lg font-medium text-white mt-0.5">{formatPrice(sim.price)}</p>
-                    </div>
-                    <div
-                      className="flex flex-col items-center justify-center flex-shrink-0 rounded-xl px-3 py-1.5"
-                      style={{
-                        background: sim.score >= 8 ? "rgba(217,183,120,0.15)" : "rgba(255,255,255,0.06)",
-                        border: `1px solid ${sim.score >= 8 ? "rgba(217,183,120,0.4)" : "rgba(255,255,255,0.1)"}`,
-                      }}
-                    >
-                      <span className="text-xl font-bold leading-none" style={{ color: scoreColor(sim.score) }}>
-                        {sim.score.toFixed(1)}
-                      </span>
-                      <span className="text-[10px] mt-0.5" style={{ color: "rgba(237,237,237,0.55)" }}>/10 điểm</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1.5">
-                    <Badge className={`text-xs px-2.5 py-1 border font-medium ${LEVEL_CLASS[sim.hexagramLevel] ?? LEVEL_CLASS["Bình thường"]}`}>
-                      Quẻ {sim.que}
-                    </Badge>
-                    <Badge className="text-xs px-2.5 py-1 border font-medium bg-white/[0.06] text-[rgba(237,237,237,0.75)] border-white/10">
-                      {sim.nut} nút
-                    </Badge>
-                    {sim.nlChuDao && (
-                      <Badge className={`text-xs px-2.5 py-1 border font-medium ${NL_BADGE_CLASS[sim.nlChuDao]}`}>
-                        NL {NL_META[sim.nlChuDao].label}
-                      </Badge>
-                    )}
-                  </div>
-
-                  <p className="text-xs truncate" style={{ color: "rgba(237,237,237,0.55)" }}>
-                    {sim.hexagram}
-                  </p>
-
-                  {/* Năng lượng Bát Cực nổi bật */}
-                  <div className="flex flex-wrap gap-1">
-                    {NL_ORDER.filter((nl) => (sim.nlCounts?.[nl] ?? 0) > 0)
-                      .sort((a, b) => (sim.nlCounts?.[b] ?? 0) - (sim.nlCounts?.[a] ?? 0))
-                      .slice(0, 3)
-                      .map((nl) => (
-                        <span
-                          key={nl}
-                          className={`text-[10px] px-2 py-0.5 rounded-md border font-medium ${NL_BADGE_CLASS[nl]}`}
-                        >
-                          {NL_META[nl].label} ×{sim.nlCounts?.[nl]}
+                  <div>
+                    {/* Header Thẻ: Số SIM + Hộp Điểm Số */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-mono text-2xl font-black tracking-wider text-gold group-hover:text-primary transition-colors">
+                          {formatSimQuyAware(sim.digits)}
+                        </div>
+                        <div className="mt-0.5 text-base font-extrabold text-foreground">
+                          {formatPrice(sim.price)}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <div className="flex items-center gap-1 rounded-xl bg-gold/15 border border-gold/30 px-2.5 py-1 text-xs font-black text-gold">
+                          <Star className="h-3 w-3 fill-gold" />
+                          <span>{sim.score} /10</span>
+                        </div>
+                        <span className="mt-1 text-[10px] font-semibold text-emerald-400">
+                          {sim.score >= 8.5 ? "★ Rất hợp tuổi" : "★ Hợp tuổi"}
                         </span>
-                      ))}
+                      </div>
+                    </div>
+
+                    {/* 4 Chỉ Số Phong Thủy Vàng */}
+                    <div className="mt-4 space-y-2 border-t border-border/50 pt-3 text-xs">
+                      {/* Quẻ Kinh Dịch */}
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="text-muted-foreground flex items-center gap-1 shrink-0">
+                          <Compass className="h-3 w-3 text-gold" /> Quẻ Dịch:
+                        </span>
+                        <span className="font-semibold text-foreground text-right truncate">
+                          {sim.hexagram || `Quẻ ${sim.que}`}
+                        </span>
+                      </div>
+
+                      {/* Ngũ Hành Sim */}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground flex items-center gap-1 shrink-0">
+                          <Flame className="h-3 w-3 text-primary" /> Ngũ Hành:
+                        </span>
+                        <span className="font-semibold text-foreground">
+                          Hành {sim.simHanh || "Hỏa"} ({sim.quanHe || "Tương sinh"})
+                        </span>
+                      </div>
+
+                      {/* Bát Cực Linh Số */}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground flex items-center gap-1 shrink-0">
+                          <Sparkles className="h-3 w-3 text-gold" /> Bát Cực:
+                        </span>
+                        <span className="font-semibold text-emerald-400 truncate">
+                          NL {sim.nlChuDao || "Sinh Khí"}
+                        </span>
+                      </div>
+
+                      {/* Nút */}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground flex items-center gap-1 shrink-0">
+                          <ShieldCheck className="h-3 w-3 text-primary" /> Tổng Nút:
+                        </span>
+                        <span className="font-semibold text-foreground">
+                          {sim.nut} nút ({sim.nut >= 7 ? "Đại cát" : "Cát"})
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
-                  <Button
-                    size="lg"
-                    className="spt-cta mt-1 text-white border-0 text-base font-semibold py-2.5"
-                    style={ctaStyle}
-                    onClick={() => handleBuyNow(sim)}
-                  >
-                    ĐẶT NGAY
-                  </Button>
+                  {/* Nút Hành Động */}
+                  <div className="mt-5 grid grid-cols-2 gap-2 pt-3 border-t border-border/50">
+                    <a
+                      href="https://zalo.me/0933686666"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-1 rounded-xl bg-gold/10 border border-gold/30 py-2.5 text-xs font-bold text-gold hover:bg-gold hover:text-black transition-all"
+                    >
+                      <Phone className="h-3.5 w-3.5" />
+                      Chat Zalo
+                    </a>
+                    <Link
+                      href={`/sim/${sim.digits}`}
+                      className="inline-flex items-center justify-center gap-1 rounded-xl bg-primary py-2.5 text-xs font-bold text-primary-foreground shadow hover:bg-primary-dark transition-all"
+                    >
+                      Xem luận giải →
+                    </Link>
+                  </div>
                 </div>
               ))}
             </div>
           )}
 
-          <p className="text-xs mt-4 text-center" style={{ color: "rgba(237,237,237,0.5)" }}>
-            Quý khách bấm ĐẶT NGAY để giữ số. Giá hiển thị là giá niêm yết thực tế tại kho CHONSOMOBIFONE.
-          </p>
-        </div>
+          {/* Phân trang */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-6">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => handlePageChange(page - 1)}
+                className="rounded-xl border-border"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" /> Trang trước
+              </Button>
+              <div className="text-xs font-semibold text-muted-foreground px-3">
+                Trang {page} / {totalPages}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => handlePageChange(page + 1)}
+                className="rounded-xl border-border"
+              >
+                Trang sau <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          )}
+        </section>
       )}
-    </>
+    </div>
   );
-};
-
-export default SimHopTuoiTool;
+}
