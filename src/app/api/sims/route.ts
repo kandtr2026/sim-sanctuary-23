@@ -67,6 +67,7 @@ export async function GET(req: NextRequest) {
     sortBy,
     mobifoneFirst: searchParams.get("mobifoneFirst") === "true" ? true : undefined,
     birthDateOnly: searchParams.get("birthDateOnly") === "1" ? true : undefined,
+    menh: searchParams.get("menh") || undefined,
   };
 
   const limit = clampInt(searchParams.get("limit"), 30, 1, MAX_LIMIT);
@@ -95,12 +96,15 @@ export async function GET(req: NextRequest) {
   // sửa. Nên buộc đi nhánh in-memory (getServerSims đã cache 5 phút).
   const canPushToDb =
     criteria.sortBy !== "mix" &&
+    criteria.sortBy !== "beauty" &&
+    criteria.sortBy !== "suffix_beauty" &&
     !includeFacets &&
     !criteria.quyType &&
     !criteria.birthDateOnly &&
     !criteria.lastDigits?.length &&
     !criteria.matchAll &&
-    !criteria.tags?.length;
+    !criteria.tags?.length &&
+    !criteria.menh;
 
   if (canPushToDb) {
     const fromDb = await querySimsFromDb(dbCriteria, limit, offset);

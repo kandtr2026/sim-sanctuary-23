@@ -9,6 +9,7 @@
 
 import { matchesQuyFilter, parseBirthDate, sortSIMs, PRICE_RANGES } from '@/lib/simUtils';
 import type { NormalizedSIM, QuyType, SortOption } from '@/lib/simUtils';
+import { nguHanhCuaSo } from '@/lib/phongThuy';
 
 export interface SimFilterCriteria {
   /** Chuỗi tìm kiếm — hỗ trợ: 10 số chính xác, `*đuôi`, `đầu*`, chứa. */
@@ -36,6 +37,8 @@ export interface SimFilterCriteria {
   mobifoneFirst?: boolean;
   /** Chỉ giữ SIM có ngày sinh THẬT (parseBirthDate hợp lệ) — lọc "Năm sinh" chặt. */
   birthDateOnly?: boolean;
+  /** Lọc theo mệnh ngũ hành (Kim, Mộc, Thủy, Hỏa, Thổ) */
+  menh?: string;
 }
 
 const getDigits = (s: NormalizedSIM): string =>
@@ -137,6 +140,14 @@ export function filterSims(sims: NormalizedSIM[], criteria: SimFilterCriteria): 
   // Lọc "Năm sinh" chặt: chỉ giữ sim đọc được ngày sinh thật từ 6 số cuối.
   if (criteria.birthDateOnly) {
     result = result.filter((s) => parseBirthDate(getDigits(s)) !== null);
+  }
+
+  // Lọc theo Mệnh ngũ hành (Hà Đồ)
+  if (criteria.menh) {
+    const targetMenh = criteria.menh.trim().toLowerCase();
+    result = result.filter(
+      (s) => nguHanhCuaSo(getDigits(s)).chinh.toLowerCase() === targetMenh,
+    );
   }
 
   // ── Sort ──────────────────────────────────────────────────────────────────

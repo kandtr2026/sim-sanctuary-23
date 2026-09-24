@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, ChevronLeft, ChevronRight, X, ArrowUpDown, Filter, Sparkles, Phone } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, X, ArrowUpDown, Filter, Sparkles, Phone, Compass } from "lucide-react";
 import SIMCardNew from "@/components/SIMCardNew";
 import type { NormalizedSIM, QuyType, SortOption } from "@/lib/simUtils";
 
@@ -48,6 +48,15 @@ const PREFIX_FILTERS = [
   { label: "Đầu 07x", value: "070,076,077,078,079" },
 ];
 
+const MENH_FILTERS = [
+  { label: "Tất cả mệnh", value: null, color: null },
+  { label: "Mệnh Kim", value: "Kim", color: "#eab308" },
+  { label: "Mệnh Mộc", value: "Mộc", color: "#22c55e" },
+  { label: "Mệnh Thủy", value: "Thủy", color: "#0ea5e9" },
+  { label: "Mệnh Hỏa", value: "Hỏa", color: "#ef4444" },
+  { label: "Mệnh Thổ", value: "Thổ", color: "#a16207" },
+];
+
 const SORT_OPTIONS: { label: string; value: SortOption }[] = [
   { label: "Điểm phong thuỷ thấp dần", value: "beauty" },
   { label: "Giá thấp đến cao", value: "price_asc" },
@@ -71,6 +80,7 @@ const CategorySimGrid = ({
   const [activeSearch, setActiveSearch] = useState("");
   const [selectedPrice, setSelectedPrice] = useState<string | null>(null);
   const [selectedPrefix, setSelectedPrefix] = useState<string | null>(null);
+  const [selectedMenh, setSelectedMenh] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("beauty");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -90,6 +100,7 @@ const CategorySimGrid = ({
     matchAll ?? false,
     matchPrefixes ?? [],
     selectedPrefix ?? "",
+    selectedMenh ?? "",
     matchSuffixes ?? [],
     matchTags ?? [],
     matchLastDigits ?? [],
@@ -122,6 +133,7 @@ const CategorySimGrid = ({
       if (quyFilter) params.set("quyType", quyFilter);
 
       if (selectedPrice) params.set("priceRanges", selectedPrice);
+      if (selectedMenh) params.set("menh", selectedMenh);
       if (sortBy) params.set("sort", sortBy);
 
       params.set("limit", String(ITEMS_PER_PAGE));
@@ -138,7 +150,7 @@ const CategorySimGrid = ({
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE) || 1;
   const hasActiveSearch = activeSearch.trim().length > 0;
-  const hasActiveFilters = Boolean(selectedPrice || selectedPrefix || hasActiveSearch || sortBy !== "beauty");
+  const hasActiveFilters = Boolean(selectedPrice || selectedPrefix || selectedMenh || hasActiveSearch || sortBy !== "beauty");
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,6 +163,7 @@ const CategorySimGrid = ({
     setActiveSearch("");
     setSelectedPrice(null);
     setSelectedPrefix(null);
+    setSelectedMenh(null);
     setSortBy("beauty");
     setCurrentPage(1);
   };
@@ -298,6 +311,41 @@ const CategorySimGrid = ({
                       : "bg-background text-foreground/80 hover:bg-muted border border-border/80"
                   }`}
                 >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Lọc theo mệnh ngũ hành */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <span className="text-xs font-semibold text-muted-foreground min-w-[70px] flex items-center gap-1">
+            <Compass className="h-3 w-3 text-gold" /> Hợp mệnh:
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {MENH_FILTERS.map((item) => {
+              const active = selectedMenh === item.value;
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => {
+                    setSelectedMenh(item.value);
+                    setCurrentPage(1);
+                  }}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
+                    active
+                      ? "bg-primary text-primary-foreground font-bold shadow-sm"
+                      : "bg-background text-foreground/80 hover:bg-muted border border-border/80"
+                  }`}
+                >
+                  {item.color && (
+                    <span
+                      className="h-2 w-2 rounded-full shrink-0"
+                      style={{ background: item.color }}
+                    />
+                  )}
                   {item.label}
                 </button>
               );
