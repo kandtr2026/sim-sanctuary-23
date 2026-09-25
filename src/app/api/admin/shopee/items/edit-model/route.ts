@@ -29,6 +29,10 @@ export async function POST(req: NextRequest) {
     const label = String(body.label ?? "").trim();
     const display = String(body.display ?? "").trim();
     const price = Number(body.price ?? 0);
+    // Kho: đổi số cho một ô đang "Hết" (kho=0) mà không set lại kho thì số mới vẫn
+    // không bán được. Client gửi kho mong muốn (mặc định 1); null = không đụng kho.
+    const stockParsed = body.stock == null ? null : parseIntSafe(body.stock);
+    const stock = stockParsed == null ? null : Math.max(0, stockParsed);
     // Số CŨ (đang sửa) — dùng để dò lại model_id live khi snapshot của UI đã cũ.
     const currentLabel = String(body.currentLabel ?? "").trim();
     const currentDigits = currentLabel.replace(/\D/g, "");
@@ -121,6 +125,12 @@ export async function POST(req: NextRequest) {
       await client.updatePrice(itemIdNum, resolvedModelId, price);
     }
 
+    // Bước 7: set lại kho — nếu không, ô đang "Hết" (kho=0) đổi số xong vẫn không
+    // bán được. Mặc định UI gửi 1 để số vừa thay được bán ngay.
+    if (stock != null) {
+      await client.updateModelStock(itemIdNum, resolvedModelId, stock);
+    }
+
     if (client.refreshedTokens) {
       await persistRefreshedTokens(client.refreshedTokens);
     }
@@ -132,6 +142,7 @@ export async function POST(req: NextRequest) {
       label: optionLabel,
       rawDigits,
       price: price > 0 ? price : null,
+      stock: stock ?? null,
     });
   } catch (err) {
     return errorResponse(err);

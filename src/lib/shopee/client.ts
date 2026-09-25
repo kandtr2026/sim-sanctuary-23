@@ -382,11 +382,11 @@ export class ShopeeProductClient {
     });
   }
 
-  /** Set stock=0 cho một model cụ thể — xoá model khỏi danh sách mua được. */
-  async updateModelStock(itemId: number, modelId: number): Promise<void> {
+  /** Set stock cho một model cụ thể. stock=0 (mặc định) = xoá khỏi danh sách mua được. */
+  async updateModelStock(itemId: number, modelId: number, stock = 0): Promise<void> {
     await this.call(PATH_UPDATE_STOCK, {
       item_id: itemId,
-      stock_list: [{ model_id: modelId, seller_stock: [{ stock: 0, location_id: "" }] }],
+      stock_list: [{ model_id: modelId, seller_stock: [{ stock, location_id: "" }] }],
     });
   }
 

@@ -160,6 +160,7 @@ export default function ShopeeListingNumbers({
   const [quyType, setQuyType] = useState<string | null>(null);
   const [goiPackage, setGoiPackage] = useState<string | null>(null);
   const [priceInput, setPriceInput] = useState("");
+  const [qtyInput, setQtyInput] = useState("1");
   const [results, setResults] = useState<KhoSim[]>([]);
   const [searching, setSearching] = useState(false);
 
@@ -228,11 +229,15 @@ export default function ShopeeListingNumbers({
   const openAdd = () => {
     const p = suggestPrice(variants);
     setPriceInput(p ? String(p) : "");
+    setQtyInput("1");
     openPicker({ mode: "add", price: p });
   };
 
   const openEdit = (v: ShopeeVariant) => {
     setPriceInput(v.price ? String(v.price) : "");
+    // Ô đang HẾT (kho=0) → mặc định về 1 để đổi số xong bán được ngay; ô còn kho
+    // thì giữ nguyên số lượng, khỏi vô tình giảm kho khi chỉ đổi số.
+    setQtyInput(String(Math.max(1, v.stock)));
     openPicker({ mode: "edit", modelId: v.model_id, currentLabel: v.label, price: v.price });
   };
 
@@ -262,6 +267,7 @@ export default function ShopeeListingNumbers({
     const label = sim.rawDigits;
     const display = sim.formattedNumber || sim.displayNumber || sim.rawDigits;
     const price = Number(priceInput) > 0 ? Number(priceInput) : sim.price;
+    const qty = Math.max(1, Number(qtyInput) || 1);
     if (soDangCo.has(label)) {
       toast.error(`Số ${display} đã có trong listing này.`);
       return;
@@ -271,10 +277,10 @@ export default function ShopeeListingNumbers({
       if (picker.mode === "add") {
         await fetchJson(
           "/api/admin/shopee/items/add-model",
-          { method: "POST", body: JSON.stringify({ itemId, label, display, price, stock: 1 }) },
+          { method: "POST", body: JSON.stringify({ itemId, label, display, price, stock: qty }) },
           token,
         );
-        toast.success(`Đã thêm ${display} · ${formatVnd(price)}`);
+        toast.success(`Đã thêm ${display} · ${formatVnd(price)}${qty > 1 ? ` · kho ${qty}` : ""}`);
         closePicker();
         onRefresh?.(); // model_id mới do Shopee cấp → đồng bộ lại cho chuẩn
       } else {
@@ -282,16 +288,16 @@ export default function ShopeeListingNumbers({
           "/api/admin/shopee/items/edit-model",
           {
             method: "POST",
-            body: JSON.stringify({ itemId, modelId: picker.modelId, label, display, price, currentLabel: picker.currentLabel }),
+            body: JSON.stringify({ itemId, modelId: picker.modelId, label, display, price, stock: qty, currentLabel: picker.currentLabel }),
           },
           token,
         );
         onChange(
           variants.map((x) =>
-            x.model_id === picker.modelId ? { ...x, label: display, sku: label, price, stock: Math.max(1, x.stock) } : x,
+            x.model_id === picker.modelId ? { ...x, label: display, sku: label, price, stock: qty } : x,
           ),
         );
-        toast.success(`Đã đổi ${picker.currentLabel} → ${display}`);
+        toast.success(`Đã đổi ${picker.currentLabel} → ${display} · kho ${qty}`);
         closePicker();
       }
     } catch (e) {
@@ -512,6 +518,16 @@ export default function ShopeeListingNumbers({
                 className="h-9 w-32 tabular-nums"
               />
             </div>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-muted-foreground" title="Số lượng kho cho số này">SL:</span>
+              <Input
+                value={qtyInput}
+                inputMode="numeric"
+                onChange={(e) => setQtyInput(e.target.value.replace(/\D/g, ""))}
+                placeholder="1"
+                className="h-9 w-16 tabular-nums"
+              />
+            </div>
             <Button
               size="sm"
               variant="secondary"
@@ -565,8 +581,9 @@ export default function ShopeeListingNumbers({
           )}
           <p className="mt-2 text-[11px] text-muted-foreground">
             {source === "goicuoc"
-              ? "Số lấy từ kho SIM giá rẻ 229K (Google Sheet). Giá đẩy lên Shopee = ô “Giá” (mặc định giữ giá listing đang bán)."
-              : "Giá mặc định = mức đang bán trên listing (giữ nguyên giá). Sửa ô “Giá” nếu muốn khác."}
+              ? "Số lấy từ kho SIM giá rẻ 229K (Google Sheet). Giá đẩy lên Shopee = ô “Giá” (mặc định giữ giá listing)."
+              : "Giá mặc định = mức đang bán trên listing (giữ nguyên giá). Sửa ô “Giá” nếu muốn khác."}{" "}
+            Kho mặc định = 1 (số vừa đổi/thêm sẽ bán được ngay); sửa ô “SL” nếu cần nhiều hơn.
           </p>
         </div>
       )}
