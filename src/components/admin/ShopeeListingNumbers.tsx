@@ -691,6 +691,55 @@ export default function ShopeeListingNumbers({
             </Button>
           </div>
 
+          {/* Thanh "đã chọn" — luôn hiện ở chế độ Thêm để thấy rõ đang gom nhiều số */}
+          {picker.mode === "add" && (
+            <div className="mb-2 rounded-lg border border-gold/40 bg-gold/5 p-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs">
+                  Đã chọn <b className="tabular-nums">{selected.size}</b> số
+                  {selected.size > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSelected(new Map())}
+                      className="ml-2 text-muted-foreground underline hover:text-primary"
+                    >
+                      bỏ hết
+                    </button>
+                  )}
+                </span>
+                <Button
+                  size="sm"
+                  className="gap-1"
+                  onClick={() => void addSelected()}
+                  disabled={selected.size === 0 || busy === "addmulti"}
+                >
+                  {busy === "addmulti" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                  Thêm {selected.size} số vào listing
+                </Button>
+              </div>
+              {selected.size > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {[...selected.values()].map((s) => (
+                    <span
+                      key={s.rawDigits}
+                      className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2 py-0.5 text-xs tabular-nums"
+                    >
+                      {s.formattedNumber || s.displayNumber}
+                      <button
+                        type="button"
+                        onClick={() => toggleSelect(s)}
+                        className="text-muted-foreground hover:text-primary"
+                        title="Bỏ chọn"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Kết quả kho */}
           {searching ? (
             <div className="grid place-items-center py-6 text-muted-foreground">
@@ -710,28 +759,41 @@ export default function ShopeeListingNumbers({
                 const daCo = soDangCo.has(sim.rawDigits);
                 const isSel = selected.has(sim.rawDigits);
                 return (
-                  <li key={sim.rawDigits} className="flex items-center justify-between gap-3 px-3 py-2">
-                    <div className="min-w-0">
-                      <span className="font-medium tabular-nums">{sim.formattedNumber || sim.displayNumber}</span>
-                      {sim.goiCuoc ? (
-                        <span className="ml-2 rounded bg-gold/15 px-1.5 py-0.5 text-[10px] text-gold">{sim.goiCuoc}</span>
-                      ) : null}
-                      {source === "dep" && (
-                        <span className="ml-2 text-xs text-muted-foreground tabular-nums">kho: {formatVnd(sim.price)}</span>
+                  <li
+                    key={sim.rawDigits}
+                    className={`flex items-center justify-between gap-3 px-3 py-2 ${
+                      picker.mode === "add" && !daCo ? "cursor-pointer hover:bg-secondary/40" : ""
+                    } ${isSel ? "bg-gold/10" : ""}`}
+                    onClick={picker.mode === "add" && !daCo ? () => toggleSelect(sim) : undefined}
+                  >
+                    <div className="flex min-w-0 items-center gap-2">
+                      {picker.mode === "add" && (
+                        <span
+                          className={`grid h-5 w-5 shrink-0 place-items-center rounded border ${
+                            isSel
+                              ? "border-gold bg-gold text-background"
+                              : daCo
+                                ? "border-border opacity-40"
+                                : "border-muted-foreground/50"
+                          }`}
+                        >
+                          {isSel && <Check className="h-3.5 w-3.5" />}
+                        </span>
                       )}
+                      <span className="min-w-0">
+                        <span className="font-medium tabular-nums">{sim.formattedNumber || sim.displayNumber}</span>
+                        {sim.goiCuoc ? (
+                          <span className="ml-2 rounded bg-gold/15 px-1.5 py-0.5 text-[10px] text-gold">{sim.goiCuoc}</span>
+                        ) : null}
+                        {source === "dep" && (
+                          <span className="ml-2 text-xs text-muted-foreground tabular-nums">kho: {formatVnd(sim.price)}</span>
+                        )}
+                      </span>
                     </div>
                     {picker.mode === "add" ? (
-                      <Button
-                        size="sm"
-                        variant={isSel ? "secondary" : "default"}
-                        className="h-7 gap-1 px-2 text-xs"
-                        onClick={() => toggleSelect(sim)}
-                        disabled={daCo}
-                        title={daCo ? "Đã có trong listing" : isSel ? "Bỏ chọn" : "Chọn số này"}
-                      >
-                        <Check className="h-3.5 w-3.5" />
-                        {daCo ? "Đã có" : isSel ? "Đã chọn" : "Chọn"}
-                      </Button>
+                      <span className={`shrink-0 text-xs ${isSel ? "text-gold" : "text-muted-foreground"}`}>
+                        {daCo ? "Đã có" : isSel ? "✓ đã chọn" : "chọn"}
+                      </span>
                     ) : (
                       <Button
                         size="sm"
@@ -751,34 +813,6 @@ export default function ShopeeListingNumbers({
           )}
           {hiddenCount > 0 && shownResults.length > 0 && (
             <p className="mt-1 text-[11px] text-gold">Đã ẩn {hiddenCount} số đang dùng ở sản phẩm khác.</p>
-          )}
-
-          {/* Đã chọn (chế độ Thêm nhiều số) */}
-          {picker.mode === "add" && selected.size > 0 && (
-            <div className="mt-3 rounded-lg border border-gold/40 bg-gold/5 p-2">
-              <div className="mb-2 flex flex-wrap gap-1">
-                {[...selected.values()].map((s) => (
-                  <span
-                    key={s.rawDigits}
-                    className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2 py-0.5 text-xs tabular-nums"
-                  >
-                    {s.formattedNumber || s.displayNumber}
-                    <button
-                      type="button"
-                      onClick={() => toggleSelect(s)}
-                      className="text-muted-foreground hover:text-primary"
-                      title="Bỏ chọn"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-              <Button size="sm" className="w-full gap-1" onClick={() => void addSelected()} disabled={busy === "addmulti"}>
-                {busy === "addmulti" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                Thêm {selected.size} số vào listing
-              </Button>
-            </div>
           )}
           <p className="mt-2 text-[11px] text-muted-foreground">
             {source === "goicuoc"
