@@ -17,7 +17,7 @@ const MAX_VARIANTS = 50;
  * add_model (thêm hết model mới). Khớp kho / SKU dùng chữ số sạch; nhãn hiển thị
  * (có chấm) chỉ nằm ở option → không làm sai giá trị SIM.
  *
- * Body: { itemId, sims: [{ label, display?, price }] }
+ * Body: { itemId, sims: [{ label, display?, price, stock? }] }  (stock mặc định 1)
  */
 export async function POST(req: NextRequest) {
   const gate = await requireAdmin(req);
@@ -38,8 +38,9 @@ export async function POST(req: NextRequest) {
         const label = String(s?.label ?? "").trim();
         const display = String(s?.display ?? "").trim();
         const price = Number(s?.price ?? 0);
+        const stock = Math.max(0, Number(s?.stock ?? 1));
         const digits = (label || display).replace(/\D/g, "");
-        return { digits, option: display || label, price };
+        return { digits, option: display || label, price, stock };
       })
       .filter((s) => s.digits && s.price > 0);
 
@@ -90,8 +91,8 @@ export async function POST(req: NextRequest) {
     // nhưng chưa có model, do lần đẩy trước lỗi giữa chừng), tạo mới phần còn lại.
     const seen = new Set<string>();
     let skipped = 0;
-    const needNewOption: { option: string; digits: string; price: number }[] = [];
-    const fillOrphan: { option: string; digits: string; price: number }[] = [];
+    const needNewOption: { option: string; digits: string; price: number; stock: number }[] = [];
+    const fillOrphan: { option: string; digits: string; price: number; stock: number }[] = [];
     for (const s of incoming) {
       if (seen.has(s.digits)) {
         skipped++;
@@ -169,7 +170,7 @@ export async function POST(req: NextRequest) {
           tier_index: [idx],
           original_price: s.price,
           model_sku: s.digits,
-          seller_stock: [{ stock: 1, location_id: "" }],
+          seller_stock: [{ stock: s.stock, location_id: "" }],
         });
         added++;
       } catch (e) {

@@ -158,6 +158,8 @@ export default function ShopeeListingNumbers({
   const [picker, setPicker] = useState<PickerState | null>(null);
   // Sửa kho tại chỗ (không đổi số) — cho ô "số ngẫu nhiên" và bật/tắt số lẻ.
   const [editStock, setEditStock] = useState<{ modelId: number; value: string } | null>(null);
+  // Chọn nhiều số 1 lần (chỉ ở chế độ Thêm) — giữ theo rawDigits qua các lần tìm.
+  const [selected, setSelected] = useState<Map<string, KhoSim>>(new Map());
 
   // Kho picker
   const [source, setSource] = useState<PickerSource>("dep");
@@ -237,6 +239,7 @@ export default function ShopeeListingNumbers({
     setGoiPackage(src === "goicuoc" ? goi : null);
     setQ(g.search ?? "");
     setResults([]);
+    setSelected(new Map());
     setPicker(state);
     void runSearch({ source: src, quyType: g.quyType ?? null, goi, term: g.search ?? "" });
   };
@@ -256,7 +259,60 @@ export default function ShopeeListingNumbers({
     openPicker({ mode: "edit", modelId: v.model_id, currentLabel: v.label, price: v.price });
   };
 
-  const closePicker = () => setPicker(null);
+  const closePicker = () => {
+    setPicker(null);
+    setSelected(new Map());
+  };
+
+  const toggleSelect = (sim: KhoSim) => {
+    setSelected((prev) => {
+      const next = new Map(prev);
+      if (next.has(sim.rawDigits)) next.delete(sim.rawDigits);
+      else next.set(sim.rawDigits, sim);
+      return next;
+    });
+  };
+
+  // Thêm TẤT CẢ số đang chọn vào listing trong 1 lần (cùng giá + kho ở ô trên).
+  const addSelected = async () => {
+    if (!token || selected.size === 0) return;
+    const price = Number(priceInput) > 0 ? Number(priceInput) : 0;
+    const qty = Math.max(1, Number(qtyInput) || 1);
+    const sims = [...selected.values()].map((s) => ({
+      label: s.rawDigits,
+      display: s.formattedNumber || s.displayNumber || s.rawDigits,
+      price: price > 0 ? price : s.price,
+      stock: qty,
+    }));
+    setBusy("addmulti");
+    try {
+      const res = await fetchJson<{
+        added: number;
+        failed: number;
+        skipped: number;
+        errors?: { number: string; error: string }[];
+      }>(
+        "/api/admin/shopee/items/add-models-bulk",
+        { method: "POST", body: JSON.stringify({ itemId, sims }) },
+        token,
+      );
+      const msg = [
+        `Đã thêm ${res.added} số`,
+        res.skipped ? `bỏ ${res.skipped} đã có` : null,
+        res.failed ? `lỗi ${res.failed}` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      if (res.failed) toast.error(msg + (res.errors?.[0] ? `: ${res.errors[0].error}` : ""));
+      else toast.success(msg);
+      closePicker();
+      onRefresh?.(); // model_id mới do Shopee cấp → đồng bộ lại cho chuẩn
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  };
 
   const disable = async (v: ShopeeVariant) => {
     if (!token) return;
@@ -497,7 +553,7 @@ export default function ShopeeListingNumbers({
         <div className="rounded-lg border border-gold/40 bg-card p-3">
           <div className="mb-2 flex items-center justify-between">
             <p className="text-sm font-semibold">
-              {picker.mode === "add" ? "Thêm số — chọn từ kho" : `Đổi số ${picker.currentLabel} — chọn số mới`}
+              {picker.mode === "add" ? "Thêm số — chọn 1 hoặc nhiều số từ kho" : `Đổi số ${picker.currentLabel} — chọn số mới`}
             </p>
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={closePicker} title="Đóng">
               <X className="h-4 w-4" />
@@ -652,6 +708,7 @@ export default function ShopeeListingNumbers({
             <ul className="max-h-64 divide-y divide-border overflow-y-auto rounded-md border border-border">
               {shownResults.map((sim) => {
                 const daCo = soDangCo.has(sim.rawDigits);
+                const isSel = selected.has(sim.rawDigits);
                 return (
                   <li key={sim.rawDigits} className="flex items-center justify-between gap-3 px-3 py-2">
                     <div className="min-w-0">
@@ -663,16 +720,30 @@ export default function ShopeeListingNumbers({
                         <span className="ml-2 text-xs text-muted-foreground tabular-nums">kho: {formatVnd(sim.price)}</span>
                       )}
                     </div>
-                    <Button
-                      size="sm"
-                      className="h-7 gap-1 px-2 text-xs"
-                      onClick={() => void pick(sim)}
-                      disabled={daCo || busy === "pick"}
-                      title={daCo ? "Đã có trong listing" : "Chọn số này"}
-                    >
-                      {busy === "pick" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                      {daCo ? "Đã có" : "Chọn"}
-                    </Button>
+                    {picker.mode === "add" ? (
+                      <Button
+                        size="sm"
+                        variant={isSel ? "secondary" : "default"}
+                        className="h-7 gap-1 px-2 text-xs"
+                        onClick={() => toggleSelect(sim)}
+                        disabled={daCo}
+                        title={daCo ? "Đã có trong listing" : isSel ? "Bỏ chọn" : "Chọn số này"}
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                        {daCo ? "Đã có" : isSel ? "Đã chọn" : "Chọn"}
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        className="h-7 gap-1 px-2 text-xs"
+                        onClick={() => void pick(sim)}
+                        disabled={daCo || busy === "pick"}
+                        title={daCo ? "Đã có trong listing" : "Chọn số này"}
+                      >
+                        {busy === "pick" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                        {daCo ? "Đã có" : "Chọn"}
+                      </Button>
+                    )}
                   </li>
                 );
               })}
@@ -680,6 +751,34 @@ export default function ShopeeListingNumbers({
           )}
           {hiddenCount > 0 && shownResults.length > 0 && (
             <p className="mt-1 text-[11px] text-gold">Đã ẩn {hiddenCount} số đang dùng ở sản phẩm khác.</p>
+          )}
+
+          {/* Đã chọn (chế độ Thêm nhiều số) */}
+          {picker.mode === "add" && selected.size > 0 && (
+            <div className="mt-3 rounded-lg border border-gold/40 bg-gold/5 p-2">
+              <div className="mb-2 flex flex-wrap gap-1">
+                {[...selected.values()].map((s) => (
+                  <span
+                    key={s.rawDigits}
+                    className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2 py-0.5 text-xs tabular-nums"
+                  >
+                    {s.formattedNumber || s.displayNumber}
+                    <button
+                      type="button"
+                      onClick={() => toggleSelect(s)}
+                      className="text-muted-foreground hover:text-primary"
+                      title="Bỏ chọn"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <Button size="sm" className="w-full gap-1" onClick={() => void addSelected()} disabled={busy === "addmulti"}>
+                {busy === "addmulti" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                Thêm {selected.size} số vào listing
+              </Button>
+            </div>
           )}
           <p className="mt-2 text-[11px] text-muted-foreground">
             {source === "goicuoc"
