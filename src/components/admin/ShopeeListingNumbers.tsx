@@ -15,7 +15,7 @@
  */
 
 import { useCallback, useState } from "react";
-import { Check, Loader2, Package, PencilLine, Plus, PowerOff, Search, Sparkles, X } from "lucide-react";
+import { Boxes, Check, Loader2, Package, PencilLine, Plus, PowerOff, Search, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -153,6 +153,8 @@ export default function ShopeeListingNumbers({
 }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [picker, setPicker] = useState<PickerState | null>(null);
+  // Sửa kho tại chỗ (không đổi số) — cho ô "số ngẫu nhiên" và bật/tắt số lẻ.
+  const [editStock, setEditStock] = useState<{ modelId: number; value: string } | null>(null);
 
   // Kho picker
   const [source, setSource] = useState<PickerSource>("dep");
@@ -262,6 +264,28 @@ export default function ShopeeListingNumbers({
     }
   };
 
+  // Đặt lại kho cho 1 biến thể (không đổi số) — "số ngẫu nhiên" chỉnh số lượng,
+  // hoặc bật lại số đang Hết mà giữ đúng số đó.
+  const saveStock = async (v: ShopeeVariant) => {
+    if (!token || !editStock) return;
+    const stock = Math.max(0, Number(editStock.value) || 0);
+    setBusy(`stock-${v.model_id}`);
+    try {
+      await fetchJson(
+        "/api/admin/shopee/items/set-stock",
+        { method: "POST", body: JSON.stringify({ itemId, modelId: v.model_id, stock }) },
+        token,
+      );
+      onChange(variants.map((x) => (x.model_id === v.model_id ? { ...x, stock } : x)));
+      toast.success(`Đã đặt kho ${v.label} = ${stock}`);
+      setEditStock(null);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const pick = async (sim: KhoSim) => {
     if (!token || !picker) return;
     const label = sim.rawDigits;
@@ -335,17 +359,51 @@ export default function ShopeeListingNumbers({
             <tbody>
               {variants.map((v) => {
                 const het = v.stock <= 0;
+                // Ô "số ngẫu nhiên": nhãn không phải dãy số thật → không có kho gốc
+                // để đối chiếu, nên bỏ nhãn "hết kho gốc" (vô nghĩa với nó).
+                const isRandom = v.label.replace(/\D/g, "").length < 9;
+                const editingRow = editStock && editStock.modelId === v.model_id ? editStock : null;
                 return (
                   <tr key={v.model_id} className={`border-t border-border ${het ? "bg-primary/5" : ""}`}>
                     <td className="px-3 py-2 font-medium tabular-nums">
                       {v.label}
-                      {!v.inKho && (
+                      {!v.inKho && !isRandom && (
                         <span className="ml-2 rounded bg-gold/15 px-1.5 py-0.5 text-[10px] text-gold">hết kho gốc</span>
                       )}
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{formatVnd(v.price)}</td>
                     <td className="px-3 py-2 text-center">
-                      {het ? (
+                      {editingRow ? (
+                        <div className="flex items-center justify-center gap-1">
+                          <Input
+                            value={editingRow.value}
+                            inputMode="numeric"
+                            autoFocus
+                            onChange={(e) => setEditStock({ modelId: v.model_id, value: e.target.value.replace(/\D/g, "") })}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") void saveStock(v);
+                              if (e.key === "Escape") setEditStock(null);
+                            }}
+                            className="h-7 w-16 tabular-nums text-center"
+                          />
+                          <Button
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => void saveStock(v)}
+                            disabled={busy === `stock-${v.model_id}`}
+                            title="Lưu kho"
+                          >
+                            {busy === `stock-${v.model_id}` ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Check className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditStock(null)} title="Huỷ">
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ) : het ? (
                         <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-medium text-primary">Hết</span>
                       ) : (
                         <span className="tabular-nums">{v.stock}</span>
@@ -357,12 +415,24 @@ export default function ShopeeListingNumbers({
                           variant="ghost"
                           size="sm"
                           className="h-7 gap-1 px-2 text-xs"
-                          title="Đổi sang số khác trong kho"
-                          onClick={() => openEdit(v)}
+                          title="Sửa số lượng kho (không đổi số)"
+                          onClick={() => setEditStock({ modelId: v.model_id, value: String(v.stock) })}
                           disabled={!!busy}
                         >
-                          <PencilLine className="h-3.5 w-3.5" /> Đổi số
+                          <Boxes className="h-3.5 w-3.5" /> Sửa kho
                         </Button>
+                        {!isRandom && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 gap-1 px-2 text-xs"
+                            title="Đổi sang số khác trong kho"
+                            onClick={() => openEdit(v)}
+                            disabled={!!busy}
+                          >
+                            <PencilLine className="h-3.5 w-3.5" /> Đổi số
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
