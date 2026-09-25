@@ -139,6 +139,7 @@ export default function ShopeeListingNumbers({
   token,
   stale,
   snapshotAt,
+  numberIndex,
   onChange,
   onRefresh,
 }: {
@@ -148,6 +149,8 @@ export default function ShopeeListingNumbers({
   token?: string;
   stale?: boolean;
   snapshotAt?: string | null;
+  /** rawDigits → các listing đang dùng số đó (để chặn gán 1 SIM vào 2 sản phẩm). */
+  numberIndex?: Map<string, { itemId: number; itemName: string }[]>;
   onChange: (next: ShopeeVariant[]) => void;
   onRefresh?: () => void;
 }) {
@@ -167,6 +170,16 @@ export default function ShopeeListingNumbers({
   const [searching, setSearching] = useState(false);
 
   const soDangCo = new Set(variants.map((v) => v.label.replace(/\D/g, "")));
+
+  // Số đang được dùng ở LISTING KHÁC (1 SIM chỉ nên nằm ở 1 sản phẩm) → tên SP đó.
+  const usedElsewhere = (digits: string): string | null => {
+    const other = numberIndex?.get(digits)?.find((x) => x.itemId !== itemId);
+    return other ? other.itemName : null;
+  };
+
+  // Ẩn khỏi picker những số đã nằm ở sản phẩm khác — không cho chọn để tránh trùng.
+  const shownResults = results.filter((s) => !usedElsewhere(s.rawDigits));
+  const hiddenCount = results.length - shownResults.length;
 
   // Tìm số với bộ lọc TRUYỀN THẲNG (không đọc state) → gọi được ngay khi mở
   // picker / đổi chip mà không phải chờ re-render, và không tìm lại mỗi lần gõ.
@@ -296,6 +309,11 @@ export default function ShopeeListingNumbers({
       toast.error(`Số ${display} đã có trong listing này.`);
       return;
     }
+    const elsewhere = usedElsewhere(label);
+    if (elsewhere) {
+      toast.error(`Số ${display} đang dùng ở sản phẩm khác (${elsewhere}).`);
+      return;
+    }
     setBusy("pick");
     try {
       if (picker.mode === "add") {
@@ -363,12 +381,21 @@ export default function ShopeeListingNumbers({
                 // để đối chiếu, nên bỏ nhãn "hết kho gốc" (vô nghĩa với nó).
                 const isRandom = v.label.replace(/\D/g, "").length < 9;
                 const editingRow = editStock && editStock.modelId === v.model_id ? editStock : null;
+                const dupElsewhere = isRandom ? null : usedElsewhere(v.label.replace(/\D/g, ""));
                 return (
                   <tr key={v.model_id} className={`border-t border-border ${het ? "bg-primary/5" : ""}`}>
                     <td className="px-3 py-2 font-medium tabular-nums">
                       {v.label}
                       {!v.inKho && !isRandom && (
                         <span className="ml-2 rounded bg-gold/15 px-1.5 py-0.5 text-[10px] text-gold">hết kho gốc</span>
+                      )}
+                      {dupElsewhere && (
+                        <span
+                          className="ml-2 rounded bg-primary/15 px-1.5 py-0.5 text-[10px] text-primary"
+                          title={`Số này cũng đang ở sản phẩm: ${dupElsewhere}`}
+                        >
+                          ⚠ trùng SP khác
+                        </span>
                       )}
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{formatVnd(v.price)}</td>
@@ -613,15 +640,17 @@ export default function ShopeeListingNumbers({
             <div className="grid place-items-center py-6 text-muted-foreground">
               <Loader2 className="h-5 w-5 animate-spin" />
             </div>
-          ) : results.length === 0 ? (
+          ) : shownResults.length === 0 ? (
             <p className="py-4 text-center text-xs text-muted-foreground">
-              {source === "goicuoc"
-                ? "Không thấy số trong kho SIM giá rẻ — đổi gói hoặc bỏ bớt đầu số."
-                : "Không có số phù hợp trong kho — đổi loại hoặc từ khoá tìm."}
+              {results.length > 0
+                ? `Đã ẩn ${hiddenCount} số vì đang dùng ở sản phẩm khác — thử số/gói khác.`
+                : source === "goicuoc"
+                  ? "Không thấy số trong kho SIM giá rẻ — đổi gói hoặc bỏ bớt đầu số."
+                  : "Không có số phù hợp trong kho — đổi loại hoặc từ khoá tìm."}
             </p>
           ) : (
             <ul className="max-h-64 divide-y divide-border overflow-y-auto rounded-md border border-border">
-              {results.map((sim) => {
+              {shownResults.map((sim) => {
                 const daCo = soDangCo.has(sim.rawDigits);
                 return (
                   <li key={sim.rawDigits} className="flex items-center justify-between gap-3 px-3 py-2">
@@ -648,6 +677,9 @@ export default function ShopeeListingNumbers({
                 );
               })}
             </ul>
+          )}
+          {hiddenCount > 0 && shownResults.length > 0 && (
+            <p className="mt-1 text-[11px] text-gold">Đã ẩn {hiddenCount} số đang dùng ở sản phẩm khác.</p>
           )}
           <p className="mt-2 text-[11px] text-muted-foreground">
             {source === "goicuoc"

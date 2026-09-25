@@ -311,6 +311,22 @@ function ShopeeAdminContent() {
     );
   }, []);
 
+  // Chỉ mục số → các listing đang dùng số đó, để chặn 1 SIM bị gán vào 2 sản
+  // phẩm (không bán trùng số). Bỏ nhãn không phải dãy số ("số ngẫu nhiên"…).
+  const numberIndex = useMemo(() => {
+    const map = new Map<string, { itemId: number; itemName: string }[]>();
+    for (const it of listings) {
+      for (const v of it.variants ?? []) {
+        const d = v.label.replace(/\D/g, "");
+        if (d.length < 9) continue;
+        const arr = map.get(d);
+        if (arr) arr.push({ itemId: it.item_id, itemName: it.item_name });
+        else map.set(d, [{ itemId: it.item_id, itemName: it.item_name }]);
+      }
+    }
+    return map;
+  }, [listings]);
+
   const liveCount = useMemo(
     () => listings.filter((it) => String(it.status).toUpperCase() === "NORMAL").length,
     [listings],
@@ -615,6 +631,7 @@ function ShopeeAdminContent() {
                         token={token}
                         stale={stale}
                         snapshotAt={snapshotAt}
+                        numberIndex={numberIndex}
                         onChange={(next) => updateListingVariants(it.item_id, next)}
                         onRefresh={() => void handlePull()}
                       />
