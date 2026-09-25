@@ -45,7 +45,7 @@ const SYNC_STATE_KEY = 'sims_sheet';
  * là hàm thuần của chúng + phiên bản luật, nên bump version ở đây là cách buộc
  * một lượt ghi lại toàn bộ sau khi sửa luật, mà không phải băm thêm ~10 cột.
  */
-const FINGERPRINT_VERSION = 'v4'; // v3 (09/2026): danh mục kiểu simthanglong; v4: chỉnh lặp kép/gánh đảo/dễ nhớ theo 4.482 số hỏi lại
+const FINGERPRINT_VERSION = 'v5'; // v3 (09/2026): danh mục kiểu simthanglong; v4: chỉnh lặp kép/gánh đảo/dễ nhớ theo 4.482 số hỏi lại; v5: năm sinh chặn trên = năm nay (bỏ 2027–2029)
 
 /**
  * Dưới ngưỡng này thì ô giá là lỗi nhập tay hoặc lệch đơn vị, không phải giá
@@ -222,7 +222,9 @@ const buildFingerprint = async (rows: Record<string, unknown>[]): Promise<string
     r.status,
   ]));
   lines.sort();
-  const payload = `${FINGERPRINT_VERSION}\n${lines.length}\n${lines.join('\n')}`;
+  // Luật "Năm sinh" chặn trên ở NĂM HIỆN TẠI → sang năm mới cột tags/beauty_score
+  // đổi dù sheet không đổi. Cho năm vào vân tay để lượt sync đầu năm tự ghi lại.
+  const payload = `${FINGERPRINT_VERSION}\n${new Date().getFullYear()}\n${lines.length}\n${lines.join('\n')}`;
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(payload));
   return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
 };
