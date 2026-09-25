@@ -19,6 +19,7 @@
 //   - KHÔNG có "Ông địa" (A Khoa bỏ loại này 14/09/2026).
 //   - Năm sinh dạng ddmmyy phải là NGÀY CÓ THẬT (loại 31.11, 30.02) — họ không
 //     kiểm, nhưng gắn nhãn năm sinh cho ngày không tồn tại là sai với khách.
+//   - Năm sinh không được ở TƯƠNG LAI (…2028, 12.12.28 khi mới 2026) — cùng lý do.
 // ═══════════════════════════════════════════════════════════════════════════
 
 /** Số chữ số giống nhau liền nhau tính từ cuối (…0000 → 4). */
@@ -65,8 +66,39 @@ const isPalindrome = (t: string): boolean => {
 
 const NGAY_TRONG_THANG = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-/** Năm sinh hợp lệ theo quy ước kho số: 1950–2029 (yy 00–29 → 20yy, 50–99 → 19yy). */
+/** Quy ước kho số đọc yy: 00–29 → 20yy, 50–99 → 19yy (30–49 không phải năm sinh). */
 const okYY = (yy: number): boolean => yy <= 29 || yy >= 50;
+
+/**
+ * Dải năm sinh: 1950 → NĂM HIỆN TẠI. Trước đây chặn trên cứng 2029 nên 29/1.498 số
+ * trên /sim-nam-sinh mang năm sinh 2027–2029 (0901.180.929 = 18.09.2029) — ngày
+ * chưa tới, sai với khách y như 31.11. Đọc năm theo đồng hồ lúc chạy để sang năm
+ * tự nới, khỏi phải nhớ sửa hằng số.
+ */
+const NAM_SINH_TU = 1950;
+export const laNamSinhHopLe = (y: number): boolean =>
+  Number.isInteger(y) && y >= NAM_SINH_TU && y <= new Date().getFullYear();
+
+/**
+ * Năm sinh đọc được từ đuôi số theo luật nhãn "Năm sinh", hoặc null:
+ *   - 4 số cuối là một năm trong dải (…1995, 093.18.6.2000);
+ *   - không thì 6 số cuối là ngày dd.mm.yy CÓ THẬT, không ở tương lai.
+ * Nhãn "Năm sinh" ⇔ hàm này khác null, nên lọc theo năm (nút "Chọn nhanh năm")
+ * luôn ra tập con của trang năm sinh — không thể lệch nhau.
+ */
+export const namSinhCuaSo = (d: string): number | null => {
+  if (d.length < 6) return null;
+  const y4 = Number(d.slice(-4));
+  if (laNamSinhHopLe(y4)) return y4;
+  const dd = Number(d.slice(-6, -4));
+  const mm = Number(d.slice(-4, -2));
+  const yy = Number(d.slice(-2));
+  if (mm < 1 || mm > 12 || dd < 1 || !okYY(yy)) return null;
+  const y = yy <= 29 ? 2000 + yy : 1900 + yy;
+  if (!laNamSinhHopLe(y)) return null;
+  const maxDay = mm === 2 && !((y % 4 === 0 && y % 100 !== 0) || y % 400 === 0) ? 28 : NGAY_TRONG_THANG[mm - 1];
+  return dd <= maxDay ? y : null;
+};
 
 /**
  * Đuôi 4 số "số độc" simthanglong liệt kê (danh sách tay, không phải công thức).
@@ -152,18 +184,9 @@ export const CATEGORY_RULES: Record<string, Rule> = {
   "Số độc": (d) => SO_DOC_TAILS.has(d.slice(-4)),
   // Đầu số cổ: 090/091/094/097/098 với số thứ tư 2–9 (0901, 0911… là đầu mở sau).
   "Đầu số cổ": (d) => /^09[01478][2-9]/.test(d),
-  // Năm sinh: 4 số cuối là năm 1950–2029, hoặc 6 số cuối là ngày dd.mm.yy có thật.
-  "Năm sinh": (d) => {
-    const y4 = Number(d.slice(-4));
-    if (y4 >= 1950 && y4 <= 2029) return true;
-    const dd = Number(d.slice(-6, -4));
-    const mm = Number(d.slice(-4, -2));
-    const yy = Number(d.slice(-2));
-    if (mm < 1 || mm > 12 || dd < 1 || !okYY(yy)) return false;
-    const y = yy <= 29 ? 2000 + yy : 1900 + yy;
-    const maxDay = mm === 2 && !((y % 4 === 0 && y % 100 !== 0) || y % 400 === 0) ? 28 : NGAY_TRONG_THANG[mm - 1];
-    return dd <= maxDay;
-  },
+  // Năm sinh: 4 số cuối là năm 1950–năm nay, hoặc 6 số cuối là ngày dd.mm.yy có
+  // thật và không ở tương lai. Luật nằm ở `namSinhCuaSo` để lọc theo năm dùng chung.
+  "Năm sinh": (d) => namSinhCuaSo(d) !== null,
 };
 
 /**

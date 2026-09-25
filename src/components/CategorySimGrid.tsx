@@ -6,6 +6,7 @@ import { Search, ChevronLeft, ChevronRight, X, ArrowUpDown, Filter, Sparkles, Ph
 import SIMCardNew from "@/components/SIMCardNew";
 import type { NormalizedSIM, QuyType, SortOption } from "@/lib/simUtils";
 import type { MidQuyRun } from "@/lib/highlightUtils";
+import { namSinhTuTruyVan } from "@/lib/simFilter";
 
 interface CategorySimGridProps {
   /** Heading shown above the grid. */
@@ -26,6 +27,13 @@ interface CategorySimGridProps {
   matchAll?: boolean;
   /** Khi người dùng nhập từ khóa tìm kiếm, tìm kiếm trên TOÀN BỘ kho sim thay vì bị gò bó trong tag/suffix. */
   searchAllOnQuery?: boolean;
+  /**
+   * Trang năm sinh: truy vấn là một NĂM SINH (1990, *1990, *95) thì lọc theo năm
+   * sinh thật (`birthYear`) và GIỮ tag/suffix — không tìm chuỗi chứa trên toàn kho,
+   * vì "1990" nằm trong 0909.199.038 không phải sim năm sinh 1990. Truy vấn khác
+   * vẫn theo `searchAllOnQuery`.
+   */
+  birthYearSearch?: boolean;
   /** Danh sách nút chọn nhanh năm sinh / từ khóa (ví dụ: ["1988", "1989", ...]) */
   quickKeywords?: { label: string; value: string }[];
   /** Chữ hướng dẫn tìm kiếm bên dưới ô search */
@@ -90,6 +98,7 @@ const CategorySimGrid = ({
   quyFilter,
   highlightQuyRun,
   searchAllOnQuery,
+  birthYearSearch,
   quickKeywords,
   searchHelpText,
 }: CategorySimGridProps) => {
@@ -112,8 +121,14 @@ const CategorySimGrid = ({
 
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
+  const queryText = activeSearch.trim();
+  const namSinhDangLoc = birthYearSearch ? namSinhTuTruyVan(queryText) : null;
+  // Chỉ bỏ phạm vi danh mục khi truy vấn KHÔNG phải năm sinh.
+  const timToanKho = Boolean(searchAllOnQuery && queryText && namSinhDangLoc === null);
+
   const queryKey = [
     "category-sims-v2",
+    birthYearSearch ?? false,
     matchAll ?? false,
     matchPrefixes ?? [],
     selectedPrefix ?? "",
@@ -132,7 +147,8 @@ const CategorySimGrid = ({
     queryKey,
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (activeSearch.trim()) params.set("search", activeSearch);
+      if (namSinhDangLoc !== null) params.set("birthYear", String(namSinhDangLoc));
+      else if (queryText) params.set("search", activeSearch);
       if (matchAll) params.set("matchAll", "true");
 
       // Ghép prefix mặc định với prefix người dùng chọn
@@ -144,12 +160,8 @@ const CategorySimGrid = ({
       }
       if (effectivePrefixes.length) params.set("prefixes", effectivePrefixes.join(","));
 
-      if (matchSuffixes?.length && (!searchAllOnQuery || !activeSearch.trim())) {
-        params.set("suffixes", matchSuffixes.join(","));
-      }
-      if (matchTags?.length && (!searchAllOnQuery || !activeSearch.trim())) {
-        params.set("tags", matchTags.join(","));
-      }
+      if (matchSuffixes?.length && !timToanKho) params.set("suffixes", matchSuffixes.join(","));
+      if (matchTags?.length && !timToanKho) params.set("tags", matchTags.join(","));
       if (matchLastDigits?.length) params.set("lastDigits", matchLastDigits.join(","));
       if (quyFilter) params.set("quyType", quyFilter);
 
@@ -221,7 +233,11 @@ const CategorySimGrid = ({
         <div className="flex items-center gap-2.5 flex-wrap">
           <span className="h-5 w-1.5 rounded-full bg-primary" />
           <h1 className="text-lg sm:text-xl font-black text-foreground">
-            {hasActiveSearch ? `Tìm kiếm: "${activeSearch}"` : title}
+            {namSinhDangLoc !== null
+              ? `Sim năm sinh ${namSinhDangLoc}`
+              : hasActiveSearch
+                ? `Tìm kiếm: "${activeSearch}"`
+                : title}
           </h1>
           <span className="inline-flex items-center gap-1 rounded-full bg-red-500/15 border border-red-500/30 px-2.5 py-0.5 text-xs font-bold text-red-500 dark:text-red-400">
             <Sparkles className="h-3 w-3" />
@@ -280,7 +296,7 @@ const CategorySimGrid = ({
               ✨ Chọn nhanh năm:
             </span>
             {quickKeywords.map((kw) => {
-              const active = activeSearch === kw.value;
+              const active = activeSearch === kw.value || String(namSinhDangLoc) === kw.value;
               return (
                 <button
                   key={kw.value}

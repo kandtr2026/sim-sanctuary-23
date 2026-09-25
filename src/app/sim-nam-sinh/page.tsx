@@ -7,8 +7,10 @@ import { buildBreadcrumb } from "@/lib/seo";
 export const revalidate = 300;
 
 const TITLE = "Sim Năm Sinh Mobifone | Kho 100% Sim Năm Sinh Đẹp, Giá Gốc";
+// Không hứa "đủ 100% các năm 1960–2025": kho không có sẵn mọi năm, và dải thật
+// của nhãn là 1950 → năm nay (namSinhCuaSo).
 const DESCRIPTION =
-  "Kho Sim Năm Sinh Mobifone đầy đủ 100% các năm từ 1960 đến 2025. Tìm sim theo ngày tháng năm sinh hoặc tự tìm số theo yêu cầu. Đăng ký chính chủ, giao sim toàn quốc.";
+  "Toàn bộ kho Sim Năm Sinh Mobifone đang có sẵn: số đuôi năm sinh (…1995, …2000) và ngày tháng năm sinh. Tìm theo năm sinh hoặc tự tìm số. Đăng ký chính chủ, giao toàn quốc.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-nam-sinh";
 
 export const metadata: Metadata = {
@@ -53,11 +55,11 @@ interface FaqItem {
 const faqData: FaqItem[] = [
   {
     question: "Tìm sim theo năm sinh như thế nào?",
-    answer: "Quý khách có thể nhập năm sinh (ví dụ 1990, 1995, 2000) hoặc đuôi năm sinh (*95, *88) vào ô tìm kiếm ở trên. Hệ thống sẽ hiển thị toàn bộ những số sim có chứa năm sinh trong dãy số để Quý khách thoải mái lựa chọn.",
+    answer: "Quý khách bấm nút năm sinh ngay dưới ô tìm kiếm, hoặc nhập năm sinh (ví dụ 1990, 1995, 2000) hay đuôi năm sinh (*95, *88). Hệ thống lọc ra những số mang đúng năm sinh đó — ở 4 số đuôi (…1995) hoặc ở ngày tháng năm sinh cuối dãy (20.01.95).",
   },
   {
     question: "Sim năm sinh có đắt không?",
-    answer: "Sim năm sinh có giá từ vài trăm nghìn đến vài chục triệu tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số. Giá niêm yết công khai, không phát sinh chi phí khác.",
+    answer: "Phần lớn sim năm sinh có giá từ 1 đến 4 triệu; số đẹp hơn (trọn 4 số năm sinh, ngày sinh dễ nhớ) có thể lên hàng chục triệu. Giá niêm yết công khai trên từng số, không phát sinh chi phí khác.",
   },
   {
     question: "Không có sim đúng 4 số năm sinh của Quý khách thì sao?",
@@ -96,7 +98,7 @@ const PILLARS: { title: string; body: string }[] = [
   },
   {
     title: "Giá sim năm sinh Mobifone",
-    body: "Kho sim năm sinh Mobifone có phổ giá rất rộng: từ 500k – 2 triệu cho các đầu số mới 07x/089; từ 2 – 5 triệu cho các đầu số cổ 090, 093 có thế số đẹp. Giá niêm yết minh bạch trên từng số, không phát sinh phụ phí.",
+    body: "Kho sim năm sinh Mobifone có phổ giá rộng: phần lớn số từ 1 – 4 triệu, số đẹp hơn (trọn 4 số năm sinh, ngày sinh dễ nhớ) có thể lên hàng chục triệu. Giá niêm yết minh bạch trên từng số, không phát sinh phụ phí.",
   },
   {
     title: "Cam kết khi mua sim tại CHONSOMOBIFONE",
@@ -116,10 +118,11 @@ export default function SimNamSinhPage() {
             emptyText="Kho tạm hết số khớp với tìm kiếm này. Quý khách thử tìm năm sinh khác hoặc gọi 0933.686.666 để nhân viên kiểm tra kho tổng."
             matchTags={["Năm sinh"]}
             searchAllOnQuery={true}
+            birthYearSearch={true}
             quickKeywords={QUICK_YEARS}
             searchHelpText={
               <>
-                💡 <strong>Mẹo tìm nhanh:</strong> Nhập 4 số năm sinh (VD: <code className="bg-muted px-1.5 py-0.5 rounded font-mono font-semibold text-foreground">1995</code>, <code className="bg-muted px-1.5 py-0.5 rounded font-mono font-semibold text-foreground">2000</code>) · Nhập đuôi năm sinh <code className="bg-muted px-1.5 py-0.5 rounded font-mono font-semibold text-foreground">*95</code>, <code className="bg-muted px-1.5 py-0.5 rounded font-mono font-semibold text-foreground">*88</code> · Hoặc tìm đầu số kết hợp năm sinh <code className="bg-muted px-1.5 py-0.5 rounded font-mono font-semibold text-foreground">090*1995</code>
+                💡 <strong>Mẹo tìm nhanh:</strong> Nhập năm sinh <code className="bg-muted px-1.5 py-0.5 rounded font-mono font-semibold text-foreground">1995</code> hoặc đuôi <code className="bg-muted px-1.5 py-0.5 rounded font-mono font-semibold text-foreground">*95</code> để ra đúng sim mang năm sinh đó · Tìm đầu số kèm năm sinh <code className="bg-muted px-1.5 py-0.5 rounded font-mono font-semibold text-foreground">090*1995</code> · Nhập số bất kỳ để tìm trên toàn kho
               </>
             }
           />

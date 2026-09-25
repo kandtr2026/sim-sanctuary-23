@@ -12,6 +12,8 @@ export {
   calculateBeautyScore,
   detectSimCategories,
   isVIPSim,
+  laNamSinhHopLe,
+  namSinhCuaSo,
   primarySimCategory,
   type SimCategory,
 } from "../../supabase/functions/_shared/simCategories";

@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { getServerSims, querySimsFromDb, type DbQueryCriteria } from "@/lib/serverSimData";
 import { filterSims, paginateSims, type SimFilterCriteria } from "@/lib/simFilter";
 import { countTags, countMenh, getUniquePrefixes, PRICE_RANGES } from "@/lib/simUtils";
+import { laNamSinhHopLe } from "@/lib/simCategories";
 import type { QuyType, SortOption } from "@/lib/simUtils";
 
 // Cache tầng route để đỡ cold-start; chính thực ra `getServerSims` đã cache CSV
@@ -50,6 +51,9 @@ export async function GET(req: NextRequest) {
 
   const priceRanges = splitParam(searchParams.get("priceRanges"))?.map((s) => Number(s)).filter((n) => Number.isInteger(n) && n >= 0);
 
+  const birthYearRaw = Number(searchParams.get("birthYear"));
+  const birthYear = laNamSinhHopLe(birthYearRaw) ? birthYearRaw : undefined;
+
   const criteria: SimFilterCriteria = {
     search: searchParams.get("search") || undefined,
     prefixes: splitParam(searchParams.get("prefixes")),
@@ -67,6 +71,7 @@ export async function GET(req: NextRequest) {
     sortBy,
     mobifoneFirst: searchParams.get("mobifoneFirst") === "true" ? true : undefined,
     birthDateOnly: searchParams.get("birthDateOnly") === "1" ? true : undefined,
+    birthYear,
     menh: searchParams.get("menh") || undefined,
   };
 
@@ -76,7 +81,7 @@ export async function GET(req: NextRequest) {
 
   // ── Fast path: push filter xuống PostgREST (1 request, không crawl 49k) ──
   // Chỉ dùng khi criteria "đẩy xuống" được: facets cần toàn bộ kho (giữ path cũ),
-  // tags/quyType/birthDateOnly/lastDigits/matchAll phải tính trong JS → path cũ.
+  // tags/quyType/birthDateOnly/birthYear/lastDigits/matchAll phải tính trong JS → path cũ.
   const dbCriteria: DbQueryCriteria = {
     search: criteria.search,
     prefixes: criteria.prefixes,
@@ -101,6 +106,7 @@ export async function GET(req: NextRequest) {
     !includeFacets &&
     !criteria.quyType &&
     !criteria.birthDateOnly &&
+    !criteria.birthYear &&
     !criteria.lastDigits?.length &&
     !criteria.matchAll &&
     !criteria.tags?.length &&

@@ -10,6 +10,19 @@
 import { matchesQuyFilter, parseBirthDate, sortSIMs, PRICE_RANGES } from '@/lib/simUtils';
 import type { NormalizedSIM, QuyType, SortOption } from '@/lib/simUtils';
 import { nguHanhCuaSo } from '@/lib/phongThuy';
+import { laNamSinhHopLe, namSinhCuaSo } from '@/lib/simCategories';
+
+/**
+ * Truy vấn tìm kiếm là một NĂM SINH → năm, không thì null (tìm kiếm thường).
+ *   1990 · *1990 → 1990;  *95 → 1995;  *05 → 2005 (cùng quy ước yy với nhãn "Năm sinh").
+ * Trang năm sinh dùng để lọc theo `birthYear` thay vì tìm chuỗi chứa.
+ */
+export function namSinhTuTruyVan(q: string): number | null {
+  const m4 = /^\*?(\d{4})$/.exec(q);
+  const m2 = m4 ? null : /^\*(\d{2})$/.exec(q);
+  const y = m4 ? Number(m4[1]) : m2 ? (Number(m2[1]) <= 29 ? 2000 : 1900) + Number(m2[1]) : null;
+  return y !== null && laNamSinhHopLe(y) ? y : null;
+}
 
 export interface SimFilterCriteria {
   /** Chuỗi tìm kiếm — hỗ trợ: 10 số chính xác, `*đuôi`, `đầu*`, chứa. */
@@ -37,6 +50,11 @@ export interface SimFilterCriteria {
   mobifoneFirst?: boolean;
   /** Chỉ giữ SIM có ngày sinh THẬT (parseBirthDate hợp lệ) — lọc "Năm sinh" chặt. */
   birthDateOnly?: boolean;
+  /**
+   * Chỉ giữ SIM mang ĐÚNG năm sinh này theo luật nhãn "Năm sinh" (…1990 hoặc
+   * dd.mm.90). Khác `search: "1990"` — tìm chuỗi chứa sẽ ra 0909.199.038.
+   */
+  birthYear?: number;
   /** Lọc theo mệnh ngũ hành (Kim, Mộc, Thủy, Hỏa, Thổ) */
   menh?: string;
 }
@@ -140,6 +158,11 @@ export function filterSims(sims: NormalizedSIM[], criteria: SimFilterCriteria): 
   // Lọc "Năm sinh" chặt: chỉ giữ sim đọc được ngày sinh thật từ 6 số cuối.
   if (criteria.birthDateOnly) {
     result = result.filter((s) => parseBirthDate(getDigits(s)) !== null);
+  }
+
+  // Lọc theo một năm sinh cụ thể — cùng luật với nhãn nên luôn là tập con trang năm sinh.
+  if (criteria.birthYear) {
+    result = result.filter((s) => namSinhCuaSo(getDigits(s)) === criteria.birthYear);
   }
 
   // Lọc theo Mệnh ngũ hành (Hà Đồ)
