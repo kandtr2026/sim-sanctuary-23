@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
-import { Sparkles } from "lucide-react";
-import SimNamSinhFinder from "./SimNamSinhFinder";
+import CategorySimGrid from "@/components/CategorySimGrid";
+import TrustCommitments from "@/components/TrustCommitments";
 import FaqAccordion from "@/components/FaqAccordion";
 import { buildBreadcrumb } from "@/lib/seo";
 
-const TITLE = "Sim Năm Sinh – Tìm SIM Có Đúng Ngày Sinh, Năm Sinh";
+export const revalidate = 300;
+
+const TITLE = "Sim Năm Sinh Mobifone | Kho 100% Sim Năm Sinh Đẹp, Giá Gốc";
 const DESCRIPTION =
-  "Tìm sim năm sinh theo ngày sinh của Quý khách: chọn ngày/tháng/năm để xem những số có năm sinh trong dãy. Giá công khai, đăng ký thông tin chính chủ, giao toàn quốc.";
+  "Kho Sim Năm Sinh Mobifone đầy đủ 100% các năm từ 1960 đến 2025. Tìm sim theo ngày tháng năm sinh hoặc tự tìm số theo yêu cầu. Đăng ký chính chủ, giao sim toàn quốc.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-nam-sinh";
 
 export const metadata: Metadata = {
@@ -23,6 +24,27 @@ export const metadata: Metadata = {
   },
 };
 
+const QUICK_YEARS = [
+  { label: "1988", value: "1988" },
+  { label: "1989", value: "1989" },
+  { label: "1990", value: "1990" },
+  { label: "1991", value: "1991" },
+  { label: "1992", value: "1992" },
+  { label: "1993", value: "1993" },
+  { label: "1994", value: "1994" },
+  { label: "1995", value: "1995" },
+  { label: "1996", value: "1996" },
+  { label: "1997", value: "1997" },
+  { label: "1998", value: "1998" },
+  { label: "1999", value: "1999" },
+  { label: "2000", value: "2000" },
+  { label: "2001", value: "2001" },
+  { label: "2002", value: "2002" },
+  { label: "2003", value: "2003" },
+  { label: "2004", value: "2004" },
+  { label: "2005", value: "2005" },
+];
+
 interface FaqItem {
   question: string;
   answer: string;
@@ -31,19 +53,19 @@ interface FaqItem {
 const faqData: FaqItem[] = [
   {
     question: "Tìm sim theo năm sinh như thế nào?",
-    answer: "Quý khách chọn ngày, tháng, năm sinh ở ô phía trên. Hệ thống lọc sẵn những sim có số năm sinh trong dãy số và hiển thị kèm giá để Quý khách chọn.",
+    answer: "Quý khách có thể nhập năm sinh (ví dụ 1990, 1995, 2000) hoặc đuôi năm sinh (*95, *88) vào ô tìm kiếm ở trên. Hệ thống sẽ hiển thị toàn bộ những số sim có chứa năm sinh trong dãy số để Quý khách thoải mái lựa chọn.",
   },
   {
     question: "Sim năm sinh có đắt không?",
     answer: "Sim năm sinh có giá từ vài trăm nghìn đến vài chục triệu tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số. Giá niêm yết công khai, không phát sinh chi phí khác.",
   },
   {
-    question: "Không có sim đúng ngày sinh của Quý khách thì sao?",
-    answer: "Quý khách vẫn chọn được số phù hợp: chúng tôi chuyển sang gợi ý theo phong thủy hợp tuổi — công cụ Sim hợp tuổi chấm điểm toàn bộ kho theo mệnh, ngũ hành và quẻ dịch của Quý khách, nên luôn có số hợp dù dãy số không chứa năm sinh. Kho cũng đổi hàng liên tục nên Quý khách có thể xem lại sau.",
+    question: "Không có sim đúng 4 số năm sinh của Quý khách thì sao?",
+    answer: "Quý khách có thể chọn dạng sim 2 số đuôi năm sinh (ví dụ sinh năm 1995 chọn đuôi *95), hoặc kết hợp ngày tháng năm sinh (ví dụ 20.01.95). Ngoài ra, công cụ Sim Hợp Tuổi / Hợp Mệnh sẽ giúp Quý khách tìm số mang vượng khí ngũ hành chuẩn nhất theo năm sinh của mình.",
   },
   {
     question: "Mua sim năm sinh có đăng ký thông tin chính chủ không?",
-    answer: "Được. Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ đăng ký thông tin chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới trả tiền.",
+    answer: "Có. Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ đăng ký thông tin chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới trả tiền.",
   },
 ];
 
@@ -57,7 +79,7 @@ const faqJsonLd = {
   })),
 };
 
-const cardBaseClass = "relative rounded-2xl p-6 md:p-9";
+const cardBaseClass = "relative rounded-2xl p-6 md:p-8";
 const cardStyle: React.CSSProperties = {
   background: "#161214",
   border: "1px solid rgba(255,255,255,0.08)",
@@ -66,69 +88,64 @@ const cardStyle: React.CSSProperties = {
 const PILLARS: { title: string; body: string }[] = [
   {
     title: "Sim năm sinh là gì?",
-    body: "Sim năm sinh là dòng sim có số năm sinh nằm ở các số cuối — năm sinh của Quý khách hoặc của người thân. Nhiều người chọn vì dễ nhớ và mang ý nghĩa riêng. Quý khách chỉ cần chọn ngày sinh phía trên, hệ thống lọc sẵn những số có năm sinh tương ứng đang có trong kho.",
+    body: "Sim năm sinh là dòng sim có số năm sinh nằm ở đuôi hoặc trong dãy số — gắn liền với dấu mốc năm sinh của Quý khách hoặc người thân. Dòng sim này vừa tạo phong cách riêng, vừa giúp đối tác và bạn bè nhớ số điện thoại cực kỳ nhanh.",
   },
   {
-    title: "Lợi ích khi chọn sim năm sinh",
-    body: "Số có sẵn năm sinh trong dãy thì Quý khách nhớ nhanh hơn, đọc cho đối tác cũng gọn hơn. Với nhiều người, đó còn là cách lưu giữ một dấu mốc riêng — sinh nhật của bản thân, của con, của người thân.",
+    title: "Các dạng sim năm sinh phổ biến",
+    body: "Có 3 dạng sim năm sinh được ưa chuộng nhất: (1) Sim chứa trọn vẹn 4 số năm sinh ở đuôi (ví dụ: *1990, *1995, *2000); (2) Sim rút gọn 2 số cuối năm sinh (ví dụ: *90, *95); (3) Sim ngày tháng năm sinh đầy đủ dạng ddmmyy hoặc d.m.yyyy.",
   },
   {
-    title: "Giá sim năm sinh có đắt không?",
-    body: "Sim năm sinh Mobifone có giá từ vài trăm nghìn đến vài chục triệu đồng, tùy đầu số (090, 093, 07x...) và độ đẹp của dãy số quanh số năm sinh. Giá niêm yết công khai trên kho, không phát sinh chi phí khác — Quý khách so giá trước, quyết định sau.",
-  },
-  {
-    title: "Số gắn với năm sinh — vì sao nhiều người chọn",
-    body: "Số có năm sinh trong dãy thì Quý khách nhớ được ngay và đọc cho đối tác cũng nhanh gọn. Nhiều người còn chọn theo năm sinh của người thân để làm quà. Trang này chỉ tìm số CHỨA ĐÚNG năm sinh; nếu Quý khách muốn chọn số theo mệnh, ngũ hành và quẻ dịch thì dùng công cụ Sim hợp tuổi — nó chấm điểm toàn bộ kho nên luôn có số phù hợp.",
+    title: "Giá sim năm sinh Mobifone",
+    body: "Kho sim năm sinh Mobifone có phổ giá rất rộng: từ 500k – 2 triệu cho các đầu số mới 07x/089; từ 2 – 5 triệu cho các đầu số cổ 090, 093 có thế số đẹp. Giá niêm yết minh bạch trên từng số, không phát sinh phụ phí.",
   },
   {
     title: "Cam kết khi mua sim tại CHONSOMOBIFONE",
-    body: "Toàn bộ sim tại CHONSOMOBIFONE.COM đều hỗ trợ đăng ký thông tin chính chủ. Quý khách nhận SIM, kiểm tra kỹ rồi mới trả tiền. 30 phút giao toàn quốc. Chúng tôi hỗ trợ đăng ký qua cửa hàng MobiFone hoặc ứng dụng My Mobifone.",
+    body: "100% sim bán ra đều hỗ trợ đăng ký chính chủ trước khi kích hoạt. Giao hàng hỏa tốc trong 30-60 phút tại TP.HCM và 1-2 ngày toàn quốc. Quý khách nhận sim, gọi kiểm tra thông tin chính chủ đúng tên mình rồi mới thanh toán.",
   },
 ];
 
 export default function SimNamSinhPage() {
   return (
     <>
-      <main className="flex-1 flex flex-col bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950">
-        <div className="flex-1 container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
-            {/* Hero Section */}
-            <div className="text-center mb-10 md:mb-12">
-              <h1 className="mb-3 flex items-center justify-center gap-2.5 font-bold leading-tight text-[clamp(28px,5vw,44px)]" style={{ color: "#F5F5F5", letterSpacing: "-0.02em" }}>
-                <Sparkles className="w-7 h-7 shrink-0" style={{ color: "#D9B778" }} />
-                <span>
-                  Sim Năm Sinh <span style={{ color: "#D9B778" }}>Theo Ngày Sinh</span>
-                </span>
-              </h1>
-              <p style={{ color: "rgba(237, 237, 237, 0.7)" }} className="mx-auto max-w-xl text-sm md:text-base leading-relaxed">
-                Quý khách nhập ngày/tháng/năm sinh — hoặc chỉ chọn năm sinh — chúng tôi lọc sẵn những số có năm sinh
-                trong dãy. Chưa có số đúng ngày sinh, chúng tôi gợi ý sim hợp tuổi để Quý khách vẫn chọn được số phù hợp.
-              </p>
-            </div>
+      <main className="min-h-screen bg-background pb-12">
+        <div className="container mx-auto px-4 pt-3 pb-2">
+          {/* Vào thẳng việc chính: Kho sim 100% + Bộ lọc + Tìm kiếm tự do */}
+          <CategorySimGrid
+            title="Sim Năm Sinh Mobifone"
+            searchPlaceholder="Nhập năm sinh (VD: 1990, 1995, 2000, *88), ngày sinh hoặc số cần tìm..."
+            emptyText="Kho tạm hết số khớp với tìm kiếm này. Quý khách thử tìm năm sinh khác hoặc gọi 0933.686.666 để nhân viên kiểm tra kho tổng."
+            matchTags={["Năm sinh"]}
+            searchAllOnQuery={true}
+            quickKeywords={QUICK_YEARS}
+            searchHelpText={
+              <>
+                💡 <strong>Mẹo tìm nhanh:</strong> Nhập 4 số năm sinh (VD: <code className="bg-muted px-1.5 py-0.5 rounded font-mono font-semibold text-foreground">1995</code>, <code className="bg-muted px-1.5 py-0.5 rounded font-mono font-semibold text-foreground">2000</code>) · Nhập đuôi năm sinh <code className="bg-muted px-1.5 py-0.5 rounded font-mono font-semibold text-foreground">*95</code>, <code className="bg-muted px-1.5 py-0.5 rounded font-mono font-semibold text-foreground">*88</code> · Hoặc tìm đầu số kết hợp năm sinh <code className="bg-muted px-1.5 py-0.5 rounded font-mono font-semibold text-foreground">090*1995</code>
+              </>
+            }
+          />
+        </div>
 
-            {/* Client island: công cụ tìm sim năm sinh */}
-            <Suspense fallback={null}>
-              <SimNamSinhFinder />
-            </Suspense>
+        <div className="container mx-auto px-4 mt-6">
+          <div className="max-w-4xl mx-auto space-y-8">
+            <TrustCommitments />
 
-            {/* SEO content — sim năm sinh */}
-            <div className={`${cardBaseClass} mt-10 md:mt-14`} style={cardStyle}>
+            {/* SEO Content — Giới thiệu sim năm sinh */}
+            <div className={cardBaseClass} style={cardStyle}>
               <h2
-                className="text-[22px] md:text-2xl font-semibold mb-3 flex items-center gap-3"
+                className="text-[20px] md:text-2xl font-semibold mb-3 flex items-center gap-3"
                 style={{ color: "#F5F5F5", letterSpacing: "-0.01em" }}
               >
                 <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: "#D9B778" }} />
-                Sim năm sinh — thông tin cần biết
+                Ý nghĩa & Cách chọn Sim Năm Sinh Mobifone
               </h2>
               <p className="mb-6 text-sm leading-relaxed" style={{ color: "rgba(237,237,237,0.7)" }}>
-                Kho sim năm sinh Mobifone của CHONSOMOBIFONE có hàng ngàn số sẵn hàng, mỗi số một mức giá niêm yết
-                rõ ràng để Quý khách đối chiếu và chủ động chọn.
+                Kho sim năm sinh Mobifone của CHONSOMOBIFONE tập hợp hàng ngàn số sẵn hàng, giá niêm yết rõ ràng để Quý khách đối chiếu và chủ động lựa chọn số điện thoại gắn liền với ngày sinh của mình.
               </p>
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {PILLARS.map((pillar) => (
                   <div
                     key={pillar.title}
-                    className="rounded-xl p-4"
+                    className="rounded-xl p-4.5"
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
                   >
                     <h3 className="mb-1.5 text-base font-semibold" style={{ color: "#D9B778" }}>
@@ -142,63 +159,20 @@ export default function SimNamSinhPage() {
               </div>
             </div>
 
-            {/* Vì sao chọn CHONSOMOBIFONE */}
-            <div className={`${cardBaseClass} mt-10 md:mt-14`} style={cardStyle}>
-              <h2
-                className="text-[22px] md:text-2xl font-semibold mb-3 flex items-center gap-3"
-                style={{ color: "#F5F5F5", letterSpacing: "-0.01em" }}
-              >
-                <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: "#D9B778" }} />
-                Vì sao mua sim năm sinh tại CHONSOMOBIFONE?
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[
-                  "Giá niêm yết công khai trên từng số, trong kho SIM Mobifone thật",
-                  "Tra sim theo ngày sinh chỉ trong một bước",
-                  "Đăng ký thông tin chính chủ; Quý khách nhận SIM, kiểm tra rồi mới trả tiền",
-                  "30 phút giao toàn quốc",
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="flex items-start gap-3 rounded-xl p-4"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-                  >
-                    <span aria-hidden className="mt-0.5 inline-block w-2 h-2 rounded-full flex-shrink-0" style={{ background: "#D9B778" }} />
-                    <p className="text-sm leading-relaxed" style={{ color: "rgba(237,237,237,0.8)" }}>{item}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* FAQ Section */}
-            <div className={`${cardBaseClass} mt-10 md:mt-14`} style={cardStyle}>
+            <div className={cardBaseClass} style={cardStyle}>
               <h2
-                className="text-[22px] md:text-2xl font-semibold mb-6 flex items-center gap-3"
+                className="text-[20px] md:text-2xl font-semibold mb-6 flex items-center gap-3"
                 style={{ color: "#F5F5F5", letterSpacing: "-0.01em" }}
               >
                 <span aria-hidden className="inline-block h-6 w-1 rounded-full" style={{ background: "#D9B778" }} />
-                Câu hỏi thường gặp
+                Câu hỏi thường gặp về Sim Năm Sinh
               </h2>
               <FaqAccordion
                 items={faqData.map((faq) => ({ q: faq.question, a: faq.answer }))}
                 title={null}
                 className="rounded-none border-0 bg-transparent p-0 shadow-none md:p-0"
               />
-            </div>
-
-            {/* Disclaimer */}
-            <div
-              className="rounded-xl p-5 text-center mt-8"
-              style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
-              <p className="text-sm" style={{ color: "rgba(237, 237, 237, 0.8)" }}>
-                <strong style={{ color: "#D9B778" }}>Lưu ý:</strong> Sim năm sinh là dòng sim có số năm sinh ở các số
-                cuối, dễ nhớ và mang ý nghĩa riêng với người dùng. Quý khách nên cân nhắc thêm nhiều yếu tố để chọn
-                được số ưng ý.
-              </p>
             </div>
           </div>
         </div>

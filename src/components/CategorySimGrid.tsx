@@ -24,6 +24,12 @@ interface CategorySimGridProps {
   matchLastDigits?: string[];
   /** Show the full kho without filtering (used by phong thủy hợp mệnh). */
   matchAll?: boolean;
+  /** Khi người dùng nhập từ khóa tìm kiếm, tìm kiếm trên TOÀN BỘ kho sim thay vì bị gò bó trong tag/suffix. */
+  searchAllOnQuery?: boolean;
+  /** Danh sách nút chọn nhanh năm sinh / từ khóa (ví dụ: ["1988", "1989", ...]) */
+  quickKeywords?: { label: string; value: string }[];
+  /** Chữ hướng dẫn tìm kiếm bên dưới ô search */
+  searchHelpText?: React.ReactNode;
   /**
    * When set, cards render the quý block highlighted (e.g. Ngũ quý → *77777*).
    * Matches the quý badges the homepage SimBrowser passes to the same cards.
@@ -83,6 +89,9 @@ const CategorySimGrid = ({
   matchAll,
   quyFilter,
   highlightQuyRun,
+  searchAllOnQuery,
+  quickKeywords,
+  searchHelpText,
 }: CategorySimGridProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
@@ -135,8 +144,12 @@ const CategorySimGrid = ({
       }
       if (effectivePrefixes.length) params.set("prefixes", effectivePrefixes.join(","));
 
-      if (matchSuffixes?.length) params.set("suffixes", matchSuffixes.join(","));
-      if (matchTags?.length) params.set("tags", matchTags.join(","));
+      if (matchSuffixes?.length && (!searchAllOnQuery || !activeSearch.trim())) {
+        params.set("suffixes", matchSuffixes.join(","));
+      }
+      if (matchTags?.length && (!searchAllOnQuery || !activeSearch.trim())) {
+        params.set("tags", matchTags.join(","));
+      }
       if (matchLastDigits?.length) params.set("lastDigits", matchLastDigits.join(","));
       if (quyFilter) params.set("quyType", quyFilter);
 
@@ -260,9 +273,48 @@ const CategorySimGrid = ({
           </div>
         </form>
 
+        {/* Nút chọn nhanh từ khóa / năm sinh */}
+        {quickKeywords && quickKeywords.length > 0 && (
+          <div className="mt-2.5 flex items-center gap-1.5 flex-wrap justify-center">
+            <span className="text-xs font-semibold text-muted-foreground mr-1">
+              ✨ Chọn nhanh năm:
+            </span>
+            {quickKeywords.map((kw) => {
+              const active = activeSearch === kw.value;
+              return (
+                <button
+                  key={kw.value}
+                  type="button"
+                  onClick={() => {
+                    if (active) {
+                      setActiveSearch("");
+                      setSearchQuery("");
+                    } else {
+                      setActiveSearch(kw.value);
+                      setSearchQuery(kw.value);
+                    }
+                    setCurrentPage(1);
+                  }}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+                    active
+                      ? "bg-primary text-primary-foreground shadow-sm scale-105"
+                      : "bg-background text-foreground/80 hover:bg-muted border border-border/80 hover:border-primary/50"
+                  }`}
+                >
+                  {kw.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {/* Hướng dẫn tìm nhanh */}
         <p className="mt-2 text-center text-xs text-muted-foreground">
-          💡 <strong>Mẹo tìm nhanh:</strong> Gõ <code className="bg-muted px-1.5 py-0.5 rounded text-foreground font-mono font-semibold">*39</code> để tìm đuôi 39 · Gõ <code className="bg-muted px-1.5 py-0.5 rounded text-foreground font-mono font-semibold">090*</code> để tìm đầu 090 · Gõ <code className="bg-muted px-1.5 py-0.5 rounded text-foreground font-mono font-semibold">*68*</code> để tìm số chứa 68
+          {searchHelpText ?? (
+            <>
+              💡 <strong>Mẹo tìm nhanh:</strong> Gõ <code className="bg-muted px-1.5 py-0.5 rounded text-foreground font-mono font-semibold">*39</code> để tìm đuôi 39 · Gõ <code className="bg-muted px-1.5 py-0.5 rounded text-foreground font-mono font-semibold">090*</code> để tìm đầu 090 · Gõ <code className="bg-muted px-1.5 py-0.5 rounded text-foreground font-mono font-semibold">*68*</code> để tìm số chứa 68
+            </>
+          )}
         </p>
       </div>
 
