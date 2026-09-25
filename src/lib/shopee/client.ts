@@ -397,9 +397,10 @@ export class ShopeeProductClient {
 
   /** Xoá hẳn một model (biến thể/số) khỏi item. Khác updateModelStock (chỉ set kho=0). */
   async deleteModel(itemId: number, modelId: number): Promise<void> {
+    // Shopee delete_model nhận model_id (số ít), không phải model_id_list.
     await this.call(PATH_DELETE_MODEL, {
       item_id: itemId,
-      model_id_list: [modelId],
+      model_id: modelId,
     });
   }
 
