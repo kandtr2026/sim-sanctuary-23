@@ -8,6 +8,7 @@ import {
   PATH_ADD_ITEM,
   PATH_ADD_MODEL,
   PATH_DELETE_ITEM,
+  PATH_DELETE_MODEL,
   PATH_GET_ATTRIBUTES,
   PATH_GET_CATEGORY,
   PATH_GET_ITEM_BASE_INFO,
@@ -392,6 +393,14 @@ export class ShopeeProductClient {
 
   async deleteItem(itemId: number, unlist = true): Promise<void> {
     await this.call(PATH_DELETE_ITEM, { item_id: itemId, unlist });
+  }
+
+  /** Xoá hẳn một model (biến thể/số) khỏi item. Khác updateModelStock (chỉ set kho=0). */
+  async deleteModel(itemId: number, modelId: number): Promise<void> {
+    await this.call(PATH_DELETE_MODEL, {
+      item_id: itemId,
+      model_id_list: [modelId],
+    });
   }
 
   async getCategories(country = "VN"): Promise<Record<string, unknown>[]> {

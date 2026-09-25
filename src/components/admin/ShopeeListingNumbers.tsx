@@ -15,7 +15,7 @@
  */
 
 import { useCallback, useState } from "react";
-import { Boxes, Check, Loader2, Package, PencilLine, Plus, PowerOff, Search, Sparkles, X } from "lucide-react";
+import { Boxes, Check, Loader2, Package, PencilLine, Plus, Search, Sparkles, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -314,18 +314,23 @@ export default function ShopeeListingNumbers({
     }
   };
 
-  const disable = async (v: ShopeeVariant) => {
+  const removeModel = async (v: ShopeeVariant) => {
     if (!token) return;
-    if (!window.confirm(`Tắt số ${v.label} (đặt kho = 0)? Số sẽ ngừng bán trên Shopee.`)) return;
-    setBusy(`disable-${v.model_id}`);
+    if (
+      !window.confirm(
+        `Xoá hẳn số ${v.label} khỏi listing này? Số sẽ ngừng bán và biến mất khỏi danh sách.\n(Chỉ muốn ẩn tạm mà giữ số thì dùng "Sửa kho" = 0.)`,
+      )
+    )
+      return;
+    setBusy(`del-${v.model_id}`);
     try {
       await fetchJson(
-        "/api/admin/shopee/items/disable-models",
-        { method: "POST", body: JSON.stringify({ models: [{ item_id: itemId, model_id: v.model_id }] }) },
+        "/api/admin/shopee/items/delete-model",
+        { method: "POST", body: JSON.stringify({ itemId, modelId: v.model_id }) },
         token,
       );
-      onChange(variants.map((x) => (x.model_id === v.model_id ? { ...x, stock: 0 } : x)));
-      toast.success(`Đã tắt số ${v.label}`);
+      onChange(variants.filter((x) => x.model_id !== v.model_id));
+      toast.success(`Đã xoá số ${v.label}`);
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -520,16 +525,16 @@ export default function ShopeeListingNumbers({
                           variant="ghost"
                           size="sm"
                           className="h-7 gap-1 px-2 text-xs text-primary hover:text-primary"
-                          title="Tắt số này (kho = 0)"
-                          onClick={() => void disable(v)}
-                          disabled={het || busy === `disable-${v.model_id}`}
+                          title="Xoá hẳn số này khỏi listing"
+                          onClick={() => void removeModel(v)}
+                          disabled={busy === `del-${v.model_id}`}
                         >
-                          {busy === `disable-${v.model_id}` ? (
+                          {busy === `del-${v.model_id}` ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
                           ) : (
-                            <PowerOff className="h-3.5 w-3.5" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           )}
-                          Tắt
+                          Xoá
                         </Button>
                       </div>
                     </td>

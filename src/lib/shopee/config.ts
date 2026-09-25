@@ -37,6 +37,7 @@ export const PATH_UPDATE_TIER_VARIATION = "/api/v2/product/update_tier_variation
 export const PATH_UPDATE_STOCK = "/api/v2/product/update_stock";
 export const PATH_UPDATE_PRICE = "/api/v2/product/update_price";
 export const PATH_DELETE_ITEM = "/api/v2/product/delete_item";
+export const PATH_DELETE_MODEL = "/api/v2/product/delete_model";
 export const PATH_GET_CATEGORY = "/api/v2/product/get_category";
 export const PATH_GET_ATTRIBUTES = "/api/v2/product/get_attributes";
 export const PATH_GET_LOGISTICS = "/api/v2/logistics/get_logistics_info";
