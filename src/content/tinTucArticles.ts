@@ -148,7 +148,7 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
     category: "Phong thuỷ",
     cover: {
       src: "/blog/bat-cuc-linh-so-la-gi.webp",
-      alt: "Tám quả cầu vàng phát sáng xếp vòng tròn trên bàn gỗ sơn mài",
+      alt: "Biểu đồ phân tích dữ liệu và các chỉ số công nghệ số",
       width: 1200,
       height: 675,
     },
@@ -167,7 +167,7 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
     category: "Phong thuỷ",
     cover: {
       src: "/blog/80-que-kinh-dich-trong-sim.webp",
-      alt: "Thẻ tre chiêm bốc và la bàn phong thuỷ bằng đồng trên nền lụa đen",
+      alt: "Mạng lưới kết nối viễn thông và ánh sáng số toàn cầu",
       width: 1200,
       height: 675,
     },
@@ -188,7 +188,7 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
     category: "Phong thuỷ",
     cover: {
       src: "/blog/sim-hop-menh-ngu-hanh.webp",
-      alt: "Năm vật tượng trưng ngũ hành xếp trên nền đá đen",
+      alt: "Không gian làm việc cân bằng hài hòa với thiên nhiên và thiết bị công nghệ",
       width: 1200,
       height: 675,
     },
@@ -207,7 +207,7 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
     category: "Phong thuỷ",
     cover: {
       src: "/blog/cach-tinh-diem-sim-phong-thuy.webp",
-      alt: "Bàn tính gỗ khung sẫm với hạt màu vàng đồng",
+      alt: "Bảng số liệu phân tích và đánh giá điểm số viễn thông",
       width: 1200,
       height: 675,
     },
@@ -227,7 +227,7 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
     category: "Ý nghĩa sim",
     cover: {
       src: "/blog/y-nghia-2-so-cuoi-dien-thoai.webp",
-      alt: "Hai đồng xu vàng cổ đặt cạnh nhau trên nền lụa đỏ sẫm",
+      alt: "Điện thoại thông minh cao cấp và tai nghe không dây trên bàn làm việc",
       width: 1200,
       height: 675,
     },
@@ -428,31 +428,31 @@ export function getRelatedArticles(
 const CATEGORY_COVERS: Record<string, ArticleCover> = {
   "Phong thuỷ": {
     src: "/blog/cat-phong-thuy.webp",
-    alt: "La bàn phong thuỷ bằng đồng trên nền lụa đỏ",
+    alt: "Góc làm việc hiện đại phong cách tối giản với cây xanh phong thuỷ",
     width: 1200,
     height: 675,
   },
   "Ý nghĩa sim": {
     src: "/blog/cat-y-nghia-sim.webp",
-    alt: "Thẻ SIM mạ vàng trên nền lụa đỏ",
+    alt: "Doanh nhân trẻ với điện thoại thông minh kết nối liên lạc",
     width: 1200,
     height: 675,
   },
   "Kiến thức mua sim": {
     src: "/blog/cat-kien-thuc-mua-sim.webp",
-    alt: "Sổ tay da, bút và điện thoại trên bàn làm việc tối",
+    alt: "Bàn làm việc hiện đại với máy tính và thao tác xử lý công việc",
     width: 1200,
     height: 675,
   },
   "Đầu số": {
     src: "/blog/cat-dau-so.webp",
-    alt: "Năm thẻ nano SIM xếp xoè trên nền tối",
+    alt: "Điện thoại thông minh hiện đại trên nền sáng",
     width: 1200,
     height: 675,
   },
   "Hướng dẫn MobiFone": {
     src: "/blog/cat-kien-thuc-mua-sim.webp",
-    alt: "Sổ tay da, bút và điện thoại trên bàn làm việc tối",
+    alt: "Bàn làm việc hiện đại với máy tính và thao tác xử lý công việc",
     width: 1200,
     height: 675,
   },
