@@ -56,7 +56,7 @@ export default async function TinTucPage() {
     title: a.title,
     excerpt: a.excerpt ?? a.description,
     category: a.category,
-    cover: a.cover ?? coverForCategory(a.category),
+    cover: a.cover ?? coverForCategory(a.category, a.slug),
     date: a.dateModified,
   }));
 
@@ -71,7 +71,7 @@ export default async function TinTucPage() {
       category: p.category ?? "Ý nghĩa sim",
       cover: p.cover_image_url
         ? { src: p.cover_image_url, alt: p.title, width: 1200, height: 675 }
-        : coverForCategory(p.category),
+        : coverForCategory(p.category, p.slug),
       date: p.created_at,
     }));
 

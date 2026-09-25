@@ -425,40 +425,131 @@ export function getRelatedArticles(
  * trang danh sách không bị lỗ hổng ảnh giữa các thẻ, mà cũng không phải sửa dữ
  * liệu trong DB.
  */
-const CATEGORY_COVERS: Record<string, ArticleCover> = {
-  "Phong thuỷ": {
-    src: "/blog/cat-phong-thuy.webp",
-    alt: "Góc làm việc hiện đại phong cách tối giản với cây xanh phong thuỷ",
-    width: 1200,
-    height: 675,
-  },
-  "Ý nghĩa sim": {
-    src: "/blog/cat-y-nghia-sim.webp",
-    alt: "Doanh nhân trẻ với điện thoại thông minh kết nối liên lạc",
-    width: 1200,
-    height: 675,
-  },
-  "Kiến thức mua sim": {
-    src: "/blog/cat-kien-thuc-mua-sim.webp",
-    alt: "Bàn làm việc hiện đại với máy tính và thao tác xử lý công việc",
-    width: 1200,
-    height: 675,
-  },
-  "Đầu số": {
-    src: "/blog/cat-dau-so.webp",
-    alt: "Điện thoại thông minh hiện đại trên nền sáng",
-    width: 1200,
-    height: 675,
-  },
-  "Hướng dẫn MobiFone": {
-    src: "/blog/cat-kien-thuc-mua-sim.webp",
-    alt: "Bàn làm việc hiện đại với máy tính và thao tác xử lý công việc",
-    width: 1200,
-    height: 675,
-  },
+const CATEGORY_COVERS: Record<string, ArticleCover[]> = {
+  "Phong thuỷ": [
+    {
+      src: "/blog/cat-phong-thuy.webp",
+      alt: "Góc làm việc hiện đại phong cách tối giản với cây xanh phong thuỷ",
+      width: 1200,
+      height: 675,
+    },
+    {
+      src: "/blog/sim-hop-menh-ngu-hanh.webp",
+      alt: "Không gian làm việc cân bằng hài hòa với thiên nhiên và thiết bị công nghệ",
+      width: 1200,
+      height: 675,
+    },
+    {
+      src: "/blog/y-nghia-2-so-cuoi-dien-thoai.webp",
+      alt: "Điện thoại thông minh cao cấp và tai nghe không dây trên bàn làm việc",
+      width: 1200,
+      height: 675,
+    },
+    {
+      src: "/blog/cat-y-nghia-sim.webp",
+      alt: "Doanh nhân trẻ với điện thoại thông minh kết nối liên lạc",
+      width: 1200,
+      height: 675,
+    },
+  ],
+  "Ý nghĩa sim": [
+    {
+      src: "/blog/cat-y-nghia-sim.webp",
+      alt: "Doanh nhân trẻ với điện thoại thông minh kết nối liên lạc",
+      width: 1200,
+      height: 675,
+    },
+    {
+      src: "/blog/cat-dau-so.webp",
+      alt: "Điện thoại thông minh hiện đại trên nền sáng",
+      width: 1200,
+      height: 675,
+    },
+    {
+      src: "/blog/y-nghia-2-so-cuoi-dien-thoai.webp",
+      alt: "Điện thoại thông minh cao cấp và tai nghe không dây trên bàn làm việc",
+      width: 1200,
+      height: 675,
+    },
+  ],
+  "Kiến thức mua sim": [
+    {
+      src: "/blog/cat-kien-thuc-mua-sim.webp",
+      alt: "Bàn làm việc hiện đại với máy tính và thao tác xử lý công việc",
+      width: 1200,
+      height: 675,
+    },
+    {
+      src: "/blog/kiem-tra-sim-chinh-chu-mobifone.webp",
+      alt: "Khay SIM đẩy ra khỏi điện thoại và thẻ nano SIM chân vàng",
+      width: 1200,
+      height: 675,
+    },
+    {
+      src: "/blog/cat-dau-so.webp",
+      alt: "Điện thoại thông minh hiện đại trên nền sáng",
+      width: 1200,
+      height: 675,
+    },
+  ],
+  "Đầu số": [
+    {
+      src: "/blog/cat-dau-so.webp",
+      alt: "Điện thoại thông minh hiện đại trên nền sáng",
+      width: 1200,
+      height: 675,
+    },
+    {
+      src: "/blog/y-nghia-2-so-cuoi-dien-thoai.webp",
+      alt: "Điện thoại thông minh cao cấp và tai nghe không dây trên bàn làm việc",
+      width: 1200,
+      height: 675,
+    },
+    {
+      src: "/blog/cat-y-nghia-sim.webp",
+      alt: "Doanh nhân trẻ với điện thoại thông minh kết nối liên lạc",
+      width: 1200,
+      height: 675,
+    },
+  ],
+  "Hướng dẫn MobiFone": [
+    {
+      src: "/blog/cat-kien-thuc-mua-sim.webp",
+      alt: "Bàn làm việc hiện đại với máy tính và thao tác xử lý công việc",
+      width: 1200,
+      height: 675,
+    },
+    {
+      src: "/blog/kiem-tra-sim-chinh-chu-mobifone.webp",
+      alt: "Khay SIM đẩy ra khỏi điện thoại và thẻ nano SIM chân vàng",
+      width: 1200,
+      height: 675,
+    },
+    {
+      src: "/blog/cat-y-nghia-sim.webp",
+      alt: "Doanh nhân trẻ với điện thoại thông minh kết nối liên lạc",
+      width: 1200,
+      height: 675,
+    },
+  ],
 };
 
+function stringHash(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
 /** Chuyên mục lạ (bot tự nghĩ ra mục mới) vẫn có ảnh — rơi về "Ý nghĩa sim". */
-export function coverForCategory(category: string | null | undefined): ArticleCover {
-  return (category && CATEGORY_COVERS[category]) || CATEGORY_COVERS["Ý nghĩa sim"];
+export function coverForCategory(
+  category: string | null | undefined,
+  seed?: string,
+): ArticleCover {
+  const covers = (category && CATEGORY_COVERS[category]) || CATEGORY_COVERS["Ý nghĩa sim"];
+  if (!seed || covers.length <= 1) return covers[0];
+  const idx = stringHash(seed) % covers.length;
+  return covers[idx];
 }

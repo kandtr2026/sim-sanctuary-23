@@ -30,7 +30,7 @@ export async function generateMetadata({
   const title = post.meta_title || post.title;
   const description = post.meta_description || undefined;
   const path = `/tin-tuc/${post.slug}`;
-  const cover = post.cover_image_url ?? coverForCategory(post.category).src;
+  const cover = post.cover_image_url ?? coverForCategory(post.category, post.slug).src;
 
   return {
     title: { absolute: title },
@@ -67,7 +67,7 @@ export default async function BlogPostPage({
   const path = `/tin-tuc/${post.slug}`;
   const cover = post.cover_image_url
     ? { src: post.cover_image_url, alt: post.title }
-    : coverForCategory(post.category);
+    : coverForCategory(post.category, post.slug);
 
   // Bài liên quan: ưu tiên bài DB cùng chuyên mục, rồi bài viết cứng cùng
   // chuyên mục, cuối cùng bù bằng bài viết cứng mới nhất. Bài của bot trước đây
