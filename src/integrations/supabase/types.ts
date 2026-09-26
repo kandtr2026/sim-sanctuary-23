@@ -158,6 +158,7 @@ export type Database = {
           utm_content: string | null
           gclid: string | null
           fbclid: string | null
+          ip: string | null
         }
         Insert: {
           id?: never
@@ -177,6 +178,7 @@ export type Database = {
           utm_content?: string | null
           gclid?: string | null
           fbclid?: string | null
+          ip?: string | null
         }
         Update: {
           id?: never
@@ -196,15 +198,121 @@ export type Database = {
           utm_content?: string | null
           gclid?: string | null
           fbclid?: string | null
+          ip?: string | null
+        }
+        Relationships: []
+      }
+      // IP nội bộ/máy chủ bị loại khỏi thống kê khách — migration 20260926100000.
+      traffic_exclusions: {
+        Row: {
+          id: number
+          ip: string
+          reason: "admin" | "staff" | "heavy" | "server" | "manual"
+          note: string | null
+          valid_from: string | null
+          valid_to: string | null
+          active: boolean
+          auto: boolean
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: never
+          ip: string
+          reason: "admin" | "staff" | "heavy" | "server" | "manual"
+          note?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
+          active?: boolean
+          auto?: boolean
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: never
+          ip?: string
+          reason?: "admin" | "staff" | "heavy" | "server" | "manual"
+          note?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
+          active?: boolean
+          auto?: boolean
+          created_at?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
     }
     Views: {
-      [_ in never]: never
+      // "Khách thật": cùng cột bảng gốc, đã bỏ nội bộ + bot (is_internal_visit).
+      page_visits_khach: {
+        Row: {
+          id: number | null
+          path: string | null
+          referrer: string | null
+          source: string | null
+          user_agent: string | null
+          ip: string | null
+          visited_at: string | null
+          utm_source: string | null
+          utm_medium: string | null
+          utm_campaign: string | null
+          utm_term: string | null
+          utm_content: string | null
+          gclid: string | null
+          fbclid: string | null
+        }
+        Relationships: []
+      }
+      conversion_clicks_khach: {
+        Row: {
+          id: number | null
+          type: string | null
+          path: string | null
+          source: string | null
+          user_agent: string | null
+          clicked_at: string | null
+          sim_number: string | null
+          position: string | null
+          device: string | null
+          variant: string | null
+          utm_source: string | null
+          utm_medium: string | null
+          utm_campaign: string | null
+          utm_term: string | null
+          utm_content: string | null
+          gclid: string | null
+          fbclid: string | null
+          ip: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      daily_page_visits: {
+        Args: { p_days?: number; p_all?: boolean }
+        Returns: { d: string; n: number }[]
+      }
+      is_bot_visit: {
+        Args: { p_ua: string | null; p_ip: string | null }
+        Returns: boolean
+      }
+      is_internal_visit: {
+        Args: { p_ip: string | null; p_ua: string | null; p_at: string }
+        Returns: boolean
+      }
+      refresh_traffic_exclusions: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      note_admin_ip: {
+        Args: { p_ip: string }
+        Returns: undefined
+      }
+      traffic_exclusions_report: {
+        Args: { p_days?: number }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronRight, Globe, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,29 +38,50 @@ const Skeleton = () => (
   </div>
 );
 
-export function PageVisitsSection() {
+/**
+ * `khachThat` (mặc định true) = đọc view `page_visits_khach` (đã bỏ nội bộ + bot,
+ * lọc ở DB bằng is_internal_visit); false = bảng gốc `page_visits`. Công tắc nằm
+ * ở VisitTrendSection, trang tab Traffic truyền xuống.
+ */
+export function PageVisitsSection({
+  khachThat = true,
+  reloadSignal = 0,
+}: {
+  khachThat?: boolean;
+  /** Đổi giá trị để buộc tải lại (vd. sau khi sửa danh sách IP nội bộ). */
+  reloadSignal?: number;
+} = {}) {
   const [visits, setVisits] = useState<PageVisitRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // IP đang mở xem chi tiết các màn khách đó đã lướt.
   const [expandedIp, setExpandedIp] = useState<string | null>(null);
 
+  // Chỉ nhận kết quả của lần tải MỚI NHẤT: bật/tắt công tắc nhanh thì query view
+  // (chậm hơn) về sau không được đè dữ liệu của chế độ đang chọn.
+  const loadSeq = useRef(0);
+
   const load = async () => {
+    const seq = ++loadSeq.current;
     setLoading(true);
     setError(null);
     try {
+      // View *_khach cùng cột bảng gốc → giữ kiểu Row của bảng gốc (view có id nullable).
+      const nguon: string = khachThat ? "page_visits_khach" : "page_visits";
       const { data, error: err } = await supabase
-        .from("page_visits")
+        .from(nguon as "page_visits")
         .select("*")
         .order("visited_at", { ascending: false })
         .limit(200);
 
+      if (seq !== loadSeq.current) return;
       if (err) {
         setError(err.message);
       } else {
         setVisits(data ?? []);
       }
     } catch {
+      if (seq !== loadSeq.current) return;
       setError("Không thể tải dữ liệu");
     }
     setLoading(false);
@@ -68,7 +89,8 @@ export function PageVisitsSection() {
 
   useEffect(() => {
     void load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- load đọc khachThat mới nhất
+  }, [khachThat, reloadSignal]);
 
   // Aggregate the fetched rows by source so the admin sees "khách đến từ đâu".
   const sourceCounts = useMemo(() => {
@@ -110,6 +132,14 @@ export function PageVisitsSection() {
         <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
           <Globe className="h-4 w-4 text-primary" />
           Trang khách đã xem
+          <span
+            className={cn(
+              "rounded px-1.5 py-0.5 text-[10px] font-semibold",
+              khachThat ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground",
+            )}
+          >
+            {khachThat ? "Chỉ khách thật" : "Gồm nội bộ/bot"}
+          </span>
         </h2>
         <button
           onClick={() => void load()}

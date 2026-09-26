@@ -1,19 +1,9 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/shopee/admin";
+import { clientIp } from "@/lib/trafficExclusions";
 
 export const dynamic = "force-dynamic";
-
-/** IP khách: Vercel để ở x-forwarded-for (hop đầu là client), fallback x-real-ip. */
-function clientIp(req: NextRequest): string | null {
-  const xff = req.headers.get("x-forwarded-for");
-  if (xff) {
-    const first = xff.split(",")[0]?.trim();
-    if (first) return first.slice(0, 64);
-  }
-  const real = req.headers.get("x-real-ip");
-  return real ? real.trim().slice(0, 64) : null;
-}
 
 const str = (v: unknown, max: number): string | null => {
   if (typeof v !== "string") return null;
@@ -41,7 +31,7 @@ export async function POST(req: NextRequest) {
       referrer: str(body?.referrer, 500),
       source: str(body?.source, 40),
       user_agent: str(body?.user_agent, 500),
-      ip: clientIp(req),
+      ip: clientIp(req.headers),
       utm_source: str(body?.utm_source, 200),
       utm_medium: str(body?.utm_medium, 200),
       utm_campaign: str(body?.utm_campaign, 200),

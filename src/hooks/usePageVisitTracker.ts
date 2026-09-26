@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { getPagePath, classifySource } from "@/lib/trackingUtils";
 import { captureAttribution, getAttribution, captureFirstTouchSource, getFirstTouchSource } from "@/lib/attribution";
+import { applyNoiBoFromUrl, isNoiBoDevice, markNoiBoDevice, stripNoiBoParam } from "@/lib/noiBoDevice";
 
 /**
  * Logs every page navigation to `public.page_visits` so the admin dashboard
@@ -19,6 +20,10 @@ import { captureAttribution, getAttribution, captureFirstTouchSource, getFirstTo
  *
  * All failures are swallowed: tracking must never break the page. The RLS
  * policy allows anonymous INSERT, so this works for logged-out visitors.
+ *
+ * Máy NỘI BỘ (src/lib/noiBoDevice.ts) không bao giờ được đếm: máy từng vào
+ * /admin hoặc từng có phiên đăng nhập bị gắn cờ VĨNH VIỄN (kể cả sau khi đăng
+ * xuất); `?noibo=1` trên URL bất kỳ bật cờ, `?noibo=0` tắt cờ.
  */
 const THROTTLE_MS = 5_000;
 
@@ -28,20 +33,37 @@ export function usePageVisitTracker() {
   const lastLoggedRef = useRef<{ path: string; at: number } | null>(null);
 
   useEffect(() => {
-    // Admin panel is the owner's own tooling, not customer traffic. Skipping it
-    // keeps "Trang khách đã xem" clean of the owner's own /admin visits.
-    if (pathname.startsWith("/admin")) return;
+    // `?noibo=1` / `?noibo=0` — A Khoa mở 1 lần trên máy nhân viên để bật/tắt cờ
+    // nội bộ. Lượt mở kèm tham số này là thao tác nội bộ nên không đếm; gỡ tham
+    // số khỏi URL để link đang mở có lỡ bị gửi cho khách thì khách không dính cờ
+    // (gỡ xong useSearchParams đổi → effect chạy lại với URL sạch).
+    if (applyNoiBoFromUrl(searchParams.toString())) {
+      stripNoiBoParam();
+      return;
+    }
+
+    // Admin panel is the owner's own tooling, not customer traffic. Máy đã vào
+    // /admin = máy nội bộ → gắn cờ vĩnh viễn để cả trang công khai cũng thôi đếm.
+    if (pathname.startsWith("/admin")) {
+      markNoiBoDevice();
+      return;
+    }
+    if (isNoiBoDevice()) return;
 
     let cancelled = false;
 
     void (async () => {
       // A logged-in owner browsing their own public site must not be counted as
       // a customer visit either — their testing would flood the dashboard the
-      // same way their /admin visits did.
+      // same way their /admin visits did. Có phiên = máy nội bộ → gắn cờ vĩnh
+      // viễn, đăng xuất rồi vẫn không đếm.
       try {
         const { data } = await supabase.auth.getSession();
         if (cancelled) return;
-        if (data.session) return; // signed in (owner / admin) → not a customer
+        if (data.session) {
+          markNoiBoDevice();
+          return;
+        }
       } catch {
         // Session check is best-effort; fall through to tracking on failure.
       }

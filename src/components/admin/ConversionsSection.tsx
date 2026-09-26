@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MousePointerClick, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { cn } from "@/lib/utils";
 
 type ConversionClickRow = Tables<"conversion_clicks">;
 
@@ -40,27 +41,46 @@ const Skeleton = () => (
   </div>
 );
 
-export function ConversionsSection() {
+/**
+ * `khachThat` (mặc định true) = đọc view `conversion_clicks_khach` (bỏ nội bộ +
+ * bot; click cũ chưa có IP thì chỉ lọc được bot theo user-agent); false = bảng gốc.
+ */
+export function ConversionsSection({
+  khachThat = true,
+  reloadSignal = 0,
+}: {
+  khachThat?: boolean;
+  reloadSignal?: number;
+} = {}) {
   const [clicks, setClicks] = useState<ConversionClickRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Chỉ nhận kết quả của lần tải MỚI NHẤT: bật/tắt công tắc nhanh thì query view
+  // (chậm hơn) về sau không được đè dữ liệu của chế độ đang chọn.
+  const loadSeq = useRef(0);
+
   const load = async () => {
+    const seq = ++loadSeq.current;
     setLoading(true);
     setError(null);
     try {
+      // View *_khach cùng cột bảng gốc → giữ kiểu Row của bảng gốc (view có id nullable).
+      const nguon: string = khachThat ? "conversion_clicks_khach" : "conversion_clicks";
       const { data, error: err } = await supabase
-        .from("conversion_clicks")
+        .from(nguon as "conversion_clicks")
         .select("*")
         .order("clicked_at", { ascending: false })
         .limit(50);
 
+      if (seq !== loadSeq.current) return;
       if (err) {
         setError(err.message);
       } else {
         setClicks(data ?? []);
       }
     } catch {
+      if (seq !== loadSeq.current) return;
       setError("Không thể tải dữ liệu");
     }
     setLoading(false);
@@ -68,7 +88,8 @@ export function ConversionsSection() {
 
   useEffect(() => {
     void load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- load đọc khachThat mới nhất
+  }, [khachThat, reloadSignal]);
 
   const typeCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -106,6 +127,14 @@ export function ConversionsSection() {
         <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
           <MousePointerClick className="h-4 w-4 text-primary" />
           Chuyển đổi (click liên hệ)
+          <span
+            className={cn(
+              "rounded px-1.5 py-0.5 text-[10px] font-semibold",
+              khachThat ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground",
+            )}
+          >
+            {khachThat ? "Chỉ khách thật" : "Gồm nội bộ/bot"}
+          </span>
         </h2>
         <button
           onClick={() => void load()}

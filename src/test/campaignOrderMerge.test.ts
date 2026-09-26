@@ -48,13 +48,28 @@ let visitsRows: Row[] = [];
 let clicksRows: Row[] = [];
 let ordersRows: Row[] = [];
 
+// Nguồn đã đọc + cờ giả lập "view *_khach chưa có" (migration chưa áp).
+let readFrom: string[] = [];
+let viewsMissing = false;
+
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     from: (table: string) => {
+      readFrom.push(table);
+      if (viewsMissing && table.endsWith("_khach")) {
+        const missing = {
+          data: null,
+          error: { code: "PGRST205", message: `Could not find the table 'public.${table}' in the schema cache` },
+        };
+        for (const method of ["select", "gte", "lte", "order", "limit"]) {
+          (missing as unknown as Record<string, unknown>)[method] = () => missing;
+        }
+        return missing;
+      }
       const rows =
-        table === "page_visits"
+        table === "page_visits_khach" || table === "page_visits"
           ? visitsRows
-          : table === "conversion_clicks"
+          : table === "conversion_clicks_khach" || table === "conversion_clicks"
             ? clicksRows
             : ordersRows;
       return makeQuery(rows);
@@ -68,6 +83,35 @@ describe("getCampaignFunnel — ghép đơn A6", () => {
     visitsRows = [];
     clicksRows = [];
     ordersRows = [];
+    readFrom = [];
+    viewsMissing = false;
+  });
+
+  it("đọc view khách thật (*_khach), không đọc bảng gốc", async () => {
+    visitsRows = [visit("gg-search-tuquy")];
+    clicksRows = [click("gg-search-tuquy")];
+
+    const { getCampaignFunnel } = await import("@/lib/campaignAnalytics");
+    const rows = await getCampaignFunnel(30);
+    expect(readFrom).toContain("page_visits_khach");
+    expect(readFrom).toContain("conversion_clicks_khach");
+    expect(readFrom).not.toContain("page_visits");
+    expect(readFrom).not.toContain("conversion_clicks");
+    expect(rows.find((r) => r.key === "gg-search-tuquy")!.leads).toBe(1);
+  });
+
+  it("view chưa có (migration chưa áp) → lùi về bảng gốc, số vẫn ra", async () => {
+    viewsMissing = true;
+    visitsRows = [visit("fb-sodep"), visit("fb-sodep")];
+    clicksRows = [click("fb-sodep")];
+
+    const { getCampaignFunnel } = await import("@/lib/campaignAnalytics");
+    const rows = await getCampaignFunnel(30);
+    expect(readFrom).toContain("page_visits");
+    expect(readFrom).toContain("conversion_clicks");
+    const row = rows.find((r) => r.key === "fb-sodep")!;
+    expect(row.visits).toBe(2);
+    expect(row.leads).toBe(1);
   });
 
   it("gộp đơn theo campaign_code khớp utm_campaign + đếm doanh thu", async () => {

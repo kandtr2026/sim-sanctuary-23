@@ -6,6 +6,7 @@ import { getPagePath, classifySource } from "@/lib/trackingUtils";
 import { getAttribution, getFirstTouchSource } from "@/lib/attribution";
 import { GADS_CONV_SEND_TO } from "@/lib/gadsTracking";
 import { getCardZaloVariant } from "@/lib/experiment";
+import { isNoiBoDevice, markNoiBoDevice } from "@/lib/noiBoDevice";
 
 /**
  * Zalo KHÔNG hỗ trợ prefill tin nhắn qua URL (?text=) như wa.me — link zalo.me có
@@ -32,7 +33,12 @@ import { getCardZaloVariant } from "@/lib/experiment";
  *
  * Throttled to one click of each type per 5s per tab to avoid double-fires from
  * aggressive double-clicks. Failures are swallowed — tracking must never break
- * the page. Anonymous INSERT is allowed by RLS.
+ * the page.
+ *
+ * Ghi qua route POST /api/track/click (khuôn y /api/track/visit) để SERVER gắn IP
+ * khách vào conversion_clicks — nhờ đó lọc được click nội bộ/bot theo IP. Máy nội
+ * bộ (cờ localStorage của src/lib/noiBoDevice.ts, hoặc đang có phiên đăng nhập)
+ * không ghi click và không bắn gtag/fbq Lead.
  */
 const THROTTLE_MS = 5_000;
 
@@ -87,6 +93,8 @@ export function useConversionTracker() {
       .getSession()
       .then(({ data }) => {
         isOwner = Boolean(data.session);
+        // Có phiên đăng nhập = máy nội bộ → gắn cờ vĩnh viễn (đăng xuất vẫn giữ).
+        if (isOwner) markNoiBoDevice();
       })
       .catch(() => {});
 
@@ -111,7 +119,9 @@ export function useConversionTracker() {
         }
       }
 
-      if (isOwner) return;
+      // Cờ đọc lúc bấm (không chốt lúc mount) — usePageVisitTracker có thể vừa
+      // bật cờ từ ?noibo=1 sau khi listener này đã gắn.
+      if (isOwner || isNoiBoDevice()) return;
 
       const now = Date.now();
       const last = lastLoggedRef.current;
@@ -147,22 +157,31 @@ export function useConversionTracker() {
       }
       window.fbq?.("track", "Lead", { content_name: type });
 
-      supabase
-        .from("conversion_clicks")
-        .insert({
-          type,
-          path,
-          source,
-          user_agent: navigator.userAgent,
-          sim_number: simNumber,
-          position,
-          device,
-          variant,
-          ...attr,
-        })
-        .then(({ error }) => {
-          if (error) console.debug("[conversion] not logged:", error.message);
+      // Đi qua route để SERVER đọc IP khách rồi mới ghi (client không biết IP
+      // công cộng của mình). keepalive để request sống sót khi trang chuyển sang
+      // zalo.me / trình gọi điện ngay sau cú bấm. Mọi lỗi nuốt êm.
+      try {
+        void fetch("/api/track/click", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type,
+            path,
+            source,
+            user_agent: navigator.userAgent,
+            sim_number: simNumber,
+            position,
+            device,
+            variant,
+            ...attr,
+          }),
+          keepalive: true,
+        }).catch(() => {
+          /* best-effort: theo dõi không bao giờ làm hỏng trang */
         });
+      } catch {
+        /* fetch ném đồng bộ (trình duyệt quá cũ / body quá lớn cho keepalive) — bỏ qua */
+      }
     };
 
     document.addEventListener("click", onClick, { capture: true });

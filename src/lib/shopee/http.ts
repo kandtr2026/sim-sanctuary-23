@@ -13,6 +13,7 @@ import { NextResponse } from "next/server";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/config";
 import { ShopeeApiError } from "./client";
 import { ShopeeConfigError } from "./credentials";
+import { rememberAdminIp } from "@/lib/trafficExclusions";
 
 export interface AdminUser {
   id: string;
@@ -65,6 +66,11 @@ export async function requireAdmin(req: Request): Promise<
         ),
       };
     }
+
+    // Máy vừa dùng quyền admin = máy nội bộ → ghi IP vào traffic_exclusions để
+    // lượt xem web từ IP đó (khung ±1 ngày) không bị đếm là khách. Best-effort,
+    // chạy sau response, không bao giờ chặn/làm hỏng request.
+    rememberAdminIp(req, user.email);
 
     return { user: { id: user.id, email: user.email || "unknown" } };
   } catch {

@@ -1,8 +1,10 @@
 /**
  * Campaign / channel funnel analytics for the admin "Chiến dịch" console.
  *
- * Pure client-side aggregation over the two tracking tables that already exist
- * (`page_visits`, `conversion_clicks`) — no new DB objects required. A "lead" =
+ * Pure client-side aggregation over the two tracking tables, read through the
+ * "khách thật" views `page_visits_khach` / `conversion_clicks_khach` (internal
+ * staff/admin IPs + bots removed — migration 20260926100000; falls back to the
+ * raw tables if the views are missing). A "lead" =
  * one contact-CTA click (zalo / call / messenger). Everything degrades to `[]`
  * on error / missing permission so the admin never crashes.
  *
@@ -44,24 +46,52 @@ const DIRECT = "direct";
 
 const sinceIso = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString();
 
+// Client kiểu lỏng để đọc view theo tên động (view / bảng gốc cùng cột).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- tên nguồn động (view *_khach hoặc bảng gốc)
+const looseFrom = (t: string) => (supabase as unknown as { from: (t: string) => any }).from(t);
+
+/** Lỗi "view/bảng chưa tồn tại" (migration lọc nội bộ chưa áp) → lùi về bảng gốc. */
+const isMissingRelation = (err: unknown): boolean => {
+  const e = (err ?? {}) as { code?: unknown; message?: unknown };
+  return (
+    e.code === "PGRST205" ||
+    e.code === "42P01" ||
+    (typeof e.message === "string" && /could not find the table|does not exist/i.test(e.message))
+  );
+};
+
+/**
+ * Đọc cửa sổ từ view "khách thật" (`*_khach` — đã bỏ nội bộ + bot, A Khoa 26/09);
+ * view chưa có thì đọc bảng gốc như cũ.
+ */
+async function readKhach<T>(view: string, table: string, cols: string, tsCol: string, since: string): Promise<T[]> {
+  const run = (src: string) =>
+    looseFrom(src).select(cols).gte(tsCol, since).order(tsCol, { ascending: false }).limit(MAX_ROWS);
+  let res = await run(view);
+  if (res?.error && isMissingRelation(res.error)) res = await run(table);
+  return (res?.data ?? []) as T[];
+}
+
 async function fetchWindow(days: number): Promise<{ visits: VisitLite[]; clicks: ClickLite[] }> {
   const since = sinceIso(days);
   try {
-    const [v, c] = await Promise.all([
-      supabase
-        .from("page_visits")
-        .select("utm_campaign,utm_source,utm_medium,source")
-        .gte("visited_at", since)
-        .order("visited_at", { ascending: false })
-        .limit(MAX_ROWS),
-      supabase
-        .from("conversion_clicks")
-        .select("type,utm_campaign,utm_source,utm_medium,source")
-        .gte("clicked_at", since)
-        .order("clicked_at", { ascending: false })
-        .limit(MAX_ROWS),
+    const [visits, clicks] = await Promise.all([
+      readKhach<VisitLite>(
+        "page_visits_khach",
+        "page_visits",
+        "utm_campaign,utm_source,utm_medium,source",
+        "visited_at",
+        since,
+      ),
+      readKhach<ClickLite>(
+        "conversion_clicks_khach",
+        "conversion_clicks",
+        "type,utm_campaign,utm_source,utm_medium,source",
+        "clicked_at",
+        since,
+      ),
     ]);
-    return { visits: (v.data ?? []) as VisitLite[], clicks: (c.data ?? []) as ClickLite[] };
+    return { visits, clicks };
   } catch {
     return { visits: [], clicks: [] };
   }

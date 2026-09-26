@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/shopee/admin";
 import { errorResponse, requireAdmin } from "@/lib/shopee/http";
+import { isMissingDbObject, parseAllFlag } from "@/lib/trafficExclusions";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -28,12 +29,13 @@ function vnDay(iso: string): string {
 }
 
 /**
- * Thống kê LƯỢT ĐỌC bài viết (path `/tin-tuc/<slug>`) từ bảng `page_visits`.
- * `page_visits` chỉ authenticated/service role đọc được (không có policy anon),
+ * Thống kê LƯỢT ĐỌC bài viết (path `/tin-tuc/<slug>`) — mặc định từ view
+ * `page_visits_khach` (đã bỏ nội bộ + bot, A Khoa 26/09); `?all=1` đọc bảng gốc
+ * `page_visits`. Chỉ authenticated/service role đọc được (không có policy anon),
  * nên đọc bằng service role + chặn requireAdmin. Gom phía server → client chỉ
  * nhận JSON nhỏ dù bảng có lớn.
  *
- * GET /api/admin/post-reads →
+ * GET /api/admin/post-reads[?all=1] →
  *   { total, daily: [{day:'YYYY-MM-DD', count}], byPost: [{slug, count}], truncated }
  */
 export async function GET(req: NextRequest) {
@@ -43,19 +45,27 @@ export async function GET(req: NextRequest) {
   try {
     const db: Db = createAdminClient();
     const since = new Date(Date.now() - WINDOW_DAYS * 86_400_000).toISOString();
+    let source = parseAllFlag(req.nextUrl.searchParams) ? "page_visits" : "page_visits_khach";
 
     const rows: VisitRow[] = [];
     let truncated = false;
     for (let page = 0; page < MAX_PAGES; page++) {
       const from = page * PAGE;
-      const { data, error } = await db
-        .from("page_visits")
-        .select("path, visited_at")
-        .like("path", `${PREFIX}%`)
-        .gte("visited_at", since)
-        .order("visited_at", { ascending: true })
-        .range(from, from + PAGE - 1);
-      if (error) throw new Error(`Đọc page_visits lỗi: ${error.message}`);
+      const read = () =>
+        db
+          .from(source)
+          .select("path, visited_at")
+          .like("path", `${PREFIX}%`)
+          .gte("visited_at", since)
+          .order("visited_at", { ascending: true })
+          .range(from, from + PAGE - 1);
+      let { data, error } = await read();
+      // View chưa có (migration lọc nội bộ chưa áp) → lùi về bảng gốc như cũ.
+      if (error && page === 0 && source !== "page_visits" && isMissingDbObject(error)) {
+        source = "page_visits";
+        ({ data, error } = await read());
+      }
+      if (error) throw new Error(`Đọc ${source} lỗi: ${error.message}`);
       const batch = (data ?? []) as VisitRow[];
       for (const r of batch) rows.push(r);
       if (batch.length < PAGE) break;

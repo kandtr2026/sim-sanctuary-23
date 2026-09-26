@@ -17,6 +17,7 @@ import { ShopeeSummaryCard } from "@/components/admin/ShopeeSummaryCard";
 import { ShopeeSalesSection } from "@/components/admin/ShopeeSalesSection";
 import { PostReadsSection } from "@/components/admin/PostReadsSection";
 import { VisitTrendSection } from "@/components/admin/VisitTrendSection";
+import { TrafficExclusionsSection } from "@/components/admin/TrafficExclusionsSection";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { getLastUpdateInfo, useSimData } from "@/hooks/useSimData";
@@ -60,6 +61,11 @@ function AdminDashboardContent() {
   const { user, session, signOut } = useAdminAuth();
   const token = session?.access_token;
   const [tab, setTab] = useState<TabId>("tong-quan");
+  // Tab Traffic: một công tắc "Chỉ khách thật" (nằm ở biểu đồ) chung cho các
+  // section — mặc định BẬT = bỏ nội bộ/bot. `trafficVersion` tăng khi A Khoa sửa
+  // danh sách IP nội bộ để biểu đồ + danh sách khách tải lại theo.
+  const [khachThat, setKhachThat] = useState(true);
+  const [trafficVersion, setTrafficVersion] = useState(0);
 
   // Tab có link riêng (?tab=…) để refresh vẫn ở đúng tab (góp ý #44). Đọc URL khi
   // vào/refresh; đổi tab thì cập nhật URL bằng replaceState (không điều hướng lại).
@@ -423,10 +429,16 @@ function AdminDashboardContent() {
         {/* ─── Tab TRAFFIC: SEO + lượt truy cập (góp ý #16) ─── */}
         {tab === "traffic" && (
           <div className="space-y-10">
-            <VisitTrendSection token={token} />
-            <PageVisitsSection />
-            <ConversionsSection />
+            <VisitTrendSection
+              token={token}
+              khachThat={khachThat}
+              onKhachThatChange={setKhachThat}
+              reloadSignal={trafficVersion}
+            />
+            <PageVisitsSection khachThat={khachThat} reloadSignal={trafficVersion} />
+            <ConversionsSection khachThat={khachThat} reloadSignal={trafficVersion} />
             <CampaignPerformanceSection />
+            <TrafficExclusionsSection token={token} onChanged={() => setTrafficVersion((v) => v + 1)} />
           </div>
         )}
 
