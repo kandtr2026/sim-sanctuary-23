@@ -95,7 +95,13 @@ const Footer = () => {
             <ul className="space-y-3 text-sm text-header-foreground/70">
               <li className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 mt-0.5 text-gold flex-shrink-0" />
-                <span className="break-words">43A Đường số 9, Phường Tân Hưng, TP. Hồ Chí Minh</span>
+                <span className="break-words">
+                  <Link href="/diem-giao-dich-mobifone-quan-7" className="hover:text-gold transition-colors font-medium underline underline-offset-2">
+                    Điểm Giao Dịch MobiFone Quận 7
+                  </Link>
+                  <br />
+                  43A Đường số 9, KDC Him Lam, Phường Tân Hưng, TP.HCM
+                </span>
               </li>
             </ul>
 

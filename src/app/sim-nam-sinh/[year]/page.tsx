@@ -115,7 +115,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const info = getYearInfo(year);
   const canonical = `${BASE_URL}/sim-nam-sinh/${year}`;
-  const title = `Sim Năm Sinh ${year} | Số Có Đúng ${year} Trong Dãy`;
+  const title = `Sim Năm Sinh ${year} MobiFone Giá Tốt — Kho Số Đẹp Đuôi ${year} Chính Chủ`;
   const description = buildDescription(year, info);
 
   // Năm hợp lệ nhưng tồn kho dưới ngưỡng (thường chỉ tới từ URL cũ redirect) →

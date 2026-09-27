@@ -67,6 +67,21 @@ const nextConfig: NextConfig = {
         destination: "/sim-gia",
         permanent: true,
       },
+      {
+        source: "/cua-hang-mobifone-quan-7",
+        destination: "/diem-giao-dich-mobifone-quan-7",
+        permanent: true,
+      },
+      {
+        source: "/diem-giao-dich-mobifone",
+        destination: "/diem-giao-dich-mobifone-quan-7",
+        permanent: true,
+      },
+      {
+        source: "/cua-hang-mobifone",
+        destination: "/diem-giao-dich-mobifone-quan-7",
+        permanent: true,
+      },
     ];
   },
 };
