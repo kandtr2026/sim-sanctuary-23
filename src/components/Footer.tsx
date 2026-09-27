@@ -103,6 +103,15 @@ const Footer = () => {
                   43A Đường số 9, KDC Him Lam, Phường Tân Hưng, TP.HCM
                 </span>
               </li>
+              <li className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-gold flex-shrink-0" />
+                <span>
+                  Hotline Điểm GD:{" "}
+                  <a href="tel:0938868868" className="hover:text-gold transition-colors font-medium">
+                    0938.868.868
+                  </a>
+                </span>
+              </li>
             </ul>
 
             {/* Google Maps Embed */}
@@ -139,8 +148,8 @@ const Footer = () => {
               <li className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-gold flex-shrink-0" />
                 <span>
-                  Hotline:{" "}
-                  <a href="tel:0933686666" className="hover:text-gold transition-colors">
+                  Hotline Bán SIM:{" "}
+                  <a href="tel:0933686666" className="hover:text-gold transition-colors font-medium">
                     0933.686.666
                   </a>
                 </span>

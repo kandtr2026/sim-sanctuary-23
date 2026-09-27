@@ -40,8 +40,8 @@ export const metadata: Metadata = {
 };
 
 const STORE_ADDRESS = "43A Đường số 9, Phường Tân Hưng, TP. Hồ Chí Minh";
-const STORE_HOTLINE = "0933.686.666";
-const ZALO_URL = "https://zalo.me/0933686666";
+const STORE_HOTLINE = "0938.868.868";
+const ZALO_URL = "https://zalo.me/0938868868";
 const MAPS_DIRECTIONS_URL = "https://www.google.com/maps/dir/?api=1&destination=place_id:ChIJV2BfBgAvdTERQ39odCHMHT0";
 const MAPS_EMBED_URL = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d824.0450640691586!2d106.70810869335848!3d10.74673378940029!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f00065f6057%3A0x3d1dcc2174687f43!2zQ1RZIFZJ4buETiBUSMOUTkcgTkFNIEtIQU5H!5e0!3m2!1svi!2s!4v1769138059662!5m2!1svi!2s";
 
@@ -336,7 +336,7 @@ export default function DiemGiaoDichQuan7Page() {
           <CategorySimGrid
             title="SIM Số Đẹp Nổi Bật Tại Điểm Giao Dịch"
             searchPlaceholder="Tìm số đẹp sẵn kho: *79, *68, *999..."
-            emptyText="Kho tạm hết số khớp bộ lọc này. Quý khách vui lòng gọi 0933.686.666 để nhân viên quầy kiểm tra kho nội bộ."
+            emptyText="Kho tạm hết số khớp bộ lọc này. Quý khách vui lòng gọi hotline 0938.868.868 để nhân viên quầy kiểm tra kho nội bộ."
           />
         </section>
 
