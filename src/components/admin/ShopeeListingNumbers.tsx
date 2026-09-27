@@ -111,12 +111,17 @@ function guessGoi(itemName: string): string | null {
  * Đoán sai vẫn đổi được bằng nút chuyển kho trong picker.
  */
 function guessSource(itemName: string, variants: ShopeeVariant[]): PickerSource {
-  if (guessGoi(itemName)) return "goicuoc";
   const s = itemName.toLowerCase();
-  if (/nguy[eê]n\s*kit|g[oó]i\s*c[uư][ơớ]c|\bkit\b|\bdata\b|gi[aá]\s*r[eẻ]/.test(s)) return "goicuoc";
-  const hasQuy = /qu(?:ý|y)/.test(s);
+  // Ưu tiên tín hiệu SỐ ĐẸP (tứ/ngũ/lục quý, thần tài, taxi, tam hoa, lộc phát,
+  // ông địa) → luôn dùng kho số đẹp, KỂ CẢ khi tên có chữ "giá rẻ" kiểu marketing.
+  if (/qu(?:ý|y)|th(?:ầ|a)n\s*t(?:à|a)i|l(?:ộ|o)c\s*ph(?:á|a)t|(?:ô|o)ng\s*đ(?:ị|i)a|tam\s*hoa|\btaxi\b/.test(s))
+    return "dep";
+  // Gói cước cụ thể / nguyên kit / data → kho SIM giá rẻ.
+  if (guessGoi(itemName)) return "goicuoc";
+  if (/nguy[eê]n\s*kit|g[oó]i\s*c[uư][ơớ]c|\bkit\b|\bdata\b/.test(s)) return "goicuoc";
+  // Hàng giá rẻ điển hình (199–300K) không có tín hiệu số đẹp → kho gói cước.
   const price = suggestPrice(variants);
-  if (!hasQuy && price >= 150_000 && price <= 400_000) return "goicuoc";
+  if (price >= 150_000 && price <= 400_000) return "goicuoc";
   return "dep";
 }
 
