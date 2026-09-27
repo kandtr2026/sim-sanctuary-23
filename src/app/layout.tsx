@@ -19,7 +19,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 
 const SITE_NAME = "CHONSOMOBIFONE.COM";
 const BASE_URL = "https://www.chonsomobifone.com";
-const STORE_MAPS_URL = "https://www.google.com/maps/search/?api=1&query=43A%20%C4%90%C6%B0%E1%BB%9Dng%20s%E1%BB%91%209%2C%20KDC%20Him%20Lam%2C%20Ph%C6%B0%E1%BB%9Dng%20T%C3%A2n%20H%C6%B0ng%2C%20Qu%E1%BA%ADn%207%2C%20TP.HCM%2C%20Vi%E1%BB%87t%20Nam";
+const STORE_MAPS_URL = "https://www.google.com/maps/search/?api=1&query=43A%20%C4%90%C6%B0%E1%BB%9Dng%20s%E1%BB%91%209%2C%20Ph%C6%B0%E1%BB%9Dng%20T%C3%A2n%20H%C6%B0ng%2C%20Qu%E1%BA%ADn%207%2C%20TP.HCM%2C%20Vi%E1%BB%87t%20Nam";
 const DEFAULT_TITLE = "CHONSOMOBIFONE.COM — Kho SIM số đẹp Mobifone uy tín";
 const DEFAULT_DESCRIPTION =
   "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh. 30 phút giao toàn quốc, đăng ký thông tin chính chủ. Hotline 0933.686.666.";

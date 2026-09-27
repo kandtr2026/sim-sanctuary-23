@@ -21,8 +21,8 @@ import { BASE_URL, buildBreadcrumb } from "@/lib/seo";
 
 export const revalidate = 300;
 
-const TITLE = "Điểm Giao Dịch MobiFone Quận 7 Him Lam — Đổi eSIM, Đăng Ký Chính Chủ, Sim Số Đẹp";
-const DESCRIPTION = "Điểm giao dịch & cửa hàng MobiFone uy tín tại 43A Đường số 9, KDC Him Lam, Phường Tân Hưng, Quận 7. Mở cửa 8:00 - 21:00 hàng ngày. Đổi eSIM 5 phút, đăng ký chính chủ, cấp lại SIM, kho SIM số đẹp MobiFone chính hãng.";
+const TITLE = "Điểm Giao Dịch MobiFone Quận 7 — 43A Đường Số 9, P. Tân Hưng";
+const DESCRIPTION = "Điểm giao dịch & cửa hàng MobiFone uy tín tại 43A Đường số 9, Phường Tân Hưng, Quận 7. Mở cửa 8:00 - 21:00 hàng ngày. Đổi eSIM 5 phút, đăng ký chính chủ, cấp lại SIM, kho SIM số đẹp MobiFone chính hãng.";
 const CANONICAL = `${BASE_URL}/diem-giao-dich-mobifone-quan-7`;
 
 export const metadata: Metadata = {
@@ -35,14 +35,14 @@ export const metadata: Metadata = {
     url: CANONICAL,
     type: "website",
     locale: "vi_VN",
-    images: [{ url: `${BASE_URL}/images/diem-giao-dich-mobifone-quan-7.webp`, width: 1024, height: 1024, alt: "Cửa hàng điểm giao dịch MobiFone Him Lam Quận 7" }],
+    images: [{ url: `${BASE_URL}/images/diem-giao-dich-mobifone-quan-7.webp`, width: 1024, height: 1024, alt: "Cửa hàng điểm giao dịch MobiFone Quận 7" }],
   },
 };
 
 const STORE_ADDRESS = "43A Đường số 9, Phường Tân Hưng, TP. Hồ Chí Minh";
 const STORE_HOTLINE = "0938.868.868";
 const ZALO_URL = "https://zalo.me/0938868868";
-const MAPS_DIRECTIONS_URL = "https://www.google.com/maps/dir/?api=1&destination=43A%20%C4%90%C6%B0%E1%BB%9Dng%20s%E1%BB%91%209%2C%20KDC%20Him%20Lam%2C%20Ph%C6%B0%E1%BB%9Dng%20T%C3%A2n%20H%C6%B0ng%2C%20Qu%E1%BA%ADn%207%2C%20TP.HCM%2C%20Vi%E1%BB%87t%20Nam";
+const MAPS_DIRECTIONS_URL = "https://www.google.com/maps/dir/?api=1&destination=43A%20%C4%90%C6%B0%E1%BB%9Dng%20s%E1%BB%91%209%2C%20Ph%C6%B0%E1%BB%9Dng%20T%C3%A2n%20H%C6%B0ng%2C%20Qu%E1%BA%ADn%207%2C%20TP.HCM%2C%20Vi%E1%BB%87t%20Nam";
 const MAPS_EMBED_URL = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d824.0450640691586!2d106.70810869335848!3d10.74673378940029!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f00065f6057%3A0x3d1dcc2174687f43!2zQ1RZIFZJ4buETiBUSMOUTkcgTkFNIEtIQU5H!5e0!3m2!1svi!2s!4v1769138059662!5m2!1svi!2s";
 
 const SERVICES = [
@@ -75,7 +75,7 @@ const SERVICES = [
 const FAQ_ITEMS = [
   {
     q: "Điểm giao dịch MobiFone Quận 7 nằm ở địa chỉ nào?",
-    a: "Cửa hàng nằm tại số 43A Đường số 9, Khu dân cư Him Lam, Phường Tân Hưng, Quận 7, TP.HCM (gần Lotte Mart Quận 7 và cầu Kênh Tẻ). Vị trí thuận tiện, có chỗ đậu xe máy và ô tô rộng rãi.",
+    a: "Cửa hàng nằm tại số 43A Đường số 9, Phường Tân Hưng, Quận 7, TP.HCM (gần đường Phan Huy Thực và đường Trần Xuân Soạn). Vị trí thuận tiện, đường rộng, có chỗ đậu xe máy và ô tô thoải mái.",
   },
   {
     q: "Cửa hàng mở cửa những khung giờ nào, có làm việc Thứ 7 & Chủ Nhật không?",
@@ -101,11 +101,11 @@ const LOCAL_BUSINESS_JSON_LD = {
   "name": "Điểm Giao Dịch MobiFone Quận 7 — Viễn Thông Nam Khang",
   "image": `${BASE_URL}/images/diem-giao-dich-mobifone-quan-7.webp`,
   "url": CANONICAL,
-  "hasMap": "https://www.google.com/maps/search/?api=1&query=43A%20%C4%90%C6%B0%E1%BB%9Dng%20s%E1%BB%91%209%2C%20KDC%20Him%20Lam%2C%20Ph%C6%B0%E1%BB%9Dng%20T%C3%A2n%20H%C6%B0ng%2C%20Qu%E1%BA%ADn%207%2C%20TP.HCM%2C%20Vi%E1%BB%87t%20Nam",
+  "hasMap": "https://www.google.com/maps/search/?api=1&query=43A%20%C4%90%C6%B0%E1%BB%9Dng%20s%E1%BB%91%209%2C%20Ph%C6%B0%E1%BB%9Dng%20T%C3%A2n%20H%C6%B0ng%2C%20Qu%E1%BA%ADn%207%2C%20TP.HCM%2C%20Vi%E1%BB%87t%20Nam",
   "telephone": STORE_HOTLINE,
   "address": {
     "@type": "PostalAddress",
-    "streetAddress": "43A Đường số 9, KDC Him Lam",
+    "streetAddress": "43A Đường số 9, Phường Tân Hưng",
     "addressLocality": "Phường Tân Hưng, Quận 7",
     "addressRegion": "Hồ Chí Minh",
     "postalCode": "700000",
@@ -159,7 +159,7 @@ export default function DiemGiaoDichQuan7Page() {
                 </div>
                 
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground leading-tight tracking-tight">
-                  Điểm Giao Dịch & Cửa Hàng MobiFone Quận 7 (Khu Him Lam)
+                  Điểm Giao Dịch & Cửa Hàng MobiFone Quận 7 — P. Tân Hưng
                 </h1>
                 
                 <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
@@ -210,7 +210,7 @@ export default function DiemGiaoDichQuan7Page() {
                 <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border/60 bg-muted aspect-square sm:aspect-[4/3] lg:aspect-square">
                   <Image
                     src="/images/diem-giao-dich-mobifone-quan-7.webp"
-                    alt="Không gian điểm giao dịch MobiFone Him Lam Quận 7"
+                    alt="Không gian điểm giao dịch MobiFone Quận 7"
                     fill
                     priority
                     className="object-cover"
@@ -218,7 +218,7 @@ export default function DiemGiaoDichQuan7Page() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-4">
                     <span className="text-white text-xs font-medium bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10">
-                      📍 43A Đường số 9, KDC Him Lam, Phường Tân Hưng, Q.7
+                      📍 43A Đường số 9, Phường Tân Hưng, Q.7
                     </span>
                   </div>
                 </div>
@@ -277,10 +277,10 @@ export default function DiemGiaoDichQuan7Page() {
                   </h3>
                   <div className="space-y-4 text-sm text-muted-foreground">
                     <p>
-                      <strong className="text-foreground">Địa chỉ:</strong> 43A Đường số 9, KDC Him Lam, Phường Tân Hưng, Quận 7, TP.HCM.
+                      <strong className="text-foreground">Địa chỉ:</strong> 43A Đường số 9, Phường Tân Hưng, Quận 7, TP.HCM.
                     </p>
                     <p>
-                      <strong className="text-foreground">Chỉ dẫn vị trí:</strong> Từ đường Nguyễn Thị Thập rẽ vào KDC Him Lam (đối diện Lotte Mart Q.7) khoảng 300m, đường rộng ô tô quay đầu thoải mái.
+                      <strong className="text-foreground">Chỉ dẫn vị trí:</strong> Nằm trên Đường số 9, Phường Tân Hưng (gần đường Phan Huy Thực và đường Trần Xuân Soạn). Tuyến đường rộng thông thoáng, ô tô và xe máy đậu đỗ thuận tiện.
                     </p>
                     <p>
                       <strong className="text-foreground">Giờ làm việc:</strong> 8:00 – 21:00 hàng ngày (kể cả Thứ Bảy, Chủ Nhật và ngày lễ).
@@ -317,7 +317,7 @@ export default function DiemGiaoDichQuan7Page() {
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                   className="w-full h-full min-h-[300px] lg:min-h-[400px]"
-                  title="Bản đồ điểm giao dịch MobiFone Him Lam Quận 7"
+                  title="Bản đồ điểm giao dịch MobiFone Quận 7"
                 />
               </div>
             </div>
