@@ -18,10 +18,9 @@ const TikTokIcon = ({ className }: { className?: string }) => (
 // Google Maps Place ID của cửa hàng (43A Đường số 9, Tân Hưng, TPHCM) — dùng
 // cho nút "Chỉ đường" + schema. Embed iframe dùng pb string đầy đủ (Google
 // không nhận `q=place_id:` ở embed endpoint — sẽ hiện bản đồ toàn cầu).
-const STORE_PLACE_ID = "ChIJV2BfBgAvdTERQ39odCHMHT0";
 const MAPS_EMBED_URL =
   "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d824.0450640691586!2d106.70810869335848!3d10.74673378940029!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f00065f6057%3A0x3d1dcc2174687f43!2zQ1RZIFZJ4buETiBUSMOUTkcgTkFNIEtIQU5H!5e0!3m2!1svi!2s!4v1769138059662!5m2!1svi!2s";
-const MAPS_DIRECTIONS_URL = `https://www.google.com/maps/dir/?api=1&destination=place_id:${STORE_PLACE_ID}`;
+const MAPS_DIRECTIONS_URL = "https://www.google.com/maps/dir/?api=1&destination=43A%20%C4%90%C6%B0%E1%BB%9Dng%20s%E1%BB%91%209%2C%20KDC%20Him%20Lam%2C%20Ph%C6%B0%E1%BB%9Dng%20T%C3%A2n%20H%C6%B0ng%2C%20Qu%E1%BA%ADn%207%2C%20TP.HCM%2C%20Vi%E1%BB%87t%20Nam";
 
 // SIM category pages. SIM ĐỒNG GIÁ 229K, SIM TRẢ GÓP and ĐỊNH GIÁ SIM were removed
 // from the main nav (trimmed to 4 items in Navigation.tsx); these links are what keep

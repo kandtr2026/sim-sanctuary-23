@@ -19,8 +19,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 
 const SITE_NAME = "CHONSOMOBIFONE.COM";
 const BASE_URL = "https://www.chonsomobifone.com";
-// Google Maps Place ID của cửa hàng — trỏ hasMap về đúng vị trí trên Google Maps.
-const STORE_PLACE_ID = "ChIJV2BfBgAvdTERQ39odCHMHT0";
+const STORE_MAPS_URL = "https://www.google.com/maps/search/?api=1&query=43A%20%C4%90%C6%B0%E1%BB%9Dng%20s%E1%BB%91%209%2C%20KDC%20Him%20Lam%2C%20Ph%C6%B0%E1%BB%9Dng%20T%C3%A2n%20H%C6%B0ng%2C%20Qu%E1%BA%ADn%207%2C%20TP.HCM%2C%20Vi%E1%BB%87t%20Nam";
 const DEFAULT_TITLE = "CHONSOMOBIFONE.COM — Kho SIM số đẹp Mobifone uy tín";
 const DEFAULT_DESCRIPTION =
   "Kho SIM số đẹp Mobifone giá tốt: SIM tứ quý, phong thủy, tài lộc, năm sinh. 30 phút giao toàn quốc, đăng ký thông tin chính chủ. Hotline 0933.686.666.";
@@ -40,7 +39,7 @@ const STORE_JSON_LD = {
   telephone: "+84933686666",
   email: "hotro@chonsomobifone.com",
   priceRange: "$$$",
-  hasMap: `https://www.google.com/maps/place/?q=place_id:${STORE_PLACE_ID}`,
+  hasMap: STORE_MAPS_URL,
   address: {
     "@type": "PostalAddress",
     streetAddress: "43A Đường số 9, Phường Tân Hưng",
@@ -67,7 +66,7 @@ const STORE_JSON_LD = {
     closes: "21:00",
   },
   sameAs: [
-    "https://www.google.com/maps/place/?q=place_id:ChIJV2BfBgAvdTERQ39odCHMHT0",
+    STORE_MAPS_URL,
     "https://zalo.me/0933686666",
     "https://www.facebook.com/111745910591052",
   ],

@@ -8,8 +8,7 @@ const DESCRIPTION =
   "Hướng dẫn đặt mua SIM số đẹp Mobifone: quy trình 3 bước, 30 phút giao toàn quốc, địa chỉ cửa hàng và thông tin tài khoản thanh toán chính thức.";
 const CANONICAL = "https://www.chonsomobifone.com/thanh-toan";
 
-const STORE_PLACE_ID = "ChIJV2BfBgAvdTERQ39odCHMHT0";
-const MAPS_DIRECTIONS_URL = `https://www.google.com/maps/dir/?api=1&destination=place_id:${STORE_PLACE_ID}`;
+const MAPS_DIRECTIONS_URL = "https://www.google.com/maps/dir/?api=1&destination=43A%20%C4%90%C6%B0%E1%BB%9Dng%20s%E1%BB%91%209%2C%20KDC%20Him%20Lam%2C%20Ph%C6%B0%E1%BB%9Dng%20T%C3%A2n%20H%C6%B0ng%2C%20Qu%E1%BA%ADn%207%2C%20TP.HCM%2C%20Vi%E1%BB%87t%20Nam";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
