@@ -738,3 +738,11 @@ xanh · build xanh.
 **Còn chờ A Khoa:** ~50/69 bài blog bot trong Supabase `blog_posts` dùng bảng ngũ hành lung tung — cần duyệt để sửa DB; điểm "mệnh sinh số" đang −1 như "mệnh khắc số"; có mở trang Đầu số cổ / Số độc không.
 
 ---
+
+## [2026-09-29] Landing Google Ads /sim-ngay-thang-nam-sinh (tìm SIM đuôi DDMMYY)
+
+Trang mới (trước đây 404): form Ngày/Tháng/Năm + ô nhanh DDMMYY → gọi song song `/api/sims?suffixes=DDMMYY` (trùng 6 số cuối, nhãn "Trùng 6 số cuối ngày sinh", luôn đứng trên) và `?search=DDMMYY` (chứa ở giữa), networks=Mobifone + lọc giá (<1tr/1–3/3–5/5–10/>10tr) + đầu số (090/093/089/07x). Validate ngày/tháng/năm (năm nhuận), lỗi dễ hiểu, không gọi API khi sai. Prefill `?ngay=&thang=&nam=` hoặc `?q=` cho Ads. Số mẫu thật (≤12, từ sim_birthday_kho ∩ sims available, ISR 1h). SEO 4 mục + FAQ 4 câu + JSON-LD; hotline bán 0933.686.666, cửa hàng Q7 0938.868.868. Chữ trang: "khách hàng", không "quý khách"/"Koi". GA4 `search` khi tìm. Logic thuần `src/lib/simNgaySinh.ts` + 35 test. Không đổi schema, không đụng /sim-nam-sinh.
+
+**Chờ A Khoa:** con số 6.646 trên trang là tổng dòng sim_birthday_kho; chỉ 6.443 dòng là ngày có thật (hop_le). Thẻ HTML tùy chỉnh trong GTM-MWKVVS7M ném lỗi `innerText of null` mỗi cú bấm (có sẵn toàn site).
+
+---

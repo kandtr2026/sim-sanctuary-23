@@ -53,6 +53,8 @@ const ROUTES: StaticRoute[] = [
   // money page vô hình với sitemap.
   { path: "/diem-giao-dich-mobifone-quan-7", changeFrequency: "weekly", priority: 0.9, dynamic: true },
   { path: "/sim-nam-sinh", changeFrequency: "weekly", priority: 0.8, dynamic: true },
+  // Landing Google Ads "sim ngày tháng năm sinh" — tìm SIM đuôi DDMMYY.
+  { path: "/sim-ngay-thang-nam-sinh", changeFrequency: "weekly", priority: 0.8, dynamic: true },
   { path: "/sim-than-tai", changeFrequency: "weekly", priority: 0.8, dynamic: true },
   { path: "/sim-loc-phat", changeFrequency: "weekly", priority: 0.8, dynamic: true },
   { path: "/sim-ngu-quy", changeFrequency: "weekly", priority: 0.8, dynamic: true },  { path: "/sim-phong-thuy-hop-menh", changeFrequency: "weekly", priority: 0.8 },
