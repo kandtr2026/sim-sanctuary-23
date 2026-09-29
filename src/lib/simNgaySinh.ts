@@ -182,6 +182,19 @@ const validateQuickParts = (
  * Đọc ô tìm nhanh. Nhận 6 số DDMMYY, 8 số DDMMYYYY, hoặc có dấu / - . (khoảng
  * trắng cũng được coi là dấu ngăn) → luôn quy về DDMMYY.
  */
+/**
+ * Chuẩn hoá chữ khách GÕ vào ô nhanh (chạy ở mỗi onChange và lúc bấm Tìm):
+ * chỉ giữ chữ số và dấu / - . khoảng trắng. Nếu ô chỉ có chữ số mà dài hơn 8
+ * (khách gõ chồng lên số cũ, vd ô đang "010805" gõ tiếp "050790" thành
+ * "010805050790"), giữ 6 số VỪA gõ — ý khách là tìm ngày sinh mới, không phải
+ * nối chuỗi. Có dấu phân cách thì để nguyên cho parseQuickInput xử lý.
+ */
+export function normalizeQuickTyping(raw: string): string {
+  const cleaned = String(raw ?? "").replace(/[^\d/\-. ]/g, "");
+  if (/[/\-. ]/.test(cleaned)) return cleaned.slice(0, 14);
+  return cleaned.length > 8 ? cleaned.slice(-6) : cleaned;
+}
+
 export function parseQuickInput(raw: string, now: Date = new Date()): QuickInputResult {
   const text = String(raw ?? "").trim().replace(/\*/g, "");
   if (!text) return { ok: false, error: "Vui lòng nhập ngày sinh, ví dụ 050790." };

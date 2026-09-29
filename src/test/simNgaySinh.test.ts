@@ -7,6 +7,7 @@ import {
   orderBirthdayMatches,
   parseBirthForm,
   parseQuickInput,
+  normalizeQuickTyping,
   PRICE_FILTERS,
   readUrlPrefill,
   segmentsToText,
@@ -260,5 +261,17 @@ describe("readUrlPrefill — link Google Ads", () => {
       thang: "",
       nam: "",
     });
+  });
+});
+
+describe("normalizeQuickTyping — chữ khách gõ vào ô nhanh", () => {
+  it("chỉ giữ số và dấu phân cách", () => {
+    expect(normalizeQuickTyping("abcdef")).toBe("");
+    expect(normalizeQuickTyping("05a07b90")).toBe("050790");
+    expect(normalizeQuickTyping("05/07/1990")).toBe("05/07/1990");
+  });
+  it("gõ chồng lên số cũ (>8 chữ số liền) → giữ 6 số vừa gõ", () => {
+    expect(normalizeQuickTyping("010805050790")).toBe("050790");
+    expect(normalizeQuickTyping("05071990")).toBe("05071990"); // 8 số DDMMYYYY vẫn giữ
   });
 });

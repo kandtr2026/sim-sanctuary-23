@@ -12,6 +12,7 @@ import {
   onlyDigits,
   parseBirthForm,
   parseQuickInput,
+  normalizeQuickTyping,
   PREFIX_FILTERS,
   PRICE_FILTERS,
   readUrlPrefill,
@@ -38,6 +39,8 @@ interface ResultState {
 }
 
 const EMPTY_RESULT: ResultState = { exact: [], contains: [], exactTotal: 0, containsTotal: 0 };
+
+const QUICK_ONLY_DIGITS = "Ô này chỉ nhận chữ số — nhập 6 số ngày sinh dạng DDMMYY, ví dụ 050790.";
 
 async function fetchSims(
   query: string,
@@ -349,6 +352,19 @@ export default function SimNgaySinhFinder({ samples }: { samples: MauSoNgaySinh[
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
+  /**
+   * Bỏ kết quả đang hiện + mọi request còn bay. Gọi khi khách nhập SAI: không được
+   * để danh sách của ngày sinh trước nằm dưới thông báo lỗi (QA 29/09: nhập nhanh
+   * lỗi mà vẫn thấy kết quả 010805 cũ → tưởng ô nhanh không chạy).
+   */
+  const clearResults = () => {
+    reqIdRef.current += 1;
+    abortRef.current?.abort();
+    setActive(null);
+    setResult(EMPTY_RESULT);
+    setStatus("idle");
+  };
+
   const startSearch = (target: BirthdayTarget, urlEntries: Record<string, string>) => {
     blurActive();
     trackSearch(target.ddmmyy);
@@ -357,16 +373,31 @@ export default function SimNgaySinhFinder({ samples }: { samples: MauSoNgaySinh[
     scrollToResults();
   };
 
+  // Đọc giá trị ngay trên ô input lúc submit (không dựa vào state có thể chưa kịp
+  // cập nhật — vd trình duyệt tự điền không bắn onChange), fallback về state.
+  const fieldValue = (form: HTMLFormElement, name: string, fallback: string) => {
+    const el = form.elements.namedItem(name);
+    return el instanceof HTMLInputElement ? el.value : fallback;
+  };
+
   const onSubmitForm = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const r = parseBirthForm({ ngay, thang, nam });
+    const input = {
+      ngay: fieldValue(e.currentTarget, "ngay", ngay),
+      thang: fieldValue(e.currentTarget, "thang", thang),
+      nam: fieldValue(e.currentTarget, "nam", nam),
+    };
+    const r = parseBirthForm(input);
     if (!r.ok) {
       setFormErrors(r.errors);
+      clearResults();
       const first = r.errors.ngay ? ngayRef : r.errors.thang ? thangRef : namRef;
       first.current?.focus();
       return;
     }
     setFormErrors({});
+    // Ô nhanh xoá trắng: hai nơi nhập không được giữ hai ngày sinh khác nhau.
+    setQuick("");
     setQuickError("");
     const { day, month, year } = r.target;
     startSearch(r.target, {
@@ -378,13 +409,27 @@ export default function SimNgaySinhFinder({ samples }: { samples: MauSoNgaySinh[
 
   const onSubmitQuick = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const r = parseQuickInput(quick);
+    // Giá trị lấy thẳng từ ô, chuẩn hoá tại chỗ rồi tìm NGAY bằng biến cục bộ —
+    // không đọc state bất đồng bộ.
+    const raw = normalizeQuickTyping(fieldValue(e.currentTarget, "q", quick));
+    setQuick(raw);
+    const r = parseQuickInput(raw);
     if (!r.ok) {
       setQuickError(r.error);
+      clearResults();
+      // Ô vẫn đang focus nên onFocus không chạy lại — chọn sẵn để gõ lại là THAY.
+      const el = e.currentTarget.elements.namedItem("q");
+      if (el instanceof HTMLInputElement) el.select();
       return;
     }
     setQuickError("");
     setFormErrors({});
+    // Ô ngày/tháng/năm xoá trắng: không giữ 01/08/2005 cũ khiến bấm nút form lại
+    // quay về kết quả trước.
+    setNgay("");
+    setThang("");
+    setNam("");
+    setQuick(r.target.ddmmyy);
     startSearch(r.target, { q: r.target.ddmmyy });
   };
 
@@ -394,6 +439,9 @@ export default function SimNgaySinhFinder({ samples }: { samples: MauSoNgaySinh[
     setQuick(s.ddmmyy);
     setQuickError("");
     setFormErrors({});
+    setNgay("");
+    setThang("");
+    setNam("");
     startSearch(r.target, { q: s.ddmmyy });
   };
 
@@ -461,6 +509,7 @@ export default function SimNgaySinhFinder({ samples }: { samples: MauSoNgaySinh[
                 placeholder="DD"
                 maxLength={2}
                 value={ngay}
+                onFocus={(e) => e.currentTarget.select()}
                 onChange={makeFieldHandler(setNgay, "ngay", 2, thangRef)}
                 aria-invalid={!!formErrors.ngay}
                 aria-describedby={formErrors.ngay ? "ns-ngay-err" : undefined}
@@ -482,6 +531,7 @@ export default function SimNgaySinhFinder({ samples }: { samples: MauSoNgaySinh[
                 placeholder="MM"
                 maxLength={2}
                 value={thang}
+                onFocus={(e) => e.currentTarget.select()}
                 onChange={makeFieldHandler(setThang, "thang", 2, namRef)}
                 aria-invalid={!!formErrors.thang}
                 aria-describedby={formErrors.thang ? "ns-thang-err" : undefined}
@@ -503,6 +553,7 @@ export default function SimNgaySinhFinder({ samples }: { samples: MauSoNgaySinh[
                 placeholder="YYYY"
                 maxLength={4}
                 value={nam}
+                onFocus={(e) => e.currentTarget.select()}
                 onChange={makeFieldHandler(setNam, "nam", 4)}
                 aria-invalid={!!formErrors.nam}
                 aria-describedby={formErrors.nam ? "ns-nam-err" : undefined}
@@ -553,11 +604,16 @@ export default function SimNgaySinhFinder({ samples }: { samples: MauSoNgaySinh[
               inputMode="numeric"
               autoComplete="off"
               placeholder="Nhập DDMMYY, ví dụ 050790"
-              maxLength={10}
+              maxLength={14}
               value={quick}
+              // Chạm vào ô là chọn hết: gõ số mới THAY số cũ chứ không nối đuôi.
+              onFocus={(e) => e.currentTarget.select()}
               onChange={(e) => {
-                setQuick(e.target.value.replace(/[^\d/\-. ]/g, "").slice(0, 10));
-                if (quickError) setQuickError("");
+                const typed = e.target.value;
+                setQuick(normalizeQuickTyping(typed));
+                // Gõ chữ cái: lọc bỏ nhưng BÁO ngay, đừng để khách tưởng ô không nhận.
+                if (/[^\d/\-. ]/.test(typed)) setQuickError(QUICK_ONLY_DIGITS);
+                else if (quickError) setQuickError("");
               }}
               aria-invalid={!!quickError}
               aria-describedby={quickError ? "ns-quick-err" : undefined}
@@ -716,11 +772,10 @@ export default function SimNgaySinhFinder({ samples }: { samples: MauSoNgaySinh[
               <div className="mt-3 rounded-xl border border-border bg-card p-4">
                 <p className="flex items-center gap-2 font-semibold text-foreground">
                   <SearchX className="h-4 w-4 text-gold" aria-hidden />
-                  Kho hiện chưa có số MobiFone chứa ngày sinh {active.label}
-                  {filtersActive ? " trong bộ lọc đang chọn" : ""}.
+                  Chưa có số trùng ngày sinh {active.ddmmyy} trong kho đang hiển thị. Anh/chị gửi ngày sinh qua Zalo để CHONSOMOBIFONE kiểm tra thêm.
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Gửi ngày sinh qua Zalo, CHONSOMOBIFONE sẽ tìm giúp trong kho tổng và báo lại số phù hợp.
+                  {filtersActive ? "Đang áp bộ lọc giá/đầu số — bỏ lọc để xem toàn bộ kho ngày sinh." : "Nhân viên kiểm tra kho tổng và báo lại số phù hợp."}
                 </p>
                 {filtersActive && (
                   <button

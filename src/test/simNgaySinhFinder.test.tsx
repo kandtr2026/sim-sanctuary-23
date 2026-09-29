@@ -96,7 +96,9 @@ describe("SimNgaySinhFinder — landing /sim-ngay-thang-nam-sinh", () => {
 
     mode = "none";
     fireEvent.click(tim);
-    await screen.findByText(/Kho hiện chưa có số MobiFone chứa ngày sinh/);
+    await screen.findByText(
+      "Chưa có số trùng ngày sinh 010805 trong kho đang hiển thị. Anh/chị gửi ngày sinh qua Zalo để CHONSOMOBIFONE kiểm tra thêm.",
+    );
     expect(screen.getByRole("link", { name: /Gửi ngày sinh qua Zalo/ })).toHaveAttribute(
       "href",
       "https://zalo.me/0933686666",
@@ -105,5 +107,65 @@ describe("SimNgaySinhFinder — landing /sim-ngay-thang-nam-sinh", () => {
     mode = "fail";
     fireEvent.click(tim);
     await screen.findByRole("button", { name: "Thử lại" });
+  });
+  // QA Mon 29/09: ô nhanh phải GHI ĐÈ kết quả đang có, nhập sai không được giữ kết quả cũ.
+  it("ca A–E: form 010805 → ô nhanh 050790 ghi đè; nhập sai xoá kết quả cũ; nhập lại 010805 chạy lại", async () => {
+    const calls: string[] = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      const url = String(input);
+      calls.push(url);
+      const sp = new URL(url, "http://x").searchParams;
+      const term = sp.get("suffixes") ?? sp.get("search");
+      if (term !== "010805") return reply([]);
+      return sp.get("suffixes")
+        ? reply([mk("0931010805", 1500000), mk("0901010805", 2000000)])
+        : reply([mk("0901080504", 1500000), mk("0931010805", 1500000), mk("0901080510", 1500000), mk("0901010805", 2000000)]);
+    });
+    render(<SimNgaySinhFinder samples={[]} />);
+    const quickInput = screen.getByPlaceholderText("Nhập DDMMYY, ví dụ 050790") as HTMLInputElement;
+    const timNhanh = screen.getByRole("button", { name: /^Tìm$/ });
+
+    // A — form 01/08/2005
+    fireEvent.change(screen.getByLabelText("Ngày (DD)"), { target: { value: "01" } });
+    fireEvent.change(screen.getByLabelText("Tháng (MM)"), { target: { value: "08" } });
+    fireEvent.change(screen.getByLabelText("Năm (YYYY)"), { target: { value: "2005" } });
+    fireEvent.click(screen.getByRole("button", { name: /Tìm sim theo ngày sinh/ }));
+    await waitFor(() => expect(screen.getAllByText("Trùng 6 số cuối ngày sinh")).toHaveLength(2));
+    expect(document.body.textContent).toContain("(đuôi 010805)");
+
+    // B — ô nhanh 050790 ghi đè, không còn 010805; ô ngày/tháng/năm xoá trắng
+    calls.length = 0;
+    fireEvent.change(quickInput, { target: { value: "050790" } });
+    fireEvent.click(timNhanh);
+    await screen.findByText(/Chưa có số trùng ngày sinh 050790 trong kho đang hiển thị/);
+    expect(calls.some((c) => c.includes("suffixes=050790"))).toBe(true);
+    expect(document.body.textContent).toContain("(đuôi 050790)");
+    expect(document.body.textContent).not.toContain("010805");
+    expect((screen.getByLabelText("Ngày (DD)") as HTMLInputElement).value).toBe("");
+    expect((screen.getByLabelText("Năm (YYYY)") as HTMLInputElement).value).toBe("");
+
+    // D — nhập sai: báo lỗi, không gọi API, KHÔNG giữ kết quả cũ
+    for (const bad of ["123", "abcdef", "321399"]) {
+      calls.length = 0;
+      fireEvent.change(quickInput, { target: { value: bad } });
+      fireEvent.click(timNhanh);
+      expect(screen.getByRole("alert").textContent?.length ?? 0).toBeGreaterThan(0);
+      expect(calls).toHaveLength(0);
+      expect(document.body.textContent).not.toContain("Kết quả cho ngày sinh");
+    }
+
+    // E — sau lỗi, nhập lại 010805 → tìm bình thường
+    fireEvent.change(quickInput, { target: { value: "010805" } });
+    fireEvent.click(timNhanh);
+    await waitFor(() => expect(screen.getAllByText("Trùng 6 số cuối ngày sinh")).toHaveLength(2));
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("gõ chồng lên số cũ trong ô nhanh → giữ 6 số vừa gõ, không nối chuỗi", () => {
+    render(<SimNgaySinhFinder samples={[]} />);
+    const quickInput = screen.getByPlaceholderText("Nhập DDMMYY, ví dụ 050790") as HTMLInputElement;
+    fireEvent.change(quickInput, { target: { value: "010805" } });
+    fireEvent.change(quickInput, { target: { value: "010805050790" } });
+    expect(quickInput.value).toBe("050790");
   });
 });
