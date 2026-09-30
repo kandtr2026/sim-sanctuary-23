@@ -96,7 +96,10 @@ export function viTriCuaLuot(country: string | null, region: string | null, city
   const c = (country ?? "").trim().toUpperCase();
   if (c && c !== "VN") return { tinh: NUOC_NGOAI, tinhCu: null };
   const ma = (region ?? "").trim().toUpperCase().replace(/^VN-/, "");
-  const tinhCu = TINH_CU_THEO_MA[ma] ?? TINH_CU_THEO_THANH_PHO[khongDau(city ?? "")] ?? null;
+  // Tên thành phố nhận ra được thì TIN TRƯỚC mã vùng: 30/09 Vercel trả
+  // region "61" (Hải Dương) kèm city "Ho Chi Minh City" cho IP ở Q.7 — city
+  // đúng, region sai. City chi tiết hơn; không có city mới dùng mã vùng.
+  const tinhCu = TINH_CU_THEO_THANH_PHO[khongDau(city ?? "")] ?? TINH_CU_THEO_MA[ma] ?? null;
   if (!tinhCu) return { tinh: c === "VN" ? VN_CHUA_RO : CHUA_XAC_DINH, tinhCu: null };
   return { tinh: SAP_NHAP[tinhCu] ?? tinhCu, tinhCu };
 }

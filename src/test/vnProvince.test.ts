@@ -27,6 +27,11 @@ describe("quy vị trí IP về tỉnh/thành", () => {
     expect(viTriCuaLuot("vn", "vn-hn", null).tinh).toBe("Hà Nội");
   });
 
+  it("mã vùng và thành phố mâu thuẫn thì tin thành phố (ca thật từ Vercel 30/09)", () => {
+    expect(viTriCuaLuot("VN", "61", "Ho Chi Minh City")).toEqual({ tinh: "TP. Hồ Chí Minh", tinhCu: "TP. Hồ Chí Minh" });
+    expect(viTriCuaLuot("VN", "61", "Some Unknown Town").tinh).toBe("Hải Phòng"); // city lạ → theo mã vùng
+  });
+
   it("thiếu mã vùng thì đoán theo tên thành phố", () => {
     expect(viTriCuaLuot("VN", null, "Ho Chi Minh City").tinh).toBe("TP. Hồ Chí Minh");
     expect(viTriCuaLuot("VN", "", "Thu Dau Mot")).toEqual({ tinh: "TP. Hồ Chí Minh", tinhCu: "Bình Dương" });
