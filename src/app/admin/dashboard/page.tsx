@@ -17,6 +17,7 @@ import { ShopeeSummaryCard } from "@/components/admin/ShopeeSummaryCard";
 import { ShopeeSalesSection } from "@/components/admin/ShopeeSalesSection";
 import { PostReadsSection } from "@/components/admin/PostReadsSection";
 import { VisitTrendSection } from "@/components/admin/VisitTrendSection";
+import { ProvinceTrafficSection } from "@/components/admin/ProvinceTrafficSection";
 import { TrafficExclusionsSection } from "@/components/admin/TrafficExclusionsSection";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -435,6 +436,7 @@ function AdminDashboardContent() {
               onKhachThatChange={setKhachThat}
               reloadSignal={trafficVersion}
             />
+            <ProvinceTrafficSection token={token} khachThat={khachThat} reloadSignal={trafficVersion} />
             <PageVisitsSection khachThat={khachThat} reloadSignal={trafficVersion} />
             <ConversionsSection khachThat={khachThat} reloadSignal={trafficVersion} />
             <CampaignPerformanceSection />
