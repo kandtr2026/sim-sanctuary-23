@@ -93,18 +93,18 @@ const SEO_SECTIONS: { title: string; body: React.ReactNode }[] = [
     ),
   },
   {
-    title: "Vì sao dạng DDMMYY dễ nhớ?",
+    title: "Vì sao dạng DDMMYY dễ nhớ và ý nghĩa?",
     body: (
       <p>
         Ngày sinh là dãy số mỗi người đã thuộc sẵn. Khi 6 số cuối trùng DDMMYY, chủ thuê bao chỉ cần nhớ thêm 4 số
         đầu như 0901 hay 0931. Người nhận cũng dễ ghi lại chính xác vì chỉ cần nghe “đuôi ngày 05 tháng 07 năm
-        90”. Dạng số này phù hợp làm số liên lạc lâu dài, in danh thiếp, hoặc làm quà sinh nhật mang dấu ấn cá
+        90”. Dạng số này phù hợp làm số liên lạc lâu dài, in danh thiếp, hoặc làm quà tặng sinh nhật mang đậm dấu ấn cá
         nhân.
       </p>
     ),
   },
   {
-    title: "Cách chọn sim ngày sinh MobiFone",
+    title: "Cách chọn sim ngày sinh MobiFone nhanh chóng",
     body: (
       <ol className="list-decimal space-y-1.5 pl-5">
         <li>
@@ -117,20 +117,28 @@ const SEO_SECTIONS: { title: string; body: React.ReactNode }[] = [
         </li>
         <li>Lọc theo đầu số quen dùng: 090, 093 là các đầu số lâu năm của MobiFone, ngoài ra có 089 và nhóm 07x.</li>
         <li>
-          Lọc theo khoảng giá để so sánh nhanh, sau đó nhắn Zalo 0933.686.666 để giữ số. Khi nhận SIM, khách hàng
-          được hỗ trợ đăng ký thông tin chính chủ.
+          Lọc theo khoảng giá để so sánh nhanh, sau đó bấm “Giữ số này qua Zalo” hoặc gọi 0933.686.666. Khi nhận SIM, khách hàng
+          được hỗ trợ đăng ký thông tin chính chủ trước khi thanh toán.
         </li>
       </ol>
     ),
   },
   {
-    title: "Giá sim ngày tháng năm sinh",
+    title: "Nếu chưa có số trùng tuyệt đối ngày sinh?",
     body: (
       <p>
-        Giá từng số được niêm yết ngay trên thẻ SIM và lấy trực tiếp từ kho đang bán, không phát sinh phụ phí. Giá
-        phụ thuộc chủ yếu vào đầu số và độ đẹp của phần còn lại trong dãy số, nên cùng một ngày sinh, số đầu 090 và
-        093 có thể chênh giá nhau. Bộ lọc giá (Dưới 1 triệu, 1 - 3 triệu, 3 - 5 triệu, 5 - 10 triệu, Trên 10 triệu)
-        giúp khách hàng xem nhanh các số trong tầm ngân sách.
+        Nếu kho số chưa có đuôi trùng đúng ngày sinh của anh/chị, hệ thống sẽ tự động đề xuất các số có chứa trọn cụm
+        ngày sinh ở giữa dãy. Ngoài ra, anh/chị có thể nhắn ngày sinh qua Zalo 0933.686.666 để nhân viên CHONSOMOBIFONE
+        kiểm tra kho tổng đại lý và tư vấn số gần nhất.
+      </p>
+    ),
+  },
+  {
+    title: "Giá sim ngày tháng năm sinh & Cam kết niêm yết",
+    body: (
+      <p>
+        Giá từng số được niêm yết công khai ngay trên thẻ SIM, lấy trực tiếp từ kho đang bán và tuyệt đối không phát sinh phụ phí.
+        Khách hàng nhận SIM tận nơi, kiểm tra đúng số và hỗ trợ đăng ký chính chủ rồi mới thanh toán.
       </p>
     ),
   },
@@ -151,15 +159,29 @@ export default async function SimNgayThangNamSinhPage() {
     <>
       <main className="min-h-screen bg-background pb-12">
         <div className="container mx-auto max-w-5xl px-4 pt-3 sm:pt-6">
-          {/* Hero gọn: trên mobile form phải lọt màn hình đầu tiên. */}
-          <header className="mb-3 sm:mb-5">
+          {/* Hero theo định hướng tăng chuyển đổi */}
+          <header className="mb-4 sm:mb-6">
             <h1 className="text-[22px] font-extrabold leading-tight tracking-tight text-foreground sm:text-3xl md:text-4xl">
-              Sim Ngày Tháng Năm Sinh <span className="text-gold">MobiFone</span>
+              Tìm SIM MobiFone <span className="text-gold">Trùng Ngày Sinh</span> Của Anh/Chị
             </h1>
-            <p className="mt-1.5 max-w-2xl text-[13px] leading-snug text-muted-foreground sm:text-base">
-              Nhập ngày sinh, xem ngay SIM MobiFone có 6 số cuối trùng DDMMYY. Kho 6.646 số ngày sinh, giá niêm yết rõ
-              ràng, hỗ trợ giữ số qua Zalo.
+            <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-muted-foreground sm:text-base">
+              Nhập ngày sinh để xem các số có 6 số cuối dạng DDMMYY. Giá niêm yết rõ ràng, hỗ trợ giữ số qua Zalo và
+              đăng ký chính chủ MobiFone.
             </p>
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-foreground/85 sm:text-sm">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                Giá niêm yết, không phụ phí
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                Nhận SIM kiểm tra rồi mới thanh toán
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                Hỗ trợ đăng ký chính chủ 100%
+              </span>
+            </div>
           </header>
 
           <SimNgaySinhFinder samples={samples} />
@@ -173,7 +195,7 @@ export default async function SimNgayThangNamSinhPage() {
               Cần tìm số theo ngày sinh riêng?
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Gửi ngày sinh qua Zalo, nhân viên CHONSOMOBIFONE kiểm tra kho và báo lại các số phù hợp.
+              Gửi ngày sinh qua Zalo, nhân viên CHONSOMOBIFONE sẽ kiểm tra kho tổng và báo lại các số phù hợp nhất. Không cần đặt cọc trước.
             </p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border border-border bg-background/60 p-4">
@@ -181,7 +203,7 @@ export default async function SimNgayThangNamSinhPage() {
                 <a href="tel:0933686666" className="mt-1 block text-2xl font-extrabold tabular-nums text-gold">
                   0933.686.666
                 </a>
-                <div className="mt-3 flex gap-2">
+                <div className="mt-3 flex flex-wrap gap-2">
                   <a
                     href="https://zalo.me/0933686666"
                     target="_blank"
@@ -189,14 +211,14 @@ export default async function SimNgayThangNamSinhPage() {
                     className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-sky-500 px-3 text-sm font-bold text-white transition hover:bg-sky-600"
                   >
                     <MessageCircle className="h-4 w-4" aria-hidden />
-                    Chat Zalo
+                    Gửi ngày sinh để tìm số
                   </a>
                   <a
                     href="tel:0933686666"
                     className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-cta px-3 text-sm font-bold text-white transition hover:bg-cta-hover"
                   >
                     <Phone className="h-4 w-4" aria-hidden />
-                    Gọi ngay
+                    Gọi kiểm tra số còn hàng
                   </a>
                 </div>
               </div>

@@ -2,7 +2,19 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Cake, Loader2, MessageCircle, Phone, Search, SearchX, WifiOff } from "lucide-react";
+import {
+  BadgeCheck,
+  Cake,
+  Loader2,
+  MessageCircle,
+  Phone,
+  Search,
+  SearchX,
+  ShieldCheck,
+  Tag,
+  Truck,
+  WifiOff,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatPrice, type NormalizedSIM } from "@/lib/simUtils";
 import {
@@ -111,9 +123,13 @@ function SimNgaySinhCard({ sim, ddmmyy, exact }: { sim: NormalizedSIM; ddmmyy: s
         exact ? "border-gold/50 bg-gold/[0.07]" : "border-border bg-card",
       )}
     >
-      {exact && (
+      {exact ? (
         <span className="mb-2 self-start rounded-md bg-gold px-2 py-0.5 text-[11px] font-bold leading-tight text-black">
           Trùng 6 số cuối ngày sinh
+        </span>
+      ) : (
+        <span className="mb-2 self-start rounded-md bg-white/10 px-2 py-0.5 text-[11px] font-medium leading-tight text-white/80">
+          Có chứa ngày sinh
         </span>
       )}
       <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] text-muted-foreground">
@@ -138,17 +154,20 @@ function SimNgaySinhCard({ sim, ddmmyy, exact }: { sim: NormalizedSIM; ddmmyy: s
         <NumberText segments={segments} exact={exact} />
       </Link>
 
-      <div className="mt-1 text-base font-bold text-white">{formatPrice(sim.price)}</div>
+      <div className="mt-1 flex items-center justify-between">
+        <span className="text-base font-bold text-white">{formatPrice(sim.price)}</span>
+        <span className="text-[11px] font-medium text-emerald-400">Chính chủ</span>
+      </div>
 
       <a
         href={ZALO_URL}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label={`Chat Zalo giữ số ${display} giá ${formatPrice(sim.price)}`}
+        aria-label={`Giữ số này qua Zalo ${display} giá ${formatPrice(sim.price)}`}
         className="mt-2 flex min-h-11 items-center justify-center gap-1 rounded-lg border border-sky-500/40 bg-sky-500/15 px-1.5 text-[13px] font-semibold whitespace-nowrap sm:gap-1.5 sm:px-2 sm:text-sm text-sky-400 transition hover:bg-sky-500/25"
       >
         <MessageCircle className="h-4 w-4 shrink-0" aria-hidden />
-        Chat Zalo giữ số
+        Giữ số này qua Zalo
       </a>
       <Link
         href={`/sim/${digits}`}
@@ -221,6 +240,38 @@ function ContactButtons({ className }: { className?: string }) {
         <Phone className="h-4 w-4" aria-hidden />
         Gọi 0933.686.666
       </a>
+    </div>
+  );
+}
+
+function ConciergeCard({ label }: { label?: string }) {
+  return (
+    <div className="mt-6 rounded-2xl border border-gold/30 bg-gold/[0.05] p-4 text-center sm:p-6">
+      <h3 className="text-base font-bold text-foreground sm:text-lg">
+        {label ? `Chưa thấy số ưng ý cho ngày sinh ${label}?` : "Chưa thấy số đúng ngày sinh của anh/chị?"}
+      </h3>
+      <p className="mx-auto mt-1 max-w-xl text-xs text-muted-foreground sm:text-sm">
+        Gửi ngày/tháng/năm sinh qua Zalo, CHONSOMOBIFONE sẽ kiểm tra kho tổng và báo lại các số gần nhất.
+        Không cần đặt cọc trước, nhận SIM kiểm tra rồi mới thanh toán.
+      </p>
+      <div className="mt-3.5 flex flex-wrap justify-center gap-2">
+        <a
+          href={ZALO_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-sky-500 px-5 text-sm font-bold text-white transition hover:bg-sky-600 shadow-sm"
+        >
+          <MessageCircle className="h-4 w-4" aria-hidden />
+          Gửi ngày sinh để tìm số
+        </a>
+        <a
+          href="tel:0933686666"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-semibold text-foreground transition hover:border-gold/60"
+        >
+          <Phone className="h-4 w-4" aria-hidden />
+          Gọi kiểm tra số còn hàng
+        </a>
+      </div>
     </div>
   );
 }
@@ -562,6 +613,12 @@ export default function SimNgaySinhFinder({ samples }: { samples: MauSoNgaySinh[
             </div>
           </div>
 
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+            💡 Ví dụ: <span className="font-semibold text-foreground/90">05/07/1990</span> → hệ thống tìm đuôi{" "}
+            <span className="font-semibold text-gold">050790</span>. Nếu chưa có số trùng tuyệt đối, nhân viên sẽ kiểm tra
+            kho tổng và gợi ý số gần nhất.
+          </p>
+
           {(formErrors.ngay || formErrors.thang || formErrors.nam) && (
             <div className="mt-2 space-y-1" role="alert">
               {formErrors.ngay && (
@@ -640,6 +697,38 @@ export default function SimNgaySinhFinder({ samples }: { samples: MauSoNgaySinh[
         </form>
       </div>
 
+      {/* ── 4 Cam kết rút gọn tăng uy tín cho khách Ads ── */}
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="flex items-center gap-2 rounded-xl border border-border bg-card/60 p-2.5">
+          <Tag className="h-4 w-4 shrink-0 text-gold" aria-hidden />
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-foreground">Giá công khai</p>
+            <p className="truncate text-[11px] text-muted-foreground">Giá hiện trên từng số</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 rounded-xl border border-border bg-card/60 p-2.5">
+          <BadgeCheck className="h-4 w-4 shrink-0 text-emerald-400" aria-hidden />
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-foreground">Chính chủ 100%</p>
+            <p className="truncate text-[11px] text-muted-foreground">Đăng ký đúng thông tin</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 rounded-xl border border-border bg-card/60 p-2.5">
+          <ShieldCheck className="h-4 w-4 shrink-0 text-sky-400" aria-hidden />
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-foreground">Kiểm tra rồi trả</p>
+            <p className="truncate text-[11px] text-muted-foreground">Nhận SIM kiểm tra trước</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 rounded-xl border border-border bg-card/60 p-2.5">
+          <Truck className="h-4 w-4 shrink-0 text-amber-400" aria-hidden />
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-foreground">Giao nhanh</p>
+            <p className="truncate text-[11px] text-muted-foreground">Hỗ trợ giao tận nơi</p>
+          </div>
+        </div>
+      </div>
+
       {/* ── Bộ lọc ── */}
       <div className="mt-3 space-y-1.5">
         <ChipRow label="Giá" options={PRICE_FILTERS} value={price} onChange={onPriceChange} />
@@ -680,6 +769,7 @@ export default function SimNgaySinhFinder({ samples }: { samples: MauSoNgaySinh[
                 </li>
               ))}
             </ul>
+            <ConciergeCard />
           </section>
         )}
 
@@ -767,6 +857,7 @@ export default function SimNgaySinhFinder({ samples }: { samples: MauSoNgaySinh[
                     danh sách.
                   </p>
                 )}
+                <ConciergeCard label={active.label} />
               </>
             ) : (
               <div className="mt-3 rounded-xl border border-border bg-card p-4">
