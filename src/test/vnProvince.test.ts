@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CHUA_XAC_DINH, NUOC_NGOAI, TINH_CU_THEO_MA, VN_CHUA_RO, gomTheoTinh, viTriCuaLuot } from "@/lib/vnProvince";
+import { CHUA_XAC_DINH, NUOC_NGOAI, TINH_CU_THEO_MA, VN_CHUA_RO, gomHomNayHomQua, gomTheoTinh, viTriCuaLuot } from "@/lib/vnProvince";
 
 describe("quy vị trí IP về tỉnh/thành", () => {
   it("đủ 63 tỉnh cũ (+ Hà Tây) và quy về đúng 34 tỉnh/thành mới", () => {
@@ -67,5 +67,38 @@ describe("gomTheoTinh", () => {
 
   it("xếp tỉnh theo lượt giảm dần, rồi VN-chưa-rõ, nước ngoài, không-có-vị-trí", () => {
     expect(tinh.map((t) => t.tinh)).toEqual(["TP. Hồ Chí Minh", "Hà Nội", VN_CHUA_RO, NUOC_NGOAI, CHUA_XAC_DINH]);
+  });
+});
+
+describe("gomHomNayHomQua (view Hôm nay vs Hôm qua)", () => {
+  const dong = (country: string | null, region: string | null, hn: number, cg: number, hq: number) => ({
+    country, region, city: null,
+    hn_luot: hn, hn_khach: Math.ceil(hn / 2), hq_cg_luot: cg, hq_cg_khach: Math.ceil(cg / 2), hq_luot: hq, hq_khach: Math.ceil(hq / 2),
+  });
+  const { tong, tinh } = gomHomNayHomQua([
+    dong("VN", "SG", 20, 5, 12),
+    dong("VN", "57", 4, 1, 3), // Bình Dương → TP.HCM
+    dong("VN", "HN", 0, 2, 6), // hôm nay chưa có, hôm qua có → vẫn hiện
+    dong("VN", "DN", 0, 0, 0), // không có lượt cả hai ngày → bỏ
+    dong("VN", null, 10, 3, 8),
+    dong("US", null, 8, 2, 3),
+  ]);
+
+  it("cộng tổng ba mốc: hôm nay, hôm qua cùng giờ, hôm qua cả ngày", () => {
+    expect(tong.homNay.luot).toBe(42);
+    expect(tong.homQuaCungGio.luot).toBe(13);
+    expect(tong.homQua.luot).toBe(32);
+  });
+
+  it("gộp tỉnh cũ vào tỉnh mới và bỏ tỉnh không có lượt", () => {
+    const hcm = tinh.find((t) => t.tinh === "TP. Hồ Chí Minh")!;
+    expect(hcm.homNay).toEqual({ luot: 24, khach: 12 });
+    expect(hcm.homQuaCungGio.luot).toBe(6);
+    expect(hcm.homQua.luot).toBe(15);
+    expect(tinh.some((t) => t.tinh === "Đà Nẵng")).toBe(false);
+  });
+
+  it("xếp theo lượt hôm nay, nhóm phụ ở cuối", () => {
+    expect(tinh.map((t) => t.tinh)).toEqual(["TP. Hồ Chí Minh", "Hà Nội", VN_CHUA_RO, NUOC_NGOAI]);
   });
 });

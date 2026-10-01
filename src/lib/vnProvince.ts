@@ -142,3 +142,63 @@ export function gomTheoTinh(rows: DongGeo[]): { tong: number; tinh: TinhThongKe[
     .sort((a, b) => cuoi(a.tinh) - cuoi(b.tinh) || b.luot - a.luot);
   return { tong, tinh };
 }
+
+// ── Hôm nay vs Hôm qua ──────────────────────────────────────────────────────
+
+/** 1 dòng của RPC geo_page_visits_today. `hq_cg_*` = hôm qua tới CÙNG GIỜ hiện tại. */
+export interface DongGeoHomNay {
+  country: string | null;
+  region: string | null;
+  city: string | null;
+  hn_luot: number;
+  hn_khach: number;
+  hq_cg_luot: number;
+  hq_cg_khach: number;
+  hq_luot: number;
+  hq_khach: number;
+}
+
+export interface LuotKhach {
+  luot: number;
+  khach: number;
+}
+
+export interface TinhHomNay {
+  tinh: string;
+  homNay: LuotKhach;
+  /** Hôm qua tới cùng giờ — mốc so sánh công bằng với "hôm nay" (mới chạy một phần ngày). */
+  homQuaCungGio: LuotKhach;
+  homQua: LuotKhach;
+  /** Tỉnh cũ gộp vào (lượt hôm nay + hôm qua), giảm dần. */
+  chiTiet: { tinhCu: string; luot: number }[];
+}
+
+/** Gom RPC geo_page_visits_today về tỉnh mới: xếp theo lượt hôm nay, rồi hôm qua. */
+export function gomHomNayHomQua(rows: DongGeoHomNay[]): {
+  tong: { homNay: LuotKhach; homQuaCungGio: LuotKhach; homQua: LuotKhach };
+  tinh: TinhHomNay[];
+} {
+  const moi = (): LuotKhach => ({ luot: 0, khach: 0 });
+  const tong = { homNay: moi(), homQuaCungGio: moi(), homQua: moi() };
+  const map = new Map<string, TinhHomNay & { cu: Map<string, number> }>();
+  const n = (v: unknown) => Number(v) || 0;
+  for (const r of rows) {
+    const { tinh, tinhCu } = viTriCuaLuot(r.country, r.region, r.city);
+    const e = map.get(tinh) ?? { tinh, homNay: moi(), homQuaCungGio: moi(), homQua: moi(), chiTiet: [], cu: new Map<string, number>() };
+    const cong = (a: LuotKhach, b: LuotKhach, luot: unknown, khach: unknown) => {
+      a.luot += n(luot); a.khach += n(khach);
+      b.luot += n(luot); b.khach += n(khach);
+    };
+    cong(e.homNay, tong.homNay, r.hn_luot, r.hn_khach);
+    cong(e.homQuaCungGio, tong.homQuaCungGio, r.hq_cg_luot, r.hq_cg_khach);
+    cong(e.homQua, tong.homQua, r.hq_luot, r.hq_khach);
+    if (tinhCu) e.cu.set(tinhCu, (e.cu.get(tinhCu) ?? 0) + n(r.hn_luot) + n(r.hq_luot));
+    map.set(tinh, e);
+  }
+  const cuoi = (t: string) => (NHOM_PHU as readonly string[]).indexOf(t) + 1;
+  const tinh = [...map.values()]
+    .filter((e) => e.homNay.luot + e.homQua.luot > 0)
+    .map(({ cu, ...e }) => ({ ...e, chiTiet: [...cu].map(([tinhCu, luot]) => ({ tinhCu, luot })).sort((a, b) => b.luot - a.luot) }))
+    .sort((a, b) => cuoi(a.tinh) - cuoi(b.tinh) || b.homNay.luot - a.homNay.luot || b.homQua.luot - a.homQua.luot);
+  return { tong, tinh };
+}

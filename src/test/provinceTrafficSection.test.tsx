@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createElement } from "react";
 import { ProvinceTrafficSection } from "@/components/admin/ProvinceTrafficSection";
-import { gomTheoTinh } from "@/lib/vnProvince";
+import { gomHomNayHomQua, gomTheoTinh } from "@/lib/vnProvince";
 
 /**
  * Khu "Traffic theo tỉnh/thành" trên /admin/dashboard?tab=traffic (A Khoa 30/09):
@@ -67,5 +67,46 @@ describe("ProvinceTrafficSection", () => {
     render(createElement(ProvinceTrafficSection, { token: "tok" }));
     expect(await screen.findByText(/Không tải được traffic theo tỉnh: RPC hỏng/)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Thử lại" })).toBeTruthy();
+  });
+});
+
+describe("ProvinceTrafficSection — view Hôm nay vs Hôm qua", () => {
+  const dong = (country: string | null, region: string | null, hn: number, cg: number, hq: number) => ({
+    country, region, city: null,
+    hn_luot: hn, hn_khach: Math.ceil(hn / 2), hq_cg_luot: cg, hq_cg_khach: Math.ceil(cg / 2), hq_luot: hq, hq_khach: Math.ceil(hq / 2),
+  });
+  const today = {
+    view: "today" as const,
+    gio: "12:18",
+    ...gomHomNayHomQua([dong("VN", "SG", 24, 6, 15), dong("VN", "HN", 2, 4, 6), dong("VN", null, 16, 3, 11)]),
+  };
+
+  it("bấm Hôm nay → gọi view=today, vẽ ba mốc + chênh so với cùng giờ", async () => {
+    const fetchMock = vi.fn(async (url: string) => okJson(String(url).includes("view=today") ? today : data));
+    vi.stubGlobal("fetch", fetchMock);
+    render(createElement(ProvinceTrafficSection, { token: "tok", khachThat: true }));
+    await screen.findByText(/440 lượt trong 14 ngày/);
+
+    fireEvent.click(screen.getByRole("button", { name: "Hôm nay" }));
+    expect(await screen.findByText(/Hôm nay 42 lượt \(tới 12:18\) · hôm qua cùng giờ 13 · cả ngày hôm qua 32 · chỉ khách thật/)).toBeTruthy();
+    expect(fetchMock).toHaveBeenLastCalledWith("/api/admin/visit-geo?view=today", expect.anything());
+
+    const rows = screen.getAllByRole("row").slice(1).map((r) => (r.textContent ?? "").replace(/\s+/g, " "));
+    expect(rows[0]).toMatch(/^1TP\. Hồ Chí Minh24· 12 khách6\+18 \(\+300%\)15$/);
+    expect(rows[1]).toMatch(/^2Hà Nội2· 1 khách4−2 \(−50%\)6$/);
+    expect(rows[rows.length - 1]).toMatch(/^Tổng4213\+29 \(\+223%\)32$/);
+    expect(screen.getByText(/"Hôm qua cùng giờ" = lượt hôm qua tính tới 12:18/)).toBeTruthy();
+  });
+
+  it("đổi từ Hôm nay về 14 ngày không vẽ nhầm dữ liệu khác hình", async () => {
+    const fetchMock = vi.fn(async (url: string) => okJson(String(url).includes("view=today") ? today : data));
+    vi.stubGlobal("fetch", fetchMock);
+    render(createElement(ProvinceTrafficSection, { token: "tok" }));
+    await screen.findByText(/440 lượt trong 14 ngày/);
+    fireEvent.click(screen.getByRole("button", { name: "Hôm nay" }));
+    await screen.findByText(/Hôm nay 42 lượt/);
+    fireEvent.click(screen.getByRole("button", { name: "14 ngày" }));
+    expect(await screen.findByText(/440 lượt trong 14 ngày/)).toBeTruthy();
+    expect(screen.getByText("Tỷ trọng")).toBeTruthy();
   });
 });
