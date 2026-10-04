@@ -22,8 +22,8 @@ import { BASE_URL, buildBreadcrumb } from "@/lib/seo";
 
 export const revalidate = 300;
 
-const TITLE = "Điểm Giao Dịch MobiFone Quận 7 — 43A Đường Số 9, P. Tân Hưng";
-const DESCRIPTION = "Điểm giao dịch & cửa hàng MobiFone uy tín tại 43A Đường số 9, Phường Tân Hưng, Quận 7. Mở cửa 8:00 - 21:00 hàng ngày. Đổi eSIM 5 phút, đăng ký chính chủ, cấp lại SIM, kho SIM số đẹp MobiFone chính hãng.";
+const TITLE = "Đại Lý MobiFone Quận 7 Gần Đây — 43A Đường Số 9, P. Tân Hưng";
+const DESCRIPTION = "Đại lý & điểm giao dịch MobiFone Quận 7 gần đây tại 43A Đường số 9, Phường Tân Hưng. Mở cửa 8:00 - 21:00 hàng ngày. Đổi eSIM 5 phút, đăng ký chính chủ, cấp lại SIM, kho SIM số đẹp MobiFone chính hãng.";
 const CANONICAL = `${BASE_URL}/diem-giao-dich-mobifone-quan-7`;
 
 export const metadata: Metadata = {
@@ -78,6 +78,10 @@ const FAQ_ITEMS = [
   {
     q: "Điểm giao dịch MobiFone Quận 7 nằm ở địa chỉ nào?",
     a: "Cửa hàng nằm tại số 43A Đường số 9, Phường Tân Hưng, Quận 7, TP.HCM (gần đường Phan Huy Thực và đường Trần Xuân Soạn). Vị trí thuận tiện, đường rộng, có chỗ đậu xe máy và ô tô thoải mái.",
+  },
+  {
+    q: "MobiFone gần đây nhất ở Quận 7 có hỗ trợ eSIM và làm chính chủ không?",
+    a: "Có. Đại lý MobiFone Quận 7 — Viễn Thông Nam Khang tại 43A Đường số 9, Phường Tân Hưng hỗ trợ đổi eSIM, cấp lại SIM, chuẩn hóa thông tin chính chủ và mua SIM số đẹp MobiFone tại quầy. Khách ở Tân Hưng, Him Lam, Phú Mỹ Hưng, Nhà Bè có thể ghé trực tiếp hoặc bấm Google Maps để chỉ đường nhanh.",
   },
   {
     q: "Cửa hàng mở cửa những khung giờ nào, có làm việc Thứ 7 & Chủ Nhật không?",
@@ -157,15 +161,15 @@ export default function DiemGiaoDichQuan7Page() {
               <div className="lg:col-span-7 space-y-4">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider">
                   <ShieldCheck className="w-4 h-4" />
-                  Đại Lý Chính Thức MobiFone — Viễn Thông Nam Khang
+                  Đại Lý MobiFone Quận 7 Gần Đây — Viễn Thông Nam Khang
                 </div>
                 
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground leading-tight tracking-tight">
-                  Điểm Giao Dịch & Cửa Hàng MobiFone Quận 7 — P. Tân Hưng
+                  Đại Lý & Điểm Giao Dịch MobiFone Quận 7 Gần Đây — P. Tân Hưng
                 </h1>
                 
                 <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
-                  Phục vụ cư dân Quận 7, Nhà Bè, Quận 4 và TP.HCM với đầy đủ dịch vụ viễn thông MobiFone chính hãng: cấp đổi eSIM 5 phút, đăng ký chuẩn hóa chính chủ, khôi phục SIM mất và kho SIM số đẹp có sẵn tại quầy.
+                  Cần tìm MobiFone gần đây tại Quận 7? Viễn Thông Nam Khang ở 43A Đường số 9, P. Tân Hưng phục vụ cư dân Him Lam, Phú Mỹ Hưng, Nhà Bè và Quận 4 với đầy đủ dịch vụ MobiFone chính hãng: cấp đổi eSIM 5 phút, đăng ký chuẩn hóa chính chủ, khôi phục SIM mất và kho SIM số đẹp có sẵn tại quầy.
                 </p>
 
                 <div className="pt-2 flex flex-wrap gap-3">
@@ -275,14 +279,14 @@ export default function DiemGiaoDichQuan7Page() {
                 <div>
                   <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-gold" />
-                    Chỉ Đường Đến Cửa Hàng
+                    Chỉ Đường Đến Đại Lý MobiFone Quận 7 Gần Đây
                   </h3>
                   <div className="space-y-4 text-sm text-muted-foreground">
                     <p>
                       <strong className="text-foreground">Địa chỉ:</strong> 43A Đường số 9, Phường Tân Hưng, Quận 7, TP.HCM.
                     </p>
                     <p>
-                      <strong className="text-foreground">Chỉ dẫn vị trí:</strong> Nằm trên Đường số 9, Phường Tân Hưng (gần đường Phan Huy Thực và đường Trần Xuân Soạn). Tuyến đường rộng thông thoáng, ô tô và xe máy đậu đỗ thuận tiện.
+                      <strong className="text-foreground">Chỉ dẫn vị trí:</strong> Đại lý MobiFone gần đây cho khu Him Lam, Tân Hưng, Phú Mỹ Hưng và Nhà Bè; nằm trên Đường số 9 (gần đường Phan Huy Thực và đường Trần Xuân Soạn). Tuyến đường rộng thông thoáng, ô tô và xe máy đậu đỗ thuận tiện.
                     </p>
                     <p>
                       <strong className="text-foreground">Giờ làm việc:</strong> 8:00 – 21:00 hàng ngày (kể cả Thứ Bảy, Chủ Nhật và ngày lễ).
