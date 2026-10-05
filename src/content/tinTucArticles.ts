@@ -57,6 +57,25 @@ export interface TinTucArticle {
 const PUB_2608 = "2026-08-27T09:00:00+07:00";
 
 export const TIN_TUC_ARTICLES: TinTucArticle[] = [
+  {
+    slug: "0708-la-mang-gi",
+    title: "0708 Là Mạng Gì? Đầu Số 0708 Có Phải MobiFone Không?",
+    h1: "0708 là mạng gì? Đầu số 0708 có phải MobiFone không?",
+    description:
+      "0708 là đầu số MobiFone, chuyển đổi từ 01208 sau năm 2018. Cách nhận biết số 0708, ý nghĩa đầu số và gợi ý chọn SIM 0708 đẹp, chính chủ.",
+    excerpt:
+      "Google Search Console đã có impression cho truy vấn “0708 là mạng gì”. Bài này trả lời nhanh 0708 thuộc MobiFone, đổi từ 01208 và dẫn về kho SIM 0708 chính chủ.",
+    category: "Đầu số",
+    cover: {
+      src: "/blog/cac-dau-so-mang-mobifone-moi-nhat.webp",
+      alt: "Các đầu số MobiFone mới nhất và cách nhận biết",
+      width: 1200,
+      height: 675,
+    },
+    datePublished: "2026-10-06T00:00:00+07:00",
+    dateModified: "2026-10-06T00:00:00+07:00",
+    readingMinutes: 4,
+  },
   // ── Loạt bài trụ cột 27/08/2026 (mới nhất lên đầu danh sách) ──────────────
   {
     slug: "kiem-tra-so-dien-thoai-mobifone",
