@@ -4,7 +4,7 @@ import { buildArticle, buildBreadcrumb } from "@/lib/seo";
 
 const TITLE = "0708 Là Mạng Gì? Đầu Số 0708 Có Phải MobiFone Không?";
 const DESCRIPTION =
-  "0708 là đầu số MobiFone, chuyển đổi từ 01208 sau năm 2018. Cách nhận biết số 0708, ý nghĩa đầu số và gợi ý chọn SIM 0708 đẹp, chính chủ.";
+  "0708 là đầu số MobiFone, đổi từ 01208 sau năm 2018. Tra ý nghĩa, cách nhận biết và xem kho SIM 0708 MobiFone đẹp, giá niêm yết, đăng ký chính chủ.";
 const PATH = "/tin-tuc/0708-la-mang-gi";
 
 export const metadata: Metadata = {
@@ -58,6 +58,9 @@ export default function DauSo0708LaMangGiPage() {
             <p className="text-lg font-semibold text-foreground">
               Trả lời nhanh: <strong>0708 là đầu số MobiFone</strong>, được chuyển đổi từ đầu số cũ <strong>01208</strong> sau đợt quy hoạch SIM 11 số về 10 số năm 2018.
             </p>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              Nếu Quý khách đang cần mua số 0708 dễ nhớ, CHONSOMOBIFONE.COM có kho SIM 0708 MobiFone giá niêm yết, hỗ trợ giữ số online, giao SIM toàn quốc và đăng ký chính chủ khi nhận SIM.
+            </p>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/sim-dau-so/0708"
@@ -65,6 +68,14 @@ export default function DauSo0708LaMangGiPage() {
               >
                 Xem kho SIM 0708 MobiFone
               </Link>
+              <a
+                href="https://zalo.me/0933686666"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center rounded-lg bg-primary px-5 py-3 font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                Nhờ tư vấn chọn số 0708
+              </a>
               <Link
                 href="/tin-tuc/cac-dau-so-mang-mobifone-moi-nhat"
                 className="inline-flex items-center justify-center rounded-lg border border-border bg-card px-5 py-3 font-semibold text-foreground transition-colors hover:border-gold"

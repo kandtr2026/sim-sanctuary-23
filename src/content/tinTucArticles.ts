@@ -62,7 +62,7 @@ export const TIN_TUC_ARTICLES: TinTucArticle[] = [
     title: "0708 Là Mạng Gì? Đầu Số 0708 Có Phải MobiFone Không?",
     h1: "0708 là mạng gì? Đầu số 0708 có phải MobiFone không?",
     description:
-      "0708 là đầu số MobiFone, chuyển đổi từ 01208 sau năm 2018. Cách nhận biết số 0708, ý nghĩa đầu số và gợi ý chọn SIM 0708 đẹp, chính chủ.",
+      "0708 là đầu số MobiFone, đổi từ 01208 sau năm 2018. Tra ý nghĩa, cách nhận biết và xem kho SIM 0708 MobiFone đẹp, giá niêm yết, đăng ký chính chủ.",
     excerpt:
       "Google Search Console đã có impression cho truy vấn “0708 là mạng gì”. Bài này trả lời nhanh 0708 thuộc MobiFone, đổi từ 01208 và dẫn về kho SIM 0708 chính chủ.",
     category: "Đầu số",
