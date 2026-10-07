@@ -87,6 +87,13 @@ const DISCOVERY_LINKS: { href: string; label: string }[] = [
   { href: "/sim-de-nho", label: "Sim dễ nhớ" },
   { href: "/sim-taxi", label: "Sim taxi" },
   { href: "/sim-tien-len", label: "Sim tiến lên" },
+  // GSC 28 ngày đang có impression thật cho cụm local "mobifone quận 7",
+  // "mobifone gần đây", "đại lý mobifone gần đây" nhưng 0 click. Đưa landing
+  // local vào trang chủ bằng anchor exact/near-exact để tăng tín hiệu nội bộ.
+  { href: "/diem-giao-dich-mobifone-quan-7", label: "Đại lý MobiFone Quận 7 gần đây" },
+  // Query "0708 là mạng gì" đã lên vị trí TB #2 nhưng CTR 0%; link từ trang chủ
+  // giúp bài giải đáp đầu số không chỉ sống nhờ sitemap và tăng đường sang kho 0708.
+  { href: "/tin-tuc/0708-la-mang-gi", label: "0708 là mạng gì?" },
 ];
 
 export default async function HomePage() {
