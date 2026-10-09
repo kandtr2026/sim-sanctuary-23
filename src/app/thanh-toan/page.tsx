@@ -13,6 +13,7 @@ const MAPS_DIRECTIONS_URL = "https://www.google.com/maps/dir/?api=1&destination=
 export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
+  robots: { index: false, follow: true },
   alternates: { canonical: CANONICAL },
   openGraph: {
     type: "website",

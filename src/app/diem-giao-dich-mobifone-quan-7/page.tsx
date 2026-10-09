@@ -233,6 +233,34 @@ export default function DiemGiaoDichQuan7Page() {
           </div>
         </section>
 
+        <section className="container mx-auto px-4 py-8">
+          <div className="rounded-2xl border border-primary/25 bg-primary/10 p-5 shadow-card md:p-6">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">MobiFone gần đây tại Quận 7</p>
+            <h2 className="mt-2 text-xl font-bold text-foreground md:text-2xl">
+              Cần đổi eSIM, làm lại SIM hoặc chuẩn hóa chính chủ trong hôm nay?
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-body md:text-base">
+              Nhắn Zalo trước khi ghé để nhân viên kiểm tra giấy tờ, tình trạng thuê bao và thời gian xử lý. Khách ở Him Lam, Tân Hưng, Phú Mỹ Hưng, Nhà Bè có thể bấm Google Maps đến 43A Đường số 9.
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <a href={ZALO_URL} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-gold px-4 py-3 text-sm font-bold text-header-bg transition-colors hover:bg-gold/90">
+                Chat Zalo trước khi ghé
+              </a>
+              <a href={`tel:${STORE_HOTLINE.replace(/\./g, '')}`} className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90">
+                Gọi {STORE_HOTLINE}
+              </a>
+              <a href={MAPS_DIRECTIONS_URL} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:border-gold">
+                Chỉ đường Google Maps
+              </a>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+              <Link href="/esim-mobifone" className="font-semibold text-primary underline-offset-2 hover:underline">eSIM MobiFone là gì?</Link>
+              <Link href="/doi-esim-mobifone" className="font-semibold text-primary underline-offset-2 hover:underline">Thủ tục đổi eSIM</Link>
+              <Link href="/sim-dau-so/0708" className="font-semibold text-primary underline-offset-2 hover:underline">Kho SIM 0708 MobiFone</Link>
+            </div>
+          </div>
+        </section>
+
         {/* 4 Dịch Vụ Cốt Lõi Tại Quầy */}
         <section className="container mx-auto px-4 py-10">
           <div className="text-center max-w-2xl mx-auto mb-8">

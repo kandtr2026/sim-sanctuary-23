@@ -58,6 +58,63 @@ const PUB_2608 = "2026-08-27T09:00:00+07:00";
 
 export const TIN_TUC_ARTICLES: TinTucArticle[] = [
   {
+    slug: "089-la-mang-gi",
+    title: "089 Là Mạng Gì? 089 Là MobiFone",
+    h1: "089 là mạng gì? 089 là đầu số MobiFone",
+    description:
+      "Trả lời nhanh: 089 là đầu số MobiFone. Xem ý nghĩa 089, cách nhận biết nhà mạng và kho SIM 089 MobiFone giá niêm yết, đăng ký chính chủ.",
+    excerpt:
+      "089 là đầu số MobiFone 10 chữ số, được nhiều khách chọn vì ngắn, dễ nhớ. Xem cách chọn SIM 089 và link kho số chính chủ.",
+    category: "Đầu số",
+    cover: {
+      src: "/blog/cac-dau-so-mang-mobifone-moi-nhat.webp",
+      alt: "Các đầu số MobiFone mới nhất và cách nhận biết",
+      width: 1200,
+      height: 675,
+    },
+    datePublished: "2026-10-09T00:00:00+07:00",
+    dateModified: "2026-10-09T00:00:00+07:00",
+    readingMinutes: 4,
+  },
+  {
+    slug: "0707-la-mang-gi",
+    title: "0707 Là Mạng Gì? 0707 Là MobiFone — Đổi Từ 01207",
+    h1: "0707 là mạng gì? 0707 là đầu số MobiFone đổi từ 01207",
+    description:
+      "Trả lời nhanh: 0707 là đầu số MobiFone, đổi từ 01207 sau năm 2018. Xem ý nghĩa 0707 và kho SIM 0707 MobiFone chính chủ.",
+    excerpt:
+      "0707 thuộc MobiFone, đổi từ 01207 sau quy hoạch SIM 11 số về 10 số. Bài dẫn về kho SIM 0707 giá niêm yết.",
+    category: "Đầu số",
+    cover: {
+      src: "/blog/cac-dau-so-mang-mobifone-moi-nhat.webp",
+      alt: "Các đầu số MobiFone mới nhất và cách nhận biết",
+      width: 1200,
+      height: 675,
+    },
+    datePublished: "2026-10-09T00:00:00+07:00",
+    dateModified: "2026-10-09T00:00:00+07:00",
+    readingMinutes: 4,
+  },
+  {
+    slug: "0706-la-mang-gi",
+    title: "0706 Là Mạng Gì? 0706 Là MobiFone — Đổi Từ 01206",
+    h1: "0706 là mạng gì? 0706 là đầu số MobiFone đổi từ 01206",
+    description:
+      "Trả lời nhanh: 0706 là đầu số MobiFone, đổi từ 01206 sau năm 2018. Xem ý nghĩa 0706 và kho SIM 0706 MobiFone chính chủ.",
+    excerpt:
+      "0706 thuộc MobiFone, đổi từ 01206 sau quy hoạch SIM 11 số về 10 số. Bài dẫn về kho SIM 0706 giá niêm yết.",
+    category: "Đầu số",
+    cover: {
+      src: "/blog/cac-dau-so-mang-mobifone-moi-nhat.webp",
+      alt: "Các đầu số MobiFone mới nhất và cách nhận biết",
+      width: 1200,
+      height: 675,
+    },
+    datePublished: "2026-10-09T00:00:00+07:00",
+    dateModified: "2026-10-09T00:00:00+07:00",
+    readingMinutes: 4,
+  },
+  {
     slug: "0708-la-mang-gi",
     title: "0708 Là Mạng Gì? 0708 Là MobiFone — Đổi Từ 01208",
     h1: "0708 là mạng gì? 0708 là đầu số MobiFone đổi từ 01208",

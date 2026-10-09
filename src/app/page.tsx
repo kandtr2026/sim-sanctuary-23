@@ -91,9 +91,14 @@ const DISCOVERY_LINKS: { href: string; label: string }[] = [
   // "mobifone gần đây", "đại lý mobifone gần đây" nhưng 0 click. Đưa landing
   // local vào trang chủ bằng anchor exact/near-exact để tăng tín hiệu nội bộ.
   { href: "/diem-giao-dich-mobifone-quan-7", label: "Đại lý MobiFone Quận 7 gần đây" },
+  { href: "/esim-mobifone", label: "eSIM MobiFone" },
+  { href: "/doi-esim-mobifone", label: "Đổi eSIM MobiFone" },
   // Query "0708 là mạng gì" đã lên vị trí TB #2 nhưng CTR 0%; link từ trang chủ
   // giúp bài giải đáp đầu số không chỉ sống nhờ sitemap và tăng đường sang kho 0708.
   { href: "/tin-tuc/0708-la-mang-gi", label: "0708 là mạng gì?" },
+  { href: "/tin-tuc/0707-la-mang-gi", label: "0707 là mạng gì?" },
+  { href: "/tin-tuc/0706-la-mang-gi", label: "0706 là mạng gì?" },
+  { href: "/tin-tuc/089-la-mang-gi", label: "089 là mạng gì?" },
 ];
 
 export default async function HomePage() {

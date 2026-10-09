@@ -52,6 +52,8 @@ const ROUTES: StaticRoute[] = [
   // sitemap còn trang hub thì không, dù nó có trong Navigation — tức một trang
   // money page vô hình với sitemap.
   { path: "/diem-giao-dich-mobifone-quan-7", changeFrequency: "weekly", priority: 0.9, dynamic: true },
+  { path: "/esim-mobifone", changeFrequency: "weekly", priority: 0.8, dynamic: true },
+  { path: "/doi-esim-mobifone", changeFrequency: "weekly", priority: 0.8, dynamic: true },
   { path: "/sim-nam-sinh", changeFrequency: "weekly", priority: 0.8, dynamic: true },
   // Landing Google Ads "sim ngày tháng năm sinh" — tìm SIM đuôi DDMMYY.
   { path: "/sim-ngay-thang-nam-sinh", changeFrequency: "weekly", priority: 0.8, dynamic: true },
@@ -78,7 +80,6 @@ const ROUTES: StaticRoute[] = [
   { path: "/sim-de-nho", changeFrequency: "weekly", priority: 0.7, dynamic: true },
   { path: "/sim-taxi", changeFrequency: "weekly", priority: 0.7, dynamic: true },
   { path: "/sim-tien-len", changeFrequency: "weekly", priority: 0.7, dynamic: true },
-  { path: "/thanh-toan", changeFrequency: "monthly", priority: 0.5 },
   { path: "/tin-tuc", changeFrequency: "weekly", priority: 0.6, dynamic: true },
   // Bài /tin-tuc/* viết cứng trong repo được sinh từ sổ đăng ký
   // `src/content/tinTucArticles.ts` (xem `fileArticleEntries` bên dưới), không
