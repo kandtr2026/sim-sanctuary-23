@@ -76,6 +76,10 @@ const SERVICES = [
 
 const FAQ_ITEMS = [
   {
+    q: "MobiFone gần đây ở Quận 7 nằm ở đâu?",
+    a: "MobiFone gần đây tại Quận 7 là đại lý Viễn Thông Nam Khang ở số 43A Đường số 9, Phường Tân Hưng, TP.HCM. Vị trí gần Him Lam, Phú Mỹ Hưng, đường Trần Xuân Soạn và thuận tiện cho khách ở Nhà Bè ghé đổi eSIM, cấp lại SIM hoặc mua SIM số đẹp.",
+  },
+  {
     q: "Điểm giao dịch MobiFone Quận 7 nằm ở địa chỉ nào?",
     a: "Cửa hàng nằm tại số 43A Đường số 9, Phường Tân Hưng, Quận 7, TP.HCM (gần đường Phan Huy Thực và đường Trần Xuân Soạn). Vị trí thuận tiện, đường rộng, có chỗ đậu xe máy và ô tô thoải mái.",
   },
@@ -209,6 +213,17 @@ export default function DiemGiaoDichQuan7Page() {
                     <Clock className="w-4 h-4 text-gold flex-shrink-0" />
                     <span>Mở cửa: 8:00 – 21:00 (Cả T7 & CN)</span>
                   </div>
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-gold/30 bg-gold/10 p-4 text-sm leading-6 text-body">
+                  <p className="font-semibold text-foreground">
+                    Đang ở Him Lam, Tân Hưng, Phú Mỹ Hưng hoặc Nhà Bè và cần tìm <strong>MobiFone gần đây</strong>? Hãy ghé Nam Khang trước 21:00 để xử lý nhanh tại quầy.
+                  </p>
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
+                    <li><strong>Đổi eSIM MobiFone Quận 7</strong>: quét QR, kích hoạt trong 3–5 phút.</li>
+                    <li><strong>Cấp lại SIM / chuẩn hóa chính chủ</strong>: mang CCCD bản gốc để nhân viên kiểm tra hồ sơ.</li>
+                    <li><strong>Mua SIM số đẹp MobiFone</strong>: xem kho số tại quầy hoặc đặt giữ số online trước khi ghé.</li>
+                  </ul>
                 </div>
               </div>
 
