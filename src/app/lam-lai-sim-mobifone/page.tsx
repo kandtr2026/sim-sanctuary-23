@@ -15,10 +15,10 @@ export const metadata: Metadata = {
 };
 
 const faqs = [
-  { q: "Làm lại SIM MobiFone có giữ được số cũ không?", a: "Có. Nếu thuê bao đủ điều kiện xác thực chính chủ và không vướng tranh chấp, khách hàng có thể cấp lại SIM để giữ số MobiFone cũ." },
-  { q: "Làm lại SIM MobiFone cần giấy tờ gì?", a: "Thông thường cần CCCD/giấy tờ chính chủ, thông tin thuê bao và một số dữ liệu xác minh theo quy định nhà mạng. Nên nhắn Zalo trước để kiểm tra trường hợp cụ thể." },
-  { q: "Mất điện thoại có nên khóa SIM trước không?", a: "Nên liên hệ hỗ trợ sớm để khóa chiều hoặc cấp lại SIM, tránh rủi ro OTP ngân hàng/tài khoản cá nhân bị dùng sai mục đích." },
-  { q: "Có làm lại SIM MobiFone Quận 7 được không?", a: "Khách ở Quận 7, Him Lam, Tân Hưng, Phú Mỹ Hưng có thể nhắn Zalo Chọn Số MobiFone để được kiểm tra thủ tục và hướng dẫn điểm hỗ trợ gần nhất." },
+  { q: "Làm lại SIM MobiFone có giữ được số cũ không?", a: "Có. Nếu thuê bao đủ điều kiện xác thực chính chủ và không vướng tranh chấp, Quý khách có thể cấp lại SIM để giữ số MobiFone cũ." },
+  { q: "Làm lại SIM MobiFone cần giấy tờ gì?", a: "Thông thường cần CCCD/giấy tờ chính chủ, thông tin thuê bao và một số dữ liệu xác minh theo quy định nhà mạng. Anh/Chị nên nhắn Zalo trước để kiểm tra trường hợp cụ thể." },
+  { q: "Mất điện thoại có nên khóa SIM trước không?", a: "Anh/Chị nên liên hệ hỗ trợ sớm để khóa chiều hoặc cấp lại SIM, giúp giảm rủi ro gián đoạn OTP ngân hàng và các tài khoản cá nhân." },
+  { q: "Có làm lại SIM MobiFone Quận 7 được không?", a: "Anh/Chị ở Quận 7, Him Lam, Tân Hưng, Phú Mỹ Hưng có thể nhắn Zalo Chọn Số MobiFone để được kiểm tra thủ tục và hướng dẫn điểm hỗ trợ gần nhất." },
 ];
 
 const faqJsonLd = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((item) => ({ "@type": "Question", name: item.q, acceptedAnswer: { "@type": "Answer", text: item.a } })) };
@@ -33,16 +33,16 @@ export default function LamLaiSimMobifonePage() {
           <header>
             <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-gold">Dịch vụ MobiFone</p>
             <h1 className="text-2xl font-bold leading-tight text-primary md:text-4xl">Làm lại SIM MobiFone khi mất SIM, hỏng SIM hoặc mất điện thoại</h1>
-            <p className="mt-4 text-base leading-7 text-body">Khi SIM MobiFone bị mất, hỏng, mất sóng hoặc điện thoại bị thất lạc, việc quan trọng nhất là giữ số và bảo vệ OTP. Trang này hướng dẫn nhanh thủ tục cấp lại SIM trước khi khách ghé điểm hỗ trợ.</p>
+            <p className="mt-4 text-base leading-7 text-body">Khi SIM MobiFone bị mất, hỏng, mất sóng hoặc điện thoại thất lạc, việc cần làm sớm là bảo vệ số thuê bao và quyền nhận OTP. Nội dung dưới đây giúp Quý khách nắm nhanh thủ tục cấp lại SIM trước khi Quý khách ghé điểm hỗ trợ.</p>
           </header>
 
           <QuickAnswerBox primaryHref="/lam-lai-sim-mobifone-quan-7" primaryLabel="Làm lại SIM tại Quận 7" secondaryHref="/doi-esim-mobifone" secondaryLabel="Đổi sang eSIM MobiFone">
-            <p><strong>Làm lại SIM MobiFone</strong> thường cần xác minh chính chủ bằng CCCD và thông tin thuê bao. Nếu mất điện thoại hoặc nghi lộ OTP, nên xử lý sớm để tránh rủi ro tài khoản ngân hàng, Zalo, mạng xã hội.</p>
+            <p><strong>Làm lại SIM MobiFone</strong> thường cần xác minh chính chủ bằng CCCD và thông tin thuê bao. Nếu mất điện thoại hoặc nghi lộ OTP, nên xử lý sớm để giảm rủi ro gián đoạn OTP ngân hàng, Zalo và các tài khoản cá nhân.</p>
           </QuickAnswerBox>
 
           <section className="grid gap-3 md:grid-cols-3">
             {[
-              ["01", "Mất SIM / mất máy", "Liên hệ hỗ trợ để khóa/giữ số, tránh rủi ro OTP."],
+              ["01", "Mất SIM / mất máy", "Liên hệ hỗ trợ để khóa hoặc giữ số, giúp bảo vệ quyền nhận OTP."],
               ["02", "Chuẩn bị CCCD", "Mang giấy tờ chính chủ và thông tin số đang dùng."],
               ["03", "Cấp lại SIM", "Nhận SIM vật lý mới hoặc hỏi phương án eSIM nếu máy hỗ trợ."],
             ].map(([so, title, body]) => (
@@ -64,7 +64,7 @@ export default function LamLaiSimMobifonePage() {
             </ul>
           </section>
 
-          <SeoCtaBox title="Cần kiểm tra làm lại SIM MobiFone?" description="Gửi Zalo số MobiFone đang dùng, tình trạng mất/hỏng SIM và khu vực hiện tại. Chọn Số MobiFone sẽ hướng dẫn giấy tờ trước để khách không phải đi lại nhiều lần." phoneHref="tel:+84933686666" />
+          <SeoCtaBox title="Cần kiểm tra làm lại SIM MobiFone?" description="Gửi Zalo số MobiFone đang dùng, tình trạng mất/hỏng SIM và khu vực hiện tại. Chọn Số MobiFone sẽ hướng dẫn giấy tờ trước để Quý khách hạn chế phải đi lại nhiều lần." phoneHref="tel:+84933686666" />
 
           <section>
             <h2 className="mb-4 text-xl font-bold text-foreground">Câu hỏi thường gặp khi cấp lại SIM MobiFone</h2>
@@ -79,7 +79,7 @@ export default function LamLaiSimMobifonePage() {
           </section>
 
           <InternalLinkGrid links={[
-            { href: "/lam-lai-sim-mobifone-quan-7", label: "Làm lại SIM MobiFone Quận 7", desc: "Hướng dẫn cho khách Him Lam, Tân Hưng, Phú Mỹ Hưng." },
+            { href: "/lam-lai-sim-mobifone-quan-7", label: "Làm lại SIM MobiFone Quận 7", desc: "Hướng dẫn cho Anh/Chị tại Him Lam, Tân Hưng, Phú Mỹ Hưng." },
             { href: "/doi-esim-mobifone", label: "Đổi eSIM MobiFone", desc: "Chuyển SIM vật lý sang eSIM hoặc cấp lại QR eSIM." },
             { href: "/diem-giao-dich-mobifone-quan-7", label: "MobiFone gần đây Quận 7", desc: "Địa chỉ, giờ mở cửa, chỉ đường và hotline." },
             { href: "/tin-tuc/kiem-tra-sim-chinh-chu-mobifone", label: "Kiểm tra SIM chính chủ", desc: "Xác minh thuê bao trước khi cấp lại SIM." },

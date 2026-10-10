@@ -4,7 +4,7 @@ import { InternalLinkGrid, QuickAnswerBox, SeoCtaBox } from "@/components/seo/Se
 
 const PATH = "/doi-esim-mobifone-quan-7";
 const TITLE = "Đổi eSIM MobiFone Quận 7 — Đổi Máy, Cấp Lại QR eSIM, Mất Sóng";
-const DESCRIPTION = "Đổi eSIM MobiFone Quận 7 cho khách Him Lam, Tân Hưng, Phú Mỹ Hưng: đổi sang máy mới, cấp lại QR eSIM, chuyển SIM vật lý sang eSIM.";
+const DESCRIPTION = "Đổi eSIM MobiFone Quận 7 cho Anh/Chị tại Him Lam, Tân Hưng, Phú Mỹ Hưng: đổi sang máy mới, cấp lại QR eSIM, chuyển SIM vật lý sang eSIM.";
 
 export const revalidate = 3600;
 export const metadata: Metadata = {
@@ -15,9 +15,9 @@ export const metadata: Metadata = {
 };
 
 const faqs = [
-  { q: "Đổi eSIM MobiFone Quận 7 cần chuẩn bị gì?", a: "Khách nên chuẩn bị CCCD chính chủ, điện thoại hỗ trợ eSIM, Wi‑Fi khi quét QR và thông tin số MobiFone đang dùng." },
+  { q: "Đổi eSIM MobiFone Quận 7 cần chuẩn bị gì?", a: "Quý khách nên chuẩn bị CCCD chính chủ, điện thoại hỗ trợ eSIM, Wi‑Fi khi quét QR và thông tin số MobiFone đang dùng." },
   { q: "Đổi eSIM sang máy mới dùng lại QR cũ được không?", a: "Nhiều mã QR eSIM chỉ dùng một lần. Khi đổi máy thường cần cấp lại QR mới hoặc xác minh lại thuê bao trước khi kích hoạt." },
-  { q: "Có đổi từ SIM vật lý sang eSIM MobiFone được không?", a: "Có thể xử lý nếu thuê bao và thiết bị đủ điều kiện. Nên nhắn Zalo trước để kiểm tra dòng máy, số đang dùng và giấy tờ cần mang." },
+  { q: "Có đổi từ SIM vật lý sang eSIM MobiFone được không?", a: "Có thể xử lý nếu thuê bao và thiết bị đủ điều kiện. Anh/Chị nên nhắn Zalo trước để kiểm tra dòng máy, số đang dùng và giấy tờ cần mang." },
   { q: "eSIM mất sóng sau khi đổi máy xử lý sao?", a: "Không nên xóa eSIM liên tục nếu chưa chắc. Hãy chụp màn hình lỗi, kiểm tra Wi‑Fi/cấu hình mạng và gửi Zalo để được hướng dẫn trước." },
 ];
 
@@ -41,11 +41,11 @@ export default function DoiEsimMobifoneQuan7Page() {
           <header>
             <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-gold">eSIM MobiFone · Quận 7</p>
             <h1 className="text-2xl font-bold leading-tight text-primary md:text-4xl">Đổi eSIM MobiFone Quận 7: đổi máy, cấp lại QR, chuyển SIM vật lý sang eSIM</h1>
-            <p className="mt-4 text-base leading-7 text-body">Khách ở Him Lam, Tân Hưng, Phú Mỹ Hưng hoặc quanh Quận 7 thường cần đổi eSIM khi mua máy mới, mất sóng hoặc muốn chuyển từ SIM vật lý sang eSIM. Trang này gom checklist để tránh xóa eSIM sai cách và mất OTP.</p>
+            <p className="mt-4 text-base leading-7 text-body">Anh/Chị ở Him Lam, Tân Hưng, Phú Mỹ Hưng hoặc quanh Quận 7 thường cần đổi eSIM khi mua máy mới, mất sóng hoặc muốn chuyển từ SIM vật lý sang eSIM. Nội dung dưới đây giúp Anh/Chị kiểm tra nhanh các bước cần chuẩn bị để hạn chế thao tác sai và gián đoạn nhận OTP.</p>
           </header>
 
           <QuickAnswerBox eyebrow="Hỗ trợ nhanh" primaryHref="tel:+84933686666" primaryLabel="Gọi 0933.686.666" secondaryHref="https://zalo.me/0933686666" secondaryLabel="Chat Zalo kiểm tra máy">
-            <p><strong>Đổi eSIM MobiFone Quận 7</strong> nên kiểm tra trước dòng máy, số thuê bao và giấy tờ chính chủ. Nếu đang đổi máy mới, đừng xóa eSIM ở máy cũ trước khi có hướng dẫn rõ.</p>
+            <p><strong>Đổi eSIM MobiFone Quận 7</strong> nên kiểm tra trước dòng máy, số thuê bao và giấy tờ chính chủ. Nếu đang đổi máy mới, không nên xóa eSIM ở máy cũ trước khi có hướng dẫn rõ.</p>
           </QuickAnswerBox>
 
           <section className="grid gap-3 md:grid-cols-3">
@@ -71,7 +71,7 @@ export default function DoiEsimMobifoneQuan7Page() {
             </ol>
           </section>
 
-          <SeoCtaBox title="Gửi Zalo để kiểm tra đổi eSIM trước" description="Nhắn dòng máy, số MobiFone đang dùng và nhu cầu đổi máy/cấp lại QR. Chọn Số MobiFone kiểm tra trước để khách không phải đi lại nhiều lần." phoneHref="tel:+84933686666" />
+          <SeoCtaBox title="Gửi Zalo để kiểm tra đổi eSIM trước" description="Nhắn dòng máy, số MobiFone đang dùng và nhu cầu đổi máy/cấp lại QR. Chọn Số MobiFone kiểm tra trước để Quý khách hạn chế phải đi lại nhiều lần." phoneHref="tel:+84933686666" />
 
           <section>
             <h2 className="mb-4 text-xl font-bold text-foreground">Câu hỏi thường gặp</h2>
