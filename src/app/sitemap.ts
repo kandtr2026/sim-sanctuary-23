@@ -54,6 +54,9 @@ const ROUTES: StaticRoute[] = [
   { path: "/diem-giao-dich-mobifone-quan-7", changeFrequency: "weekly", priority: 0.9, dynamic: true },
   { path: "/esim-mobifone", changeFrequency: "weekly", priority: 0.8, dynamic: true },
   { path: "/doi-esim-mobifone", changeFrequency: "weekly", priority: 0.8, dynamic: true },
+  { path: "/doi-esim-mobifone-quan-7", changeFrequency: "weekly", priority: 0.85, dynamic: true },
+  { path: "/lam-lai-sim-mobifone", changeFrequency: "weekly", priority: 0.8, dynamic: true },
+  { path: "/lam-lai-sim-mobifone-quan-7", changeFrequency: "weekly", priority: 0.85, dynamic: true },
   { path: "/sim-nam-sinh", changeFrequency: "weekly", priority: 0.8, dynamic: true },
   // Landing Google Ads "sim ngày tháng năm sinh" — tìm SIM đuôi DDMMYY.
   { path: "/sim-ngay-thang-nam-sinh", changeFrequency: "weekly", priority: 0.8, dynamic: true },
