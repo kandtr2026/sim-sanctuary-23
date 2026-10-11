@@ -82,6 +82,30 @@ const nextConfig: NextConfig = {
         destination: "/diem-giao-dich-mobifone-quan-7",
         permanent: true,
       },
+      // Root-level aliases for exact "đầu số là mạng gì" searches. The content
+      // lives under /tin-tuc/*, but users/bots often try the shorter URL from the
+      // query itself; keep those visits from landing on a 404 and pass equity to
+      // the canonical article.
+      {
+        source: "/0708-la-mang-gi",
+        destination: "/tin-tuc/0708-la-mang-gi",
+        permanent: true,
+      },
+      {
+        source: "/0707-la-mang-gi",
+        destination: "/tin-tuc/0707-la-mang-gi",
+        permanent: true,
+      },
+      {
+        source: "/0706-la-mang-gi",
+        destination: "/tin-tuc/0706-la-mang-gi",
+        permanent: true,
+      },
+      {
+        source: "/089-la-mang-gi",
+        destination: "/tin-tuc/089-la-mang-gi",
+        permanent: true,
+      },
     ];
   },
 };
