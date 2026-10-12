@@ -4,9 +4,9 @@ import { Sparkles } from "lucide-react";
 import SimHopTuoiTool from "./SimHopTuoiTool";
 import FaqAccordion from "@/components/FaqAccordion";
 
-const TITLE = "Xem SIM Hợp Tuổi – Tìm SIM Phong Thủy Theo Ngày Sinh | CHONSOMOBIFONE";
+const TITLE = "Bói SIM Phong Thủy – Xem SIM Hợp Tuổi Theo Ngày Sinh | CHONSOMOBIFONE";
 const DESCRIPTION =
-  "Giúp Quý khách khoanh vùng SIM hợp tuổi, hợp mệnh từ ngày sinh và giờ sinh. Chấm điểm theo ngũ hành, âm dương, tổng nút, quẻ dịch trên kho Mobifone có sẵn.";
+  "Bói SIM phong thủy và xem SIM hợp tuổi theo ngày sinh, giờ sinh. Chấm điểm theo ngũ hành, âm dương, tổng nút, quẻ dịch trên kho MobiFone có sẵn.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-phong-thuy";
 
 export const metadata: Metadata = {
@@ -29,6 +29,11 @@ export const metadata: Metadata = {
 };
 
 const faqData = [
+  {
+    question: "Bói SIM phong thủy trên site có ý nghĩa gì?",
+    answer:
+      "Đây là cách xem tham khảo theo quan niệm dân gian: hệ thống đối chiếu ngày sinh, giờ sinh, giới tính với dãy số để gợi ý SIM dễ nhớ, hợp mệnh và cân bằng hơn. Kết quả không phải cam kết đổi vận hay bảo đảm tài lộc, mà là bộ lọc giúp Quý khách chọn số phù hợp ngân sách và sở thích.",
+  },
   {
     question: "Công cụ tìm SIM hợp tuổi hoạt động như thế nào?",
     answer:
@@ -99,13 +104,13 @@ export default function SimPhongThuyPage() {
             <div className="text-center mb-3 sm:mb-6">
               <div className="inline-flex items-center gap-1.5 rounded-full bg-gold/10 border border-gold/30 px-2.5 py-0.5 text-[10px] sm:text-xs font-semibold text-gold mb-1">
                 <Sparkles className="h-3 w-3" />
-                <span>Bát Tự &amp; 80 Quẻ Kinh Dịch MobiFone</span>
+                <span>Bói SIM phong thủy • Bát Tự &amp; 80 Quẻ Kinh Dịch MobiFone</span>
               </div>
               <h1 className="text-lg sm:text-3xl font-extrabold text-foreground tracking-tight">
-                Tìm SIM Hợp Tuổi <span className="text-gold">Theo Phong Thủy</span>
+                Bói SIM Phong Thủy <span className="text-gold">Hợp Tuổi Theo Ngày Sinh</span>
               </h1>
               <p className="hidden sm:block text-xs sm:text-sm text-muted-foreground/80 mt-1 max-w-lg mx-auto">
-                Chấm điểm ngũ hành, âm dương, tổng nút và quẻ dịch trên kho hơn 50.000 SIM MobiFone.
+                Nhập ngày sinh để xem SIM hợp tuổi, hợp mệnh và chấm điểm ngũ hành, âm dương, tổng nút, quẻ dịch trên kho hơn 50.000 SIM MobiFone.
               </p>
             </div>
 
@@ -116,9 +121,18 @@ export default function SimPhongThuyPage() {
 
             {/* SEO Content: 5 Trụ Cột Thu Gọn */}
             <div className="mt-12 rounded-2xl border border-border/60 bg-card/60 p-5 sm:p-7">
+              <div className="mb-6 rounded-2xl border border-gold/25 bg-gold/10 p-4 sm:p-5">
+                <p className="text-sm font-semibold text-gold">Đang tìm “bói sim” hoặc “boi sim”?</p>
+                <p className="mt-2 text-xs sm:text-sm leading-relaxed text-muted-foreground">
+                  Công cụ này dùng đúng engine chấm điểm của Chọn Số MobiFone để xem một số có hợp
+                  tuổi, hợp mệnh không. Quý khách nên xem kết quả như một bộ lọc tham khảo theo quan
+                  niệm dân gian: chọn số dễ nhớ, giá hợp ngân sách trước, rồi dùng điểm phong thủy để
+                  so sánh giữa các SIM đang phân vân.
+                </p>
+              </div>
               <h2 className="text-base sm:text-lg font-bold text-foreground mb-2 flex items-center gap-2">
                 <span className="h-4 w-1 rounded-full bg-gold" />
-                Cơ chế chấm điểm SIM: 5 trụ cột phong thủy
+                Cơ chế bói SIM: 5 trụ cột phong thủy
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                 {PILLARS.map((p) => (
