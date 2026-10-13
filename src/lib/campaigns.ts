@@ -8,7 +8,21 @@
  * `[]` / `null`. RLS already restricts anon reads to active, in-window rows;
  * the client-side time guard is a belt-and-braces fallback.
  */
-import { supabase } from "@/integrations/supabase/client";
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/config";
+
+/**
+ * Cửa sổ cache (giây) của danh sách chiến dịch trong Data Cache của Next.
+ *
+ * `PromoBanner` nằm ở root layout nên mọi lượt render server đều gọi vào đây.
+ * Bản cũ đi qua supabase-js (không dính cache của Next) nên bắn một request
+ * `GET /rest/v1/site_campaigns` cho MỖI lượt render — đo 13/10/2026: 2.402
+ * request/24h, toàn bộ trả `[]`, chiếm ~14% dòng log API của project. Khớp
+ * `revalidate = 300` của các trang để độ tươi không đổi so với ISR hiện tại.
+ */
+const CAMPAIGNS_REVALIDATE = 300;
+
+const CAMPAIGNS_URL =
+  `${SUPABASE_URL}/rest/v1/site_campaigns?select=*&active=eq.true&order=sort.asc`;
 
 export type CampaignType = "flash_sale" | "promo_banner" | "featured_deal";
 
@@ -35,17 +49,15 @@ const inWindow = (c: SiteCampaign, nowIso: string) =>
 /** Active, in-window campaigns ordered by `sort`. `[]` if table missing/error. */
 export async function getActiveCampaigns(): Promise<SiteCampaign[]> {
   try {
-    const { data, error } = await (
-      supabase as unknown as {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- site_campaigns chưa có trong generated types (migration có thể chưa apply)
-        from: (t: string) => any;
-      }
-    )
-      .from("site_campaigns")
-      .select("*")
-      .eq("active", true)
-      .order("sort", { ascending: true });
-    if (error || !data) return [];
+    // Chỉ gửi `apikey` (không `Authorization`) để request được phép vào Data
+    // Cache; RLS vẫn áp theo role anon như khi đi qua supabase-js.
+    const res = await fetch(CAMPAIGNS_URL, {
+      headers: { apikey: SUPABASE_PUBLISHABLE_KEY },
+      next: { revalidate: CAMPAIGNS_REVALIDATE },
+    });
+    if (!res.ok) return [];
+    const data: unknown = await res.json();
+    if (!Array.isArray(data)) return [];
     const nowIso = new Date().toISOString();
     return (data as SiteCampaign[]).filter((c) => inWindow(c, nowIso));
   } catch {

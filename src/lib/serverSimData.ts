@@ -635,9 +635,15 @@ export const getServerSims = async (): Promise<NormalizedSIM[]> => {
 
   cachedPromise = (async () => {
     // 1) Thử Supabase trước — nhẹ, nhanh, luôn tươi theo sync
+    // Đo thời gian để phân biệt Data Cache HIT (vài trăm ms) với MISS (82 request
+    // thật tới PostgREST, hàng giây): giúp đối chiếu log Vercel với số lần crawl
+    // thấy trong log Supabase (13/10/2026: ~172 lần/ngày dù đã có Data Cache).
+    const t0 = Date.now();
     const fromDb = await fetchSimsFromDb();
     if (fromDb && fromDb.length > 0) {
-      console.log(`[serverSimData] loaded ${fromDb.length} SIMs from Supabase`);
+      console.log(
+        `[serverSimData] loaded ${fromDb.length} SIMs from Supabase in ${Date.now() - t0}ms`,
+      );
       return store(fromDb);
     }
     // 2) Fallback: CSV qua edge function

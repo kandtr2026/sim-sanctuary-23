@@ -49,6 +49,11 @@ const handle = (req: NextRequest): Response => {
     return Response.json({ error: "Tag không hợp lệ" }, { status: 400 });
   }
 
+  // Dấu vết: mỗi lần bust tag `sim` là mọi lambda crawl lại cả kho. Ghi lại ai
+  // gọi (UA/IP do Vercel gắn) để biết nguồn bust ngoài cron khi đối chiếu log.
+  console.log(
+    `[api/revalidate] bust tag="${raw}" ua="${req.headers.get("user-agent") ?? ""}" ip="${req.headers.get("x-forwarded-for") ?? ""}"`,
+  );
   revalidateTag(raw, { expire: 0 });
   return Response.json({ revalidated: true, tag: raw, now: Date.now() });
 };
