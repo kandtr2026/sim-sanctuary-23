@@ -3,7 +3,7 @@
   "crons": [
     {
       "path": "/api/cron/sync-sims",
-      "schedule": "17 1,13 * * *"
+      "schedule": "17 1,7,13,19 * * *"
     }
   ]
 }

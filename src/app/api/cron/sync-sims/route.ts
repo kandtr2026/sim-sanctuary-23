@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { revalidateTag } from "next/cache";
 import { SUPABASE_URL } from "@/integrations/supabase/config";
 import { SIM_CACHE_TAG } from "@/lib/cacheTags";
+import { fetchSimsRowsFromDb } from "@/lib/serverSimData";
+import { writeSnapshot } from "@/lib/simsSnapshot";
 
 /**
  * Cron đồng bộ kho SIM: Vercel gọi route này theo lịch trong `vercel.json`, route
@@ -67,6 +69,23 @@ export async function GET(req: NextRequest) {
     // tiếp, không phải chờ hết cửa sổ ISR 5 phút. `{ expire: 0 }`: webhook cần hết
     // hạn tức thì. Bọc try/catch để một lỗi revalidate không biến lần sync thành
     // công thành thất bại (dữ liệu đã ghi rồi).
+    // Dựng snapshot kho TRƯỚC khi bust tag: trang regenerate ngay sau đó sẽ đọc
+    // bản mới. Dựng cả khi nội dung không đổi để mốc `generatedAt` luôn tươi (đọc
+    // quá 18 giờ thì bị bỏ qua). Lỗi ở đây không làm hỏng lần sync — người đọc
+    // tự rơi về crawl PostgREST.
+    let snapshot = "skipped";
+    if (res.ok && process.env.BLOB_READ_WRITE_TOKEN) {
+      try {
+        const rows = await fetchSimsRowsFromDb({ fresh: true });
+        if (!rows) throw new Error("không đọc được bảng sims");
+        const w = await writeSnapshot(rows);
+        snapshot = `ok rows=${w.rows} bytes=${w.bytes}`;
+      } catch (e) {
+        snapshot = `error: ${e instanceof Error ? e.message : String(e)}`;
+        console.error("[cron/sync-sims] dựng snapshot lỗi:", snapshot);
+      }
+    }
+
     if (res.ok) {
       try {
         revalidateTag(SIM_CACHE_TAG, { expire: 0 });
@@ -78,7 +97,7 @@ export async function GET(req: NextRequest) {
     // Trả nguyên phản hồi của job để log cron của Vercel có cái đọc được khi hỏng.
     return new Response(body, {
       status: res.ok ? 200 : 502,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-Snapshot": snapshot },
     });
   } catch (e) {
     const chiTiet = e instanceof Error ? e.message : String(e);

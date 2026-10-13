@@ -37,6 +37,13 @@ export const SIM_DATA_REVALIDATE = 300 as const;
  *   • Nhưng kho chỉ ĐỔI 2 lần/ngày: cron `sync-sims` chạy 01:17 và 13:17
  *     (vercel.json), và ngay sau mỗi lần sync nó gọi `revalidateTag('sim')`.
  *
+ * CẬP NHẬT 13/10/2026: số "49 request × 18.165 B ≈ 890 KB" ở trên đo lúc bug trần
+ * 200 hàng (49 trang × 200 = 9.800/48.964 hàng), không phải cả kho. Kho nay có
+ * 81.622 SIM: một lần crawl thật là 82 request, ~16 MB JSON. Log Supabase ghi
+ * ~172 lần crawl/24h dù đã có Data Cache, nên nguồn đọc cả kho giờ là snapshot
+ * (`simsSnapshot.ts`, dựng sau mỗi lần cron `sync-sims`, 4 lần/ngày); crawl
+ * PostgREST chỉ còn là đường dự phòng.
+ *
  * Tức 287/288 lượt crawl kia tải lại đúng bộ dữ liệu vừa tải, không đem thêm
  * một chút tươi mới nào: số đã bán vốn phải chờ lần sync kế tiếp mới biến mất,
  * cửa sổ 5 phút không rút ngắn được điều đó. Độ tươi thật do `revalidateTag`

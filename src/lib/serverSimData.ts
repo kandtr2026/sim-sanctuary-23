@@ -23,6 +23,7 @@ import {
   EDGE_FUNCTIONS_URL,
 } from "@/integrations/supabase/config";
 import { SIM_CACHE_TAG, SIM_CATALOGUE_REVALIDATE } from "@/lib/cacheTags";
+import { readSnapshotRows } from "@/lib/simsSnapshot";
 
 // Cấu hình cache Data Cache của Next cho crawl TOÀN KHO (count + các trang). Tag
 // `SIM_CACHE_TAG` để `revalidateTag('sim')` sau mỗi lần `sync-sims` bust sạch,
@@ -259,7 +260,7 @@ const SIMS_SELECT = 'id,raw_digits,display_number,original_price,final_price,eff
  */
 const SELLABLE_STATUS = 'status=eq.available';
 
-interface SimsDbRow {
+export interface SimsDbRow {
   id: string;
   raw_digits: string;
   display_number: string;
@@ -344,7 +345,12 @@ const simsPageUrl = (limit: number, offset: number): string =>
  * được suy ra từ SỐ HÀNG THỰC NHẬN. Cách này tự đúng dù trần là 200, 1000 hay
  * 5000 — nâng trần trên dashboard chỉ làm nó nhanh hơn, không phải sửa code.
  */
-const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
+export const fetchSimsRowsFromDb = async (
+  opts: { fresh?: boolean } = {},
+): Promise<SimsDbRow[] | null> => {
+  // `fresh`: đọc thẳng DB, không qua Data Cache — dùng khi DỰNG snapshot (cron
+  // vừa đồng bộ xong, cần đúng dữ liệu hiện tại chứ không phải bản đã cache).
+  const cacheOpt = opts.fresh ? ({ cache: 'no-store' } as const) : { next: SIM_FETCH_CACHE };
   try {
     const authHeaders = {
       apikey: SUPABASE_PUBLISHABLE_KEY,
@@ -355,7 +361,7 @@ const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
     // `limit=0` chỉ để đếm.
     const firstRes = await fetchWithTimeout(
       simsPageUrl(SUPABASE_SIMS_PAGE, 0),
-      { headers: { ...authHeaders, Prefer: 'count=exact' }, next: SIM_FETCH_CACHE },
+      { headers: { ...authHeaders, Prefer: 'count=exact' }, ...cacheOpt },
       FETCH_TIMEOUT_MS,
     );
     if (!firstRes.ok) return null;
@@ -384,7 +390,7 @@ const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
         const pageIdx = next++;
         const res = await fetchWithTimeout(
           simsPageUrl(effectivePage, pageIdx * effectivePage),
-          { headers: authHeaders, next: SIM_FETCH_CACHE },
+          { headers: authHeaders, ...cacheOpt },
           FETCH_TIMEOUT_MS,
         );
         if (!res.ok) {
@@ -396,10 +402,10 @@ const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
     });
     await Promise.all(workers);
 
-    const sims: NormalizedSIM[] = firstRows.map(simsDbRowToNormalized);
+    const sims: SimsDbRow[] = [...firstRows];
     for (const rows of rest) {
       if (!rows) return null;
-      for (const r of rows) sims.push(simsDbRowToNormalized(r));
+      for (const r of rows) sims.push(r);
     }
 
     // Thiếu hàng thì PHẢI để lại dấu vết. Chính vì im lặng mà bug 9.800/48.964
@@ -415,6 +421,12 @@ const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
     console.warn('[serverSimData] Supabase read failed, falling back to CSV:', e);
     return null;
   }
+};
+
+/** Crawl toàn kho từ PostgREST rồi chuẩn hoá — đường dự phòng của snapshot. */
+const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
+  const rows = await fetchSimsRowsFromDb();
+  return rows ? rows.map(simsDbRowToNormalized) : null;
 };
 
 export interface DbQueryCriteria {
@@ -639,6 +651,15 @@ export const getServerSims = async (): Promise<NormalizedSIM[]> => {
     // thật tới PostgREST, hàng giây): giúp đối chiếu log Vercel với số lần crawl
     // thấy trong log Supabase (13/10/2026: ~172 lần/ngày dù đã có Data Cache).
     const t0 = Date.now();
+    // 0) Snapshot đã dựng sẵn sau mỗi lần đồng bộ (1 file, không đụng PostgREST).
+    //    Không có / quá cũ / hỏng → null → rơi về crawl như cũ.
+    const snapRows = await readSnapshotRows();
+    if (snapRows && snapRows.length > 0) {
+      console.log(
+        `[serverSimData] loaded ${snapRows.length} SIMs from snapshot in ${Date.now() - t0}ms`,
+      );
+      return store(snapRows.map(simsDbRowToNormalized));
+    }
     const fromDb = await fetchSimsFromDb();
     if (fromDb && fromDb.length > 0) {
       console.log(
