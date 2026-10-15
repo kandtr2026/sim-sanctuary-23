@@ -746,3 +746,19 @@ Trang mới (trước đây 404): form Ngày/Tháng/Năm + ô nhanh DDMMYY → g
 **Chờ A Khoa:** con số 6.646 trên trang là tổng dòng sim_birthday_kho; chỉ 6.443 dòng là ngày có thật (hop_le). Thẻ HTML tùy chỉnh trong GTM-MWKVVS7M ném lỗi `innerText of null` mỗi cú bấm (có sẵn toàn site).
 
 ---
+
+## [2026-10-15] Số đã bán vẫn hiện: sync-sims không gỡ số RỜI sheet
+
+**Báo lỗi (A Khoa):** 0903941951 (SIM158085) đã ghép lô bán cho đại lý mà web vẫn hiện 900.000đ.
+
+**Gốc:** 25/09 sync-sims nhập nguyên kho "KHO KHCN KIT_2026" (29.223 số). Sau đó cả kho bị rút khỏi Google Sheet (bán lô), nhưng sync-sims chỉ upsert dòng CÓ trong sheet + đánh sold theo tab SIM_SOLD — số biến mất khỏi sheet thì giữ `available` mãi. Đối chiếu 15/10: DB 81.602 available, sheet 55.510 SimID → lệch đúng 29.223, 100% kho KIT_2026.
+
+**Sửa (edge function sync-sims, đã deploy):** mọi dòng upsert mang chung mốc `source_updated_at = syncStamp`; sau upsert, dòng `available` có mốc cũ hơn ⇒ không còn trong sheet ⇒ `status='removed'` (hàm `retireMissing`, 1 PATCH). Chặn an toàn: định gỡ > 50% số đang bán thì nghi sheet cụt, KHÔNG gỡ (ép bằng `?force=1&reconcile=force`). Số quay lại sheet → lượt upsert sau tự về `available`.
+
+**Đã chạy 15/10:** `?force=1` → removed 29.223 (toàn KIT_2026); còn 52.379 available. Dựng tay snapshot Blob (52.379 dòng) + `vercel cache invalidate --tag sim`; deploy mới để thay lambda đang giữ kho cũ trong bộ nhớ (TTL 1h).
+
+**Ảnh hưởng landing Ads /sim-ngay-thang-nam-sinh:** 6.646 số của `sim_birthday_kho` đều thuộc KIT_2026 → 0 số còn bán; khối số mẫu tự ẩn, bỏ câu "Kho 6.646 số" trong meta. Kho còn lại có ~1.700 số đuôi dạng ngày sinh nên ô tìm vẫn ra kết quả.
+
+**Bẫy:** CRON_SECRET / REVALIDATE_SECRET là biến Sensitive trên Vercel (không `env pull` được) — muốn làm tươi ngoài lịch cron thì dựng snapshot bằng BLOB_READ_WRITE_TOKEN + `vercel cache invalidate --tag sim` + redeploy (bộ nhớ lambda).
+
+---

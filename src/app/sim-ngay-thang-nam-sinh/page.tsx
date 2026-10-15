@@ -13,7 +13,7 @@ export const revalidate = 3600;
 
 const TITLE = "Sim Ngày Tháng Năm Sinh MobiFone | Tìm SIM Đuôi DDMMYY";
 const DESCRIPTION =
-  "Nhập ngày sinh để tìm SIM MobiFone có 6 số cuối trùng DDMMYY. Kho 6.646 số ngày sinh, giá niêm yết, tư vấn giữ số qua Zalo.";
+  "Nhập ngày sinh để tìm SIM MobiFone có 6 số cuối trùng DDMMYY. Giá niêm yết, tư vấn giữ số qua Zalo.";
 const PATH = "/sim-ngay-thang-nam-sinh";
 const CANONICAL = `https://www.chonsomobifone.com${PATH}`;
 

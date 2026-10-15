@@ -15,6 +15,7 @@ import { calculateBeautyScore, detectSimCategories, isVIPSim } from "../_shared/
 //     1000 số hoặc ai nới `db-max-rows` là nó kích hoạt), không phải lỗi đang
 //     gây hại: đối chiếu 1.201 SimID sheet↔DB cho 0 dòng lệch giá.
 //   - Luôn đọc tab SIM_SOLD → đánh dấu sold các SimID đã bán
+//   - Lượt có upsert thì gỡ ('removed') số 'available' đã RỜI sheet — xem retireMissing
 //
 // Cách gọi (có thể cron qua Vercel / pg_cron / webhook):
 //   GET/POST /sync-sims  (có thể kèm ?force=1 để bỏ qua so sánh vân tay)
@@ -61,6 +62,21 @@ const MIN_SELLABLE_PRICE = 10_000;
  * `status=eq.available` theo hướng fail-closed nên mọi giá trị lạ đều bị loại.
  */
 const STATUS_INVALID_PRICE = 'invalid_price';
+
+/**
+ * Status cho số ĐÃ RỜI sheet chính (xoá dòng, hoặc rút cả kho — vd. kho
+ * "KHO KHCN KIT_2026" 29.223 số ghép lô bán cho đại lý, 10/2026). Trước bản này
+ * job chỉ upsert dòng CÓ trong sheet, nên số rời sheet giữ 'available' mãi mãi
+ * và web vẫn bán số đã bán. Số quay lại sheet thì lượt upsert sau tự trả status.
+ */
+const STATUS_REMOVED = 'removed';
+
+/**
+ * Lượt gỡ đòi gỡ quá tỉ lệ này của số đang bán ⇒ nghi sheet đọc về bị cụt/hỏng,
+ * KHÔNG gỡ (chỉ cảnh báo). Rút kho KIT_2026 = 36% vẫn lọt; sheet trả về rỗng
+ * hay cụt quá nửa thì bị chặn. Cần gỡ nhiều hơn thật thì gọi `?reconcile=force`.
+ */
+const MAX_REMOVE_RATIO = 0.5;
 
 const normalizeHeader = (header: string): string => {
   const cleaned = header.trim().toUpperCase().replace(/\s+/g, ' ').trim();
@@ -322,8 +338,13 @@ serve(async (req) => {
 
   const url = new URL(req.url);
   const force = url.searchParams.get('force') === '1';
+  const forceReconcile = url.searchParams.get('reconcile') === 'force';
 
   try {
+    // Mốc của lượt chạy: mọi dòng upsert mang `source_updated_at` = mốc này, nên
+    // dòng 'available' có mốc CŨ HƠN là dòng không còn trong sheet (xem bước 5).
+    const syncStamp = new Date().toISOString();
+
     // 1) Fetch main CSV + SIM_SOLD
     const [mainCsv, soldCsv] = await Promise.all([fetchText(GOOGLE_SHEET_CSV_URL), fetchText(SIM_SOLD_CSV_URL)]);
     const rows = parseCSV(mainCsv);
@@ -398,8 +419,8 @@ serve(async (req) => {
         last2: digits.slice(-2),
         last4: digits.slice(-4),
         last6: digits.slice(-6),
-        source_updated_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        source_updated_at: syncStamp,
+        updated_at: syncStamp,
       });
     }
 
@@ -438,10 +459,16 @@ serve(async (req) => {
       if (!res.ok) throw new Error(`upsert batch ${i} HTTP ${res.status}: ${await res.text()}`);
     }
 
-    // 5) Đánh dấu sold + ghi log sold
+    // 5) Gỡ số đã rời sheet. Chỉ chạy ở nhánh có upsert: nhánh "không đổi" thì
+    //    tập SimID y hệt lượt upsert trước, mà lượt đó đã gỡ rồi. Lỗi thì ném ra
+    //    để vân tay KHÔNG được ghi ⇒ lượt sau upsert + gỡ lại từ đầu.
+    const reconcile = await retireMissing(supabaseUrl, serviceKey, syncStamp, forceReconcile);
+
+    // 6) Đánh dấu sold + ghi log sold (sau bước 5: số vừa gỡ mà có trong
+    //    SIM_SOLD thì vẫn về 'sold').
     await markSold(supabaseUrl, serviceKey, soldSet);
 
-    // 6) Chỉ ghi vân tay SAU khi upsert xong: upsert lỗi giữa đường thì vân tay
+    // 7) Chỉ ghi vân tay SAU khi upsert xong: upsert lỗi giữa đường thì vân tay
     //    cũ còn nguyên ⇒ lần chạy sau làm lại từ đầu thay vì tưởng đã xong.
     const fingerprintSaved = await writeFingerprint(supabaseUrl, serviceKey, fingerprint, toUpsert.length);
     const dbRows = await countSims(supabaseUrl, serviceKey);
@@ -460,6 +487,7 @@ serve(async (req) => {
       rows: toUpsert.length,
       sold: soldSet.size,
       invalidPrice: invalidPriceCount,
+      reconcile,
       skippedNoId,
       skippedShortNumber,
       fingerprint,
@@ -473,6 +501,52 @@ serve(async (req) => {
     });
   }
 });
+
+/** Đếm bằng content-range, không chuyển hàng nào (cùng cách với countSims). */
+async function countWhere(supabaseUrl: string, serviceKey: string, filter: string): Promise<number> {
+  const res = await fetch(`${supabaseUrl}/rest/v1/sims?select=id&limit=0&${filter}`, {
+    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, Prefer: 'count=exact' },
+  });
+  const m = (res.headers.get('content-range') || '').match(/\/(\d+)$/);
+  if (!res.ok || !m) throw new Error(`đếm sims (${filter}) HTTP ${res.status}`);
+  return Number(m[1]);
+}
+
+/**
+ * Chuyển sang STATUS_REMOVED mọi số 'available' KHÔNG có trong sheet lượt này,
+ * tức `source_updated_at` cũ hơn mốc `syncStamp` mà bước upsert vừa ghi cho mọi
+ * dòng còn trong sheet. Chỉ gọi SAU khi upsert xong hết các batch.
+ */
+async function retireMissing(
+  supabaseUrl: string,
+  serviceKey: string,
+  syncStamp: string,
+  forceReconcile: boolean,
+): Promise<{ removed: number; skipped?: string; sample?: { id: string; kho: string | null }[] }> {
+  const filter = `status=eq.available&or=(source_updated_at.is.null,source_updated_at.lt.${syncStamp})`;
+  const stale = await countWhere(supabaseUrl, serviceKey, filter);
+  if (stale === 0) return { removed: 0 };
+
+  const available = await countWhere(supabaseUrl, serviceKey, 'status=eq.available');
+  if (!forceReconcile && stale > available * MAX_REMOVE_RATIO) {
+    const skipped = `${stale}/${available} số đang bán vắng mặt trong sheet (> ${MAX_REMOVE_RATIO * 100}%) — nghi sheet cụt, KHÔNG gỡ. Đúng là rút kho thì gọi ?force=1&reconcile=force`;
+    console.warn(`[sync-sims] ${skipped}`);
+    return { removed: 0, skipped };
+  }
+
+  const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' };
+  const sampleRes = await fetch(`${supabaseUrl}/rest/v1/sims?select=id,kho&limit=20&${filter}`, { headers });
+  const sample = sampleRes.ok ? await sampleRes.json() : [];
+
+  const res = await fetch(`${supabaseUrl}/rest/v1/sims?${filter}`, {
+    method: 'PATCH',
+    headers: { ...headers, Prefer: 'return=minimal' },
+    body: JSON.stringify({ status: STATUS_REMOVED, updated_at: new Date().toISOString() }),
+  });
+  if (!res.ok) throw new Error(`gỡ số rời sheet HTTP ${res.status}: ${await res.text()}`);
+  console.log(`[sync-sims] Gỡ ${stale} số không còn trong sheet → status='${STATUS_REMOVED}'. Mẫu:`, JSON.stringify(sample));
+  return { removed: stale, sample };
+}
 
 // Đánh dấu sold từng SimID đã bán + ghi vào sold_sims
 async function markSold(supabaseUrl: string, serviceKey: string, soldSet: Set<string>): Promise<void> {
