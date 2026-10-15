@@ -16,7 +16,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { SupabaseBotClient } from './supabase.mjs';
 import { generateContent } from './generate.mjs';
-import { TOPIC_BANK, nextYearTopic, RESERVED_SLUGS } from './topics.mjs';
+import { TOPIC_BANK, RESERVED_SLUGS } from './topics.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(here, '..', '..');
@@ -46,7 +46,9 @@ function pickTopic(existingSlugs) {
   // Loại cả slug đã có trong DB và slug đã có trang viết cứng trong repo —
   // route tĩnh luôn thắng [slug] nên viết trùng là ném đi cả lượt chạy.
   const used = new Set([...existingSlugs, ...RESERVED_SLUGS]);
-  const candidate = TOPIC_BANK.find((t) => !used.has(t.slug)) || nextYearTopic(used);
+  // Hết chủ đề trong TOPIC_BANK → trả null để DỪNG, không bịa "sim hợp tuổi <năm>"
+  // tương lai như trước (xem ghi chú trong topics.mjs).
+  const candidate = TOPIC_BANK.find((t) => !used.has(t.slug)) || null;
   return { topic: candidate, used };
 }
 
@@ -66,6 +68,13 @@ export async function main(env = process.env) {
 
   const slugs = await client.getSlugs();
   const { topic } = pickTopic(slugs);
+  if (!topic) {
+    console.log(
+      `[blog-bot] Đã dùng hết ${TOPIC_BANK.length} chủ đề trong TOPIC_BANK — KHÔNG tạo bài mới ` +
+        `(đã bỏ rule tự sinh "sim hợp tuổi <năm>"). Thêm chủ đề vào topics.mjs nếu muốn bot viết tiếp.`,
+    );
+    return null;
+  }
   console.log(`[blog-bot] Slug hiện có: ${slugs.length} bài. Chọn chủ đề: ${topic.slug}`);
 
   const content = await generateContent(topic, cfg);

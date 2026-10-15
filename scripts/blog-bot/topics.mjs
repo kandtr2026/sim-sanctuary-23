@@ -5,8 +5,9 @@
  * exist in `blog_posts`. The "kho số đẹp" series (sim types like tứ quý,
  * lục quý) sits at the front because those are the highest-value SEO
  * keywords, mirroring the category structure of simthanglong.com. Once the
- * bank is exhausted the job extends the birth-year series (see
- * `nextYearTopic` in this file) rather than repeating a slug.
+ * bank is exhausted the job STOPS (writes no post) instead of inventing more
+ * topics — the old open-ended "sim hợp tuổi <năm>" fallback was removed
+ * because it produced articles for future, non-existent birth years.
  *
  * Titles are deliberately VARIED (not all "Sim X là gì?") to avoid a wall of
  * repetitive headings. `internalLink` must be one of the allowed internal
@@ -435,12 +436,7 @@ export const TOPIC_BANK = [
   },
 ];
 
-/**
- * Fallback used once TOPIC_BANK is exhausted: continue the birth-year series
- * with the next year that isn't already in the bank (never repeats a slug).
- */
-export function nextYearTopic(existingSlugs) {
-  let year = 2001;
-  while (existingSlugs.has(`sim-hop-tuoi-${year}`)) year += 1;
-  return yearTopic(year);
-}
+// ĐÃ BỎ `nextYearTopic`: trước đây khi TOPIC_BANK dùng hết, bot tự đẻ tiếp chuỗi
+// "sim hợp tuổi <năm>" tăng dần VÔ HẠN từ 2001 → sinh ra bài cho các năm TƯƠNG
+// LAI vô nghĩa (2039, 2044, 2045… trong khi mới 2026). Nay bank hết thì bot DỪNG,
+// không bịa thêm năm. Chỉ giữ chuỗi năm sinh có thật đã khai trong TOPIC_BANK.
