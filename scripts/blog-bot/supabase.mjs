@@ -61,6 +61,25 @@ export class SupabaseBotClient {
     return data.map((row) => row.slug);
   }
 
+  /**
+   * Category (nhóm chủ đề) của vài bài MỚI NHẤT — để chọn bài hôm nay khác nhóm
+   * mấy hôm trước, cho đa dạng, ít trùng lặp. Lỗi (vd thiếu cột created_at) thì
+   * trả [] và bot quay về chọn ngẫu nhiên, không làm hỏng lượt chạy.
+   */
+  async getRecentCategories(limit = 3) {
+    try {
+      const res = await fetch(
+        `${this.url}/rest/v1/blog_posts?select=category&order=created_at.desc&limit=${limit}`,
+        { headers: this.headers() },
+      );
+      const data = await res.json().catch(() => []);
+      if (!res.ok || !Array.isArray(data)) return [];
+      return data.map((row) => row.category).filter(Boolean);
+    } catch {
+      return [];
+    }
+  }
+
   async insertPost(post) {
     const res = await fetch(`${this.url}/rest/v1/blog_posts`, {
       method: 'POST',

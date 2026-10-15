@@ -42,14 +42,24 @@ function requireEnv(env, key) {
   return value;
 }
 
-function pickTopic(existingSlugs) {
+function pickTopic(existingSlugs, recentCategories = []) {
   // Loại cả slug đã có trong DB và slug đã có trang viết cứng trong repo —
   // route tĩnh luôn thắng [slug] nên viết trùng là ném đi cả lượt chạy.
   const used = new Set([...existingSlugs, ...RESERVED_SLUGS]);
+  const unused = TOPIC_BANK.filter((t) => !used.has(t.slug));
   // Hết chủ đề trong TOPIC_BANK → trả null để DỪNG, không bịa "sim hợp tuổi <năm>"
   // tương lai như trước (xem ghi chú trong topics.mjs).
-  const candidate = TOPIC_BANK.find((t) => !used.has(t.slug)) || null;
-  return { topic: candidate, used };
+  if (unused.length === 0) return { topic: null, used };
+
+  // Đa dạng, ít trùng lặp: tránh lặp NHÓM (category) của mấy bài gần nhất rồi
+  // chọn NGẪU NHIÊN trong số còn lại — thay vì đi tuần tự hết một nhóm mới sang
+  // nhóm khác (trước đây ~20 bài "Ý nghĩa sim" liên tiếp). Nếu các chủ đề còn
+  // lại đều thuộc nhóm gần đây thì lấy bất kỳ.
+  const recent = new Set(recentCategories);
+  const fresh = unused.filter((t) => !recent.has(t.category));
+  const pool = fresh.length > 0 ? fresh : unused;
+  const topic = pool[Math.floor(Math.random() * pool.length)];
+  return { topic, used };
 }
 
 export async function main(env = process.env) {
@@ -67,7 +77,8 @@ export async function main(env = process.env) {
   console.log('[blog-bot] Đăng nhập thành công.');
 
   const slugs = await client.getSlugs();
-  const { topic } = pickTopic(slugs);
+  const recentCategories = await client.getRecentCategories(3);
+  const { topic } = pickTopic(slugs, recentCategories);
   if (!topic) {
     console.log(
       `[blog-bot] Đã dùng hết ${TOPIC_BANK.length} chủ đề trong TOPIC_BANK — KHÔNG tạo bài mới ` +
@@ -75,7 +86,10 @@ export async function main(env = process.env) {
     );
     return null;
   }
-  console.log(`[blog-bot] Slug hiện có: ${slugs.length} bài. Chọn chủ đề: ${topic.slug}`);
+  console.log(
+    `[blog-bot] Slug hiện có: ${slugs.length} bài. Né nhóm gần đây [${recentCategories.join(', ') || '—'}]. ` +
+      `Chọn: ${topic.slug} (${topic.category}).`,
+  );
 
   const content = await generateContent(topic, cfg);
   console.log(`[blog-bot] Nội dung ~${content.words} từ. meta_title (${content.meta_title.length} ký tự), meta_description (${content.meta_description.length} ký tự).`);
