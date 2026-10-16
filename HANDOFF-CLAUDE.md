@@ -1,6 +1,15 @@
 # BÀN GIAO — chonsomobifone (sim-sanctuary-23)
 
-_Cập nhật: 2026-09-02. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone số đẹp._
+_Cập nhật: 2026-10-16. Dự án: Next.js 16 + Supabase — Kho SIM Mobifone số đẹp._
+
+## 0f. PHIÊN 16/10/2026 — BẢNG SỐ EXCEL LÀ NGUỒN KHO + GIÁ (commit `baddc7f`)
+
+- **Luật chủ shop chốt**: (1) giá web = cột GIÁ BÁN trong file Excel bảng số nhà cung cấp gửi hằng tháng; (2) số không có trong file = không còn → gỡ; (3) số có trong file nhưng ĐÃ TỪNG nằm trong tab SIM_SOLD (so theo SỐ ĐIỆN THOẠI) → gỡ, vì một số chỉ bán một lần; (4) có trong file thì BẮT BUỘC lên web (kể cả kho KIT_2026 đã gỡ hôm 15/10).
+- **⚠️ Tab chính Google Sheet KHÔNG còn quyết định kho/giá web.** Sửa giá/thêm số ở đó không có tác dụng. Tab SIM_SOLD vẫn quan trọng: bán số nào phải ghi vào SIM_SOLD, có cột `STB chuan` (số điện thoại).
+- **Nạp bảng số tháng mới**: `node scripts/bang-so/import.mjs "<file.xlsx>" --sync` (mượn Supabase CLI đã login để lấy service key; `--dry-run` để xem trước). Nạp vào bảng `sims_bang_so` (RLS, chỉ service role, không lưu GIÁ THU VỀ) rồi chạy `sync-sims`.
+- **Đã làm**: migration `20261016100000_sims_bang_so.sql` (đã áp remote qua `supabase db query --linked`); `sync-sims` đọc `sims_bang_so` (giữ SimID cũ theo số, số mới = `SIMBS<số>`, chặn khi bảng số < 1000 dòng); `fetch-sim-by-id` đọc bảng `sims` thay gviz Google Sheet; trang /mua-ngay rơi về đọc `sims` thay CSV. Edge function đã deploy.
+- **Kết quả file tháng 10 (05/10/2026)**: 73.946 số trong file (Sheet2 lặp 2.200 dòng cuối Sheet1) − 54 số đã có trong SIM_SOLD = **73.892 số đang bán**. Đối chiếu lại DB↔Excel: 0 số lệch giá, 0 số ngoài file. Đã gỡ 9.368 số, thêm 4.857 số mới, đưa lại kho KIT_2026; ~28.600 số trước đó bị cộng đúng 10% giá.
+- **Còn mở**: (a) kho 0đ `/mua-sim-gia-re` (sheet riêng `1gwlG7…`, tab Tongkho) chưa theo luật bảng số: 10.823/13.106 số không có trong Excel, 2.283 số trùng kho chính (229k ở trang 0đ vs giá Excel, chủ yếu 900k) — chờ chủ shop quyết; (b) dashboard admin vẫn đọc tồn kho qua `fetch-sim-data` (Google Sheet); (c) số 0932.726.286 có 2 giá trong file (Sheet1 4,4tr / Sheet2 1,7tr) — đang lấy 4,4tr.
 
 ## 0e. PHIÊN 02/09/2026 — Zalo CRO: audit ma sát + fix nút Zalo card + deploy
 
