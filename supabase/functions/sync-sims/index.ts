@@ -118,9 +118,12 @@ const fetchText = async (url: string): Promise<string> => {
 };
 
 /**
- * Đọc HẾT một bảng qua PostgREST: đếm trước (`count=exact`, `limit=0`), rồi bắn
- * các trang PAGE_SIZE song song READ_CONCURRENCY luồng. `order` phải là cột duy
- * nhất để trang không chồng/hụt.
+ * Đọc HẾT một bảng qua PostgREST. Trang đầu kiêm đếm (`count=exact`); bước nhảy
+ * offset = số hàng trang đầu THỰC SỰ trả về chứ không phải PAGE_SIZE xin — trần
+ * "Max rows" của project từng là 200, khi đó nhảy 1000 sẽ bỏ sót 800 hàng mỗi
+ * khối mà mọi response vẫn 200 (xem fetchSimsRowsFromDb bên web). Đọc thiếu
+ * hay thừa so với `count` ⇒ ném lỗi: job này gỡ số dựa trên kết quả đọc, nên
+ * dữ liệu hụt là gỡ nhầm. `order` phải là cột duy nhất để trang không chồng/hụt.
  */
 const fetchAllRows = async <T>(
   supabaseUrl: string,
@@ -130,26 +133,30 @@ const fetchAllRows = async <T>(
   order: string,
 ): Promise<T[]> => {
   const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
-  const head = await fetch(`${supabaseUrl}/rest/v1/${table}?select=${order}&limit=0`, {
-    headers: { ...headers, Prefer: 'count=exact' },
-  });
-  const m = (head.headers.get('content-range') || '').match(/\/(\d+)$/);
-  if (!head.ok || !m) throw new Error(`đếm ${table} HTTP ${head.status}`);
+  const pageUrl = (limit: number, offset: number) =>
+    `${supabaseUrl}/rest/v1/${table}?select=${select}&order=${order}.asc&limit=${limit}&offset=${offset}`;
+
+  const first = await fetch(pageUrl(PAGE_SIZE, 0), { headers: { ...headers, Prefer: 'count=exact' } });
+  const m = (first.headers.get('content-range') || '').match(/\/(\d+)$/);
+  if (!first.ok || !m) throw new Error(`đọc ${table} trang đầu HTTP ${first.status}: ${await first.text()}`);
   const total = Number(m[1]);
-  const pages = Math.ceil(total / PAGE_SIZE);
-  const out: T[][] = new Array(pages);
-  for (let p = 0; p < pages; p += READ_CONCURRENCY) {
+  const firstRows = (await first.json()) as T[];
+  const step = firstRows.length;
+  if (total > 0 && step === 0) throw new Error(`đọc ${table}: count=${total} mà trang đầu rỗng`);
+
+  const pages = step > 0 ? Math.ceil(total / step) : 0;
+  const out: T[][] = [firstRows];
+  for (let p = 1; p < pages; p += READ_CONCURRENCY) {
     await Promise.all(Array.from({ length: Math.min(READ_CONCURRENCY, pages - p) }, async (_, k) => {
       const page = p + k;
-      const res = await fetch(
-        `${supabaseUrl}/rest/v1/${table}?select=${select}&order=${order}.asc&limit=${PAGE_SIZE}&offset=${page * PAGE_SIZE}`,
-        { headers },
-      );
+      const res = await fetch(pageUrl(step, page * step), { headers });
       if (!res.ok) throw new Error(`đọc ${table} trang ${page} HTTP ${res.status}: ${await res.text()}`);
       out[page] = await res.json();
     }));
   }
-  return out.flat();
+  const rows = out.flat();
+  if (rows.length !== total) throw new Error(`đọc ${table}: ${rows.length}/${total} hàng — dừng, không đồng bộ trên dữ liệu thiếu`);
+  return rows;
 };
 
 /**

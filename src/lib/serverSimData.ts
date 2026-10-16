@@ -23,7 +23,7 @@ import {
   EDGE_FUNCTIONS_URL,
 } from "@/integrations/supabase/config";
 import { SIM_CACHE_TAG, SIM_CATALOGUE_REVALIDATE } from "@/lib/cacheTags";
-import { readSnapshotRows } from "@/lib/simsSnapshot";
+import { readSnapshot, writeSnapshot } from "@/lib/simsSnapshot";
 
 // Cấu hình cache Data Cache của Next cho crawl TOÀN KHO (count + các trang). Tag
 // `SIM_CACHE_TAG` để `revalidateTag('sim')` sau mỗi lần `sync-sims` bust sạch,
@@ -423,6 +423,37 @@ export const fetchSimsRowsFromDb = async (
   }
 };
 
+/**
+ * Mốc HOÀN TẤT của lượt `sync-sims` gần nhất có ghi dữ liệu (`sims_sync_state.
+ * synced_at` — job chỉ ghi SAU khi upsert + gỡ + đánh dấu sold xong).
+ *
+ * VÌ SAO: snapshot chỉ được dựng lại ở cron 6 giờ/lần, nhưng sync còn chạy ngoài
+ * cron (nạp bảng số tháng mới: `scripts/bang-so/import.mjs --sync`). 16/10/2026
+ * sau lượt nạp, trang chủ vẫn báo "Còn 52.268 SIM" trong khi kho đã 73.892 — vì
+ * snapshot cũ còn trong hạn 18 giờ. So với mốc hoàn tất (không so `updated_at`
+ * từng hàng) để không bao giờ dựng snapshot từ dữ liệu sync đang ghi dở.
+ *
+ * Bảng chỉ service role đọc được (RLS) → dùng khoá server-side; thiếu khoá (dev)
+ * hay lỗi bất kỳ → null = không soát, giữ hành vi cũ.
+ */
+const fetchLastSyncAt = async (): Promise<number | null> => {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) return null;
+  try {
+    const res = await fetchWithTimeout(
+      `${SUPABASE_REST}/sims_sync_state?select=synced_at&order=synced_at.desc&limit=1`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` }, cache: 'no-store' },
+      5_000,
+    );
+    if (!res.ok) return null;
+    const rows = (await res.json()) as { synced_at: string }[];
+    const t = rows[0] ? Date.parse(rows[0].synced_at) : NaN;
+    return Number.isFinite(t) ? t : null;
+  } catch {
+    return null;
+  }
+};
+
 /** Crawl toàn kho từ PostgREST rồi chuẩn hoá — đường dự phòng của snapshot. */
 const fetchSimsFromDb = async (): Promise<NormalizedSIM[] | null> => {
   const rows = await fetchSimsRowsFromDb();
@@ -653,12 +684,33 @@ export const getServerSims = async (): Promise<NormalizedSIM[]> => {
     const t0 = Date.now();
     // 0) Snapshot đã dựng sẵn sau mỗi lần đồng bộ (1 file, không đụng PostgREST).
     //    Không có / quá cũ / hỏng → null → rơi về crawl như cũ.
-    const snapRows = await readSnapshotRows();
-    if (snapRows && snapRows.length > 0) {
+    const snap = await readSnapshot();
+    if (snap && snap.rows.length > 0) {
+      const lastSyncAt = await fetchLastSyncAt();
+      if (lastSyncAt === null || lastSyncAt <= snap.generatedAt) {
+        console.log(
+          `[serverSimData] loaded ${snap.rows.length} SIMs from snapshot in ${Date.now() - t0}ms`,
+        );
+        return store(snap.rows.map(simsDbRowToNormalized));
+      }
+      // Có lượt sync xong SAU khi dựng snapshot (vd. nạp bảng số ngoài cron) →
+      // đọc DB tươi (bỏ qua Data Cache) và dựng lại snapshot luôn, để các lượt
+      // đọc sau — ở mọi instance — dùng bản mới thay vì cùng crawl lại.
       console.log(
-        `[serverSimData] loaded ${snapRows.length} SIMs from snapshot in ${Date.now() - t0}ms`,
+        `[serverSimData] snapshot ${new Date(snap.generatedAt).toISOString()} cũ hơn lượt sync ${new Date(lastSyncAt).toISOString()} → crawl DB + dựng lại snapshot`,
       );
-      return store(snapRows.map(simsDbRowToNormalized));
+      const fresh = await fetchSimsRowsFromDb({ fresh: true });
+      if (fresh && fresh.length > 0) {
+        try {
+          const w = await writeSnapshot(fresh);
+          console.log(`[serverSimData] dựng lại snapshot: ${w.rows} SIM, ${w.bytes} bytes`);
+        } catch (e) {
+          console.warn('[serverSimData] dựng lại snapshot lỗi (vẫn dùng dữ liệu DB vừa đọc):', e);
+        }
+        return store(fresh.map(simsDbRowToNormalized));
+      }
+      // Crawl hỏng → snapshot cũ vẫn hơn CSV Google Sheet (nguồn đã bỏ).
+      return store(snap.rows.map(simsDbRowToNormalized));
     }
     const fromDb = await fetchSimsFromDb();
     if (fromDb && fromDb.length > 0) {

@@ -87,8 +87,12 @@ export const decodeSnapshot = (
   }
 };
 
-/** Đọc bản mới nhất; mọi lỗi → null để caller rơi về crawl DB. */
-export const readSnapshotRows = async (): Promise<SimsDbRow[] | null> => {
+/**
+ * Đọc bản mới nhất kèm mốc dựng (`generatedAt`) — caller so mốc này với lượt
+ * sync gần nhất để biết snapshot đã cũ chưa. Mọi lỗi → null để caller rơi về
+ * crawl DB.
+ */
+export const readSnapshot = async (): Promise<{ rows: SimsDbRow[]; generatedAt: number } | null> => {
   if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
   try {
     const { blobs } = await list({ prefix: SNAPSHOT_PREFIX, limit: 20 });
@@ -100,13 +104,16 @@ export const readSnapshotRows = async (): Promise<SimsDbRow[] | null> => {
     // URL duy nhất theo bản → cache dài là an toàn.
     const res = await fetch(latest.url, { next: { revalidate: 86_400 } });
     if (!res.ok) return null;
-    const decoded = decodeSnapshot(Buffer.from(await res.arrayBuffer()));
-    return decoded ? decoded.rows : null;
+    return decodeSnapshot(Buffer.from(await res.arrayBuffer()));
   } catch (e) {
     console.warn("[simsSnapshot] đọc snapshot lỗi, rơi về crawl DB:", e);
     return null;
   }
 };
+
+/** Như `readSnapshot` nhưng chỉ trả hàng. */
+export const readSnapshotRows = async (): Promise<SimsDbRow[] | null> =>
+  (await readSnapshot())?.rows ?? null;
 
 /** Ghi bản mới rồi dọn bản cũ. Ném lỗi để cron báo được trạng thái. */
 export const writeSnapshot = async (
