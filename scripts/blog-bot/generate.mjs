@@ -325,3 +325,97 @@ export async function generateContent(topic, env = process.env) {
     }
   }
 }
+
+/**
+ * Kho "khung" chủ đề để LLM TỰ ĐỀ XUẤT bài mới khi TOPIC_BANK curated đã cạn —
+ * giúp bot KHÔNG BAO GIỜ hết bài. Khung bám cấu trúc danh mục quen thuộc của các
+ * trang sim số đẹp lớn (sim theo loại / đuôi / đầu số / phong thủy / hướng dẫn),
+ * toàn chủ đề EVERGREEN (không gắn năm, ngày cụ thể).
+ */
+const TOPIC_PALETTE = [
+  'Dòng sim theo loại: tứ quý, tứ quý giữa, ngũ quý, lục quý, tam hoa, tam hoa kép, sim tiến (đơn/đôi/ba), sim lặp, sim kép, sim gánh, sim gánh đảo, sim soi gương, sim taxi, sim năm sinh, sim ngày tháng năm sinh, sim VIP, sim dễ nhớ, sim đối, sim lộc phát, sim thần tài, sim ông địa, sim phú quý.',
+  'Đuôi số may mắn (bài ý nghĩa + cách chọn): 68, 86, 39, 79, 38, 78, 666, 888, 999, 6868, 8686, 1368, 6789, 1234, 7939, 3838, 7878, 8888, 9999, 1102, 3579, 7799, 8899, 0000, 2345, 5678.',
+  'Đầu số Mobifone: 070, 076, 077, 078, 079, 089, 090, 093 (ý nghĩa, cách nhận biết, vì sao giữ giá).',
+  'Phong thủy số: sim hợp 12 con giáp (Tý…Hợi), sim hợp 5 mệnh ngũ hành (Kim/Mộc/Thủy/Hỏa/Thổ), cách tính điểm/tổng nút sim, ý nghĩa cặp số cuối, cân bằng âm dương trong dãy số, quẻ Kinh Dịch.',
+  'Hướng dẫn & kiến thức Mobifone: đăng ký/hủy gói data 4G 5G, nạp tiền, kiểm tra tài khoản/dung lượng, eSIM, khóa/mở sim, chuyển mạng giữ số, sim chính chủ, đổi/cấp lại sim, sim trả góp, chọn nơi mua sim uy tín, định giá sim, kinh nghiệm tránh mua nhầm.',
+  'Chủ đề theo nhu cầu: sim phong thủy cho người kinh doanh, sim đẹp làm quà tặng, sim số đẹp cho doanh nhân, sim tài lộc khai trương, chọn sim hợp tuổi vợ chồng, sim cặp đôi.',
+];
+
+function buildTopicPrompt({ avoid, recentCategories, allowCategories, allowLinks, lastReason }) {
+  let p = `Bạn là biên tập SEO của CHONSOMOBIFONE.COM (bán sim số đẹp Mobifone). Hãy ĐỀ XUẤT 1 CHỦ ĐỀ bài blog MỚI, hợp lý và EVERGREEN để viết hôm nay.
+
+QUY TẮC BẮT BUỘC:
+- Thuộc mảng sim số đẹp / phong thủy số / hướng dẫn Mobifone. TUYỆT ĐỐI KHÔNG gắn năm dương lịch cụ thể (vd KHÔNG "sim hợp tuổi 2027"), KHÔNG gắn ngày/tháng, KHÔNG nội dung sẽ lỗi thời.
+- KHÔNG trùng hoặc gần giống bất kỳ slug đã có (liệt kê bên dưới). Chọn một GÓC MỚI.
+- "category" PHẢI là một trong: ${allowCategories.join(' | ')}.
+- "internalLink" PHẢI là một trong: ${allowLinks.join(' | ')} (chọn cái liên quan nhất tới chủ đề).
+- "slug": chữ thường không dấu, nối bằng "-", 3-8 từ (vd "sim-duoi-6868-la-gi-y-nghia", "sim-hop-menh-moc-chon-so").
+- Ưu tiên chủ đề thuộc NHÓM KHÁC các bài gần đây [${recentCategories.join(', ') || '—'}] để đa dạng.
+
+KHO KHUNG CHỦ ĐỀ (xoay vòng cho phong phú):
+${TOPIC_PALETTE.map((s) => `- ${s}`).join('\n')}
+
+SLUG ĐÃ CÓ (tránh trùng):
+${avoid || '(chưa có)'}
+
+TRẢ VỀ DUY NHẤT một JSON (không markdown, không chữ thừa):
+{"slug":"...","title":"...","category":"...","internalLink":"...","keywords":["tu khoa 1","tu khoa 2","tu khoa 3"]}`;
+  if (lastReason) {
+    p += `\n\nLẦN TRƯỚC BỊ TỪ CHỐI: ${lastReason}. Hãy đề xuất chủ đề/slug KHÁC hẳn, tuân thủ mọi quy tắc trên.`;
+  }
+  return p;
+}
+
+const slugLooksEvergreen = (slug) => {
+  // Chặn slug dính năm TƯƠNG LAI (vd sim-hop-tuoi-2045) — gốc rễ lỗi "tuổi 2045".
+  const m = String(slug).match(/(?:19|20)\d{2}/);
+  return !(m && Number(m[0]) > new Date().getFullYear());
+};
+
+/**
+ * Nhờ LLM đề xuất 1 CHỦ ĐỀ mới hợp lệ (không trùng, evergreen) khi TOPIC_BANK đã
+ * cạn → bot không bao giờ hết bài. Thử tối đa 3 lần, mỗi lần báo lý do bị loại để
+ * model tự sửa. Ném lỗi nếu vẫn không ra chủ đề hợp lệ.
+ */
+export async function proposeTopic(env = process.env, opts = {}) {
+  if (!env.LLM_API_KEY) throw new Error('Thiếu LLM_API_KEY để đề xuất chủ đề mới.');
+  const provider = (env.LLM_PROVIDER || 'deepseek').toLowerCase();
+  const existing = new Set(opts.existingSlugs || []);
+  const avoid = (opts.existingSlugs || []).slice(-300).join(', ');
+  const recentCategories = opts.recentCategories || [];
+  const allowCategories = opts.allowCategories || [];
+  const allowLinks = opts.allowLinks || [];
+
+  let lastReason = null;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const prompt = buildTopicPrompt({ avoid, recentCategories, allowCategories, allowLinks, lastReason });
+    let t;
+    try {
+      const raw =
+        provider === 'anthropic' ? await callAnthropic(prompt, env) : await callOpenAICompatible(prompt, env, provider);
+      t = parseLlmJson(raw);
+    } catch (err) {
+      lastReason = `không parse được phản hồi (${err.message})`;
+      continue;
+    }
+
+    const slug = String(t.slug || '').trim().toLowerCase();
+    const title = String(t.title || '').trim();
+    const category = String(t.category || '').trim();
+    const internalLink = String(t.internalLink || '').trim();
+    const keywords = Array.isArray(t.keywords)
+      ? t.keywords.filter((k) => typeof k === 'string' && k.trim()).map((k) => k.trim())
+      : [];
+
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)+$/.test(slug)) { lastReason = `slug sai định dạng ("${slug}")`; continue; }
+    if (existing.has(slug)) { lastReason = `slug "${slug}" đã tồn tại`; continue; }
+    if (!slugLooksEvergreen(slug)) { lastReason = `slug "${slug}" dính năm tương lai`; continue; }
+    if (allowCategories.length && !allowCategories.includes(category)) { lastReason = `category "${category}" không hợp lệ`; continue; }
+    if (allowLinks.length && !allowLinks.includes(internalLink)) { lastReason = `internalLink "${internalLink}" không hợp lệ`; continue; }
+    if (!title) { lastReason = 'thiếu title'; continue; }
+    if (keywords.length === 0) { lastReason = 'thiếu keywords'; continue; }
+
+    return { slug, title, category, internalLink, keywords };
+  }
+  throw new Error(`Không đề xuất được chủ đề mới hợp lệ sau 3 lần (lý do cuối: ${lastReason}).`);
+}

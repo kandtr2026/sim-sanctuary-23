@@ -15,7 +15,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { SupabaseBotClient } from './supabase.mjs';
-import { generateContent } from './generate.mjs';
+import { generateContent, proposeTopic } from './generate.mjs';
 import { TOPIC_BANK, RESERVED_SLUGS } from './topics.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -78,18 +78,28 @@ export async function main(env = process.env) {
 
   const slugs = await client.getSlugs();
   const recentCategories = await client.getRecentCategories(3);
-  const { topic } = pickTopic(slugs, recentCategories);
-  if (!topic) {
+  const { topic: curated } = pickTopic(slugs, recentCategories);
+
+  let topic = curated;
+  if (topic) {
     console.log(
-      `[blog-bot] Đã dùng hết ${TOPIC_BANK.length} chủ đề trong TOPIC_BANK — KHÔNG tạo bài mới ` +
-        `(đã bỏ rule tự sinh "sim hợp tuổi <năm>"). Thêm chủ đề vào topics.mjs nếu muốn bot viết tiếp.`,
+      `[blog-bot] Slug hiện có: ${slugs.length} bài. Né nhóm gần đây [${recentCategories.join(', ') || '—'}]. ` +
+        `Chọn (curated): ${topic.slug} (${topic.category}).`,
     );
-    return null;
+  } else {
+    // Kho curated đã cạn → nhờ LLM đề xuất chủ đề MỚI (evergreen, không trùng) để
+    // luôn có bài mỗi ngày. Tránh cả slug trang tĩnh trong repo (RESERVED_SLUGS).
+    console.log(`[blog-bot] Đã dùng hết ${TOPIC_BANK.length} chủ đề curated — nhờ LLM đề xuất chủ đề mới…`);
+    const allowCategories = [...new Set(TOPIC_BANK.map((t) => t.category))];
+    const allowLinks = [...new Set(TOPIC_BANK.map((t) => t.internalLink))];
+    topic = await proposeTopic(cfg, {
+      existingSlugs: [...slugs, ...RESERVED_SLUGS],
+      recentCategories,
+      allowCategories,
+      allowLinks,
+    });
+    console.log(`[blog-bot] LLM đề xuất chủ đề mới: ${topic.slug} (${topic.category}).`);
   }
-  console.log(
-    `[blog-bot] Slug hiện có: ${slugs.length} bài. Né nhóm gần đây [${recentCategories.join(', ') || '—'}]. ` +
-      `Chọn: ${topic.slug} (${topic.category}).`,
-  );
 
   const content = await generateContent(topic, cfg);
   console.log(`[blog-bot] Nội dung ~${content.words} từ. meta_title (${content.meta_title.length} ký tự), meta_description (${content.meta_description.length} ký tự).`);
