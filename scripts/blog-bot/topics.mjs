@@ -366,9 +366,138 @@ const HUONG_DAN_THUC_TE = [
   },
 ];
 
+/**
+ * 12 con giáp — chuỗi phong thủy EVERGREEN thay cho chuỗi "sim hợp tuổi <năm>"
+ * đã bỏ: tuổi theo con giáp luôn đúng, không bao giờ "vô nghĩa" như năm tương lai.
+ */
+const CON_GIAP = [
+  { chi: 'Tý', animal: 'Chuột', slug: 'chuot' },
+  { chi: 'Sửu', animal: 'Trâu', slug: 'trau' },
+  { chi: 'Dần', animal: 'Hổ', slug: 'ho' },
+  { chi: 'Mão', animal: 'Mèo', slug: 'meo' },
+  { chi: 'Thìn', animal: 'Rồng', slug: 'rong' },
+  { chi: 'Tỵ', animal: 'Rắn', slug: 'ran' },
+  { chi: 'Ngọ', animal: 'Ngựa', slug: 'ngua' },
+  { chi: 'Mùi', animal: 'Dê', slug: 'de' },
+  { chi: 'Thân', animal: 'Khỉ', slug: 'khi' },
+  { chi: 'Dậu', animal: 'Gà', slug: 'ga' },
+  { chi: 'Tuất', animal: 'Chó', slug: 'cho' },
+  { chi: 'Hợi', animal: 'Lợn', slug: 'heo' },
+].map(({ chi, animal, slug }) => ({
+  slug: `sim-hop-tuoi-${slug}`,
+  title: `Sim Hợp Tuổi ${chi} (${animal}) – Cách Chọn Số Phong Thủy Hợp Mệnh`,
+  category: 'Phong thuỷ',
+  internalLink: '/sim-phong-thuy',
+  keywords: [
+    `sim hợp tuổi ${chi}`,
+    `sim phong thủy tuổi ${chi}`,
+    `người tuổi ${chi} hợp sim số nào`,
+    `sim hợp mệnh tuổi ${animal}`,
+    'chọn sim phong thủy',
+  ],
+}));
+
+/** Hướng dẫn sử dụng Mobifone — bổ sung đợt 16/10/2026 (khác nhóm phong thủy). */
+const HUONG_DAN_THEM = [
+  {
+    slug: 'cach-nap-tien-mobifone-nhanh',
+    title: 'Các cách nạp tiền Mobifone nhanh gọn, không cần thẻ cào',
+    category: 'Hướng dẫn sử dụng',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['nạp tiền mobifone', 'nạp tiền mobifone online', 'nạp cước mobifone', 'cách nạp tiền mobifone'],
+  },
+  {
+    slug: 'cach-kiem-tra-tai-khoan-mobifone',
+    title: 'Cách kiểm tra tài khoản chính và tài khoản khuyến mãi Mobifone',
+    category: 'Hướng dẫn sử dụng',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['kiểm tra tài khoản mobifone', 'kiểm tra tài khoản khuyến mãi', 'số dư tài khoản mobifone'],
+  },
+  {
+    slug: 'cach-dang-ky-4g-5g-mobifone-tiet-kiem',
+    title: 'Cách đăng ký gói 4G/5G Mobifone theo ngày, tháng tiết kiệm nhất',
+    category: 'Hướng dẫn sử dụng',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['đăng ký 4g mobifone', 'gói cước data mobifone', 'đăng ký 5g mobifone', 'gói 4g mobifone theo tháng'],
+  },
+  {
+    slug: 'cach-kiem-tra-dung-luong-data-mobifone',
+    title: 'Cách kiểm tra dung lượng data Mobifone còn lại nhanh nhất',
+    category: 'Hướng dẫn sử dụng',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['kiểm tra data mobifone', 'kiểm tra dung lượng 4g mobifone', 'data còn lại mobifone'],
+  },
+  {
+    slug: 'cach-huy-goi-cuoc-mobifone',
+    title: 'Cách hủy gói cước Mobifone đang đăng ký để tránh bị trừ tiền',
+    category: 'Hướng dẫn sử dụng',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['hủy gói cước mobifone', 'hủy data mobifone', 'tắt gia hạn gói mobifone'],
+  },
+  {
+    slug: 'app-my-mobifone-la-gi-huong-dan',
+    title: 'App My Mobifone là gì? Hướng dẫn cài và quản lý thuê bao tiện lợi',
+    category: 'Hướng dẫn sử dụng',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['my mobifone', 'app my mobifone', 'ứng dụng mobifone', 'quản lý thuê bao mobifone'],
+  },
+];
+
+/** Đuôi số mới — bổ sung đợt 16/10/2026 (tam hoa 9/8/6, lộc phát kép, tứ quý 0). */
+const DUOI_SO_THEM = [
+  {
+    slug: 'sim-duoi-999-la-gi-y-nghia',
+    title: 'Sim Đuôi 999 – Ý Nghĩa Tam Hoa 9 Và Sức Hút Của Dãy Số Quyền Lực',
+    category: 'Ý nghĩa sim',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['sim đuôi 999', 'tam hoa 999', 'ý nghĩa số 999', 'sim tam hoa', 'sim số đẹp'],
+  },
+  {
+    slug: 'sim-duoi-888-la-gi-y-nghia',
+    title: 'Sim Đuôi 888 – Phát Tài Phát Lộc, Vì Sao Dân Kinh Doanh Ưa Chuộng',
+    category: 'Ý nghĩa sim',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['sim đuôi 888', 'tam hoa 888', 'ý nghĩa số 888', 'sim phát lộc', 'sim số đẹp'],
+  },
+  {
+    slug: 'sim-duoi-666-la-gi-y-nghia',
+    title: 'Sim Đuôi 666 – Ý Nghĩa Thật Sự Và Những Hiểu Lầm Thường Gặp',
+    category: 'Ý nghĩa sim',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['sim đuôi 666', 'tam hoa 666', 'ý nghĩa số 666', 'lộc lộc lộc', 'sim số đẹp'],
+  },
+  {
+    slug: 'sim-duoi-6868-la-gi-y-nghia',
+    title: 'Sim Đuôi 6868 – Lộc Phát Lộc Phát Được Giới Kinh Doanh Săn Lùng',
+    category: 'Ý nghĩa sim',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['sim đuôi 6868', 'lộc phát lộc phát', 'ý nghĩa 6868', 'sim lộc phát', 'sim số đẹp'],
+  },
+  {
+    slug: 'sim-duoi-6789-khac-1234-the-nao',
+    title: 'Sim Đuôi 6789 Và 1234 Khác Gì Nhau? Chọn Dãy Số Tiến Nào Hợp Hơn',
+    category: 'Ý nghĩa sim',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['sim đuôi 6789', 'sim đuôi 1234', 'sim số tiến', 'sim taxi', 'sim số đẹp'],
+  },
+  {
+    slug: 'sim-tu-quy-0-la-gi-y-nghia',
+    title: 'Sim Tứ Quý 0 (0000) – Ý Nghĩa Đặc Biệt Và Vì Sao Kén Người Chơi',
+    category: 'Ý nghĩa sim',
+    internalLink: '/mua-sim-gia-re',
+    keywords: ['sim tứ quý 0', 'tứ quý 0000', 'ý nghĩa số 0000', 'sim tứ quý', 'sim số đẹp'],
+  },
+];
+
 export const TOPIC_BANK = [
   // Kho số đẹp — các dòng sim có từ khóa SEO mạnh nhất (tứ quý, lục quý…).
   ...KHO_SO_DEP,
+
+  // Mở rộng kho (16/10/2026): con giáp (phong thủy evergreen) + hướng dẫn dùng
+  // + đuôi số mới — đủ chủ đề đa dạng để mỗi ngày 1 bài không trùng lặp.
+  ...CON_GIAP,
+  ...HUONG_DAN_THEM,
+  ...DUOI_SO_THEM,
 
   // Hướng dẫn sử dụng thực tế — đa dạng kho chủ đề, khác hướng phong thủy.
   ...HUONG_DAN_THUC_TE,
