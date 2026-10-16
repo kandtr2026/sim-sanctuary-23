@@ -3,15 +3,15 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { invokeEdgeFunctionText, invokeEdgeFunction } from '@/integrations/supabase/edgeFunctions';
-import { EDGE_FUNCTIONS_URL } from '@/integrations/supabase/config';
+import { invokeEdgeFunction } from '@/integrations/supabase/edgeFunctions';
+import { EDGE_FUNCTIONS_URL, SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/integrations/supabase/config';
 import { ArrowLeft, Phone, CheckCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { normalizeSIM, parsePrice, formatPrice, type NormalizedSIM } from '@/lib/simUtils';
+import { normalizeSIM, formatPrice, type NormalizedSIM } from '@/lib/simUtils';
 import { getPromotionalData } from '@/hooks/useSimData';
 import { CHEAP_KHO, fetchCheapSimById, isCheapSimId, type CheapSim } from '@/lib/cheapSimSheet';
 import { formatSimQuyAware } from '@/lib/simDisplay';
@@ -132,7 +132,7 @@ const isFormValid = (formData: { fullName: string; phone: string; address: strin
 export const isOrderablePrice = (price: number | undefined | null): boolean =>
   typeof price === 'number' && Number.isFinite(price) && price > 0;
 
-// --- CSV Parsing (unchanged logic) ---
+// --- SIM data ---
 
 interface CheckoutSimData {
   simId: string;
@@ -150,87 +150,33 @@ interface CheckoutSimData {
   tags: string[];
 }
 
-const parseCSVAndFindSim = (csvText: string, targetSimId: string): CheckoutSimData | null => {
-  const lines = csvText.split('\n').filter(line => line.trim());
-  if (lines.length < 2) return null;
-
-  const headerLine = lines[0].replace(/^\uFEFF/, '');
-  const rawHeaders = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-
-  const getHeaderIndexExact = (names: string[]): number => {
-    for (const name of names) {
-      const idx = rawHeaders.findIndex(h => h.toUpperCase().replace(/\s+/g, ' ').trim() === name.toUpperCase());
-      if (idx !== -1) return idx;
-    }
-    return -1;
+/** Fallback khi edge function fetch-sim-by-id lỗi: đọc thẳng bảng `sims`
+ *  (public-read) — cùng nguồn với lưới SIM. Trước đây rơi về CSV Google Sheet
+ *  5,5 MB qua fetch-sim-data, vốn mang giá sheet (cộng ~10%) và thiếu các số chỉ
+ *  có trong bảng số Excel. Chỉ nhận dòng 'available' (fail-closed như lưới). */
+const fetchSimFromDb = async (simId: string, signal?: AbortSignal): Promise<CheckoutSimData | null> => {
+  const select = 'id,raw_digits,display_number,original_price,final_price,discount_type,discount_value,kho,tinh_trang';
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/sims?select=${select}&status=eq.available&id=eq.${encodeURIComponent(simId.toUpperCase())}&limit=1`,
+    { headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}` }, signal },
+  );
+  if (!res.ok) throw new Error(`sims HTTP ${res.status}`);
+  const row = (await res.json())[0];
+  if (!row) return null;
+  const rawDigits = normalizePhoneNumber(row.raw_digits);
+  return {
+    simId: row.id,
+    rawDigits,
+    displayNumber: row.display_number || rawDigits,
+    originalPriceVnd: row.original_price,
+    finalPriceVnd: row.final_price || undefined,
+    discountType: row.discount_type || undefined,
+    discountValue: row.discount_value || undefined,
+    kho: row.kho || undefined,
+    tinhTrang: row.tinh_trang || undefined,
+    network: detectNetworkByPrefix(rawDigits),
+    tags: [],
   };
-
-  const getHeaderIndexPartial = (names: string[]): number => {
-    for (const name of names) {
-      const idx = rawHeaders.findIndex(h => h.toUpperCase().replace(/\s+/g, ' ').includes(name.toUpperCase()));
-      if (idx !== -1) return idx;
-    }
-    return -1;
-  };
-
-  const simIdIdx = getHeaderIndexPartial(['SIMID', 'SIM ID', 'SimID']);
-  const displayIdx = getHeaderIndexExact(['SỐ THUÊ BAO', 'SO THUE BAO']);
-  const rawIdx = getHeaderIndexPartial(['SỐ THUÊ BAO CHUẨN', 'THUÊ BAO CHUẨN', 'THUE BAO CHUAN', 'SO THUE BAO CHUAN']);
-  const finalPriceIdx = getHeaderIndexPartial(['FINAL_PRICE', 'Final_Price']);
-  const priceIdx = getHeaderIndexPartial(['GIÁ BÁN', 'GIA BAN']);
-  const discountTypeIdx = getHeaderIndexPartial(['DISCOUNT_TYPE']);
-  const discountValueIdx = getHeaderIndexPartial(['DISCOUNT_VALUE']);
-  const khoIdx = getHeaderIndexPartial(['KHO']);
-  const tinhTrangIdx = getHeaderIndexPartial(['TÌNH TRẠNG', 'TINH TRANG']);
-  const trangThaiIdx = getHeaderIndexPartial(['TRẠNG THÁI', 'TRANG THAI']);
-
-  for (let i = 1; i < lines.length; i++) {
-    const values: string[] = [];
-    let current = '';
-    let inQuotes = false;
-
-    for (const char of lines[i]) {
-      if (char === '"') { inQuotes = !inQuotes; }
-      else if (char === ',' && !inQuotes) { values.push(current.trim()); current = ''; }
-      else { current += char; }
-    }
-    values.push(current.trim());
-
-    const rowSimId = simIdIdx >= 0 ? values[simIdIdx]?.trim() : '';
-
-    if (rowSimId === targetSimId) {
-      // `TRẠNG THÁI = ẨN` là số shop đã chủ động rút khỏi kho bán. Nhánh CSV này
-      // trước đây vẫn trả về hàng đó nên trang đặt hàng hiện đủ form; nay loại
-      // ngay tại đây cho khớp guard của `fetch-sim-by-id`. (SIM đã bán thì
-      // `fetch-sim-data` đã lọc theo tab SIM_SOLD trước khi CSV tới đây.)
-      const rowTrangThai = trangThaiIdx >= 0 ? (values[trangThaiIdx] || '').trim() : '';
-      if (rowTrangThai.toUpperCase() === 'ẨN') return null;
-
-      const displayNumber = displayIdx >= 0 ? (values[displayIdx] || '').trim() : '';
-      const rawNumber = rawIdx >= 0 ? (values[rawIdx] || '').trim() : '';
-      const rawDigits = rawNumber.replace(/\D/g, '') || displayNumber.replace(/\D/g, '');
-
-      const finalPriceStr = finalPriceIdx >= 0 ? (values[finalPriceIdx] || '').trim() : '';
-      const originalPriceStr = priceIdx >= 0 ? (values[priceIdx] || '').trim() : '';
-      const effectivePrice = parsePrice(finalPriceStr) || parsePrice(originalPriceStr) || 0;
-
-      return {
-        simId: rowSimId,
-        rawDigits,
-        displayNumber: displayNumber || rawNumber || rawDigits,
-        originalPriceVnd: parsePrice(originalPriceStr) || effectivePrice,
-        finalPriceVnd: parsePrice(finalPriceStr) || undefined,
-        discountType: discountTypeIdx >= 0 ? values[discountTypeIdx] : undefined,
-        discountValue: discountValueIdx >= 0 ? parsePrice(values[discountValueIdx]) || undefined : undefined,
-        kho: khoIdx >= 0 ? values[khoIdx] : undefined,
-        tinhTrang: tinhTrangIdx >= 0 ? values[tinhTrangIdx] : undefined,
-        trangThai: trangThaiIdx >= 0 ? values[trangThaiIdx] : undefined,
-        network: detectNetworkByPrefix(rawDigits),
-        tags: []
-      };
-    }
-  }
-  return null;
 };
 
 /** Map a promo-warehouse row onto the shape the rest of this page expects.
@@ -274,7 +220,7 @@ const homeSimToCheckout = (sim: NormalizedSIM): CheckoutSimData => {
 
 /** Map the JSON response from the `fetch-sim-by-id` edge function onto the
  *  shape this page expects. The edge function returns a single row from the
- *  Google Sheet via a gviz query — a few hundred bytes instead of 5.5 MB. */
+ *  `sims` table — a few hundred bytes instead of 5.5 MB. */
 interface FetchSimByIdResponse {
   simId: string;
   rawDigits: string;
@@ -355,9 +301,8 @@ const CheckoutClient = () => {
         return cheap ? cheapSimToCheckout(cheap) : null;
       }
 
-      // Fast path: the edge function resolves ONE row via a gviz query (a few
-      // hundred bytes) instead of downloading the whole ~5.5 MB catalogue and
-      // parsing 49k rows client-side to find this SIM.
+      // Fast path: the edge function resolves ONE row from the `sims` table
+      // and re-checks the SIM_SOLD ledger live (sync-sims only runs 4×/day).
       try {
         const response = await invokeEdgeFunction(
           `fetch-sim-by-id?simId=${encodeURIComponent(simId)}`,
@@ -372,11 +317,10 @@ const CheckoutClient = () => {
         if (!data || !data.simId) return null;
         return byIdSimToCheckout(data);
       } catch (err) {
-        // Fall back to the legacy full-CSV path so a by-id hiccup (e.g. gviz
-        // rate-limit) never turns into a hard "not found" for a real SIM.
-        console.error('[Checkout] fetch-sim-by-id failed, falling back to CSV:', err);
-        const csvText = await invokeEdgeFunctionText('fetch-sim-data', { method: 'GET' });
-        return parseCSVAndFindSim(csvText, simId);
+        // Fall back to reading the `sims` table directly so an edge-function
+        // hiccup never turns into a hard "not found" for a real SIM.
+        console.error('[Checkout] fetch-sim-by-id failed, falling back to sims table:', err);
+        return fetchSimFromDb(simId, signal);
       }
     },
     enabled: !!simId,

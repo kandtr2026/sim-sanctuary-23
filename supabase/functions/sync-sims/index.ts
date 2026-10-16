@@ -1,8 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { calculateBeautyScore, detectSimCategories, isVIPSim } from "../_shared/simCategories.ts";
+import { normalizePhone, parseSoldCsv, SIM_SOLD_CSV_URL } from "../_shared/simSold.ts";
 
 // ---------------------------------------------------------------------------
-// sync-sims: đồng bộ kho SIM từ Google Sheet vào bảng `sims` trên Supabase.
+// sync-sims: đồng bộ kho SIM từ BẢNG SỐ (`sims_bang_so`) vào bảng `sims`.
+//
+// Nguồn (từ 16/10/2026): file Excel bảng số nhà cung cấp, nạp vào `sims_bang_so`
+// bằng scripts/bang-so/import.mjs. Luật chủ shop chốt:
+//   - Giá web = GIÁ BÁN trong bảng số. Có trong bảng số thì BẮT BUỘC lên web.
+//   - Không có trong bảng số = không còn tồn tại → gỡ ('removed').
+//   - Đã TỪNG nằm trong SIM_SOLD (so theo SỐ ĐIỆN THOẠI, cột "STB chuan", kèm
+//     SimID cột SoThueBao và log `sold_sims`) → không lên, vì một số chỉ bán một
+//     lần mà bảng số có thể chốt trước lúc bán.
+// Tab chính của Google Sheet KHÔNG còn quyết định kho/giá (giá ở đó đã cộng
+// ~10% và còn 9.362 số đã rời bảng số tháng 10/2026).
 //
 // Trigger:
 //   - So DẤU VÂN TAY (SHA-256) của TẬP DỮ LIỆU sẽ ghi với vân tay lần chạy
@@ -14,8 +25,8 @@ import { calculateBeautyScore, detectSimCategories, isVIPSim } from "../_shared/
 //     nhánh skip CHƯA BAO GIỜ chạy. Tức bản cũ là bom hẹn giờ (kho tụt dưới
 //     1000 số hoặc ai nới `db-max-rows` là nó kích hoạt), không phải lỗi đang
 //     gây hại: đối chiếu 1.201 SimID sheet↔DB cho 0 dòng lệch giá.
-//   - Luôn đọc tab SIM_SOLD → đánh dấu sold các SimID đã bán
-//   - Lượt có upsert thì gỡ ('removed') số 'available' đã RỜI sheet — xem retireMissing
+//   - Luôn đọc tab SIM_SOLD → đánh dấu sold các SimID + số điện thoại đã bán
+//   - Lượt có upsert thì gỡ ('removed') số 'available' đã RỜI bảng số — xem retireMissing
 //
 // Cách gọi (có thể cron qua Vercel / pg_cron / webhook):
 //   GET/POST /sync-sims  (có thể kèm ?force=1 để bỏ qua so sánh vân tay)
@@ -29,16 +40,36 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y/export?format=csv&gid=139400129';
-const SIM_SOLD_CSV_URL = 'https://docs.google.com/spreadsheets/d/1QRO-BroqUQWccWjOkRT7iICdTbQu3Y_NC1NWCeG0M0Y/gviz/tq?tqx=out:csv&sheet=SIM_SOLD';
+/** Bảng số chuẩn. Xem supabase/migrations/20261016100000_sims_bang_so.sql */
+const BANG_SO_TABLE = 'sims_bang_so';
+/**
+ * Bảng số ít hơn ngưỡng này ⇒ nghi nạp hỏng/rỗng ⇒ DỪNG, không upsert không gỡ.
+ * Không có chặn này thì bảng số rỗng = gỡ sạch kho (MAX_REMOVE_RATIO chỉ chặn gỡ,
+ * không chặn được lượt sau ghi vân tay của tập rỗng).
+ */
+const MIN_BANG_SO_ROWS = 1000;
+/**
+ * SimID cho số chưa từng có trong `sims`. Phải khớp SIM_ID_PATTERN của
+ * fetch-sim-by-id (`^SIM[A-Z0-9]{1,20}$`) để link /mua-ngay/<id> mở được, và
+ * không đụng tiền tố SIMKM của kho khuyến mãi. Số đã có dòng thì GIỮ SimID cũ.
+ */
+const NEW_ID_PREFIX = 'SIMBS';
 
 const BATCH_SIZE = 1000;
+/** PostgREST cap 1000 hàng/response (db-max-rows) — đọc theo trang cỡ này. */
+const PAGE_SIZE = 1000;
+const READ_CONCURRENCY = 8;
+const UPSERT_CONCURRENCY = 4;
 const INVALID_CSV_PATTERNS = ['<html', '<!doctype', 'accounts.google.com', 'servicelogin', 'you need access', 'access denied'];
 
 /** Bảng lưu vân tay lần sync trước. Xem supabase/migrations/20260829090000_sims_sync_state.sql */
 const SYNC_STATE_TABLE = 'sims_sync_state';
-/** Một hàng duy nhất cho nguồn sheet chính (SIM_SOLD đi kèm trong cùng vân tay). */
-const SYNC_STATE_KEY = 'sims_sheet';
+/**
+ * Một hàng cho nguồn bảng số (SIM_SOLD đi kèm trong cùng vân tay). Khoá cũ
+ * 'sims_sheet' là của nguồn Google Sheet — đổi khoá để lượt đầu sau khi chuyển
+ * nguồn chắc chắn upsert + gỡ.
+ */
+const SYNC_STATE_KEY = 'sims_bang_so';
 
 /**
  * Đổi hằng này khi luật SUY RA cột (tags / beauty_score / is_vip / network /
@@ -46,7 +77,7 @@ const SYNC_STATE_KEY = 'sims_sheet';
  * là hàm thuần của chúng + phiên bản luật, nên bump version ở đây là cách buộc
  * một lượt ghi lại toàn bộ sau khi sửa luật, mà không phải băm thêm ~10 cột.
  */
-const FINGERPRINT_VERSION = 'v5'; // v3 (09/2026): danh mục kiểu simthanglong; v4: chỉnh lặp kép/gánh đảo/dễ nhớ theo 4.482 số hỏi lại; v5: năm sinh chặn trên = năm nay (bỏ 2027–2029)
+const FINGERPRINT_VERSION = 'v6'; // v3 (09/2026): danh mục kiểu simthanglong; v4: chỉnh lặp kép/gánh đảo/dễ nhớ theo 4.482 số hỏi lại; v5: năm sinh chặn trên = năm nay (bỏ 2027–2029); v6 (16/10/2026): nguồn = bảng số Excel, SIM_SOLD so theo số
 
 /**
  * Dưới ngưỡng này thì ô giá là lỗi nhập tay hoặc lệch đơn vị, không phải giá
@@ -64,88 +95,18 @@ const MIN_SELLABLE_PRICE = 10_000;
 const STATUS_INVALID_PRICE = 'invalid_price';
 
 /**
- * Status cho số ĐÃ RỜI sheet chính (xoá dòng, hoặc rút cả kho — vd. kho
- * "KHO KHCN KIT_2026" 29.223 số ghép lô bán cho đại lý, 10/2026). Trước bản này
- * job chỉ upsert dòng CÓ trong sheet, nên số rời sheet giữ 'available' mãi mãi
- * và web vẫn bán số đã bán. Số quay lại sheet thì lượt upsert sau tự trả status.
+ * Status cho số ĐÃ RỜI nguồn (bảng số tháng mới không còn số đó). Trước 15/10
+ * job chỉ upsert dòng CÓ trong nguồn, nên số rời nguồn giữ 'available' mãi mãi
+ * và web vẫn bán số đã bán. Số quay lại bảng số thì lượt upsert sau tự trả status.
  */
 const STATUS_REMOVED = 'removed';
 
 /**
- * Lượt gỡ đòi gỡ quá tỉ lệ này của số đang bán ⇒ nghi sheet đọc về bị cụt/hỏng,
- * KHÔNG gỡ (chỉ cảnh báo). Rút kho KIT_2026 = 36% vẫn lọt; sheet trả về rỗng
+ * Lượt gỡ đòi gỡ quá tỉ lệ này của số đang bán ⇒ nghi bảng số bị cụt/hỏng,
+ * KHÔNG gỡ (chỉ cảnh báo). Rút kho KIT_2026 = 36% vẫn lọt; nguồn trả về rỗng
  * hay cụt quá nửa thì bị chặn. Cần gỡ nhiều hơn thật thì gọi `?reconcile=force`.
  */
 const MAX_REMOVE_RATIO = 0.5;
-
-const normalizeHeader = (header: string): string => {
-  const cleaned = header.trim().toUpperCase().replace(/\s+/g, ' ').trim();
-  const underscored = header.trim().toUpperCase().replace(/\s+/g, '_').trim();
-  if (['SIMID', 'SIM ID', 'SIM_ID'].includes(cleaned)) return 'SIMID';
-  if (['THUÊ BAO CHUẨN', 'THUE BAO CHUAN', 'THUÊBAOCHUẨN', 'THUEBAOCHUAN', 'SỐ THUÊ BAO CHUẨN', 'SO THUE BAO CHUAN'].includes(cleaned)) return 'RAW';
-  if (['SỐ THUÊ BAO', 'SO THUE BAO', 'SỐTHUÊBAO', 'SOTHUEBAO', 'SỐ ĐIỆN THOẠI', 'SO DIEN THOAI'].includes(cleaned)) return 'DISPLAY';
-  if (['GIÁ BÁN', 'GIA BAN', 'GIÁ', 'GIA', 'PRICE', 'ORIGINAL PRICE', 'ORIGINAL_PRICE'].includes(cleaned) || underscored === 'ORIGINAL_PRICE') return 'ORIGINAL_PRICE';
-  if (['FINAL PRICE', 'FINALPRICE', 'FINAL_PRICE', 'GIÁ CUỐI', 'GIA CUOI', 'GIÁ KHUYẾN MÃI', 'GIA KHUYEN MAI'].includes(cleaned) || underscored === 'FINAL_PRICE') return 'FINAL_PRICE';
-  if (['TRẠNG THÁI', 'TRANG_THAI', 'TRANG THAI', 'STATUS'].includes(cleaned) || underscored === 'TRANG_THAI') return 'TRANG_THAI';
-  if (['KHO'].includes(cleaned) || underscored === 'KHO') return 'KHO';
-  if (['TÌNH TRẠNG', 'TINH TRANG'].includes(cleaned) || underscored === 'TINH_TRANG') return 'TINH_TRANG';
-  if (['DISCOUNT_TYPE', 'DISCOUNT TYPE'].includes(cleaned)) return 'DISCOUNT_TYPE';
-  if (['DISCOUNT_VALUE', 'DISCOUNT VALUE'].includes(cleaned)) return 'DISCOUNT_VALUE';
-  return cleaned;
-};
-
-const parseCSV = (csvText: string): Record<string, string>[] => {
-  const lines = csvText.split('\n').filter((l) => l.trim());
-  if (lines.length < 2) return [];
-  const headerLine = lines[0].replace(/^﻿/, '');
-  const rawHeaders = headerLine.split(',').map((h) => h.trim().replace(/^"|"$/g, '').trim());
-  const headers = rawHeaders.map(normalizeHeader);
-  const rows: Record<string, string>[] = [];
-  for (let i = 1; i < lines.length; i++) {
-    const values: string[] = [];
-    let current = '';
-    let inQuotes = false;
-    for (const char of lines[i]) {
-      if (char === '"') inQuotes = !inQuotes;
-      else if (char === ',' && !inQuotes) { values.push(current.trim()); current = ''; }
-      else current += char;
-    }
-    values.push(current.trim());
-    if (values.length >= 2) {
-      const row: Record<string, string> = {};
-      headers.forEach((h, idx) => { row[h] = values[idx] || ''; });
-      rows.push(row);
-    }
-  }
-  return rows;
-};
-
-const parseSoldSimIds = (csvText: string): Set<string> => {
-  const result = new Set<string>();
-  const lines = csvText.trim().split('\n');
-  if (lines.length < 2) return result;
-  const headers = lines[0].replace(/^﻿/, '').split(',').map((h) => h.trim().replace(/^"|"$/g, '').trim().toUpperCase());
-  const colIdx = headers.findIndex((h) => h === 'SOTHUEBAO' || h === 'SO THUE BAO' || h === 'SỐTHUÊBAO');
-  if (colIdx === -1) return result;
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i];
-    if (!line.trim()) continue;
-    const values: string[] = [];
-    let current = '';
-    let inQuotes = false;
-    for (const char of line) {
-      if (char === '"') inQuotes = !inQuotes;
-      else if (char === ',' && !inQuotes) { values.push(current.trim()); current = ''; }
-      else current += char;
-    }
-    values.push(current.trim());
-    if (colIdx < values.length) {
-      const v = values[colIdx].replace(/^"|"$/g, '').trim();
-      if (v) result.add(v.toUpperCase());
-    }
-  }
-  return result;
-};
 
 const fetchText = async (url: string): Promise<string> => {
   const res = await fetch(url, { headers: { 'Accept': 'text/csv,*/*' } });
@@ -156,37 +117,58 @@ const fetchText = async (url: string): Promise<string> => {
   return text;
 };
 
-const normalizePhone = (raw: string): string => {
-  const digits = String(raw || '').replace(/\D/g, '');
-  return digits.length === 9 ? '0' + digits : digits;
+/**
+ * Đọc HẾT một bảng qua PostgREST: đếm trước (`count=exact`, `limit=0`), rồi bắn
+ * các trang PAGE_SIZE song song READ_CONCURRENCY luồng. `order` phải là cột duy
+ * nhất để trang không chồng/hụt.
+ */
+const fetchAllRows = async <T>(
+  supabaseUrl: string,
+  serviceKey: string,
+  table: string,
+  select: string,
+  order: string,
+): Promise<T[]> => {
+  const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
+  const head = await fetch(`${supabaseUrl}/rest/v1/${table}?select=${order}&limit=0`, {
+    headers: { ...headers, Prefer: 'count=exact' },
+  });
+  const m = (head.headers.get('content-range') || '').match(/\/(\d+)$/);
+  if (!head.ok || !m) throw new Error(`đếm ${table} HTTP ${head.status}`);
+  const total = Number(m[1]);
+  const pages = Math.ceil(total / PAGE_SIZE);
+  const out: T[][] = new Array(pages);
+  for (let p = 0; p < pages; p += READ_CONCURRENCY) {
+    await Promise.all(Array.from({ length: Math.min(READ_CONCURRENCY, pages - p) }, async (_, k) => {
+      const page = p + k;
+      const res = await fetch(
+        `${supabaseUrl}/rest/v1/${table}?select=${select}&order=${order}.asc&limit=${PAGE_SIZE}&offset=${page * PAGE_SIZE}`,
+        { headers },
+      );
+      if (!res.ok) throw new Error(`đọc ${table} trang ${page} HTTP ${res.status}: ${await res.text()}`);
+      out[page] = await res.json();
+    }));
+  }
+  return out.flat();
 };
 
 /**
- * Đọc một ô giá VND. NGHIÊM NGẶT — chỉ nhận số nguyên có dấu ngăn nghìn hợp lệ.
- *
- * Bản cũ (`safeParseVnd`) vét chữ số bằng `replace(/[^\d]/g, '')`, nên mọi ô
- * nhập tay lệch định dạng đều biến thành một con số trông có vẻ hợp lệ rồi được
- * GHI vào `effective_price`, phục vụ mọi khách cho tới lần sync sau:
- *
- *   "1,5 triệu"                → 15
- *   "4tr5"                     → 45
- *   "2 triệu 500"              → 2500
- *   "229.000 - LH 0933356666"  → 2.290.000.933.356.666
- *
- * Luật ở đây khớp `parseCheapPrice` (src/lib/cheapSimSheet.ts:93): dấu chấm và
- * dấu phẩy đều là ngăn nghìn trong locale của sheet và chỉ xuất hiện theo nhóm
- * 3 chữ số. Không khớp → 0, và caller KHÔNG cho dòng giá 0 lên bán. Bỏ sót một
- * dòng thì còn cứu được (SIM chỉ không hiện); ghi sai giá thì khách đã thấy.
- *
- * Sheet bọc giá trong ngoặc kép kèm khoảng trắng — `"  39,000,000 "` — và
- * parseCSV đã trim, nên chuỗi vào đây là `39,000,000`.
+ * Chọn SimID cho từng số đã có dòng trong `sims` để giữ link /mua-ngay/<id> cũ.
+ * Một số có thể mang nhiều SimID (cùng số nằm ở nhiều kho của sheet cũ): ưu
+ * tiên dòng đang 'available', rồi dòng chưa 'sold', rồi SimID nhỏ nhất cho ổn
+ * định giữa các lượt. Dòng không được chọn mà đang 'available' sẽ bị
+ * retireMissing gỡ, nên web không hiện một số hai lần.
  */
-const parseVndStrict = (v: unknown): number => {
-  const s = String(v ?? '').trim();
-  if (!s) return 0;
-  if (!/^\d{1,3}(?:[.,]\d{3})*$|^\d+$/.test(s)) return 0;
-  const n = parseInt(s.replace(/[.,]/g, ''), 10);
-  return Number.isFinite(n) && n >= 0 ? n : 0;
+const pickIdByDigits = (rows: { id: string; raw_digits: string; status: string }[]): Map<string, string> => {
+  const rank = (s: string) => (s === 'available' ? 0 : s === 'sold' ? 2 : 1);
+  const best = new Map<string, { id: string; r: number }>();
+  for (const row of rows) {
+    const digits = normalizePhone(row.raw_digits);
+    const r = rank(row.status);
+    const cur = best.get(digits);
+    if (!cur || r < cur.r || (r === cur.r && row.id < cur.id)) best.set(digits, { id: row.id, r });
+  }
+  return new Map([...best].map(([d, v]) => [d, v.id]));
 };
 
 const detectNetwork = (digits: string): string => {
@@ -342,78 +324,77 @@ serve(async (req) => {
 
   try {
     // Mốc của lượt chạy: mọi dòng upsert mang `source_updated_at` = mốc này, nên
-    // dòng 'available' có mốc CŨ HƠN là dòng không còn trong sheet (xem bước 5).
+    // dòng 'available' có mốc CŨ HƠN là dòng không còn trong bảng số (xem bước 5).
     const syncStamp = new Date().toISOString();
 
-    // 1) Fetch main CSV + SIM_SOLD
-    const [mainCsv, soldCsv] = await Promise.all([fetchText(GOOGLE_SHEET_CSV_URL), fetchText(SIM_SOLD_CSV_URL)]);
-    const rows = parseCSV(mainCsv);
-    const soldSet = parseSoldSimIds(soldCsv);
+    // 1) Đọc bảng số + SIM_SOLD + SimID hiện có + log sold_sims
+    type BangSoRow = { raw_digits: string; display_number: string; gia_ban: number; tinh_trang: string | null };
+    type SimRow = { id: string; raw_digits: string; status: string };
+    const [bangSo, soldCsv, existing, soldLog] = await Promise.all([
+      fetchAllRows<BangSoRow>(supabaseUrl, serviceKey, BANG_SO_TABLE, 'raw_digits,display_number,gia_ban,tinh_trang', 'raw_digits'),
+      fetchText(SIM_SOLD_CSV_URL),
+      fetchAllRows<SimRow>(supabaseUrl, serviceKey, 'sims', 'id,raw_digits,status', 'id'),
+      fetchAllRows<{ id: string }>(supabaseUrl, serviceKey, 'sold_sims', 'id', 'id'),
+    ]);
+    if (bangSo.length < MIN_BANG_SO_ROWS) {
+      throw new Error(`Bảng số chỉ có ${bangSo.length} dòng (< ${MIN_BANG_SO_ROWS}) — nghi nạp hỏng, KHÔNG đồng bộ. Nạp lại bằng scripts/bang-so/import.mjs`);
+    }
+
+    // "Đã từng nằm trong SIM_SOLD" quy về SỐ ĐIỆN THOẠI: cột STB chuan, cộng
+    // SimID (tab hiện tại + log sold_sims — dòng đã xoá khỏi tab vẫn còn trong
+    // log) đổi ra số qua bảng `sims`.
+    const sold = parseSoldCsv(soldCsv);
+    const soldIds = new Set([...sold.ids, ...soldLog.map((r) => r.id.toUpperCase())]);
+    const soldPhones = new Set(sold.phones);
+    for (const row of existing) {
+      if (soldIds.has(row.id.toUpperCase())) soldPhones.add(normalizePhone(row.raw_digits));
+    }
+    const idByDigits = pickIdByDigits(existing);
+    existing.length = 0;
 
     // 2) Build rows để upsert — làm TRƯỚC khi quyết định skip, vì vân tay được
-    //    tính trên chính tập dữ liệu sẽ ghi (không phải trên CSV thô: CSV có cả
-    //    cột không đồng bộ như "GIÁ THU VỀ", đổi cột đó không cần re-sync).
+    //    tính trên chính tập dữ liệu sẽ ghi.
     const toUpsert: Record<string, unknown>[] = [];
-    let skippedNoId = 0;
+    let skippedSold = 0;
     let skippedShortNumber = 0;
+    let newIds = 0;
     let invalidPriceCount = 0;
-    const invalidPriceSamples: { id: string; original: string; final: string }[] = [];
+    const invalidPriceSamples: { raw_digits: string; gia_ban: number }[] = [];
 
-    for (const row of rows) {
-      const simId = (row['SIMID'] || '').trim();
-      if (!simId) { skippedNoId++; continue; }
-      const raw = row['RAW'] || row['DISPLAY'] || '';
-      const display = row['DISPLAY'] || row['RAW'] || raw;
-      const digits = normalizePhone(raw);
+    for (const row of bangSo) {
+      const digits = normalizePhone(row.raw_digits);
       if (digits.length < 9) { skippedShortNumber++; continue; }
+      if (soldPhones.has(digits)) { skippedSold++; continue; }
 
-      const originalPrice = parseVndStrict(row['ORIGINAL_PRICE']);
-      const finalPriceRaw = parseVndStrict(row['FINAL_PRICE']);
-      const finalPrice = finalPriceRaw > 0 ? finalPriceRaw : undefined;
-      const effectivePrice = finalPrice ?? originalPrice;
-
-      // Giá không đọc được / dưới ngưỡng ⇒ KHÔNG bao giờ là 'available'.
-      const priceUsable = effectivePrice >= MIN_SELLABLE_PRICE;
+      const price = Number(row.gia_ban) || 0;
+      // Giá không dùng được / dưới ngưỡng ⇒ KHÔNG bao giờ là 'available'.
+      const priceUsable = price >= MIN_SELLABLE_PRICE;
       if (!priceUsable) {
         invalidPriceCount++;
-        if (invalidPriceSamples.length < 20) {
-          invalidPriceSamples.push({
-            id: simId,
-            original: String(row['ORIGINAL_PRICE'] ?? ''),
-            final: String(row['FINAL_PRICE'] ?? ''),
-          });
-        }
+        if (invalidPriceSamples.length < 20) invalidPriceSamples.push({ raw_digits: digits, gia_ban: price });
       }
 
-      const statusRaw = (row['TRANG_THAI'] || '').trim().toLowerCase();
-      // Thứ tự ưu tiên: đã bán > trạng thái chủ shop đặt tay > giá không dùng
-      // được > available. SIM đã bán vẫn là 'sold' dù ô giá có rác.
-      const status = soldSet.has(simId.toUpperCase())
-        ? 'sold'
-        : statusRaw === 'sold' || statusRaw === 'reserved' || statusRaw === 'ẩn'
-        ? statusRaw
-        : priceUsable
-        ? 'available'
-        : STATUS_INVALID_PRICE;
-
+      let id = idByDigits.get(digits);
+      if (!id) { id = `${NEW_ID_PREFIX}${digits}`; newIds++; }
       const tags = [...detectSimCategories(digits)];
 
+      // Không gửi cột `kho`: upsert chỉ ghi cột có trong payload, nên dòng cũ giữ
+      // nhãn kho (KIT_2026, SONG KHOA…) còn dòng mới để trống. Bảng số không có kho.
       toUpsert.push({
-        id: simId,
+        id,
         raw_digits: digits,
-        display_number: display || digits,
-        original_price: originalPrice,
-        final_price: finalPrice ?? null,
-        effective_price: effectivePrice,
-        discount_type: row['DISCOUNT_TYPE'] || null,
-        discount_value: parseVndStrict(row['DISCOUNT_VALUE']) || null,
-        kho: row['KHO'] || null,
-        tinh_trang: row['TINH_TRANG'] || null,
-        status,
+        display_number: row.display_number || digits,
+        original_price: price,
+        final_price: null,
+        effective_price: price,
+        discount_type: null,
+        discount_value: null,
+        tinh_trang: row.tinh_trang || null,
+        status: priceUsable ? 'available' : STATUS_INVALID_PRICE,
         network: detectNetwork(digits),
         tags,
-        beauty_score: calculateBeautyScore(tags, effectivePrice),
-        is_vip: isVIPSim(tags, effectivePrice),
+        beauty_score: calculateBeautyScore(tags, price),
+        is_vip: isVIPSim(tags, price),
         prefix3: digits.slice(0, 3),
         prefix4: digits.slice(0, 4),
         last2: digits.slice(-2),
@@ -424,49 +405,52 @@ serve(async (req) => {
       });
     }
 
-    // 3) So vân tay NỘI DUNG với lần chạy trước.
-    //    Trả bảng CSV trung gian về cho GC trước khi băm + gửi 52 batch: job này
-    //    giữ đồng thời chuỗi CSV 5,7MB, 51k object CSV và 51k object upsert, còn
-    //    edge function chỉ có 256MB.
-    rows.length = 0;
+    // 3) So vân tay NỘI DUNG với lần chạy trước. Trả bảng số về cho GC trước khi
+    //    băm + gửi batch: edge function chỉ có 256MB.
+    bangSo.length = 0;
 
     const fingerprint = await buildFingerprint(toUpsert);
     const previousFingerprint = force ? null : await readFingerprint(supabaseUrl, serviceKey);
 
     if (!force && previousFingerprint && previousFingerprint === fingerprint) {
       console.log(`[sync-sims] Nội dung không đổi (${toUpsert.length} dòng, fp ${fingerprint.slice(0, 12)}). Bỏ qua upsert.`);
-      // Vẫn chạy markSold: `status` nằm trong vân tay nên SIM_SOLD có thêm số
-      // thì vân tay đã khác và không vào nhánh này — nhưng markSold còn ghi
-      // bảng `sold_sims`, và nó idempotent, nên chạy cho chắc.
-      await markSold(supabaseUrl, serviceKey, soldSet);
+      // Vẫn chạy markSold: nó còn ghi bảng `sold_sims`, và idempotent, nên chạy cho chắc.
+      await markSold(supabaseUrl, serviceKey, sold.ids);
+      await markSoldByPhone(supabaseUrl, serviceKey, soldPhones);
       return new Response(JSON.stringify({
         synced: false,
         reason: 'no_content_change',
         rows: toUpsert.length,
-        sold: soldSet.size,
+        sold: soldPhones.size,
         fingerprint,
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // 4) Upsert theo batch
-    for (let i = 0; i < toUpsert.length; i += BATCH_SIZE) {
-      const batch = toUpsert.slice(i, i + BATCH_SIZE);
-      const res = await fetch(`${supabaseUrl}/rest/v1/sims`, {
-        method: 'POST',
-        headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
-        body: JSON.stringify(batch),
-      });
-      if (!res.ok) throw new Error(`upsert batch ${i} HTTP ${res.status}: ${await res.text()}`);
+    // 4) Upsert theo batch, UPSERT_CONCURRENCY batch song song (74 batch tuần tự
+    //    sát giới hạn thời gian của edge function).
+    for (let i = 0; i < toUpsert.length; i += BATCH_SIZE * UPSERT_CONCURRENCY) {
+      await Promise.all(Array.from({ length: UPSERT_CONCURRENCY }, async (_, k) => {
+        const start = i + k * BATCH_SIZE;
+        if (start >= toUpsert.length) return;
+        const batch = toUpsert.slice(start, start + BATCH_SIZE);
+        const res = await fetch(`${supabaseUrl}/rest/v1/sims`, {
+          method: 'POST',
+          headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
+          body: JSON.stringify(batch),
+        });
+        if (!res.ok) throw new Error(`upsert batch ${start} HTTP ${res.status}: ${await res.text()}`);
+      }));
     }
 
-    // 5) Gỡ số đã rời sheet. Chỉ chạy ở nhánh có upsert: nhánh "không đổi" thì
+    // 5) Gỡ số đã rời bảng số. Chỉ chạy ở nhánh có upsert: nhánh "không đổi" thì
     //    tập SimID y hệt lượt upsert trước, mà lượt đó đã gỡ rồi. Lỗi thì ném ra
     //    để vân tay KHÔNG được ghi ⇒ lượt sau upsert + gỡ lại từ đầu.
     const reconcile = await retireMissing(supabaseUrl, serviceKey, syncStamp, forceReconcile);
 
     // 6) Đánh dấu sold + ghi log sold (sau bước 5: số vừa gỡ mà có trong
     //    SIM_SOLD thì vẫn về 'sold').
-    await markSold(supabaseUrl, serviceKey, soldSet);
+    await markSold(supabaseUrl, serviceKey, sold.ids);
+    await markSoldByPhone(supabaseUrl, serviceKey, soldPhones);
 
     // 7) Chỉ ghi vân tay SAU khi upsert xong: upsert lỗi giữa đường thì vân tay
     //    cũ còn nguyên ⇒ lần chạy sau làm lại từ đầu thay vì tưởng đã xong.
@@ -476,19 +460,20 @@ serve(async (req) => {
     if (invalidPriceCount > 0) {
       console.warn(`[sync-sims] ${invalidPriceCount} dòng giá không dùng được → status='${STATUS_INVALID_PRICE}':`, JSON.stringify(invalidPriceSamples));
     }
-    if (skippedNoId > 0 || skippedShortNumber > 0) {
-      console.warn(`[sync-sims] Bỏ ${skippedNoId} dòng thiếu SimID, ${skippedShortNumber} dòng số < 9 chữ số`);
+    if (skippedShortNumber > 0) {
+      console.warn(`[sync-sims] Bỏ ${skippedShortNumber} dòng số < 9 chữ số`);
     }
-    console.log(`[sync-sims] Synced ${toUpsert.length} rows (${soldSet.size} sold, ${invalidPriceCount} invalid price), fp ${fingerprint.slice(0, 12)}${fingerprintSaved ? '' : ' (CHƯA lưu được vân tay)'}`);
+    console.log(`[sync-sims] Synced ${toUpsert.length} rows (${skippedSold} số trong bảng số đã bán, ${newIds} SimID mới, ${invalidPriceCount} invalid price), fp ${fingerprint.slice(0, 12)}${fingerprintSaved ? '' : ' (CHƯA lưu được vân tay)'}`);
 
     return new Response(JSON.stringify({
       synced: true,
       reason: force ? 'forced' : previousFingerprint ? 'content_changed' : 'no_previous_fingerprint',
       rows: toUpsert.length,
-      sold: soldSet.size,
+      sold: soldPhones.size,
+      skippedSold,
+      newIds,
       invalidPrice: invalidPriceCount,
       reconcile,
-      skippedNoId,
       skippedShortNumber,
       fingerprint,
       fingerprintSaved,
@@ -513,9 +498,9 @@ async function countWhere(supabaseUrl: string, serviceKey: string, filter: strin
 }
 
 /**
- * Chuyển sang STATUS_REMOVED mọi số 'available' KHÔNG có trong sheet lượt này,
+ * Chuyển sang STATUS_REMOVED mọi số 'available' KHÔNG có trong bảng số lượt này,
  * tức `source_updated_at` cũ hơn mốc `syncStamp` mà bước upsert vừa ghi cho mọi
- * dòng còn trong sheet. Chỉ gọi SAU khi upsert xong hết các batch.
+ * dòng còn trong bảng số. Chỉ gọi SAU khi upsert xong hết các batch.
  */
 async function retireMissing(
   supabaseUrl: string,
@@ -529,7 +514,7 @@ async function retireMissing(
 
   const available = await countWhere(supabaseUrl, serviceKey, 'status=eq.available');
   if (!forceReconcile && stale > available * MAX_REMOVE_RATIO) {
-    const skipped = `${stale}/${available} số đang bán vắng mặt trong sheet (> ${MAX_REMOVE_RATIO * 100}%) — nghi sheet cụt, KHÔNG gỡ. Đúng là rút kho thì gọi ?force=1&reconcile=force`;
+    const skipped = `${stale}/${available} số đang bán vắng mặt trong bảng số (> ${MAX_REMOVE_RATIO * 100}%) — nghi bảng số cụt, KHÔNG gỡ. Đúng là rút kho thì gọi ?force=1&reconcile=force`;
     console.warn(`[sync-sims] ${skipped}`);
     return { removed: 0, skipped };
   }
@@ -543,8 +528,8 @@ async function retireMissing(
     headers: { ...headers, Prefer: 'return=minimal' },
     body: JSON.stringify({ status: STATUS_REMOVED, updated_at: new Date().toISOString() }),
   });
-  if (!res.ok) throw new Error(`gỡ số rời sheet HTTP ${res.status}: ${await res.text()}`);
-  console.log(`[sync-sims] Gỡ ${stale} số không còn trong sheet → status='${STATUS_REMOVED}'. Mẫu:`, JSON.stringify(sample));
+  if (!res.ok) throw new Error(`gỡ số rời bảng số HTTP ${res.status}: ${await res.text()}`);
+  console.log(`[sync-sims] Gỡ ${stale} số không còn trong bảng số → status='${STATUS_REMOVED}'. Mẫu:`, JSON.stringify(sample));
   return { removed: stale, sample };
 }
 
@@ -576,5 +561,27 @@ async function markSold(supabaseUrl: string, serviceKey: string, soldSet: Set<st
       body: JSON.stringify(batch),
     });
     if (!res.ok) console.warn('[sync-sims] sold_sims upsert warn:', res.status);
+  }
+}
+
+/**
+ * Đánh dấu sold MỌI dòng mang số đã bán, bất kể SimID — số bán dưới SimID của
+ * kho khác vẫn bị bắt. Không ghi `sold_sims`: bảng đó khoá theo SimID, và số đã
+ * bán vốn đã bị loại khỏi tập upsert nên không thể còn 'available'; bước này chỉ
+ * cho status trong DB nói đúng sự thật ('sold' thay vì 'removed').
+ */
+async function markSoldByPhone(supabaseUrl: string, serviceKey: string, phones: Set<string>): Promise<void> {
+  if (phones.size === 0) return;
+  const list = Array.from(phones);
+  const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' };
+  // 500 số × 11 ký tự ≈ 5,5KB query string — dưới hẳn giới hạn URL của gateway.
+  for (let i = 0; i < list.length; i += 500) {
+    const inList = list.slice(i, i + 500).join(',');
+    const res = await fetch(`${supabaseUrl}/rest/v1/sims?status=neq.sold&raw_digits=in.(${inList})`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ status: 'sold', updated_at: new Date().toISOString() }),
+    });
+    if (!res.ok) console.warn('[sync-sims] markSoldByPhone patch warn:', res.status);
   }
 }
