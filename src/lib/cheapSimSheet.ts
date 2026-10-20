@@ -1,6 +1,7 @@
 import { EDGE_FUNCTIONS_URL, SUPABASE_PUBLISHABLE_KEY } from '@/integrations/supabase/config';
 import { detectNetwork } from '@/lib/simUtils';
 import { formatSimQuyAware } from '@/lib/simDisplay';
+import { KHO_229K_BAT } from '@/lib/kho229k';
 
 /**
  * The 229.000đ promo warehouse.
@@ -259,6 +260,8 @@ export const parseCheapRows = (csv: string, soldIds: Set<string>): CheapSim[] =>
  * offering a number that is already gone.
  */
 export const fetchCheapStock = async (signal?: AbortSignal): Promise<CheapSim[]> => {
+  // Kho 229K tắt (src/lib/kho229k.ts): không đọc sheet, không có số nào để bán.
+  if (!KHO_229K_BAT) return [];
   const [mainCsv, soldCsv] = await Promise.all([
     fetchSheetCsv(gvizUrl('Tongkho', `select A, C, D, E where G = '${CHEAP_KHO}'`), signal),
     fetchSheetCsv(gvizUrl('Sim_Sold', 'select B'), signal),
@@ -298,7 +301,7 @@ export const fetchCheapSimById = async (
   signal?: AbortSignal,
 ): Promise<CheapSim | null> => {
   const simId = rawId.trim();
-  if (!isCheapSimId(simId)) return null;
+  if (!KHO_229K_BAT || !isCheapSimId(simId)) return null;
 
   const [rowCsv, soldCsv] = await Promise.all([
     fetchSheetCsv(gvizUrl('Tongkho', `select A, C, D, E where A = '${simId}' and G = '${CHEAP_KHO}'`), signal),

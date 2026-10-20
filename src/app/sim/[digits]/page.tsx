@@ -26,6 +26,7 @@ import PhongThuyStory from "./PhongThuyStory";
 import GoiYSimTot from "./GoiYSimTot";
 import SoVuaXem from "@/components/SoVuaXem";
 import { diemTongHop } from "@/lib/phongThuy";
+import { KHO_229K_BAT } from "@/lib/kho229k";
 
 // ISR: mỗi trang số làm tươi mỗi 5 phút. Số đã bán → lần regenerate kế tiếp
 // `findSimByDigits` trả null → notFound(), trang chuyển 404. dynamicParams=true
@@ -358,7 +359,9 @@ export default async function SimDetailPage({ params }: Props) {
               <li><Link href="/sim-loc-phat" className="font-medium text-primary underline-offset-2 hover:underline">Sim lộc phát</Link></li>
               <li><Link href="/sim-nam-sinh" className="font-medium text-primary underline-offset-2 hover:underline">Sim năm sinh</Link></li>
               <li><Link href={`/sim-dau-so/${sim.prefix3}`} className="font-medium text-primary underline-offset-2 hover:underline">Sim đầu {sim.prefix3}</Link></li>
-              <li><Link href="/mua-sim-gia-re" className="font-medium text-primary underline-offset-2 hover:underline">Sim giá rẻ</Link></li>
+              {KHO_229K_BAT && (
+                <li><Link href="/mua-sim-gia-re" className="font-medium text-primary underline-offset-2 hover:underline">Sim giá rẻ</Link></li>
+              )}
               <li><Link href="/tra-cuu-sim" className="font-medium text-primary underline-offset-2 hover:underline">Tra cứu sim</Link></li>
             </ul>
           </section>

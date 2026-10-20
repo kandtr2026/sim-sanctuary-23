@@ -3,6 +3,7 @@ import CategorySimGrid from "@/components/CategorySimGrid";
 import TrustCommitments from "@/components/TrustCommitments";
 import FaqAccordion from "@/components/FaqAccordion";
 import { buildBreadcrumb } from "@/lib/seo";
+import { KHO_229K_BAT } from "@/lib/kho229k";
 
 export const revalidate = 300;
 
@@ -79,7 +80,9 @@ export default function SimLocPhatPage() {
                 <li><a href="/mua-sim-tu-quy" className="font-medium text-primary underline-offset-2 hover:underline">Sim tứ quý</a></li>
                 <li><a href="/sim-phong-thuy-hop-menh" className="font-medium text-primary underline-offset-2 hover:underline">Sim phong thủy hợp mệnh</a></li>
                 <li><a href="/sim-nam-sinh" className="font-medium text-primary underline-offset-2 hover:underline">Sim năm sinh</a></li>
-                <li><a href="/mua-sim-gia-re" className="font-medium text-primary underline-offset-2 hover:underline">Sim giá rẻ</a></li>
+                {KHO_229K_BAT && (
+                  <li><a href="/mua-sim-gia-re" className="font-medium text-primary underline-offset-2 hover:underline">Sim giá rẻ</a></li>
+                )}
               </ul>
             </section>
           </div>

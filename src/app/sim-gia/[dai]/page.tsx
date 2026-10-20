@@ -14,6 +14,7 @@ import {
   MIN_INDEXABLE_INVENTORY,
 } from "@/lib/simDangSo";
 import { BAND_COPY, TAG_HREF } from "./copy";
+import { KHO_229K_BAT } from "@/lib/kho229k";
 
 // ISR như các trang danh mục khác. `dynamicParams = false`: chỉ bốn slug trong
 // PRICE_BAND_SLUGS được phục vụ, slug lạ → 404 ngay ở tầng router thay vì render
@@ -63,11 +64,12 @@ export default async function SimGiaDaiPage({ params }: Props) {
   const inv = await getBandInventory(band, 8);
   const canonical = `${BASE_URL}/sim-gia/${dai}`;
   const bandLabel = band.label.replace(/ - /g, "–");
+  const faq = copy.faq.filter((item) => KHO_229K_BAT || !item.kho229K);
 
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: copy.faq.map((item) => ({
+    mainEntity: faq.map((item) => ({
       "@type": "Question",
       name: item.q,
       acceptedAnswer: { "@type": "Answer", text: item.a },
@@ -260,7 +262,7 @@ export default async function SimGiaDaiPage({ params }: Props) {
           <LeadMagnetCta />
           <TrustCommitments />
           {/* ── 7. FAQ riêng của dải ───────────────────────────────────────── */}
-          <FaqAccordion items={copy.faq} title={`Câu hỏi thường gặp về sim giá ${bandLabel}`} />
+          <FaqAccordion items={faq} title={`Câu hỏi thường gặp về sim giá ${bandLabel}`} />
 
           {/* ── 8. Dải giá khác + kho đồng giá ─────────────────────────────── */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
@@ -283,11 +285,13 @@ export default async function SimGiaDaiPage({ params }: Props) {
                   </li>
                 );
               })}
+              {KHO_229K_BAT && (
               <li>
                 <a href="/mua-sim-gia-re" className="font-medium text-primary underline-offset-2 hover:underline">
                   Kho SIM khuyến mãi đồng giá (dải rẻ nhất)
                 </a>
               </li>
+              )}
               <li>
                 <a href="/sim-tra-gop" className="font-medium text-primary underline-offset-2 hover:underline">
                   Mua sim trả góp

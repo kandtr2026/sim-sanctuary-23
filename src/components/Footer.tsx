@@ -1,5 +1,6 @@
 import { MapPin, Phone, Mail, Clock, Navigation, Youtube } from "lucide-react";
 import Link from "next/link";
+import { conLink229K } from "@/lib/kho229k";
 
 // Kênh mạng xã hội chính thức của shop (A Khoa 22/09) — handle sạch, bỏ tracking.
 const YOUTUBE_URL = "https://www.youtube.com/@Chonsomobifonecom";
@@ -30,7 +31,7 @@ const simCategoryLinks = [
   { label: "SIM đồng giá 229K", href: "/mua-sim-gia-re" },
   { label: "SIM tứ quý", href: "/mua-sim-tu-quy" },
   { label: "SIM trả góp", href: "/sim-tra-gop" },
-];
+].filter(conLink229K);
 
 const policyLinks = [
   { label: "Chính sách bảo mật", href: "/chinh-sach-bao-mat" },

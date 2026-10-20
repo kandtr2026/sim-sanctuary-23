@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Phone, Star, Sparkles, Wallet } from "lucide-react";
 import { buildBreadcrumb, BASE_URL } from "@/lib/seo";
 import { formatTrieu, PRICE_BAND_SLUGS, resolvePriceBand, getBandInventory } from "@/lib/simDangSo";
+import { KHO_229K_BAT } from "@/lib/kho229k";
 
 export const revalidate = 300;
 
@@ -152,7 +153,8 @@ export default async function SimGiaHubPage() {
             </div>
           </section>
 
-          {/* ── 3. Dưới 1 triệu thì xem đâu ────────────────────────────────── */}
+          {/* ── 3. Dưới 1 triệu thì xem đâu (ẩn khi kho 229K tắt) ─────────── */}
+          {KHO_229K_BAT && (
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
               <span className="h-8 w-1 rounded-full bg-primary" />
@@ -172,6 +174,7 @@ export default async function SimGiaHubPage() {
               .
             </p>
           </section>
+          )}
 
           {/* ── 4. Liên kết chéo sang cụm dạng số ──────────────────────────── */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">

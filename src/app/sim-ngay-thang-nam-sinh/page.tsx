@@ -4,6 +4,7 @@ import { MapPin, MessageCircle, Phone } from "lucide-react";
 import FaqAccordion, { type FaqItem } from "@/components/FaqAccordion";
 import TrustCommitments from "@/components/TrustCommitments";
 import { buildBreadcrumb } from "@/lib/seo";
+import { conLink229K } from "@/lib/kho229k";
 import SimNgaySinhFinder from "./SimNgaySinhFinder";
 import { layMauSoNgaySinh } from "./_lib/mauSoNgaySinh";
 
@@ -150,7 +151,7 @@ const RELATED_LINKS = [
   { href: "/tra-cuu-sim", label: "Tra cứu ý nghĩa số" },
   { href: "/mua-sim-gia-re", label: "Sim giá rẻ" },
   { href: "/sim-de-nho", label: "Sim dễ nhớ" },
-];
+].filter(conLink229K);
 
 export default async function SimNgayThangNamSinhPage() {
   const samples = await layMauSoNgaySinh();

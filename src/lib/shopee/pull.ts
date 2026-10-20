@@ -13,6 +13,7 @@ import { createAdminClient } from "./admin";
 import { getCreds, persistRefreshedTokens } from "./credentials";
 import { ShopeeProductClient } from "./client";
 import { ITEM_LIST_PAGE_SIZE } from "./config";
+import { KHO_229K_BAT } from "@/lib/kho229k";
 
 /** Sheet ID kho sim rẻ (229.000đ) và gviz URL để lấy danh sách số. */
 const CHEAP_SHEET_ID = "1gwlG7hsd_na7XB3d4maI99nhMVRUEmAlpx9ueYOELL4";
@@ -22,6 +23,8 @@ const CHEAP_GVIZ = (limit: number) =>
 /** Tải raw_digits của kho sim rẻ (chỉ số available, chưa bán). */
 async function layKhoReDigits(): Promise<Set<string>> {
   const set = new Set<string>();
+  // Kho 229K tắt: không số nào của kho này tính là còn hàng (cờ inKho = false).
+  if (!KHO_229K_BAT) return set;
   try {
     const res = await fetch(CHEAP_GVIZ(50000)); // lấy hết (13k)
     if (!res.ok) return set;

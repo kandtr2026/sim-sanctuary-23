@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { DICH_KHI_TAT_229K, KHO_229K_BAT } from "@/lib/kho229k";
 import { Wifi, PhoneCall, BadgeCheck, Truck, MessageCircle, Search } from "lucide-react";
 import MuaSimGiaReTool from "./MuaSimGiaReTool";
 import CategorySimPriceList from "@/components/CategorySimPriceList";
@@ -95,6 +97,8 @@ const FACET_COPY: Record<CheapFacet, string> = {
 };
 
 export default async function MuaSimGiaRePage() {
+  // Kho 229K tắt (src/lib/kho229k.ts): chuyển tạm về trang SIM theo giá.
+  if (!KHO_229K_BAT) redirect(DICH_KHI_TAT_229K);
   // Real promo SIMs, server-rendered into the HTML. The checkout route
   // (/mua-ngay/[id]) resolves these SIMKM… ids, and CategorySimPriceList only
   // reads id/rawDigits/price, so mapping through normalizeSIM is enough.

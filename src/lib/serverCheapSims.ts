@@ -24,6 +24,7 @@ import {
   type CheapSim,
 } from "@/lib/cheapSimSheet";
 import { SIM_CACHE_TAG, SIM_DATA_REVALIDATE } from "@/lib/cacheTags";
+import { KHO_229K_BAT } from "@/lib/kho229k";
 
 // Cùng nhãn `sim` với kho chính → một lần `revalidateTag('sim')` làm tươi cả hai
 // kho. Kho khuyến mãi đọc từ Google Sheet (không do `sync-sims` ghi), nên nhánh
@@ -108,6 +109,7 @@ const parseRows = (csv: string, soldIds: Set<string>): CheapSim[] => {
  * scope; returns `[]` on failure (never throws).
  */
 export const getCheapSims = async (): Promise<CheapSim[]> => {
+  if (!KHO_229K_BAT) return [];
   if (cachedResult && Date.now() - cachedAt < CACHE_TTL_MS) return cachedResult;
   if (cachedPromise) return cachedPromise;
 

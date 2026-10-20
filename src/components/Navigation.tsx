@@ -4,6 +4,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import { conLink229K } from "@/lib/kho229k";
 
 // Nav gọn (A Khoa 15/09): bỏ "SIM SỐ" (trùng logo trỏ trang chủ), "SIM TỨ QUÝ"
 // và "TRA CỨU SIM" (không cần thiết). "THANH TOÁN" trước đó đã chuyển xuống
@@ -14,7 +15,7 @@ const menuItems = [
   { label: "SIM NĂM SINH", href: "/sim-nam-sinh" },
   { label: "SIM GIÁ RẺ", href: "/mua-sim-gia-re" },
   { label: "TIN TỨC", href: "/tin-tuc" },
-];
+].filter(conLink229K);
 
 const Navigation = () => {
   const [mobileOpen, setMobileOpen] = useState(false);

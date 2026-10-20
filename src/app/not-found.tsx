@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { Home, Phone, Search } from "lucide-react";
+import { conLink229K } from "@/lib/kho229k";
 
 const suggestions = [
   { label: "Kho SIM số đẹp", to: "/" },
@@ -11,7 +12,7 @@ const suggestions = [
   { label: "SIM phong thủy", to: "/sim-phong-thuy" },
   { label: "SIM tứ quý", to: "/mua-sim-tu-quy" },
   { label: "Hướng dẫn thanh toán", to: "/thanh-toan" },
-];
+].filter(conLink229K);
 
 export default function NotFound() {
   const pathname = usePathname();

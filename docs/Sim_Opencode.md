@@ -762,3 +762,17 @@ Trang mới (trước đây 404): form Ngày/Tháng/Năm + ô nhanh DDMMYY → g
 **Bẫy:** CRON_SECRET / REVALIDATE_SECRET là biến Sensitive trên Vercel (không `env pull` được) — muốn làm tươi ngoài lịch cron thì dựng snapshot bằng BLOB_READ_WRITE_TOKEN + `vercel cache invalidate --tag sim` + redeploy (bộ nhớ lambda).
 
 ---
+
+## [2026-10-20] TẮT kho 229K (/mua-sim-gia-re) — số đã bán lọt vào
+
+**Lệnh A Khoa:** "sao sim đã bán nó lại nhảy vào kho 229k. off hết kho 229k nào".
+
+**Gốc (sơ bộ):** kho 229K (sheet riêng `1gwlG7…`, tab Tongkho, Kho='0đ') chỉ loại số đã bán theo MÃ SIMKM trong tab Sim_Sold của chính nó; không so theo số điện thoại, không đọc SIM_SOLD kho chính, không theo luật bảng số Excel (16/10). Số bán dưới mã khác / ghi ở sổ kho chính vẫn hiện.
+
+**Sửa:** công tắc duy nhất `KHO_229K_BAT = false` ở `src/lib/kho229k.ts`:
+- `fetchCheapStock` / `getCheapSims` trả rỗng, `fetchCheapSimById` trả null (trang đặt hàng /mua-ngay/SIMKM… báo không còn), hook `useCheapSimData` bỏ cache localStorage cũ, cờ inKho Shopee coi số 229K là hết hàng → không đọc sheet 229K ở đâu cả;
+- `/mua-sim-gia-re` → `redirect()` 307 về `/sim-gia` (tạm, để bật lại được);
+- gỡ link: menu "SIM GIÁ RẺ", footer, trang 404, sitemap, link nhanh trang chủ, khối xem thêm (/sim/[số], sim-de-nho, sim-loc-phat, sim-than-tai, sim-ngay-thang-nam-sinh), mục "Ngân sách dưới 1 triệu" ở /sim-gia, link + câu FAQ dải 1–3 triệu (cờ `kho229K` trong copy.ts). Link trong bài tin tức đi qua chuyển hướng.
+- Test `src/test/kho229kTat.test.ts`. Bật lại: đổi `true` (mọi thứ tự hiện lại).
+
+---

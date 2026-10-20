@@ -6,6 +6,7 @@ import { getDauSoSitemapEntries } from "@/app/sim-dau-so/inventory";
 import { ALL_YEARS } from "@/app/sim-hop-tuoi/_lib/yearContent";
 import { HANH_META } from "@/app/sim-hop-menh/_lib/hanhMeta";
 import { PRICE_BAND_SLUGS } from "@/lib/simDangSo";
+import { conLink229K } from "@/lib/kho229k";
 
 // Sitemap now reads live data (published blog posts + in-stock birth-year
 // clusters) in addition to the fixed static/taxonomy routes. It therefore runs
@@ -26,7 +27,7 @@ interface StaticRoute {
   dynamic?: boolean;
 }
 
-const ROUTES: StaticRoute[] = [
+const ROUTES: StaticRoute[] = ([
   { path: "/", changeFrequency: "daily", priority: 1.0, dynamic: true },
   { path: "/mua-sim-gia-re", changeFrequency: "daily", priority: 0.9, dynamic: true },
   { path: "/mua-sim-tu-quy", changeFrequency: "weekly", priority: 0.9, dynamic: true },
@@ -90,7 +91,7 @@ const ROUTES: StaticRoute[] = [
   { path: "/chinh-sach-bao-mat", changeFrequency: "yearly", priority: 0.3 },
   { path: "/dieu-khoan-su-dung", changeFrequency: "yearly", priority: 0.3 },
   { path: "/chinh-sach-giao-hang", changeFrequency: "yearly", priority: 0.3 },
-];
+] satisfies StaticRoute[]).filter(conLink229K);
 
 // Static pages that genuinely change only on a code deploy get a fixed
 // lastModified instead of the build timestamp, so the sitemap stops "pinging"

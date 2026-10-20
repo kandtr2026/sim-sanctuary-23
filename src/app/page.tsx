@@ -7,6 +7,7 @@ import { getServerSims } from "@/lib/serverSimData";
 import { filterSims } from "@/lib/simFilter";
 import { countTags, countMenh, getUniquePrefixes, PRICE_RANGES } from "@/lib/simUtils";
 import { DAU_SO_PREFIXES } from "@/lib/simTaxonomy";
+import { conLink229K } from "@/lib/kho229k";
 
 // Cụm "sim giá rẻ" thuộc /mua-sim-gia-re (chủ dự án chốt 29/08). Title trang chủ
 // trước đây cũng chứa "giá rẻ" nên hai trang tranh nhau cùng một cụm; nay trang
@@ -63,7 +64,7 @@ const CATEGORY_LINKS: { href: string; label: string }[] = [
   { href: "/sim-phong-thuy-hop-menh", label: "Sim phong thủy hợp mệnh" },
   { href: "/mua-sim-gia-re", label: "Sim giá rẻ" },
   { href: "/sim-tra-gop", label: "Sim trả góp" },
-];
+].filter(conLink229K);
 
 /**
  * Đường crawl tới các cụm trang programmatic dựng ngày 29/08/2026. Không có khối

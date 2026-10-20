@@ -8,6 +8,7 @@ import FaqAccordion from "@/components/FaqAccordion";
 import { buildBreadcrumb, BASE_URL } from "@/lib/seo";
 import { getCategorySnapshot } from "@/lib/serverSimData";
 import { getTagInventory, formatTrieu, MIN_INDEXABLE_INVENTORY } from "@/lib/simDangSo";
+import { KHO_229K_BAT } from "@/lib/kho229k";
 
 export const revalidate = 300;
 
@@ -245,7 +246,9 @@ export default async function SimDeNhoPage() {
               <li><a href="/sim-ganh-dao" className="font-medium text-primary underline-offset-2 hover:underline">Sim gánh đảo</a></li>
               <li><a href="/sim-tien-len" className="font-medium text-primary underline-offset-2 hover:underline">Sim tiến lên</a></li>
               <li><a href="/sim-than-tai" className="font-medium text-primary underline-offset-2 hover:underline">Sim thần tài</a></li>
-              <li><a href="/mua-sim-gia-re" className="font-medium text-primary underline-offset-2 hover:underline">Sim giá rẻ đồng giá</a></li>
+              {KHO_229K_BAT && (
+                <li><a href="/mua-sim-gia-re" className="font-medium text-primary underline-offset-2 hover:underline">Sim giá rẻ đồng giá</a></li>
+              )}
               <li><a href="/sim-gia/1-3-trieu" className="font-medium text-primary underline-offset-2 hover:underline">Sim giá 1–3 triệu</a></li>
             </ul>
           </section>

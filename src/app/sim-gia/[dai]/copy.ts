@@ -14,6 +14,8 @@
 export interface BandFaqItem {
   q: string;
   a: string;
+  /** Câu trả lời dẫn sang kho 229K — ẩn khi kho tắt (src/lib/kho229k.ts). */
+  kho229K?: boolean;
 }
 
 export interface BandCopy {
@@ -100,6 +102,7 @@ export const BAND_COPY: Record<string, BandCopy> = {
       },
       {
         q: "Ngân sách của Quý khách dưới 1 triệu thì xem đâu?",
+        kho229K: true,
         a: "Xem kho SIM khuyến mãi đồng giá — mọi số cùng một mức giá, một phần kèm sẵn gói cước. Kho số đẹp dưới 1 triệu thường xuyên rất ít hàng nên chúng tôi không mở danh sách riêng cho tầm đó.",
       },
     ],

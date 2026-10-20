@@ -5,6 +5,7 @@ import {
   fetchCheapStock,
   type CheapSim,
 } from '@/lib/cheapSimSheet';
+import { KHO_229K_BAT } from '@/lib/kho229k';
 
 export type { CheapSim } from '@/lib/cheapSimSheet';
 
@@ -83,13 +84,15 @@ const saveCache = (sims: CheapSim[]) => {
 export const useCheapSimData = () => {
   const cached = useMemo(() => {
     purgeLegacyCaches();
-    return loadCache();
+    // Kho tắt: bỏ qua cache localStorage cũ để không hiện lại số đã nạp trước đó.
+    return KHO_229K_BAT ? loadCache() : null;
   }, []);
   const [sims, setSims] = useState<CheapSim[]>(cached ?? []);
-  const [isLoading, setIsLoading] = useState(!cached);
+  const [isLoading, setIsLoading] = useState(KHO_229K_BAT && !cached);
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
+    if (!KHO_229K_BAT) return;
     const controller = new AbortController();
     let cancelled = false;
 
