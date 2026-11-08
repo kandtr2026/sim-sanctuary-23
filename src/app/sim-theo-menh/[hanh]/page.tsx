@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import MenhMucSearchGrid from "@/components/MenhMucSearchGrid";
+import LocalServiceLinks from "@/components/LocalServiceLinks";
 import { getServerSims } from "@/lib/serverSimData";
 import { BASE_URL, buildBreadcrumb } from "@/lib/seo";
 import { HANH_COPY, buildHanhTable, formatDigits } from "@/app/sim-hop-menh/_lib/menhContent";
@@ -225,6 +226,7 @@ export default async function SimTheoMenhHanhPage({ params }: Props) {
           Ngũ hành của số tính theo Hà Đồ, điểm phong thủy theo Bát Cực + quẻ — mang tính tham khảo.
           Bấm vào số để xem phân tích đầy đủ, hoặc nhập năm sinh ở ô “Hợp tuổi” để soi theo mệnh bạn.
         </p>
+        <LocalServiceLinks className="mt-6" />
       </div>
     </main>
   );

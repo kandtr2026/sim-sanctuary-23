@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Sparkles } from "lucide-react";
 import SimHopTuoiTool from "./SimHopTuoiTool";
 import FaqAccordion from "@/components/FaqAccordion";
+import LocalServiceLinks from "@/components/LocalServiceLinks";
 
 const TITLE = "Bói SIM Phong Thủy – Xem SIM Hợp Tuổi Theo Ngày Sinh | CHONSOMOBIFONE";
 const DESCRIPTION =
@@ -149,6 +150,8 @@ export default function SimPhongThuyPage() {
                 <FaqAccordion items={faqData.map((f) => ({ q: f.question, a: f.answer }))} />
               </div>
             </div>
+
+            <LocalServiceLinks className="mt-6" />
           </div>
         </div>
       </main>

@@ -5,6 +5,7 @@ import CategoryHeroArt from "@/components/CategoryHeroArt";
 import CategorySimPriceList from "@/components/CategorySimPriceList";
 import TrustCommitments from "@/components/TrustCommitments";
 import FaqAccordion from "@/components/FaqAccordion";
+import LocalServiceLinks from "@/components/LocalServiceLinks";
 import { buildBreadcrumb, BASE_URL } from "@/lib/seo";
 import { getCategorySnapshot } from "@/lib/serverSimData";
 import { getTagInventory, formatTrieu, MIN_INDEXABLE_INVENTORY } from "@/lib/simDangSo";
@@ -256,6 +257,7 @@ export default async function SimTamHoaPage() {
           />
 
           <TrustCommitments />
+          <LocalServiceLinks />
           {/* ── 6. FAQ ─────────────────────────────────────────────────────── */}
           <FaqAccordion items={faqItems} />
 
