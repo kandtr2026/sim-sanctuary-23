@@ -34,14 +34,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const canonical = `${BASE_URL}/sim-theo-menh/${item.slug}`;
-  const title =
-    item.hanh === "Hỏa"
-      ? "SIM Mệnh Hỏa MobiFone — Chọn Số Hợp Hỏa 9, 3, 4 | CHONSOMOBIFONE.COM"
-      : `SIM mệnh ${item.hanh} — số hành ${item.hanh} hợp phong thủy | CHONSOMOBIFONE.COM`;
-  const description =
-    item.hanh === "Hỏa"
-      ? "Kho SIM MobiFone hợp mệnh Hỏa: ưu tiên số 9, 3, 4; hạn chế số 0, 1 ở đuôi. Giá niêm yết, đăng ký chính chủ, nhắn Zalo giữ số nhanh."
-      : `Kho SIM MobiFone hành ${item.hanh} (${item.moTa}). Chấm điểm phong thủy, giá niêm yết công khai, đăng ký thông tin chính chủ. Nhắn Zalo chốt số hợp mệnh.`;
+  const t = buildHanhTable(item.hanh);
+  const hop = formatDigits([...t.dong, ...t.sinh]);
+  const kieng = formatDigits(t.khacMenh);
+  // Cùng một công thức cho cả 5 hành (Hỏa ra đúng chuỗi cũ "9, 3, 4" / "0, 1").
+  const title = `SIM Mệnh ${item.hanh} MobiFone — Chọn Số Hợp ${item.hanh} ${hop} | CHONSOMOBIFONE.COM`;
+  const description = `Kho SIM MobiFone hợp mệnh ${item.hanh}: ưu tiên số ${hop}; hạn chế số ${kieng} ở đuôi. Giá niêm yết, đăng ký chính chủ, nhắn Zalo giữ số nhanh.`;
 
   return {
     title: { absolute: title },
@@ -69,6 +67,8 @@ export default async function SimTheoMenhHanhPage({ params }: Props) {
   const table = buildHanhTable(item.hanh);
   const canonical = `${BASE_URL}/sim-theo-menh/${item.slug}`;
   const isHoa = item.hanh === "Hỏa";
+  const hop = formatDigits([...table.dong, ...table.sinh]);
+  const kieng = formatDigits(table.khacMenh);
   const sims = (await getServerSims()).filter((s) => s.price > 0);
   const scored = sims
     .filter((s) => nguHanhCuaSo(s.rawDigits).chinh === item.hanh)
@@ -79,10 +79,8 @@ export default async function SimTheoMenhHanhPage({ params }: Props) {
   const productCollectionJsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: isHoa ? "SIM hợp mệnh Hỏa MobiFone" : `SIM mệnh ${item.hanh} MobiFone`,
-    description: isHoa
-      ? "Danh sách SIM MobiFone hợp mệnh Hỏa, ưu tiên số 9, 3, 4 và hạn chế số 0, 1 theo quan niệm ngũ hành."
-      : `Danh sách SIM MobiFone hành ${item.hanh}, xếp theo điểm phong thủy và giá niêm yết.`,
+    name: `SIM hợp mệnh ${item.hanh} MobiFone`,
+    description: `Danh sách SIM MobiFone hợp mệnh ${item.hanh}, ưu tiên số ${hop} và hạn chế số ${kieng} theo quan niệm ngũ hành.`,
     url: canonical,
     mainEntity: {
       "@type": "ItemList",
@@ -110,12 +108,12 @@ export default async function SimTheoMenhHanhPage({ params }: Props) {
     mainEntity: [
       {
         "@type": "Question",
-        name: `Mệnh ${item.hanh} hợp số nào khi chọn SIM?`,
+        name: `Mệnh ${item.hanh} hợp số nào khi chọn SIM điện thoại?`,
         acceptedAnswer: {
           "@type": "Answer",
           text: isHoa
             ? "Theo quan niệm ngũ hành, mệnh Hỏa hợp số 9 vì cùng hành Hỏa; hợp thêm số 3 và 4 vì Mộc sinh Hỏa. Nên hạn chế số 0 và 1 vì thuộc Thủy, đặc biệt ở cụm đuôi."
-            : `Theo quan niệm ngũ hành, mệnh ${item.hanh} nên ưu tiên nhóm số tương sinh ${formatDigits(table.sinh)} và nhóm đồng hành ${formatDigits(table.dong)}.`,
+            : `Theo quan niệm ngũ hành, mệnh ${item.hanh} hợp nhóm số đồng hành ${formatDigits(table.dong)} và nhóm tương sinh ${formatDigits(table.sinh)}. Nên hạn chế số ${kieng} vì được xem là khắc mệnh ${item.hanh}, đặc biệt ở cụm đuôi.`,
         },
       },
       {
@@ -149,7 +147,7 @@ export default async function SimTheoMenhHanhPage({ params }: Props) {
         <div className="container mx-auto px-4 py-8 md:py-10">
           <h1 className="flex items-center gap-2 text-2xl font-extrabold text-white md:text-3xl">
             <span aria-hidden className="h-4 w-4 rounded-full bg-white/90" />
-            {isHoa ? "SIM hợp mệnh Hỏa MobiFone — ưu tiên 9, 3, 4" : `SIM mệnh ${item.hanh}`}
+            {`SIM hợp mệnh ${item.hanh} MobiFone — ưu tiên ${hop}`}
           </h1>
           <p className="mt-1 max-w-3xl text-sm text-white/90">
             {isHoa ? (
@@ -158,7 +156,7 @@ export default async function SimTheoMenhHanhPage({ params }: Props) {
               </>
             ) : (
               <>
-                Số hành <strong>{item.hanh}</strong> ({item.moTa}). Hợp người <strong>mệnh {item.hanh}</strong> (tương hòa) và <strong>mệnh {nuoi}</strong> (được số sinh vượng). Xếp theo điểm phong thủy cao nhất.
+                Theo quan niệm ngũ hành, người mệnh {item.hanh} nên ưu tiên <strong>số {formatDigits(table.dong)}</strong> (đồng hành {item.hanh}), <strong>số {formatDigits(table.sinh)}</strong> (tương sinh) và hạn chế <strong>số {kieng}</strong> ở cụm đuôi. Số hành {item.hanh} cũng hợp người <strong>mệnh {nuoi}</strong>. Kho bên dưới chỉ lấy SIM MobiFone đang có giá, xếp theo điểm phong thủy cao nhất.
               </>
             )}
           </p>
@@ -205,7 +203,7 @@ export default async function SimTheoMenhHanhPage({ params }: Props) {
 
         <section className="mb-8 rounded-2xl border border-border bg-card p-5 shadow-card">
           <h2 className="text-lg font-bold text-foreground">
-            {isHoa ? "Cách chọn SIM hợp mệnh Hỏa để dễ bán, dễ nhớ" : `Cách chọn SIM mệnh ${item.hanh}`}
+            {isHoa ? "Cách chọn SIM hợp mệnh Hỏa để dễ bán, dễ nhớ" : `Số nào hợp mệnh ${item.hanh}? Cách chọn SIM mệnh ${item.hanh}`}
           </h2>
           <div className="mt-3 grid gap-4 text-sm leading-7 text-muted-foreground md:grid-cols-2">
             <div>
