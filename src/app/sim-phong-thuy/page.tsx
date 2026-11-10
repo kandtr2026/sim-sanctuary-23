@@ -4,11 +4,19 @@ import { Sparkles } from "lucide-react";
 import SimHopTuoiTool from "./SimHopTuoiTool";
 import FaqAccordion from "@/components/FaqAccordion";
 import LocalServiceLinks from "@/components/LocalServiceLinks";
+import { HEXAGRAMS, getHexagramFromSuffix } from "@/lib/hexagrams";
 
-const TITLE = "Bói SIM Phong Thủy – Xem SIM Hợp Tuổi Theo Ngày Sinh | CHONSOMOBIFONE";
+// GSC 11/2026: "bói sim" 15 imp, pos 9.6, 0 click → title nhắm thẳng "bói sim điện thoại"
+// + "4 số cuối chia 80" (Google Suggest), giữ nguyên URL đã index.
+const TITLE = "Bói SIM Điện Thoại Hợp Tuổi Miễn Phí – 4 Số Cuối Chia 80 Quẻ";
 const DESCRIPTION =
-  "Bói SIM phong thủy và xem SIM hợp tuổi theo ngày sinh, giờ sinh. Chấm điểm theo ngũ hành, âm dương, tổng nút, quẻ dịch trên kho MobiFone có sẵn.";
+  "Bói SIM điện thoại miễn phí: nhập ngày sinh xem số hợp tuổi, hợp mệnh; tra 4 số cuối chia 80 ra quẻ Kinh Dịch. Kết quả tham khảo, kèm kho SIM MobiFone có sẵn.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-phong-thuy";
+
+// Ví dụ minh họa lấy từ chính bảng 80 quẻ của engine (không viết tay để khỏi lệch).
+const EXAMPLE_SUFFIXES = ["8386", "6868", "3979"];
+const EXAMPLES = EXAMPLE_SUFFIXES.map((s) => ({ suffix: s, rem: parseInt(s, 10) % 80 || 80, h: getHexagramFromSuffix(s) }));
+const DAI_CAT = Object.values(HEXAGRAMS).filter((h) => h.level === "Đại cát");
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -51,9 +59,14 @@ const faqData = [
       "Tổng nút = tổng các chữ số của SIM chia 10 lấy số dư. SIM có 7–9 nút được xem là đại cát, mang lại cảm giác vẹn toàn và may mắn cho kinh doanh.",
   },
   {
-    question: "Quẻ dịch (80 quẻ Kinh Dịch) dùng để làm gì?",
+    question: "Bói SIM 4 số cuối chia 80 làm thế nào?",
     answer:
-      "Lấy 4 số cuối của SIM chia cho 80, số dư tương ứng một quẻ trong bảng 80 quẻ Kinh Dịch. Quẻ Cát / Đại cát thể hiện ý nghĩa số đuôi tốt đẹp.",
+      "Lấy 4 số cuối của SIM chia cho 80, phần dư là số thứ tự quẻ (dư 0 thì tính là quẻ 80). Ví dụ đuôi 8386: 8386 chia 80 dư 66, ứng với quẻ 66. Theo quan niệm dân gian, quẻ Cát / Đại cát được xem là số đuôi đẹp; đây là cách xem tham khảo, không phải cam kết vận may.",
+  },
+  {
+    question: "Đuôi số đẹp như 6868 có chắc ra quẻ tốt không?",
+    answer:
+      "Không hẳn. Đuôi 6868 chia 80 dư 68, theo bảng 80 quẻ thuộc nhóm Hung, dù cặp 68 được nhiều người ưa vì đọc là “lộc phát”. Vì vậy nên xem tổng hợp cả mệnh, âm dương, tổng nút và sở thích cá nhân thay vì chỉ một tiêu chí.",
   },
   {
     question: "Làm sao để đặt mua SIM sau khi xem kết quả?",
@@ -108,7 +121,7 @@ export default function SimPhongThuyPage() {
                 <span>Bói SIM phong thủy • Bát Tự &amp; 80 Quẻ Kinh Dịch MobiFone</span>
               </div>
               <h1 className="text-lg sm:text-3xl font-extrabold text-foreground tracking-tight">
-                Bói SIM Phong Thủy <span className="text-gold">Hợp Tuổi Theo Ngày Sinh</span>
+                Bói SIM Điện Thoại <span className="text-gold">Hợp Tuổi Theo Ngày Sinh</span>
               </h1>
               <p className="hidden sm:block text-xs sm:text-sm text-muted-foreground/80 mt-1 max-w-lg mx-auto">
                 Nhập ngày sinh để xem SIM hợp tuổi, hợp mệnh và chấm điểm ngũ hành, âm dương, tổng nút, quẻ dịch trên kho hơn 50.000 SIM MobiFone.
@@ -142,6 +155,45 @@ export default function SimPhongThuyPage() {
                     <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{p.body}</p>
                   </div>
                 ))}
+              </div>
+
+              {/* Ví dụ 4 số cuối chia 80 — lấy từ bảng quẻ thật của engine */}
+              <div className="mt-6 pt-5 border-t border-border/40">
+                <h2 className="text-base sm:text-lg font-bold text-foreground mb-2 flex items-center gap-2">
+                  <span className="h-4 w-1 rounded-full bg-gold" />
+                  Bói SIM 4 số cuối chia 80: ví dụ cụ thể
+                </h2>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  Lấy 4 số cuối chia 80, phần dư là số quẻ (dư 0 tính là quẻ 80). Bảng dưới tính bằng
+                  đúng bảng 80 quẻ mà công cụ phía trên dùng, chỉ để tham khảo theo quan niệm dân gian.
+                </p>
+                <div className="mt-3 overflow-x-auto">
+                  <table className="w-full text-xs sm:text-sm">
+                    <thead>
+                      <tr className="text-left text-gold">
+                        <th className="py-1.5 pr-3">4 số cuối</th>
+                        <th className="py-1.5 pr-3">Chia 80 dư</th>
+                        <th className="py-1.5 pr-3">Mức</th>
+                        <th className="py-1.5">Ý nghĩa quẻ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {EXAMPLES.map((e) => (
+                        <tr key={e.suffix} className="border-t border-border/30 text-muted-foreground">
+                          <td className="py-1.5 pr-3 font-semibold text-foreground">{e.suffix}</td>
+                          <td className="py-1.5 pr-3">{e.rem}</td>
+                          <td className="py-1.5 pr-3">{e.h?.level}</td>
+                          <td className="py-1.5">{e.h?.title}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground leading-relaxed">
+                  Các quẻ xếp mức Đại cát trong bảng: {DAI_CAT.map((h) => h.index).join(", ")}. Muốn
+                  xem nhanh một số cụ thể, Quý khách nhập ngày sinh ở công cụ phía trên rồi bấm vào
+                  SIM để thấy quẻ, mệnh và tổng nút.
+                </p>
               </div>
 
               {/* FAQ */}
