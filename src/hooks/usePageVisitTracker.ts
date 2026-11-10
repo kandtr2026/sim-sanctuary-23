@@ -21,16 +21,23 @@ import { applyNoiBoFromUrl, isNoiBoDevice, markNoiBoDevice, stripNoiBoParam } fr
  * All failures are swallowed: tracking must never break the page. The RLS
  * policy allows anonymous INSERT, so this works for logged-out visitors.
  *
+ * Debounce: khi khách gõ tìm kiếm, URL đổi liên tục (`/?q=0`, `/?q=09`...)
+ * trên CÙNG pathname. Chỉ ghi 1 lượt sau khi ngừng thao tác SEARCH_DEBOUNCE_MS;
+ * đổi pathname (hoặc lần vào đầu tiên) thì ghi ngay.
+ *
  * Máy NỘI BỘ (src/lib/noiBoDevice.ts) không bao giờ được đếm: máy từng vào
  * /admin hoặc từng có phiên đăng nhập bị gắn cờ VĨNH VIỄN (kể cả sau khi đăng
  * xuất); `?noibo=1` trên URL bất kỳ bật cờ, `?noibo=0` tắt cờ.
  */
 const THROTTLE_MS = 5_000;
+const SEARCH_DEBOUNCE_MS = 1_500;
 
 export function usePageVisitTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const lastLoggedRef = useRef<{ path: string; at: number } | null>(null);
+  const lastPathnameRef = useRef<string | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // `?noibo=1` / `?noibo=0` — A Khoa mở 1 lần trên máy nhân viên để bật/tắt cờ
@@ -52,7 +59,14 @@ export function usePageVisitTracker() {
 
     let cancelled = false;
 
-    void (async () => {
+    const clearDebounce = () => {
+      if (debounceTimerRef.current !== null) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+    };
+
+    const track = async () => {
       // A logged-in owner browsing their own public site must not be counted as
       // a customer visit either — their testing would flood the dashboard the
       // same way their /admin visits did. Có phiên = máy nội bộ → gắn cờ vĩnh
@@ -108,10 +122,27 @@ export function usePageVisitTracker() {
       } catch {
         // best-effort: theo dõi không bao giờ làm hỏng trang
       }
-    })();
+    };
+
+    // Trường hợp A: first load hoặc đổi pathname → ghi ngay.
+    // Trường hợp B: cùng pathname, chỉ searchParams đổi (gõ tìm kiếm / đổi
+    // filter) → debounce, chỉ ghi URL mới nhất khi khách ngừng thao tác.
+    clearDebounce();
+    const isSamePathname = lastPathnameRef.current === pathname;
+    lastPathnameRef.current = pathname;
+
+    if (isSamePathname) {
+      debounceTimerRef.current = setTimeout(() => {
+        debounceTimerRef.current = null;
+        void track();
+      }, SEARCH_DEBOUNCE_MS);
+    } else {
+      void track();
+    }
 
     return () => {
       cancelled = true;
+      clearDebounce();
     };
   }, [pathname, searchParams]);
 }
