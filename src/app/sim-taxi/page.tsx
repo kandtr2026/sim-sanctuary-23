@@ -242,6 +242,7 @@ export default async function SimTaxiPage() {
             </h2>
             <ul className="flex flex-wrap gap-3 text-sm">
               <li><a href="/sim-lap-kep" className="font-medium text-primary underline-offset-2 hover:underline">Sim lặp kép</a></li>
+              <li><a href="/sim-tam-hoa" className="font-medium text-primary underline-offset-2 hover:underline">Sim tam hoa</a></li>
               <li><a href="/sim-de-nho" className="font-medium text-primary underline-offset-2 hover:underline">Sim dễ nhớ</a></li>
               <li><a href="/sim-tu-quy-giua" className="font-medium text-primary underline-offset-2 hover:underline">Sim tứ quý giữa</a></li>
               <li><a href="/sim-ngu-quy" className="font-medium text-primary underline-offset-2 hover:underline">Sim ngũ quý</a></li>

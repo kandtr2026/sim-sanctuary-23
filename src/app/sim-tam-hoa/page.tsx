@@ -19,25 +19,34 @@ const ZALO_URL = "https://zalo.me/0933686666";
 // là snapshot rỗng và cả bảng giá + Product/Offer biến mất mà build vẫn xanh.
 const TAG = "Tam hoa";
 
-const TITLE = "Sim Tam Hoa Mobifone | Ba Số Cuối Giống Nhau, Giá Rõ";
+// Title tĩnh dự phòng khi kho rỗng. Khi kho có số, title/meta lấy số lượng + giá
+// thấp nhất thật từ kho (GSC 11/2026: "sim tam hoa" 12 imp/tuần, pos 35 → 21.7,
+// 0 click — title cũ không có giá, không có số lượng nên CTR yếu).
+const TITLE = "Sim Tam Hoa MobiFone — Đuôi 000 Đến 999, Giá Niêm Yết";
 const DESCRIPTION =
-  "Kho sim tam hoa Mobifone với ba số cuối giống nhau: 222, 555, 888. Quý khách xem giá niêm yết ngay cạnh từng số, đăng ký thông tin chính chủ, giao tận nơi HCM.";
+  "Kho sim tam hoa MobiFone với ba số cuối giống nhau: 222, 555, 888, 999. Quý khách xem giá niêm yết ngay cạnh từng số, đăng ký thông tin chính chủ, giao tận nơi HCM.";
 const CANONICAL = `${BASE_URL}/sim-tam-hoa`;
 
 export async function generateMetadata(): Promise<Metadata> {
   // Kho tụt dưới ngưỡng → noindex, follow: giữ link equity, không đẩy trang
   // mỏng vào chỉ mục (cùng luật với /sim-nam-sinh/[year]).
-  const { count } = await getTagInventory(TAG);
+  const { count, min } = await getTagInventory(TAG);
   const thin = count < MIN_INDEXABLE_INVENTORY;
+  const live = count > 0 && min > 0;
+  const countText = count.toLocaleString("vi-VN");
+  const title = live ? `Sim Tam Hoa MobiFone Giá Từ ${formatTrieu(min)} — ${countText} Số Có Sẵn` : TITLE;
+  const description = live
+    ? `${countText} sim tam hoa MobiFone đuôi 000 đến 999, giá từ ${formatTrieu(min)}, niêm yết cạnh từng số. Đăng ký chính chủ, nhận SIM kiểm tra rồi mới trả tiền, giao tận nơi.`
+    : DESCRIPTION;
 
   return {
-    title: { absolute: TITLE },
-    description: DESCRIPTION,
+    title: { absolute: title },
+    description,
     alternates: { canonical: CANONICAL },
     ...(thin ? { robots: { index: false, follow: true } } : {}),
     openGraph: {
       type: "website",
-      title: TITLE,
+      title,
       description: "Sim tam hoa Mobifone — ba số cuối giống nhau. Giá công khai, đăng ký thông tin chính chủ.",
       url: CANONICAL,
       images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],

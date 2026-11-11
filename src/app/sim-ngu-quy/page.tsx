@@ -214,6 +214,11 @@ export default async function SimNguQuyPage() {
                 </a>
               </li>
               <li>
+                <a href="/sim-tam-hoa" className="font-medium text-primary underline-offset-2 hover:underline">
+                  Sim tam hoa
+                </a>
+              </li>
+              <li>
                 <a href="/sim-than-tai" className="font-medium text-primary underline-offset-2 hover:underline">
                   Sim thần tài
                 </a>
