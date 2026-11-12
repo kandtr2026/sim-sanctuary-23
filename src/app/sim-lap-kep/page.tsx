@@ -23,17 +23,28 @@ const DESCRIPTION =
 const CANONICAL = `${BASE_URL}/sim-lap-kep`;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { count } = await getTagInventory(TAG);
+  // GSC 28 ngày tới 11/11/2026: 31 imp, pos 9.8 nhưng CTR 3.2% — title cũ không
+  // có giá, không có số lượng. Khi kho có số, title/meta lấy số lượng + giá thấp
+  // nhất thật từ kho (cùng cách đã làm cho /sim-tam-hoa).
+  const { count, min } = await getTagInventory(TAG);
   const thin = count < MIN_INDEXABLE_INVENTORY;
+  const live = count > 0 && min > 0;
+  const countText = count.toLocaleString("vi-VN");
+  const title = live
+    ? `Sim Lặp Kép MobiFone Giá Từ ${formatTrieu(min)} — ${countText} Số Đuôi 2288, 6688`
+    : TITLE;
+  const description = live
+    ? `${countText} sim lặp kép (sim kép) MobiFone đuôi 2288, 6688, 2929, 8585, giá từ ${formatTrieu(min)}, niêm yết cạnh từng số. Đăng ký chính chủ, nhận SIM kiểm tra rồi mới trả tiền.`
+    : DESCRIPTION;
 
   return {
-    title: { absolute: TITLE },
-    description: DESCRIPTION,
+    title: { absolute: title },
+    description,
     alternates: { canonical: CANONICAL },
     ...(thin ? { robots: { index: false, follow: true } } : {}),
     openGraph: {
       type: "website",
-      title: TITLE,
+      title,
       description: "Sim lặp kép Mobifone — đuôi 2288, 6688 hoặc 2929, 8585. Giá công khai, chính chủ.",
       url: CANONICAL,
       images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
