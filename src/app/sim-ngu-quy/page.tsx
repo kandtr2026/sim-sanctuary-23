@@ -6,6 +6,7 @@ import CategoryFeaturedSims from "@/components/CategoryFeaturedSims";
 import FaqAccordion from "@/components/FaqAccordion";
 import { buildBreadcrumb } from "@/lib/seo";
 import { getCategorySnapshotMix } from "@/lib/serverSimData";
+import { getTagsInventory, formatTrieu } from "@/lib/simDangSo";
 
 // ISR: prerender + revalidate every 300s (khớp /api/sims) so crawlers hit a
 // cached page instead of forcing SSR (ƒ) on every request.
@@ -18,18 +19,33 @@ const DESCRIPTION =
   "Sim ngũ quý Mobifone 88888, 99999 và lục quý — nhóm số khan hiếm. Giá niêm yết công khai, đăng ký thông tin chính chủ, Quý khách nhận SIM kiểm tra rồi mới thanh toán.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-ngu-quy";
 
-export const metadata: Metadata = {
-  title: { absolute: TITLE },
-  description: DESCRIPTION,
-  alternates: { canonical: CANONICAL },
-  openGraph: {
-    type: "website",
-    title: TITLE,
-    description: "Sim ngũ quý 88888, 99999 và lục quý Mobifone. Giá công khai, chính chủ.",
-    url: CANONICAL,
-    images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
-  },
-};
+// GSC 28 ngày tới 11/11/2026: 7 imp, pos 5.4, 0 click — title cũ không có giá,
+// không có số lượng. Khi kho có số, title/meta lấy số lượng + giá thấp nhất thật
+// từ kho (cùng cách đã làm cho /sim-tam-hoa, /sim-lap-kep). Không thêm noindex:
+// trang đã nằm top 5, kho ngũ quý mỏng là bình thường.
+export async function generateMetadata(): Promise<Metadata> {
+  const { count, min } = await getTagsInventory(NGU_LUC_QUY_TAGS);
+  const live = count > 0 && min > 0;
+  const countText = count.toLocaleString("vi-VN");
+  const title = live
+    ? `Sim Ngũ Quý MobiFone Giá Từ ${formatTrieu(min)} — ${countText} Số 88888, 99999`
+    : TITLE;
+  const description = live
+    ? `${countText} sim ngũ quý, lục quý MobiFone (đuôi và giữa dãy), giá từ ${formatTrieu(min)}, niêm yết cạnh từng số. Đăng ký chính chủ, nhận SIM kiểm tra rồi mới thanh toán.`
+    : DESCRIPTION;
+  return {
+    title: { absolute: title },
+    description,
+    alternates: { canonical: CANONICAL },
+    openGraph: {
+      type: "website",
+      title,
+      description: "Sim ngũ quý 88888, 99999 và lục quý Mobifone. Giá công khai, chính chủ.",
+      url: CANONICAL,
+      images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
+    },
+  };
+}
 
 const faqItems = [
   {

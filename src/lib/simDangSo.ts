@@ -112,6 +112,12 @@ export const getTagInventory = async (tag: string): Promise<InventoryStats> => {
   return buildStats(sims.filter((s) => s.price > 0 && s.tags.includes(tag)));
 };
 
+/** Như `getTagInventory` nhưng gộp nhiều tag (SIM khớp BẤT KỲ tag nào, không đếm trùng). */
+export const getTagsInventory = async (tags: string[]): Promise<InventoryStats> => {
+  const sims = await getServerSims();
+  return buildStats(sims.filter((s) => s.price > 0 && tags.some((t) => s.tags.includes(t))));
+};
+
 // ── Dải giá: slug ↔ nhãn trong PRICE_RANGES ─────────────────────────────────
 //
 // CHỈ 4 dải này có trang riêng. Cố ý BỎ "Dưới 1 triệu" (379 số) và các bậc từ 50
