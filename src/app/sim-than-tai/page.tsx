@@ -2,28 +2,47 @@ import type { Metadata } from "next";
 import CategorySimGrid from "@/components/CategorySimGrid";
 import TrustCommitments from "@/components/TrustCommitments";
 import FaqAccordion from "@/components/FaqAccordion";
+import LocalServiceLinks from "@/components/LocalServiceLinks";
 import { buildBreadcrumb } from "@/lib/seo";
 import { KHO_229K_BAT } from "@/lib/kho229k";
+import { getTagInventory, formatTrieu } from "@/lib/simDangSo";
 
 export const revalidate = 300;
+
+// Tên tag lấy ĐÚNG chuỗi trong ALL_SIM_TAGS (src/lib/simUtils.ts).
+const TAG = "Thần tài";
 
 const TITLE = "Sim Thần Tài 39 79 | Kho Sim Thần Tài Mobifone";
 const DESCRIPTION =
   "Quý khách chọn sim thần tài Mobifone đẹp: đuôi 39 thần tài nhỏ, 79 thần tài lớn, 7939. Giá niêm yết công khai, đăng ký thông tin chính chủ, giao tận nơi HCM.";
 const CANONICAL = "https://www.chonsomobifone.com/sim-than-tai";
 
-export const metadata: Metadata = {
-  title: { absolute: TITLE },
-  description: DESCRIPTION,
-  alternates: { canonical: CANONICAL },
-  openGraph: {
-    title: TITLE,
-    description: DESCRIPTION,
-    url: CANONICAL,
-    type: "website",
-    locale: "vi_VN",
-  },
-};
+// GSC 28 ngày tới 12/11/2026: 6 imp, pos 5.5, 0 click ("mobi thần tài") — title
+// cũ không có giá, không có số lượng. Khi kho có số, title/meta lấy số lượng + giá
+// thấp nhất thật từ kho (cùng cách đã làm cho /sim-tam-hoa, /sim-lap-kep, /sim-ngu-quy).
+export async function generateMetadata(): Promise<Metadata> {
+  const { count, min } = await getTagInventory(TAG);
+  const live = count > 0 && min > 0;
+  const countText = count.toLocaleString("vi-VN");
+  const title = live
+    ? `Sim Thần Tài MobiFone Giá Từ ${formatTrieu(min)} — ${countText} Số Đuôi 39, 79`
+    : TITLE;
+  const description = live
+    ? `${countText} sim thần tài MobiFone đuôi 39, 79, 3979, 7939, giá từ ${formatTrieu(min)}, niêm yết cạnh từng số. Đăng ký chính chủ, nhận SIM kiểm tra rồi mới thanh toán.`
+    : DESCRIPTION;
+  return {
+    title: { absolute: title },
+    description,
+    alternates: { canonical: CANONICAL },
+    openGraph: {
+      title,
+      description,
+      url: CANONICAL,
+      type: "website",
+      locale: "vi_VN",
+    },
+  };
+}
 
 const faqItems = [
   {
@@ -74,6 +93,7 @@ export default function SimThanTaiPage() {
           <div className="mt-8 space-y-6 pt-6 border-t border-border/40">
             <TrustCommitments />
             <FaqAccordion items={faqItems} />
+            <LocalServiceLinks />
 
             <section className="rounded-xl border border-border bg-card p-6 shadow-card">
               <h2 className="mb-4 flex items-center gap-3 text-lg font-bold text-primary">
