@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { buildBreadcrumb, type BreadcrumbItem } from "@/lib/seo";
+import LocalServiceLinks from "@/components/LocalServiceLinks";
 
 const HOTLINE = "0933.686.666";
 const EMAIL = "hotro@chonsomobifone.com";
@@ -265,6 +266,8 @@ export function PolicyArticle({ doc }: { doc: PolicyDoc }) {
             </a>
           </div>
         </article>
+
+        <LocalServiceLinks className="mt-6" />
       </main>
 
       <script

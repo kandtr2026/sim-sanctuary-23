@@ -4,6 +4,7 @@ import CategorySimGrid from "@/components/CategorySimGrid";
 import CategoryHeroArt from "@/components/CategoryHeroArt";
 import CategoryFeaturedSims from "@/components/CategoryFeaturedSims";
 import FaqAccordion from "@/components/FaqAccordion";
+import LocalServiceLinks from "@/components/LocalServiceLinks";
 import { buildBreadcrumb } from "@/lib/seo";
 import { getCategorySnapshotMix } from "@/lib/serverSimData";
 import { getTagsInventory, formatTrieu } from "@/lib/simDangSo";
@@ -251,6 +252,8 @@ export default async function SimNguQuyPage() {
               </li>
             </ul>
           </section>
+
+          <LocalServiceLinks />
         </div>
       </main>
 

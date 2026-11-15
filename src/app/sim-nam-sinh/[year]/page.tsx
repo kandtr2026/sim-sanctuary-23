@@ -7,6 +7,7 @@ import TrustCommitments from "@/components/TrustCommitments";
 import CustomerProof from "@/components/CustomerProof";
 import LeadMagnetCta from "@/components/LeadMagnetCta";
 import FaqAccordion from "@/components/FaqAccordion";
+import LocalServiceLinks from "@/components/LocalServiceLinks";
 import { buildBreadcrumb, BASE_URL } from "@/lib/seo";
 import type { NormalizedSIM } from "@/lib/simUtils";
 import {
@@ -316,6 +317,8 @@ export default async function SimNamSinhPage({ params, searchParams }: Props) {
 
           <CustomerProof />
           <TrustCommitments />
+
+          <LocalServiceLinks />
 
           {/* FAQ */}
           <FaqAccordion items={faqItems} />
