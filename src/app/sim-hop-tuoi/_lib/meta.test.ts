@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ALL_YEARS, buildDescription, buildIntro, buildTitle, getYearInfo } from "./yearContent";
+import { ALL_YEARS, buildDescription, buildIntro, buildPricedTitle, buildTitle, getYearInfo } from "./yearContent";
 import { HANH_META } from "@/app/sim-hop-menh/_lib/hanhMeta";
 
 /**
@@ -14,6 +14,22 @@ describe("meta cụm sim hợp tuổi", () => {
   it("title ≤ 60 ký tự cho cả 61 năm", () => {
     const viPham = ALL_YEARS.map((y) => buildTitle(getYearInfo(y))).filter((t) => t.length > 60);
     expect(viPham).toEqual([]);
+  });
+
+  it("title có giá ≤ 60 ký tự cho cả 61 năm, kể cả chuỗi giá dài nhất", () => {
+    // formatTrieu dài nhất thực tế: "999 nghìn" / "9,9 triệu" (9) — đo dư lên 10.
+    const viPham = ALL_YEARS.flatMap((y) =>
+      ["999 nghìn", "9,9 triệu", "99 triệu", "999 triệu"].map((g) => buildPricedTitle(getYearInfo(y), g)),
+    ).filter((t) => t.length > 60);
+    expect(viPham).toEqual([]);
+  });
+
+  it("title có giá giữ cụm 'Sim Hợp Tuổi <năm>' ở đầu và có giá", () => {
+    for (const y of ALL_YEARS) {
+      const t = buildPricedTitle(getYearInfo(y), "1,7 triệu");
+      expect(t.startsWith(`Sim Hợp Tuổi ${y}`)).toBe(true);
+      expect(t).toContain("1,7 triệu");
+    }
   });
 
   it("description 140–165 ký tự cho cả 61 năm", () => {

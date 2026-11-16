@@ -6,6 +6,7 @@ import CategorySimPriceList from "@/components/CategorySimPriceList";
 import TrustCommitments from "@/components/TrustCommitments";
 import FaqAccordion from "@/components/FaqAccordion";
 import { BASE_URL, buildBreadcrumb } from "@/lib/seo";
+import { formatTrieu } from "@/lib/simDangSo";
 import NguHanhDigitTable from "@/app/sim-hop-menh/_components/NguHanhDigitTable";
 import TopScoreBreakdown from "@/app/sim-hop-menh/_components/TopScoreBreakdown";
 import {
@@ -20,6 +21,7 @@ import {
   ALL_YEARS,
   buildDescription,
   buildIntro,
+  buildPricedTitle,
   buildTitle,
   getYearInfo,
   isSupportedYear,
@@ -50,13 +52,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const info = getYearInfo(Number(nam));
   const canonical = `${BASE_URL}/sim-hop-tuoi/${nam}`;
-  const title = buildTitle(info);
   const description = buildDescription(info);
 
   // Kho không đủ số cho mệnh này (thực tế chỉ xảy ra khi đọc kho thất bại) →
   // noindex, follow: giữ link equity mà không đẩy trang rỗng vào chỉ mục.
   const pool = await getRankedPool(profileForYear(info.nam));
   const thin = pool.length < MIN_SIMS_TO_INDEX;
+
+  // Giá "từ" = số rẻ nhất trong ĐÚNG bảng trang đang hiện (cùng pickRotated với
+  // phần render), để title không hứa giá mà khách vào không thấy.
+  const shown = pickRotated(pool, info.nam, ROWS_PER_PAGE)
+    .map((p) => p.sim.price)
+    .filter((p) => Number.isFinite(p) && p > 0);
+  const minPrice = shown.length > 0 ? Math.min(...shown) : 0;
+  const title = minPrice > 0 ? buildPricedTitle(info, formatTrieu(minPrice)) : buildTitle(info);
 
   return {
     title: { absolute: title },

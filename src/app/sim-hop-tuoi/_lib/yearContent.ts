@@ -100,6 +100,28 @@ export const buildTitle = (info: YearInfo): string => {
   }
 };
 
+/**
+ * Title có giá thật — dùng khi bảng số của trang đã có hàng. GSC 11/2026: cụm
+ * /sim-hop-tuoi/[nam] 186 imp / 90 ngày, pos TB 7.8 nhưng chỉ 3 click; title cũ
+ * không có giá nên snippet không có lý do để bấm (cùng bài học /sim-tam-hoa,
+ * /sim-lap-kep). `giaTu` là chuỗi formatTrieu của số rẻ nhất ĐANG HIỆN trên
+ * trang, để title không hứa giá mà khách vào không thấy.
+ * Vẫn xoay 4 khuôn theo nam % 4, vẫn ≤ 60 ký tự (meta.test.ts).
+ */
+export const buildPricedTitle = (info: YearInfo, giaTu: string): string => {
+  const { nam, canChi, menh } = info;
+  switch (nam % 4) {
+    case 0:
+      return `Sim Hợp Tuổi ${nam} ${canChi} – Mệnh ${menh}, Giá Từ ${giaTu}`;
+    case 1:
+      return `Sim Hợp Tuổi ${nam} (${canChi}) Mệnh ${menh} – Từ ${giaTu}`;
+    case 2:
+      return `Sim Hợp Tuổi ${nam} ${canChi}: Hợp Mệnh ${menh}, Từ ${giaTu}`;
+    default:
+      return `Sim Hợp Tuổi ${nam} MobiFone Mệnh ${menh} – Giá Từ ${giaTu}`;
+  }
+};
+
 export const buildDescription = (info: YearInfo): string => {
   const { nam, canChi, conGiap, napAm, menh, soUuTien, soNenTranh } = info;
   switch (nam % 4) {
