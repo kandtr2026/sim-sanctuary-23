@@ -8,6 +8,7 @@ import TrustCommitments from "@/components/TrustCommitments";
 import CustomerProof from "@/components/CustomerProof";
 import LeadMagnetCta from "@/components/LeadMagnetCta";
 import FaqAccordion from "@/components/FaqAccordion";
+import LocalServiceLinks from "@/components/LocalServiceLinks";
 import { buildBreadcrumb } from "@/lib/seo";
 import { getCategorySnapshot } from "@/lib/serverSimData";
 import {
@@ -372,6 +373,21 @@ export default async function SimDauSoPage({ params }: Props) {
             <h3 className="mb-2 mt-6 text-lg font-bold text-foreground">Dòng sim nổi bật</h3>
             <ul className="flex flex-wrap gap-3 text-sm">
               <li>
+                <a href="/sim-tam-hoa" className="font-medium text-primary underline-offset-2 hover:underline">
+                  Sim tam hoa
+                </a>
+              </li>
+              <li>
+                <a href="/sim-lap-kep" className="font-medium text-primary underline-offset-2 hover:underline">
+                  Sim lặp kép
+                </a>
+              </li>
+              <li>
+                <a href="/sim-ngu-quy" className="font-medium text-primary underline-offset-2 hover:underline">
+                  Sim ngũ quý
+                </a>
+              </li>
+              <li>
                 <a href="/sim-than-tai" className="font-medium text-primary underline-offset-2 hover:underline">
                   Sim thần tài
                 </a>
@@ -388,6 +404,10 @@ export default async function SimDauSoPage({ params }: Props) {
               </li>
             </ul>
           </section>
+
+          {/* 38 trang đầu số đã index + được cào đều (GSC 11/2026) → link cụm Quận 7
+              (vẫn Discovered-not-indexed) để Googlebot tìm thấy sớm hơn. */}
+          <LocalServiceLinks />
         </div>
       </main>
 
