@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { PRICE_RANGES, type QuyType } from '@/lib/simUtils';
 import { NGU_HANH_LIST, HANH_MAU } from '@/lib/phongThuy';
 import type { FilterState } from '@/hooks/useSimData';
+import { withGia } from '@/lib/giaParam';
 
 interface AdvancedFilterSidebarProps {
   filters: FilterState;
@@ -118,13 +119,15 @@ const AdvancedFilterSidebar = ({
     <aside className={isDrawer ? 'bg-transparent' : 'bg-card rounded-lg shadow-card border border-border overflow-hidden'}>
       {/* SIM theo mệnh — điều hướng sang view ngũ hành của số (trang riêng
           /sim-theo-menh/<hành>), KHÔNG phải bộ lọc lưới. Chuyển từ thanh nav
-          xuống đây để nav bớt chật; đặt trên cùng cho khách dễ thấy. */}
+          xuống đây để nav bớt chật; đặt trên cùng cho khách dễ thấy.
+          Khách đã chọn khoảng giá thì link mang theo `?gia=` (vd 3-5,5-10) để
+          trang mệnh lọc luôn đúng khoảng giá đó. */}
       <FilterSection title="SIM theo mệnh">
         <div className={listCls}>
           {NGU_HANH_LIST.map((h) => (
             <Link
               key={h.slug}
-              href={`/sim-theo-menh/${h.slug}`}
+              href={withGia(`/sim-theo-menh/${h.slug}`, filters.priceRanges)}
               className={
                 isDrawer
                   ? 'flex min-h-[42px] items-center gap-1.5 rounded-lg border border-border bg-secondary/40 px-2.5 py-1.5 text-[13px] font-semibold leading-tight text-foreground transition hover:border-gold/60 hover:bg-secondary/70'

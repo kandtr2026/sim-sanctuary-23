@@ -7,6 +7,8 @@ import SearchBarAdvanced from "@/components/SearchBarAdvanced";
 import SIMCardNew from "@/components/SIMCardNew";
 import type { NormalizedSIM } from "@/lib/simUtils";
 import { nguHanhCuaSo, diemTongHop, diemMucTieu, type NguHanh, type MucTieu } from "@/lib/phongThuy";
+import { giaKhop, giaLabel } from "@/lib/giaParam";
+import { GiaFilterRow, MenhGiaResults, useGiaParam } from "@/components/MenhGiaFilter";
 
 /**
  * Lưới số cho trang /sim-theo-menh/[hành] và /sim-hop/[mục tiêu], KÈM ô tìm kiếm
@@ -18,11 +20,17 @@ import { nguHanhCuaSo, diemTongHop, diemMucTieu, type NguHanh, type MucTieu } fr
  * - Gõ mẫu số (vd *686, 090*): gọi /api/sims?search= để server dò mẫu trên TOÀN
  *   kho, rồi LỌC client theo đúng ngũ hành (Hà Đồ) / mục tiêu của trang, xếp theo
  *   điểm phong thủy cao nhất. Ngũ hành/điểm tính đúng bằng chip trên thẻ nên nhất quán.
+ * - Trang mệnh (có `hanhSlug`): thêm hàng nút "Mức giá" (`?gia=` trên URL). Chọn
+ *   giá → lọc mệnh + giá trên TOÀN kho qua /api/sim-menh (MenhGiaResults), vẫn
+ *   xếp theo điểm phong thủy, có "Xem thêm". Đang gõ mẫu số thì kết quả tìm cũng
+ *   lọc theo khoảng giá đã chọn. Chưa chọn giá → y như cũ (`initial`).
  */
 type Props = {
   initial: NormalizedSIM[];
   /** Trang theo mệnh: ngũ hành của số phải bằng hành này. */
   hanh?: NguHanh;
+  /** Slug của mệnh (kim|moc|…). Có thì hiện hàng nút "Mức giá" lọc toàn kho. */
+  hanhSlug?: string;
   /** Trang theo mục tiêu: số phải hỗ trợ mục tiêu này (điểm ≥ 1). */
   mucId?: MucTieu;
   /** Nhãn mục tiêu (vd "Tài lộc") để dựng câu chữ; chỉ dùng khi có mucId. */
@@ -33,8 +41,11 @@ type Props = {
 const ZALO = "https://zalo.me/0933686666";
 const SEARCH_LIMIT = 300;
 
-export default function MenhMucSearchGrid({ initial, hanh, mucId, label, zaloHref = ZALO }: Props) {
+export default function MenhMucSearchGrid({ initial, hanh, hanhSlug, mucId, label, zaloHref = ZALO }: Props) {
   const [query, setQuery] = useState("");
+  const [giaUrl, setGia] = useGiaParam();
+  const coLocGia = Boolean(hanh && hanhSlug);
+  const gia = useMemo(() => (coLocGia ? giaUrl : []), [coLocGia, giaUrl]);
   // Cần ≥ 2 chữ số thật (bỏ dấu *) mới đi tìm — giống ô tìm trang chủ.
   const active = query.replace(/[^0-9]/g, "").length >= 2;
 
@@ -57,11 +68,12 @@ export default function MenhMucSearchGrid({ initial, hanh, mucId, label, zaloHre
       .filter((s) =>
         hanh ? nguHanhCuaSo(s.rawDigits).chinh === hanh : mucId ? diemMucTieu(s.rawDigits, mucId) >= 1 : true,
       )
+      .filter((s) => giaKhop(s.price, gia))
       .map((s) => ({ s, pt: diemTongHop(s.rawDigits).diem }))
       .sort((a, b) => b.pt - a.pt || a.s.price - b.s.price)
       .slice(0, 60)
       .map((x) => x.s);
-  }, [active, data, initial, hanh, mucId]);
+  }, [active, data, initial, hanh, mucId, gia]);
 
   const nhan = hanh ? `mệnh ${hanh}` : label ? `hợp ${label}` : "phù hợp";
 
@@ -75,11 +87,15 @@ export default function MenhMucSearchGrid({ initial, hanh, mucId, label, zaloHre
         </p>
       </div>
 
-      {results.length === 0 ? (
+      {coLocGia && <GiaFilterRow className="mb-4" ranges={gia} onChange={setGia} />}
+
+      {coLocGia && !active && gia.length > 0 ? (
+        <MenhGiaResults hanhSlug={hanhSlug!} hanh={hanh!} kieu="theo" ranges={gia} zaloHref={zaloHref} />
+      ) : results.length === 0 ? (
         <p className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
           {active ? (
             <>
-              Không tìm thấy số {nhan} khớp “{query}”. Quý khách thử mẫu khác, hoặc{" "}
+              Không tìm thấy số {nhan} khớp “{query}”{gia.length > 0 ? ` giá ${giaLabel(gia)}` : ""}. Quý khách thử mẫu khác, hoặc{" "}
             </>
           ) : (
             <>Kho tạm chưa có số {nhan}. Quý khách </>
@@ -98,7 +114,9 @@ export default function MenhMucSearchGrid({ initial, hanh, mucId, label, zaloHre
           </div>
           {active && (
             <p className="mt-3 text-xs text-muted-foreground">
-              {isFetching ? "Đang tìm…" : `Hiện ${results.length} số ${nhan} khớp “${query}”, xếp theo điểm phong thủy cao nhất.`}
+              {isFetching
+                ? "Đang tìm…"
+                : `Hiện ${results.length} số ${nhan} khớp “${query}”${gia.length > 0 ? ` giá ${giaLabel(gia)}` : ""}, xếp theo điểm phong thủy cao nhất.`}
             </p>
           )}
         </>

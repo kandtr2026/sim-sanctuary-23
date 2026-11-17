@@ -219,7 +219,7 @@ export default async function SimTheoMenhHanhPage({ params }: Props) {
           </div>
         </section>
 
-        <MenhMucSearchGrid initial={scored.map((x) => x.s)} hanh={item.hanh} zaloHref={ZALO} />
+        <MenhMucSearchGrid initial={scored.map((x) => x.s)} hanh={item.hanh} hanhSlug={item.slug} zaloHref={ZALO} />
         <p className="mt-4 text-xs text-muted-foreground">
           Ngũ hành của số tính theo Hà Đồ, điểm phong thủy theo Bát Cực + quẻ — mang tính tham khảo.
           Bấm vào số để xem phân tích đầy đủ, hoặc nhập năm sinh ở ô “Hợp tuổi” để soi theo mệnh bạn.

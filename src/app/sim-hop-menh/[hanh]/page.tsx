@@ -5,6 +5,7 @@ import { Phone, Sparkles, Star } from "lucide-react";
 import CategorySimPriceList from "@/components/CategorySimPriceList";
 import TrustCommitments from "@/components/TrustCommitments";
 import FaqAccordion from "@/components/FaqAccordion";
+import { MenhGiaSection } from "@/components/MenhGiaFilter";
 import { BASE_URL, buildBreadcrumb } from "@/lib/seo";
 import { TUONG_KHAC, TUONG_SINH, tinhCanChi, type NguHanh } from "@/lib/simHopTuoi";
 import NguHanhDigitTable from "../_components/NguHanhDigitTable";
@@ -208,13 +209,15 @@ export default async function SimHopMenhPage({ params }: Props) {
 
           {/* Số thật + giá + ItemList/Product/Offer JSON-LD */}
           <div id="kho-sim" className="scroll-mt-20">
-            <CategorySimPriceList
-              title={`Sim hợp mệnh ${hanh} đang có trong kho`}
-              sims={priceSims}
-              pageUrl={canonical}
-              intro={`${priceSims.length} số thuộc nhóm điểm cao nhất khi chấm theo mệnh ${hanh}. Giá đã niêm yết, Quý khách xem rồi chốt.`}
-              note={`${meta.bangGiaNote} Giờ sinh và giới tính lấy mặc định (giờ Tý, nam) vì trang này không hỏi ngày sinh — nhập đủ ở công cụ xem sim hợp tuổi để chấm lại. Bảng cập nhật mỗi 5 phút.`}
-            />
+            <MenhGiaSection hanhSlug={slug} hanh={hanh} kieu="hop" zaloHref={ZALO_URL}>
+              <CategorySimPriceList
+                title={`Sim hợp mệnh ${hanh} đang có trong kho`}
+                sims={priceSims}
+                pageUrl={canonical}
+                intro={`${priceSims.length} số thuộc nhóm điểm cao nhất khi chấm theo mệnh ${hanh}. Giá đã niêm yết, Quý khách xem rồi chốt.`}
+                note={`${meta.bangGiaNote} Giờ sinh và giới tính lấy mặc định (giờ Tý, nam) vì trang này không hỏi ngày sinh — nhập đủ ở công cụ xem sim hợp tuổi để chấm lại. Bảng cập nhật mỗi 5 phút.`}
+              />
+            </MenhGiaSection>
           </div>
 
           {/* Chi tiết chấm điểm 3 số dẫn đầu */}
