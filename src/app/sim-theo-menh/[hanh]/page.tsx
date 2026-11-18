@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import MenhMucSearchGrid from "@/components/MenhMucSearchGrid";
 import LocalServiceLinks from "@/components/LocalServiceLinks";
+import FaqAccordion, { type FaqItem } from "@/components/FaqAccordion";
 import { getServerSims } from "@/lib/serverSimData";
+import { formatTrieu } from "@/lib/simDangSo";
 import { BASE_URL, buildBreadcrumb } from "@/lib/seo";
 import { HANH_COPY, buildHanhTable, formatDigits } from "@/app/sim-hop-menh/_lib/menhContent";
 import {
@@ -26,6 +28,12 @@ export function generateStaticParams() {
 
 const ZALO = "https://zalo.me/0933686666";
 
+/** Kho SIM có giá thuộc ngũ hành chính `hanh` — dùng chung cho metadata và trang. */
+async function getMenhPool(hanh: string) {
+  const sims = (await getServerSims()).filter((s) => s.price > 0);
+  return sims.filter((s) => nguHanhCuaSo(s.rawDigits).chinh === hanh);
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { hanh } = await params;
   const item = hanhTheoSlug(hanh);
@@ -37,9 +45,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = buildHanhTable(item.hanh);
   const hop = formatDigits([...t.dong, ...t.sinh]);
   const kieng = formatDigits(t.khacMenh);
-  // Cùng một công thức cho cả 5 hành (Hỏa ra đúng chuỗi cũ "9, 3, 4" / "0, 1").
-  const title = `SIM Mệnh ${item.hanh} MobiFone — Chọn Số Hợp ${item.hanh} ${hop} | CHONSOMOBIFONE.COM`;
-  const description = `Kho SIM MobiFone hợp mệnh ${item.hanh}: ưu tiên số ${hop}; hạn chế số ${kieng} ở đuôi. Giá niêm yết, đăng ký chính chủ, nhắn Zalo giữ số nhanh.`;
+  // GSC 90 ngày tới 16/11/2026: cụm 5 trang đã index nhưng query thật là dạng câu
+  // hỏi ("mệnh kim hợp số gì", "mệnh thổ hợp số gì", "4 số đuôi điện thoại hợp
+  // mệnh kim") đứng pos 50–87, 0 click. Title cũ không có câu hỏi, không có giá.
+  // Title/meta mới mở bằng đúng câu hỏi + giá thấp nhất và số lượng thật từ kho.
+  const pool = await getMenhPool(item.hanh);
+  const count = pool.length;
+  const min = count > 0 ? pool.reduce((m, s) => Math.min(m, s.price), Infinity) : 0;
+  const live = count > 0 && min > 0;
+  const countText = count.toLocaleString("vi-VN");
+  const title = live
+    ? `Mệnh ${item.hanh} Hợp Số Gì? SIM MobiFone Số ${hop} Giá Từ ${formatTrieu(min)}`
+    : `Mệnh ${item.hanh} Hợp Số Gì? SIM MobiFone Hợp Mệnh ${item.hanh} ${hop}`;
+  const description = live
+    ? `Mệnh ${item.hanh} hợp số ${hop}, hạn chế ${kieng} ở 4 số đuôi (theo quan niệm ngũ hành). ${countText} SIM MobiFone hợp mệnh ${item.hanh} giá từ ${formatTrieu(min)}, chính chủ, nhắn Zalo giữ số.`
+    : `Mệnh ${item.hanh} hợp số ${hop}, hạn chế ${kieng} ở 4 số đuôi (theo quan niệm ngũ hành). Kho SIM MobiFone giá niêm yết, đăng ký chính chủ, nhắn Zalo giữ số nhanh.`;
 
   return {
     title: { absolute: title },
@@ -69,12 +89,12 @@ export default async function SimTheoMenhHanhPage({ params }: Props) {
   const isHoa = item.hanh === "Hỏa";
   const hop = formatDigits([...table.dong, ...table.sinh]);
   const kieng = formatDigits(table.khacMenh);
-  const sims = (await getServerSims()).filter((s) => s.price > 0);
-  const scored = sims
-    .filter((s) => nguHanhCuaSo(s.rawDigits).chinh === item.hanh)
+  const pool = await getMenhPool(item.hanh);
+  const scored = pool
     .map((s) => ({ s, pt: diemTongHop(s.rawDigits).diem }))
     .sort((a, b) => b.pt - a.pt || a.s.price - b.s.price)
     .slice(0, 60);
+  const minPrice = pool.length > 0 ? pool.reduce((m, s) => Math.min(m, s.price), Infinity) : 0;
 
   const productCollectionJsonLd = {
     "@context": "https://schema.org",
@@ -102,29 +122,39 @@ export default async function SimTheoMenhHanhPage({ params }: Props) {
     },
   };
 
+  // FAQ hiển thị trên trang và FAQPage JSON-LD dùng chung một mảng — trước đây
+  // JSON-LD có câu trả lời mà HTML không có (trái chính sách FAQPage của Google).
+  const faqItems: FaqItem[] = [
+    {
+      q: `Mệnh ${item.hanh} hợp số gì khi chọn SIM điện thoại?`,
+      a: isHoa
+        ? "Theo quan niệm ngũ hành, mệnh Hỏa hợp số 9 vì cùng hành Hỏa; hợp thêm số 3 và 4 vì Mộc sinh Hỏa. Nên hạn chế số 0 và 1 vì thuộc Thủy, đặc biệt ở cụm đuôi."
+        : `Theo quan niệm ngũ hành, mệnh ${item.hanh} hợp nhóm số đồng hành ${formatDigits(table.dong)} và nhóm tương sinh ${formatDigits(table.sinh)}. Nên hạn chế số ${kieng} vì được xem là khắc mệnh ${item.hanh}, đặc biệt ở cụm đuôi.`,
+    },
+    {
+      q: `4 số đuôi điện thoại hợp mệnh ${item.hanh} nên chọn thế nào?`,
+      a: `Cách tham khảo phổ biến: 4 số cuối nên có nhiều số ${hop} và ít hoặc không có số ${kieng}; số cuối cùng là số hợp mệnh thì càng tốt. Đây là quan niệm dân gian, Quý khách nên ưu tiên thêm số dễ nhớ và hợp ngân sách.`,
+    },
+    {
+      q: `SIM hợp mệnh ${item.hanh} giá bao nhiêu?`,
+      a:
+        pool.length > 0 && minPrice > 0
+          ? `Kho hiện có ${pool.length.toLocaleString("vi-VN")} SIM MobiFone hợp mệnh ${item.hanh}, giá từ ${formatTrieu(minPrice)}. Giá niêm yết cạnh từng số; có thể chọn hàng nút Mức giá để lọc theo ngân sách.`
+          : `Giá niêm yết cạnh từng số; có thể chọn hàng nút Mức giá để lọc theo ngân sách hoặc nhắn Zalo 0933.68.6666 để được gợi ý số.`,
+    },
+    {
+      q: "Chọn SIM hợp mệnh có cần đúng cả ngày tháng năm sinh không?",
+      a: "Không bắt buộc. Trang này lọc theo ngũ hành của dãy số; nếu muốn soi kỹ theo năm sinh, Quý khách có thể mở từng số để xem thêm mục hợp tuổi hoặc nhắn Zalo để được tư vấn.",
+    },
+  ];
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: `Mệnh ${item.hanh} hợp số nào khi chọn SIM điện thoại?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: isHoa
-            ? "Theo quan niệm ngũ hành, mệnh Hỏa hợp số 9 vì cùng hành Hỏa; hợp thêm số 3 và 4 vì Mộc sinh Hỏa. Nên hạn chế số 0 và 1 vì thuộc Thủy, đặc biệt ở cụm đuôi."
-            : `Theo quan niệm ngũ hành, mệnh ${item.hanh} hợp nhóm số đồng hành ${formatDigits(table.dong)} và nhóm tương sinh ${formatDigits(table.sinh)}. Nên hạn chế số ${kieng} vì được xem là khắc mệnh ${item.hanh}, đặc biệt ở cụm đuôi.`,
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Chọn SIM hợp mệnh có cần đúng cả ngày tháng năm sinh không?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Không bắt buộc. Trang này lọc theo ngũ hành của dãy số; nếu muốn soi kỹ theo năm sinh, Quý khách có thể mở từng số để xem thêm mục hợp tuổi hoặc nhắn Zalo để được tư vấn.",
-        },
-      },
-    ],
+    mainEntity: faqItems.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
   };
 
   return (
@@ -203,7 +233,7 @@ export default async function SimTheoMenhHanhPage({ params }: Props) {
 
         <section className="mb-8 rounded-2xl border border-border bg-card p-5 shadow-card">
           <h2 className="text-lg font-bold text-foreground">
-            {isHoa ? "Cách chọn SIM hợp mệnh Hỏa để dễ bán, dễ nhớ" : `Số nào hợp mệnh ${item.hanh}? Cách chọn SIM mệnh ${item.hanh}`}
+            {`Mệnh ${item.hanh} hợp số gì? Cách chọn SIM mệnh ${item.hanh}`}
           </h2>
           <div className="mt-3 grid gap-4 text-sm leading-7 text-muted-foreground md:grid-cols-2">
             <div>
@@ -224,6 +254,7 @@ export default async function SimTheoMenhHanhPage({ params }: Props) {
           Ngũ hành của số tính theo Hà Đồ, điểm phong thủy theo Bát Cực + quẻ — mang tính tham khảo.
           Bấm vào số để xem phân tích đầy đủ, hoặc nhập năm sinh ở ô “Hợp tuổi” để soi theo mệnh bạn.
         </p>
+        <FaqAccordion items={faqItems} title={`Hỏi đáp: mệnh ${item.hanh} hợp số gì`} className="mt-6" />
         <LocalServiceLinks className="mt-6" />
       </div>
     </main>
