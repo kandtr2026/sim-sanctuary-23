@@ -8,7 +8,8 @@ import FaqAccordion from "@/components/FaqAccordion";
 import LocalServiceLinks from "@/components/LocalServiceLinks";
 import { buildBreadcrumb, BASE_URL } from "@/lib/seo";
 import { getCategorySnapshot } from "@/lib/serverSimData";
-import { getTagInventory, formatTrieu, MIN_INDEXABLE_INVENTORY } from "@/lib/simDangSo";
+import { getTagInventory, getTagTail3Groups, formatTrieu, MIN_INDEXABLE_INVENTORY } from "@/lib/simDangSo";
+import { formatSIMNumber } from "@/lib/simUtils";
 
 // ISR như các trang danh mục khác (khớp revalidate của /api/sims).
 export const revalidate = 300;
@@ -92,9 +93,10 @@ const faqJsonLd = {
 };
 
 export default async function SimTamHoaPage() {
-  const [snapshotSims, stats] = await Promise.all([
+  const [snapshotSims, stats, tailGroups] = await Promise.all([
     getCategorySnapshot({ tags: [TAG] }, 8),
     getTagInventory(TAG),
+    getTagTail3Groups(TAG),
   ]);
 
   return (
@@ -212,6 +214,58 @@ export default async function SimTamHoaPage() {
                   sim theo giá
                 </a>
                 .
+              </p>
+            </section>
+          )}
+
+          {/* ── 2b. Theo từng cụm 000 → 999 (GSC 11/2026: "sim tam hoa" pos ~18,
+                 trang 2; thêm dữ liệu thật theo cụm để đón truy vấn "tam hoa 888/999…") */}
+          {tailGroups.length > 0 && (
+            <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
+              <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
+                <span className="h-8 w-1 rounded-full bg-primary" />
+                Giá sim tam hoa theo từng cụm 000 đến 999
+              </h2>
+              <p className="mb-4 leading-relaxed text-muted-foreground">
+                Cùng là tam hoa nhưng mỗi cụm một mặt bằng giá. Bảng dưới đếm trực tiếp trên kho: mỗi cụm còn bao nhiêu
+                số, số rẻ nhất giá bao nhiêu. Quý khách gõ <strong className="text-foreground">*888</strong>,{" "}
+                <strong className="text-foreground">*999</strong>… vào ô tìm phía trên để xem hết số của cụm đó.
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <caption className="sr-only">Số lượng và giá sim tam hoa theo cụm ba số cuối</caption>
+                  <thead>
+                    <tr className="border-b border-border text-left">
+                      <th scope="col" className="py-2 pr-4 font-semibold text-foreground">Cụm</th>
+                      <th scope="col" className="py-2 pr-4 font-semibold text-foreground">Đang có</th>
+                      <th scope="col" className="py-2 pr-4 font-semibold text-foreground">Giá từ</th>
+                      <th scope="col" className="py-2 pr-4 font-semibold text-foreground">Mức giữa</th>
+                      <th scope="col" className="hidden py-2 font-semibold text-foreground sm:table-cell">Ví dụ rẻ nhất</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-muted-foreground">
+                    {tailGroups.map((g) => (
+                      <tr key={g.tail} className="border-b border-border last:border-0">
+                        <td className="py-2 pr-4 font-medium text-foreground">Tam hoa {g.tail}</td>
+                        <td className="py-2 pr-4">{g.count.toLocaleString("vi-VN")} số</td>
+                        <td className="py-2 pr-4 font-semibold text-foreground">{formatTrieu(g.min)}</td>
+                        <td className="py-2 pr-4">{formatTrieu(g.median)}</td>
+                        <td className="hidden py-2 sm:table-cell">
+                          <a
+                            href={`/sim/${g.sample}`}
+                            className="font-medium text-primary underline-offset-2 hover:underline"
+                          >
+                            {formatSIMNumber(g.sample)}
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                Theo cách đọc dân gian, 8 là phát và 9 là trường cửu nên hai cụm này thường cao giá nhất; đây chỉ là
+                quan niệm để tham khảo, giá thật vẫn phụ thuộc đầu số và phần thân số.
               </p>
             </section>
           )}

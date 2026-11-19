@@ -118,6 +118,48 @@ export const getTagsInventory = async (tags: string[]): Promise<InventoryStats> 
   return buildStats(sims.filter((s) => s.price > 0 && tags.some((t) => s.tags.includes(t))));
 };
 
+export interface TailGroupStat {
+  /** Cụm ba số cuối, vd "888". */
+  tail: string;
+  count: number;
+  min: number;
+  median: number;
+  /** Số rẻ nhất trong cụm (để dẫn ví dụ thật). */
+  sample: string;
+}
+
+/**
+ * Tách kho tam hoa theo cụm ba số cuối (000 … 999): số lượng, giá thấp nhất,
+ * mức giữa. Chỉ trả cụm có hàng, giữ thứ tự 000 → 999. Ba số cuối lấy từ
+ * `rawDigits` thật nên không thể lệch với lưới số.
+ */
+export const groupTagByTail3 = (sims: NormalizedSIM[], tag: string): TailGroupStat[] => {
+  const groups = new Map<string, NormalizedSIM[]>();
+  for (const s of sims) {
+    if (s.price <= 0 || !s.tags.includes(tag)) continue;
+    const tail = s.rawDigits.slice(-3);
+    if (tail.length !== 3 || tail[0] !== tail[1] || tail[1] !== tail[2]) continue;
+    const list = groups.get(tail);
+    if (list) list.push(s);
+    else groups.set(tail, [s]);
+  }
+  return [...groups.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([tail, list]) => {
+      const sorted = [...list].sort((a, b) => a.price - b.price);
+      return {
+        tail,
+        count: sorted.length,
+        min: sorted[0].price,
+        median: percentile(sorted.map((s) => s.price), 0.5),
+        sample: sorted[0].rawDigits,
+      };
+    });
+};
+
+export const getTagTail3Groups = async (tag: string): Promise<TailGroupStat[]> =>
+  groupTagByTail3(await getServerSims(), tag);
+
 // ── Dải giá: slug ↔ nhãn trong PRICE_RANGES ─────────────────────────────────
 //
 // CHỈ 4 dải này có trang riêng. Cố ý BỎ "Dưới 1 triệu" (379 số) và các bậc từ 50
