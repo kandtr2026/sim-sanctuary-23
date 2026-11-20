@@ -9,6 +9,7 @@ import LeadMagnetCta from "@/components/LeadMagnetCta";
 import FaqAccordion from "@/components/FaqAccordion";
 import LocalServiceLinks from "@/components/LocalServiceLinks";
 import { buildBreadcrumb, BASE_URL } from "@/lib/seo";
+import { buildNamSinhTitle } from "../_lib/title";
 import type { NormalizedSIM } from "@/lib/simUtils";
 import {
   getCategorySnapshot,
@@ -116,13 +117,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const info = getYearInfo(year);
   const canonical = `${BASE_URL}/sim-nam-sinh/${year}`;
-  const title = `Sim Năm Sinh ${year} MobiFone Giá Tốt — Kho Số Đẹp Đuôi ${year} Chính Chủ`;
   const description = buildDescription(year, info);
 
   // Năm hợp lệ nhưng tồn kho dưới ngưỡng (thường chỉ tới từ URL cũ redirect) →
   // noindex, follow: giữ link equity mà không đẩy trang mỏng vào chỉ mục.
   const count = await countBirthYearSims(year);
   const thin = count < BIRTH_YEAR_MIN_INVENTORY;
+
+  // "Giá từ" = số rẻ nhất trong ĐÚNG snapshot trang hiện (cùng lời gọi với phần
+  // render, không có ?d=&m=) để title không hứa giá khách vào không thấy.
+  const shown = (await getCategorySnapshot({ birthYear: year }, 12))
+    .map((s) => s.price)
+    .filter((p) => Number.isFinite(p) && p > 0);
+  const minPrice = shown.length > 0 ? Math.min(...shown) : 0;
+  const title = buildNamSinhTitle(year, minPrice, count);
 
   return {
     title: { absolute: title },
