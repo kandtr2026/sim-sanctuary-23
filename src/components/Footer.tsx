@@ -100,6 +100,13 @@ const Footer = () => {
                     Điểm Giao Dịch MobiFone Quận 7
                   </Link>
                   <br />
+                  <Link href="/doi-esim-mobifone-quan-7" className="hover:text-gold transition-colors font-medium underline underline-offset-2">
+                    Đổi eSIM tại Quận 7
+                  </Link>{" · "}
+                  <Link href="/lam-lai-sim-mobifone-quan-7" className="hover:text-gold transition-colors font-medium underline underline-offset-2">
+                    Làm lại SIM tại Quận 7
+                  </Link>
+                  <br />
                   43A Đường số 9, Phường Tân Hưng, TP.HCM
                 </span>
               </li>

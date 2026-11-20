@@ -94,6 +94,8 @@ const DISCOVERY_LINKS: { href: string; label: string }[] = [
   { href: "/diem-giao-dich-mobifone-quan-7", label: "Đại lý MobiFone Quận 7 gần đây" },
   { href: "/esim-mobifone", label: "eSIM MobiFone" },
   { href: "/doi-esim-mobifone", label: "Đổi eSIM MobiFone" },
+  { href: "/doi-esim-mobifone-quan-7", label: "Đổi eSIM MobiFone Quận 7" },
+  { href: "/lam-lai-sim-mobifone-quan-7", label: "Làm lại SIM MobiFone Quận 7" },
   // Query "0708 là mạng gì" đã lên vị trí TB #2 nhưng CTR 0%; link từ trang chủ
   // giúp bài giải đáp đầu số không chỉ sống nhờ sitemap và tăng đường sang kho 0708.
   { href: "/tin-tuc/0708-la-mang-gi", label: "0708 là mạng gì?" },
