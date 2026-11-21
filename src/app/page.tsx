@@ -12,9 +12,13 @@ import { conLink229K } from "@/lib/kho229k";
 // Cụm "sim giá rẻ" thuộc /mua-sim-gia-re (chủ dự án chốt 29/08). Title trang chủ
 // trước đây cũng chứa "giá rẻ" nên hai trang tranh nhau cùng một cụm; nay trang
 // chủ nhắm cụm thương hiệu + quy mô kho + cam kết, để cụm giá rẻ cho trang kia.
-const TITLE = "SIM Mobifone số đẹp – 30 phút giao toàn quốc";
+// 21/11/2026: GSC 28 ngày — trang chủ (đã index) đang hứng "mobifone gần đây"
+// 27 imp pos 6 và "đại lý mobifone quận 7" 10 imp pos 1.5 nhưng 0 click, vì
+// title/meta không nhắc cửa hàng. Trang /diem-giao-dich-mobifone-quan-7 chưa
+// được Google index nên thêm tín hiệu cửa hàng Quận 7 vào snippet trang chủ.
+const TITLE = "SIM Mobifone số đẹp – 30 phút giao toàn quốc | Cửa hàng Quận 7";
 const DESCRIPTION =
-  "Kho SIM Mobifone hơn 49.000 số: tứ quý, tam hoa, thần tài, lộc phát, phong thủy, năm sinh. Giá niêm yết công khai, đăng ký thông tin chính chủ, 30 phút giao toàn quốc.";
+  "Kho SIM Mobifone hơn 49.000 số: tứ quý, tam hoa, thần tài, phong thủy, năm sinh, giá niêm yết công khai. Cửa hàng MobiFone Quận 7: 43A Đường số 9, P. Tân Hưng, mở 8:00–21:00.";
 const CANONICAL = "https://www.chonsomobifone.com/";
 
 // ISR: regenerate the static shell (incl. the server-rendered SIM grid +
