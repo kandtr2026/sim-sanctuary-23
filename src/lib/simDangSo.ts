@@ -160,6 +160,46 @@ export const groupTagByTail3 = (sims: NormalizedSIM[], tag: string): TailGroupSt
 export const getTagTail3Groups = async (tag: string): Promise<TailGroupStat[]> =>
   groupTagByTail3(await getServerSims(), tag);
 
+/** Bốn số cuối đúng dạng lặp kép: AABB (2288) hoặc ABAB (2929), A ≠ B. */
+export const isLapKepTail4 = (tail: string): boolean => {
+  if (!/^\d{4}$/.test(tail)) return false;
+  const [a, b, c, d] = tail;
+  return (a === b && c === d && a !== c) || (a === c && b === d && a !== b);
+};
+
+/**
+ * Tách kho lặp kép theo đuôi bốn số (2288, 6688, 2929…): số lượng, giá thấp
+ * nhất, mức giữa. Trả `limit` đuôi nhiều hàng nhất (hoà thì đuôi nhỏ trước).
+ * Đuôi lấy từ `rawDigits` thật nên không thể lệch với lưới số.
+ */
+export const groupTagByTail4 = (sims: NormalizedSIM[], tag: string, limit = 12): TailGroupStat[] => {
+  const groups = new Map<string, NormalizedSIM[]>();
+  for (const s of sims) {
+    if (s.price <= 0 || !s.tags.includes(tag)) continue;
+    const tail = s.rawDigits.slice(-4);
+    if (!isLapKepTail4(tail)) continue;
+    const list = groups.get(tail);
+    if (list) list.push(s);
+    else groups.set(tail, [s]);
+  }
+  return [...groups.entries()]
+    .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))
+    .slice(0, limit)
+    .map(([tail, list]) => {
+      const sorted = [...list].sort((a, b) => a.price - b.price);
+      return {
+        tail,
+        count: sorted.length,
+        min: sorted[0].price,
+        median: percentile(sorted.map((s) => s.price), 0.5),
+        sample: sorted[0].rawDigits,
+      };
+    });
+};
+
+export const getTagTail4Groups = async (tag: string, limit = 12): Promise<TailGroupStat[]> =>
+  groupTagByTail4(await getServerSims(), tag, limit);
+
 // ── Dải giá: slug ↔ nhãn trong PRICE_RANGES ─────────────────────────────────
 //
 // CHỈ 4 dải này có trang riêng. Cố ý BỎ "Dưới 1 triệu" (379 số) và các bậc từ 50

@@ -8,7 +8,8 @@ import FaqAccordion from "@/components/FaqAccordion";
 import LocalServiceLinks from "@/components/LocalServiceLinks";
 import { buildBreadcrumb, BASE_URL } from "@/lib/seo";
 import { getCategorySnapshot } from "@/lib/serverSimData";
-import { getTagInventory, formatTrieu, MIN_INDEXABLE_INVENTORY } from "@/lib/simDangSo";
+import { getTagInventory, getTagTail4Groups, formatTrieu, MIN_INDEXABLE_INVENTORY } from "@/lib/simDangSo";
+import { formatSIMNumber } from "@/lib/simUtils";
 
 export const revalidate = 300;
 
@@ -86,9 +87,10 @@ const faqJsonLd = {
 };
 
 export default async function SimLapKepPage() {
-  const [snapshotSims, stats] = await Promise.all([
+  const [snapshotSims, stats, tailGroups] = await Promise.all([
     getCategorySnapshot({ tags: [TAG] }, 8),
     getTagInventory(TAG),
+    getTagTail4Groups(TAG, 12),
   ]);
 
   return (
@@ -259,6 +261,55 @@ export default async function SimLapKepPage() {
                 </a>
                 .
               </p>
+            </section>
+          )}
+
+          {/* ── 3b. Theo từng đuôi (GSC 11/2026: trang 31 imp pos ~9.8 nhưng
+                 "Crawled - currently not indexed"; thêm dữ liệu riêng của trang
+                 để Google thấy khác biệt với lưới số chung) */}
+          {tailGroups.length > 0 && (
+            <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
+              <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
+                <span className="h-8 w-1 rounded-full bg-primary" />
+                Giá sim kép theo từng đuôi
+              </h2>
+              <p className="mb-4 leading-relaxed text-muted-foreground">
+                {tailGroups.length} đuôi lặp kép đang có nhiều số nhất trong kho, đếm trực tiếp tại thời điểm cập nhật.
+                Quý khách gõ <strong className="text-foreground">*{tailGroups[0].tail}</strong> vào ô tìm phía trên để
+                xem hết số của một đuôi.
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <caption className="sr-only">Số lượng và giá sim lặp kép theo bốn số cuối</caption>
+                  <thead>
+                    <tr className="border-b border-border text-left">
+                      <th scope="col" className="py-2 pr-4 font-semibold text-foreground">Đuôi</th>
+                      <th scope="col" className="py-2 pr-4 font-semibold text-foreground">Đang có</th>
+                      <th scope="col" className="py-2 pr-4 font-semibold text-foreground">Giá từ</th>
+                      <th scope="col" className="py-2 pr-4 font-semibold text-foreground">Mức giữa</th>
+                      <th scope="col" className="hidden py-2 font-semibold text-foreground sm:table-cell">Ví dụ rẻ nhất</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-muted-foreground">
+                    {tailGroups.map((g) => (
+                      <tr key={g.tail} className="border-b border-border last:border-0">
+                        <td className="py-2 pr-4 font-medium text-foreground">…{g.tail}</td>
+                        <td className="py-2 pr-4">{g.count.toLocaleString("vi-VN")} số</td>
+                        <td className="py-2 pr-4 font-semibold text-foreground">{formatTrieu(g.min)}</td>
+                        <td className="py-2 pr-4">{formatTrieu(g.median)}</td>
+                        <td className="hidden py-2 sm:table-cell">
+                          <a
+                            href={`/sim/${g.sample}`}
+                            className="font-medium text-primary underline-offset-2 hover:underline"
+                          >
+                            {formatSIMNumber(g.sample)}
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </section>
           )}
 
