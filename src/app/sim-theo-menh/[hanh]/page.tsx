@@ -8,6 +8,7 @@ import { getServerSims } from "@/lib/serverSimData";
 import { formatTrieu } from "@/lib/simDangSo";
 import { BASE_URL, buildBreadcrumb } from "@/lib/seo";
 import { HANH_COPY, buildHanhTable, formatDigits } from "@/app/sim-hop-menh/_lib/menhContent";
+import { MENH_ANSWERS } from "@/app/sim-theo-menh/_lib/menhAnswers";
 import {
   nguHanhCuaSo,
   diemTongHop,
@@ -84,6 +85,7 @@ export default async function SimTheoMenhHanhPage({ params }: Props) {
   const mau = HANH_MAU[item.hanh];
   const nuoi = nguHanhSinhRa(item.hanh);
   const copy = HANH_COPY[item.hanh];
+  const menhAnswer = MENH_ANSWERS[item.hanh];
   const table = buildHanhTable(item.hanh);
   const canonical = `${BASE_URL}/sim-theo-menh/${item.slug}`;
   const isHoa = item.hanh === "Hỏa";
@@ -124,7 +126,9 @@ export default async function SimTheoMenhHanhPage({ params }: Props) {
 
   // FAQ hiển thị trên trang và FAQPage JSON-LD dùng chung một mảng — trước đây
   // JSON-LD có câu trả lời mà HTML không có (trái chính sách FAQPage của Google).
+  // 24/11/2026: 3 câu hỏi dạng query thật (Terra, `MENH_ANSWERS`) đặt lên đầu, 4 câu cũ để sau.
   const faqItems: FaqItem[] = [
+    ...menhAnswer.faqs,
     {
       q: `Mệnh ${item.hanh} hợp số gì khi chọn SIM điện thoại?`,
       a: isHoa
@@ -179,7 +183,10 @@ export default async function SimTheoMenhHanhPage({ params }: Props) {
             <span aria-hidden className="h-4 w-4 rounded-full bg-white/90" />
             {`SIM hợp mệnh ${item.hanh} MobiFone — ưu tiên ${hop}`}
           </h1>
-          <p className="mt-1 max-w-3xl text-sm text-white/90">
+          <div className="mt-3 max-w-3xl rounded-xl border border-white/20 bg-white/10 p-4 text-sm leading-6 text-white md:text-base">
+            <strong>Trả lời nhanh:</strong> {menhAnswer.answer}
+          </div>
+          <p className="mt-3 max-w-3xl text-sm text-white/90">
             {isHoa ? (
               <>
                 Người mệnh Hỏa nên ưu tiên <strong>số 9</strong> (đồng hành Hỏa), <strong>số 3, 4</strong> (Mộc sinh Hỏa) và hạn chế <strong>số 0, 1</strong> ở cụm đuôi. Kho bên dưới chỉ lấy SIM MobiFone đang có giá, xếp theo điểm phong thủy cao nhất.
