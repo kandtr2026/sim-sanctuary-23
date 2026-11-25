@@ -22,8 +22,9 @@ const StickyCtaBottomBar = () => {
 
   return (
     <>
-      {/* Spacer keeps page content clear of the fixed bar */}
-      <div className="block md:hidden" style={{ height: "var(--sticky-cta-height)" }} />
+      {/* Spacer keeps page content clear of the fixed bar (+16px breathing room so
+          the last line above it is never flush against / under the bar). */}
+      <div className="block md:hidden" style={{ height: "calc(var(--sticky-cta-height) + 16px)" }} />
       <div
         id="sticky-cta-bottom"
         className="fixed bottom-0 left-0 right-0 z-[70] flex flex-col gap-1.5 px-3 md:hidden"

@@ -494,7 +494,9 @@ const SimBrowser = ({
         </aside>
 
         <section className="flex-1 min-w-0">
-          <div className="bg-card rounded-2xl shadow-card border border-border/50 p-3 md:p-6 mb-6">
+          {/* pb mobile = sticky Gọi/Zalo (--sticky-cta-height) + 16px: thẻ SIM cuối và
+              giá không bị thanh sticky che khi cuộn tới cuối danh sách. */}
+          <div className="bg-card rounded-2xl shadow-card border border-border/50 p-3 pb-[calc(var(--sticky-cta-height)+16px)] md:p-6 mb-6">
             {/* Toolbar: search (left) + sort (right), aligned with the two side
                 columns. On mobile they stack: search on top, sort below. */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">

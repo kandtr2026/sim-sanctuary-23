@@ -227,7 +227,7 @@ const CategorySimGrid = ({
   }, [currentPage, totalPages]);
 
   return (
-    <section id="kho-sim" className="rounded-2xl border border-border/80 bg-card p-4 shadow-card md:p-6 scroll-mt-20">
+    <section id="kho-sim" className="rounded-2xl border border-border/80 bg-card p-4 pb-[calc(var(--sticky-cta-height)+16px)] shadow-card md:p-6 scroll-mt-20">
       {/* ── 1. TIÊU ĐỀ 1 DÒNG DUY NHẤT & SỐ LƯỢNG KHO (Chuẩn Sim Thăng Long) ──────────────── */}
       <div className="mb-4 flex items-center justify-between gap-3 border-b border-border/40 pb-3">
         <div className="flex items-center gap-2.5 flex-wrap">
