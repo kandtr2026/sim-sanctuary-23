@@ -33,6 +33,9 @@ const ITEMS_PER_PAGE = 100;
  */
 const HOME_DEFAULTS: FilterState = { ...defaultFilterState, sortBy: "mix" };
 
+/** Mẫu gõ nhanh — cùng 4 mẫu với khối "Mẹo gõ nhanh" (desktop), dùng làm chip trên mobile. */
+const SEARCH_EXAMPLES = ["6789", "0909*", "090*6666", "07*555*"] as const;
+
 // ── Port from useSimData: relax order + neutral helpers (thuần, không đọc browser) ──
 const RELAX_ORDER: (keyof FilterState)[] = [
   "customSuffix",
@@ -522,8 +525,24 @@ const SimBrowser = ({
               </div>
             </div>
 
+            {/* Mobile (< sm): 1 hàng chip cuộn ngang thay khối mẹo 4 dòng bên dưới —
+                khối đó cùng đoạn mô tả dưới H1 chiếm ~70% màn đầu 390×844. Bấm chip
+                điền mẫu vào ô tìm. Chỉ dùng đúng các mẫu đã có, không thêm chữ. */}
+            <div className="-mx-1 mb-3 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] sm:hidden [&::-webkit-scrollbar]:hidden">
+              {SEARCH_EXAMPLES.map((example) => (
+                <button
+                  key={example}
+                  type="button"
+                  onClick={() => updateFilter("searchQuery", example)}
+                  className="shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 font-mono text-xs text-foreground/80 transition-colors hover:border-gold hover:text-gold"
+                >
+                  {example}
+                </button>
+              ))}
+            </div>
+
             {/* Search guide — gõ mẫu chia 2 cột cho gọn, dấu * = phần bất kỳ */}
-            <div className="mb-4 text-xs leading-relaxed text-muted-foreground">
+            <div className="mb-4 hidden text-xs leading-relaxed text-muted-foreground sm:block">
               <p className="mb-1 font-medium text-foreground/80">Mẹo gõ nhanh <span className="font-normal">(dấu <code className="rounded bg-muted px-1">*</code> = phần bất kỳ)</span></p>
               <div className="grid grid-cols-1 gap-x-5 gap-y-1 sm:grid-cols-2">
                 <p><code className="rounded bg-muted px-1">6789</code> — sim chứa số 6789</p>

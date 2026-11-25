@@ -157,7 +157,9 @@ export default async function HomePage() {
         <h1 className="mb-2 text-lg font-bold leading-tight text-foreground md:text-2xl">
           SIM Mobifone số đẹp — <span className="text-gold">30 phút giao toàn quốc</span>
         </h1>
-        <p className="mb-3 text-sm text-muted-foreground md:text-base">
+        {/* Ẩn trên mobile: đoạn này cùng khối "Mẹo gõ nhanh" chiếm ~70% màn đầu
+            390×844, đẩy thẻ SIM đầu tiên xuống mép dưới (54% khách Google thoát). */}
+        <p className="mb-3 hidden text-sm text-muted-foreground md:block md:text-base">
           Quý khách chọn số theo tuổi, theo mệnh hoặc theo đuôi số ưa thích: tứ quý, tam hoa, phong thủy, thần tài, lộc phát. Đăng ký thông tin chính chủ, 30 phút nhận SIM.
         </p>
 
