@@ -168,7 +168,7 @@ export default function SimHopTuoiHubPage() {
                 return (
                   <li key={slug}>
                     <Link
-                      href={`/sim-hop-menh/${slug}`}
+                      href={`/sim-theo-menh/${slug}`}
                       className="inline-flex items-center rounded-lg border border-border px-5 py-2.5 font-semibold text-primary transition hover:bg-secondary/40"
                     >
                       Sim hợp mệnh {hanh}

@@ -4,7 +4,6 @@ import { getInStockBirthYears } from "@/lib/serverSimData";
 import { TIN_TUC_ARTICLES } from "@/content/tinTucArticles";
 import { getDauSoSitemapEntries } from "@/app/sim-dau-so/inventory";
 import { ALL_YEARS } from "@/app/sim-hop-tuoi/_lib/yearContent";
-import { HANH_META } from "@/app/sim-hop-menh/_lib/hanhMeta";
 import { PRICE_BAND_SLUGS } from "@/lib/simDangSo";
 import { conLink229K } from "@/lib/kho229k";
 
@@ -128,12 +127,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  const hopMenhEntries = Object.values(HANH_META).map((h) => ({
-    url: `${BASE_URL}/sim-hop-menh/${h.slug}`,
-    lastModified,
-    changeFrequency: "weekly" as const,
-    priority: 0.7,
-  }));
+  // KHÔNG khai /sim-hop-menh/<mệnh> nữa (25/11/2026): 5 trang đó canonical về
+  // /sim-theo-menh/<mệnh> (đã có trong ROUTES). Khai URL không-canonical trong
+  // sitemap là gửi cho Google tín hiệu ngược với thẻ canonical.
 
   const giaEntries = PRICE_BAND_SLUGS.map((slug) => ({
     url: `${BASE_URL}/sim-gia/${slug}`,
@@ -187,7 +183,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...blogEntries,
     ...namSinhEntries,
     ...hopTuoiEntries,
-    ...hopMenhEntries,
     ...giaEntries,
   ];
 }

@@ -292,7 +292,7 @@ export default function SimHopMenhNguHanhPage() {
       </ul>
       <p>
         Muốn xem các số cùng mệnh đang có mức giá thế nào, mời Quý khách mở{" "}
-        <Link href="/sim-hop-menh">kho SIM hợp mệnh</Link> — mỗi số đều hiện giá niêm yết.
+        <Link href="/sim-theo-menh">kho SIM hợp mệnh</Link> — mỗi số đều hiện giá niêm yết.
       </p>
     </ArticleShell>
   );

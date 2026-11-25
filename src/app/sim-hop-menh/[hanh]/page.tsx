@@ -30,9 +30,6 @@ const ZALO_URL = "https://zalo.me/0933686666";
 export const revalidate = 300;
 export const dynamicParams = false;
 
-/** Dưới ngưỡng này thì noindex, follow — khuôn lấy từ /sim-nam-sinh/[year]. */
-const MIN_SIMS_TO_INDEX = 8;
-
 type Props = { params: Promise<{ hanh: string }> };
 
 export function generateStaticParams() {
@@ -45,17 +42,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!hanh) return {};
 
   const meta = HANH_META[hanh];
-  const canonical = `${BASE_URL}/sim-hop-menh/${slug}`;
-  const pool = await getRankedPool(profileForHanh(hanh));
-  const thin = pool.length < MIN_SIMS_TO_INDEX;
+  // 25/11/2026 (A Khoa duyệt): gom tín hiệu mệnh về /sim-theo-menh/<mệnh> —
+  // GSC 90 ngày /sim-theo-menh/kim 57 lượt hiển thị, /sim-hop-menh/* chỉ 8 lượt,
+  // hai cụm giẫm chân nhau trên query "mệnh X hợp số nào". Trang này vẫn sống,
+  // vẫn index, follow (không xoá, không redirect) nhưng canonical trỏ trang chính.
+  const canonical = `${BASE_URL}/sim-theo-menh/${slug}`;
 
   return {
     title: { absolute: meta.title },
     description: meta.description,
-    // Canonical trỏ chính nó: /sim-phong-thuy-hop-menh là hub gộp, không phải
-    // bản gốc của 5 trang này (nội dung khác nhau, mỗi trang một mệnh).
     alternates: { canonical },
-    ...(thin ? { robots: { index: false, follow: true } } : {}),
+    // Không gắn noindex khi kho mỏng nữa: noindex + canonical sang URL khác là
+    // hai tín hiệu ngược nhau. Trang chính /sim-theo-menh/* cũng index, follow.
+    robots: { index: true, follow: true },
     openGraph: {
       type: "website",
       title: meta.title,
@@ -114,7 +113,8 @@ export default async function SimHopMenhPage({ params }: Props) {
   const picked = pickRotated(pool, 0, ROWS_PER_PAGE);
   const priceSims = picked.map((p) => p.sim);
 
-  const canonical = `${BASE_URL}/sim-hop-menh/${slug}`;
+  // URL của chính trang (cho ItemList JSON-LD) — khác canonical ở metadata.
+  const selfUrl = `${BASE_URL}/sim-hop-menh/${slug}`;
   const sampleYears = sampleYearsForHanh(hanh, SAMPLE_YEARS_PER_HANH);
   const faqItems = buildFaq(hanh);
 
@@ -151,6 +151,14 @@ export default async function SimHopMenhPage({ params }: Props) {
             <h1 className="mx-auto mb-3 max-w-3xl text-2xl font-extrabold leading-tight sm:text-3xl md:text-4xl">
               SIM hợp mệnh {hanh} — <span className="text-gold">số thật, giá niêm yết công khai</span>
             </h1>
+            <p className="mb-3">
+              <Link
+                href={`/sim-theo-menh/${slug}`}
+                className="inline-flex items-center rounded-full border border-gold/40 bg-gold/15 px-4 py-1.5 text-sm font-semibold text-gold transition hover:bg-gold/25"
+              >
+                Xem đầy đủ: Mệnh {hanh} hợp số gì →
+              </Link>
+            </p>
             <p className="mx-auto mb-5 max-w-2xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
               {meta.intro}
             </p>
@@ -213,7 +221,7 @@ export default async function SimHopMenhPage({ params }: Props) {
               <CategorySimPriceList
                 title={`Sim hợp mệnh ${hanh} đang có trong kho`}
                 sims={priceSims}
-                pageUrl={canonical}
+                pageUrl={selfUrl}
                 intro={`${priceSims.length} số thuộc nhóm điểm cao nhất khi chấm theo mệnh ${hanh}. Giá đã niêm yết, Quý khách xem rồi chốt.`}
                 note={`${meta.bangGiaNote} Giờ sinh và giới tính lấy mặc định (giờ Tý, nam) vì trang này không hỏi ngày sinh — nhập đủ ở công cụ xem sim hợp tuổi để chấm lại. Bảng cập nhật mỗi 5 phút.`}
               />

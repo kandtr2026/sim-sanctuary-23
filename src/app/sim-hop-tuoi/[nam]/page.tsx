@@ -282,7 +282,7 @@ export default async function SimHopTuoiYearPage({ params }: Props) {
               </li>
               <li>
                 <Link
-                  href={`/sim-hop-menh/${hanhSlug}`}
+                  href={`/sim-theo-menh/${hanhSlug}`}
                   className="inline-flex items-center rounded-lg border border-border px-5 py-2.5 font-semibold text-primary transition hover:bg-secondary/40"
                 >
                   Sim hợp mệnh {info.menh}
