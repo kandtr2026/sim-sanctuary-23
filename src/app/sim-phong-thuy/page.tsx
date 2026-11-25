@@ -18,6 +18,23 @@ const EXAMPLE_SUFFIXES = ["8386", "6868", "3979"];
 const EXAMPLES = EXAMPLE_SUFFIXES.map((s) => ({ suffix: s, rem: parseInt(s, 10) % 80 || 80, h: getHexagramFromSuffix(s) }));
 const DAI_CAT = Object.values(HEXAGRAMS).filter((h) => h.level === "Đại cát");
 
+// Bảng 80 quẻ render phía server (GSC: "bói sim" từng 43 imp pos 9.6 tháng 10/2026,
+// về 0 từ cuối 10 — HTML thô chỉ có 3 ví dụ, công cụ chạy client). Lấy thẳng từ
+// HEXAGRAMS để không lệch với engine chấm điểm.
+const ALL_HEXAGRAMS = Object.values(HEXAGRAMS).sort((a, b) => a.index - b.index);
+const LEVEL_ORDER = ["Đại cát", "Cát", "Bình thường", "Hung", "Đại hung"] as const;
+const LEVEL_COUNTS = LEVEL_ORDER.map((level) => ({
+  level,
+  count: ALL_HEXAGRAMS.filter((h) => h.level === level).length,
+}));
+const LEVEL_CLASS: Record<string, string> = {
+  "Đại cát": "text-gold font-semibold",
+  "Cát": "text-emerald-400",
+  "Bình thường": "text-muted-foreground",
+  "Hung": "text-red-400",
+  "Đại hung": "text-red-500 font-semibold",
+};
+
 export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
@@ -193,6 +210,64 @@ export default function SimPhongThuyPage() {
                   Các quẻ xếp mức Đại cát trong bảng: {DAI_CAT.map((h) => h.index).join(", ")}. Muốn
                   xem nhanh một số cụ thể, Quý khách nhập ngày sinh ở công cụ phía trên rồi bấm vào
                   SIM để thấy quẻ, mệnh và tổng nút.
+                </p>
+              </div>
+
+              {/* Bảng tra đủ 80 quẻ — server render, cùng bảng với engine */}
+              <div className="mt-6 pt-5 border-t border-border/40">
+                <h2 className="text-base sm:text-lg font-bold text-foreground mb-2 flex items-center gap-2">
+                  <span className="h-4 w-1 rounded-full bg-gold" />
+                  Bảng tra 80 quẻ bói SIM theo 4 số cuối
+                </h2>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  Lấy 4 số cuối chia 80, tìm số dư ở cột &ldquo;Quẻ&rdquo; để xem mức và ý nghĩa. Trong 80
+                  quẻ có{" "}
+                  {LEVEL_COUNTS.map((c, i) => (
+                    <span key={c.level}>
+                      <strong className={LEVEL_CLASS[c.level]}>
+                        {c.count} quẻ {c.level}
+                      </strong>
+                      {i < LEVEL_COUNTS.length - 1 ? ", " : "."}
+                    </span>
+                  ))}{" "}
+                  Bảng chỉ để tham khảo theo quan niệm dân gian, không phải cam kết vận may.
+                </p>
+                <div className="mt-3 max-h-[28rem] overflow-y-auto overflow-x-auto rounded-xl border border-border/40">
+                  <table className="w-full text-xs sm:text-sm">
+                    <caption className="sr-only">Bảng 80 quẻ Kinh Dịch tra theo 4 số cuối SIM chia 80</caption>
+                    <thead className="sticky top-0 bg-neutral-900">
+                      <tr className="text-left text-gold">
+                        <th scope="col" className="py-1.5 px-3">Quẻ</th>
+                        <th scope="col" className="py-1.5 pr-3">Mức</th>
+                        <th scope="col" className="py-1.5 pr-3">Ý nghĩa</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ALL_HEXAGRAMS.map((h) => (
+                        <tr key={h.index} className="border-t border-border/30 text-muted-foreground">
+                          <td className="py-1.5 px-3 font-semibold text-foreground">{h.index}</td>
+                          <td className={`py-1.5 pr-3 whitespace-nowrap ${LEVEL_CLASS[h.level]}`}>{h.level}</td>
+                          <td className="py-1.5 pr-3">{h.title}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground leading-relaxed">
+                  Ví dụ đuôi 3979: 3979 chia 80 dư {3979 % 80}, tra dòng quẻ {3979 % 80} ở bảng trên. Quý khách
+                  muốn tra cả số 10 chữ số (ý nghĩa, nhà mạng, giá nếu còn trong kho) thì dùng{" "}
+                  <a href="/tra-cuu-sim" className="font-medium text-gold underline-offset-2 hover:underline">
+                    tra cứu sim
+                  </a>
+                  ; xem theo mệnh thì vào{" "}
+                  <a href="/sim-theo-menh" className="font-medium text-gold underline-offset-2 hover:underline">
+                    sim theo mệnh
+                  </a>{" "}
+                  hoặc{" "}
+                  <a href="/sim-hop-tuoi" className="font-medium text-gold underline-offset-2 hover:underline">
+                    sim hợp tuổi theo năm sinh
+                  </a>
+                  .
                 </p>
               </div>
 
