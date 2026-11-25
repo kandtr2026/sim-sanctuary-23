@@ -20,6 +20,9 @@ const TITLE = "SIM Mobifone số đẹp – 30 phút giao toàn quốc | Cửa h
 const DESCRIPTION =
   "Kho SIM Mobifone hơn 49.000 số: tứ quý, tam hoa, thần tài, phong thủy, năm sinh, giá niêm yết công khai. Cửa hàng MobiFone Quận 7: 43A Đường số 9, P. Tân Hưng, mở 8:00–21:00.";
 const CANONICAL = "https://www.chonsomobifone.com/";
+// Chip nổi dưới H1. Repo không có hằng số địa chỉ dùng chung ở dạng "P. Tân Hưng"
+// (các nơi khác viết "Phường Tân Hưng" và là const cục bộ) nên giữ nguyên chữ đã duyệt.
+const Q7_CHIP_TEXT = "📍 Cửa hàng MobiFone Quận 7 gần đây — 43A Đường số 9, P. Tân Hưng";
 
 // ISR: regenerate the static shell (incl. the server-rendered SIM grid +
 // ItemList schema) every 5 minutes to match the live catalogue cache window.
@@ -157,6 +160,18 @@ export default async function HomePage() {
         <h1 className="mb-2 text-lg font-bold leading-tight text-foreground md:text-2xl">
           SIM Mobifone số đẹp — <span className="text-gold">30 phút giao toàn quốc</span>
         </h1>
+        {/* 24/11/2026: GSC có "mobifone gần đây" (24 imp, pos 8, 0 click) đáp về trang
+            chủ trong khi /diem-giao-dich-mobifone-quan-7 vẫn "URL is unknown to
+            Google" — link nổi ngay dưới H1 để khách lẫn crawler thấy đường sang trang
+            cửa hàng. Mobile giữ đúng 1 dòng để không đẩy lưới SIM xuống: cỡ chữ co
+            theo bề ngang (đo Playwright 360–600px: chia 36 thì chuỗi vừa khít chỗ
+            trống 100vw − 56px) nên đọc đủ địa chỉ; truncate chỉ là lưới an toàn. */}
+        <a
+          href="/diem-giao-dich-mobifone-quan-7"
+          className="mb-3 flex max-w-full items-center rounded-full border border-gold/40 bg-gold/10 px-2 py-1 text-[length:clamp(9px,calc((100vw_-_56px)/36),11px)] font-medium leading-5 tracking-[-0.01em] text-gold transition-colors hover:border-gold hover:bg-gold/20 sm:inline-flex sm:px-3 sm:text-xs sm:tracking-normal md:text-sm"
+        >
+          <span className="truncate">{Q7_CHIP_TEXT}</span>
+        </a>
         {/* Ẩn trên mobile: đoạn này cùng khối "Mẹo gõ nhanh" chiếm ~70% màn đầu
             390×844, đẩy thẻ SIM đầu tiên xuống mép dưới (54% khách Google thoát). */}
         <p className="mb-3 hidden text-sm text-muted-foreground md:block md:text-base">
