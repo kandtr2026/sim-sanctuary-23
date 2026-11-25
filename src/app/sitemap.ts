@@ -62,7 +62,9 @@ const ROUTES: StaticRoute[] = ([
   { path: "/sim-ngay-thang-nam-sinh", changeFrequency: "weekly", priority: 0.8, dynamic: true },
   { path: "/sim-than-tai", changeFrequency: "weekly", priority: 0.8, dynamic: true },
   { path: "/sim-loc-phat", changeFrequency: "weekly", priority: 0.8, dynamic: true },
-  { path: "/sim-ngu-quy", changeFrequency: "weekly", priority: 0.8, dynamic: true },  { path: "/sim-phong-thuy-hop-menh", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/sim-ngu-quy", changeFrequency: "weekly", priority: 0.8, dynamic: true },
+  // 25/11/2026: trang "Sim Phong Thủy MobiFone" nhắm "sim phong thủy" (22.200/tháng).
+  { path: "/sim-phong-thuy-hop-menh", changeFrequency: "weekly", priority: 0.9 },
   { path: "/sim-tra-gop", changeFrequency: "monthly", priority: 0.7 },
   // Hub của 3 cụm trang programmatic mới (29/08/2026).
   { path: "/sim-hop-tuoi", changeFrequency: "weekly", priority: 0.8, dynamic: true },

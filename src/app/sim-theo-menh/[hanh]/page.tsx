@@ -209,6 +209,12 @@ export default async function SimTheoMenhHanhPage({ params }: Props) {
                 {x.hanh}
               </Link>
             ))}
+            <Link
+              href="/sim-phong-thuy-hop-menh"
+              className="rounded-full border border-white/40 bg-white/10 px-3 py-1 text-sm font-medium text-white transition hover:bg-white/20"
+            >
+              Sim phong thủy MobiFone
+            </Link>
           </div>
         </div>
       </section>

@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { Phone, Star, Sparkles } from "lucide-react";
 import PhongThuyMenhTool from "./PhongThuyMenhTool";
 import CategorySimPriceList from "@/components/CategorySimPriceList";
-import FaqAccordion from "@/components/FaqAccordion";
+import FaqAccordion, { type FaqItem } from "@/components/FaqAccordion";
 import { buildBreadcrumb } from "@/lib/seo";
 import { getCategorySnapshot } from "@/lib/serverSimData";
+import { PT_COPY, PT_LINKS } from "./copy";
+import { renderLinkedText, toPlainText } from "./linkedText";
 
 // ISR: prerender + revalidate every 300s (khớp /api/sims) so crawlers hit a
 // cached page instead of forcing SSR (ƒ) on every request.
@@ -12,12 +14,12 @@ export const revalidate = 300;
 
 const ZALO_URL = "https://zalo.me/0933686666";
 
-// Title 59 ký tự (khung SERP ~60): bản cũ 67 ký tự bị Google cắt mất phần
-// "Thủy, Hỏa, Thổ", và nó lặp "Hợp Mệnh" hai lần. Bỏ đúng phần lặp — cụm khoá
-// chính "sim phong thủy hợp mệnh" + đủ năm mệnh vẫn còn nguyên.
-const TITLE = "SIM Phong Thủy Hợp Mệnh Kim, Mộc, Thủy, Hỏa, Thổ | MobiFone";
-const DESCRIPTION =
-  "Kho sim phong thủy hợp mệnh Mobifone: chọn số theo mệnh Kim, Mộc, Thủy, Hỏa, Thổ. Giá niêm yết công khai, đăng ký thông tin chính chủ, nhận SIM rồi mới trả tiền.";
+// 25/11/2026 (A Khoa duyệt): trang này thành "Sim Phong Thủy MobiFone" nhắm
+// "sim phong thủy" (22.200 lượt/tháng, chưa trang nào nhắm vào — /sim-phong-thuy
+// là công cụ bói, không phải kho để mua). Chữ lấy nguyên văn từ Terra (copy.ts).
+// URL + canonical GIỮ NGUYÊN.
+const TITLE = PT_COPY.title;
+const DESCRIPTION = PT_COPY.description;
 const CANONICAL = "https://www.chonsomobifone.com/sim-phong-thuy-hop-menh";
 
 export const metadata: Metadata = {
@@ -27,21 +29,17 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     title: TITLE,
-    description: "Chọn sim phong thủy hợp mệnh Kim, Mộc, Thủy, Hỏa, Thổ Mobifone. Giá công khai, chính chủ.",
+    description: DESCRIPTION,
     url: CANONICAL,
     images: [{ url: "/share-banner.png?v=999", width: 1200, height: 630 }],
   },
 };
 
-const faqItems = [
-  {
-    q: "Sim phong thủy hợp mệnh là gì?",
-    a: "Sim phong thủy hợp mệnh là sim số đẹp được chọn dựa trên ngũ hành của người dùng — mỗi mệnh Kim, Mộc, Thủy, Hỏa, Thổ hợp với một số may mắn nhất định. Theo quan niệm dân gian, số điện thoại hợp mệnh được tin là mang lại may mắn và thuận lợi trong cuộc sống.",
-  },
-  {
-    q: "Cách xác định mệnh theo năm sinh?",
-    a: "Mệnh được xác định theo thiên can – địa chi của năm sinh âm lịch, nên chỉ cần năm sinh là tra được. Nếu chưa chắc chắn, Quý khách dùng công cụ xem sim phong thủy tại /sim-phong-thuy hoặc liên hệ đội ngũ tư vấn để được hỗ trợ.",
-  },
+// 5 câu mới (Terra) trước, sau đó 2 câu cũ không trùng ý. Bỏ "Sim phong thủy
+// hợp mệnh là gì?" và "Cách xác định mệnh theo năm sinh?" (trùng câu 1–2 mới).
+// HTML và FAQPage JSON-LD dùng chung mảng này.
+const faqItems: FaqItem[] = [
+  ...PT_COPY.faqs,
   {
     q: "Có thể mua sim phong thủy trả góp không?",
     a: "Có. Quý khách xem thêm thông tin về hình thức mua sim trả góp tại /sim-tra-gop.",
@@ -58,9 +56,20 @@ const faqJsonLd = {
   mainEntity: faqItems.map((item) => ({
     "@type": "Question",
     name: item.q,
-    acceptedAnswer: { "@type": "Answer", text: item.a },
+    // Cùng chữ với HTML: đường dẫn thô đã đổi thành nhãn của link.
+    acceptedAnswer: { "@type": "Answer", text: toPlainText(item.a, PT_LINKS) },
   })),
 };
+
+const [S0, S1, S2] = PT_COPY.sections;
+
+const MENH_LINKS = [
+  { href: "/sim-theo-menh/kim", label: "Sim hợp mệnh Kim" },
+  { href: "/sim-theo-menh/moc", label: "Sim hợp mệnh Mộc" },
+  { href: "/sim-theo-menh/thuy", label: "Sim hợp mệnh Thủy" },
+  { href: "/sim-theo-menh/hoa", label: "Sim hợp mệnh Hỏa" },
+  { href: "/sim-theo-menh/tho", label: "Sim hợp mệnh Thổ" },
+];
 
 export default async function SimPhongThuyHopMenhPage() {
   // General featured snapshot (no mệnh filter — mệnh is chosen client-side in
@@ -87,11 +96,10 @@ export default async function SimPhongThuyHopMenhPage() {
               </div>
             </div>
             <h1 className="mx-auto mb-3 max-w-3xl text-2xl font-extrabold leading-tight sm:text-3xl md:text-4xl">
-              SIM Phong Thủy Hợp Mệnh — <span className="text-gold">chọn số theo mệnh Kim, Mộc, Thủy, Hỏa, Thổ</span>
+              {PT_COPY.h1}
             </h1>
             <p className="mx-auto mb-5 max-w-xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
-              Quý khách chọn mệnh, chúng tôi lọc sẵn những số có đuôi hợp mệnh. Giá niêm yết công khai,
-              đăng ký thông tin chính chủ, 30 phút giao toàn quốc.
+              {PT_COPY.intro}
             </p>
             <div className="mx-auto flex max-w-md flex-col justify-center gap-2.5 sm:flex-row">
               <a
@@ -113,12 +121,22 @@ export default async function SimPhongThuyHopMenhPage() {
         </section>
 
         <div className="container mx-auto space-y-10 px-4 py-8 md:space-y-14 md:py-12">
-          {/* Mệnh guide */}
+          {/* section[0]: sim phong thủy là gì */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
               <span className="h-8 w-1 rounded-full bg-primary" />
-              Các mệnh và số may mắn tương ứng
+              {S0.h2}
             </h2>
+            <p className="leading-relaxed text-muted-foreground">{renderLinkedText(S0.body, PT_LINKS)}</p>
+          </section>
+
+          {/* section[1]: chọn theo mệnh + bảng mệnh (bảng giữ nguyên) */}
+          <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
+            <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
+              <span className="h-8 w-1 rounded-full bg-primary" />
+              {S1.h2}
+            </h2>
+            <p className="mb-5 leading-relaxed text-muted-foreground">{renderLinkedText(S1.body, PT_LINKS)}</p>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -160,21 +178,17 @@ export default async function SimPhongThuyHopMenhPage() {
           {/* Client island: mệnh picker + grid */}
           <PhongThuyMenhTool />
 
-          {/* Trust */}
+          {/* section[2]: mua thế nào — thay khối cũ "Mua sim phong thủy hợp mệnh ở đâu uy tín?" */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
             <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
               <span className="h-8 w-1 rounded-full bg-primary" />
-              Mua sim phong thủy hợp mệnh ở đâu uy tín?
+              {S2.h2}
             </h2>
-            <p className="leading-relaxed text-muted-foreground">
-              Mua số hợp mệnh nên bắt đầu từ sự minh bạch. Mỗi số trong kho CHONSOMOBIFONE.COM đều niêm yết giá công
-              khai, kèm bộ lọc theo mệnh để Quý khách tự đối chiếu trước khi cần tới tư vấn. Chúng tôi hỗ trợ đăng ký thông tin
-              chính chủ và giao SIM toàn quốc; Quý khách kiểm tra đúng số đã chọn rồi mới thanh toán.
-            </p>
+            <p className="leading-relaxed text-muted-foreground">{renderLinkedText(S2.body, PT_LINKS)}</p>
           </section>
 
           {/* FAQ */}
-          <FaqAccordion items={faqItems} />
+          <FaqAccordion items={faqItems} renderAnswer={(a) => renderLinkedText(a, PT_LINKS)} />
 
           {/* Cross-links */}
           <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
@@ -183,6 +197,18 @@ export default async function SimPhongThuyHopMenhPage() {
               Xem thêm các dòng sim khác
             </h2>
             <ul className="flex flex-wrap gap-3 text-sm">
+              {MENH_LINKS.map((m) => (
+                <li key={m.href}>
+                  <a href={m.href} className="font-medium text-primary underline-offset-2 hover:underline">
+                    {m.label}
+                  </a>
+                </li>
+              ))}
+              <li>
+                <a href="/sim-phong-thuy" className="font-medium text-primary underline-offset-2 hover:underline">
+                  Bói sim phong thủy miễn phí
+                </a>
+              </li>
               <li>
                 <a href="/sim-than-tai" className="font-medium text-primary underline-offset-2 hover:underline">
                   Sim thần tài

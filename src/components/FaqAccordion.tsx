@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export interface FaqItem {
@@ -10,6 +11,11 @@ interface FaqAccordionProps {
   /** Tiêu đề khối. Đặt null nếu trang tự render h2 riêng. */
   title?: string | null;
   className?: string;
+  /**
+   * Tuỳ chọn: tự render câu trả lời (vd biến đường dẫn thô thành <a>). Mặc định
+   * in nguyên chuỗi `a`. JSON-LD của trang vẫn phải khớp chữ hiển thị.
+   */
+  renderAnswer?: (answer: string) => ReactNode;
 }
 
 /**
@@ -33,6 +39,7 @@ export default function FaqAccordion({
   items,
   title = "Câu hỏi thường gặp",
   className,
+  renderAnswer,
 }: FaqAccordionProps) {
   if (items.length === 0) return null;
 
@@ -60,7 +67,7 @@ export default function FaqAccordion({
                 vùng trong faqData.ts) ngắt dòng bằng \n — mất nó thì cả khối dồn
                 thành một đoạn liền. Câu không có \n thì thuộc tính này vô hại. */}
             <p className="mt-2.5 whitespace-pre-line leading-relaxed text-muted-foreground">
-              {item.a}
+              {renderAnswer ? renderAnswer(item.a) : item.a}
             </p>
           </details>
         ))}

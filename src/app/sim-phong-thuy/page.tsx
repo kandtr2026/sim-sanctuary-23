@@ -143,6 +143,13 @@ export default function SimPhongThuyPage() {
               <p className="hidden sm:block text-xs sm:text-sm text-muted-foreground/80 mt-1 max-w-lg mx-auto">
                 Nhập ngày sinh để xem SIM hợp tuổi, hợp mệnh và chấm điểm ngũ hành, âm dương, tổng nút, quẻ dịch trên kho hơn 50.000 SIM MobiFone.
               </p>
+              {/* Trang bói → kho mua (25/11/2026): /sim-phong-thuy-hop-menh nhắm "sim phong thủy". */}
+              <a
+                href="/sim-phong-thuy-hop-menh"
+                className="mt-2 inline-flex items-center rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-xs sm:text-sm font-semibold text-gold transition hover:bg-gold/20"
+              >
+                Mua sim phong thủy MobiFone theo mệnh →
+              </a>
             </div>
 
             {/* Client Tool */}
