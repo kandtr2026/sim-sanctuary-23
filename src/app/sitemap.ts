@@ -156,11 +156,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...TIN_TUC_ARTICLES.map((a) => `/tin-tuc/${a.slug}`),
   ]);
   const posts = await getPublishedPosts();
+  // 26/11/2026: trước đây mọi bài DB khai lastmod = giờ sinh sitemap (đổi mỗi
+  // giờ) nên ~150 bài luôn "vừa sửa" — Google bỏ qua lastmod không đáng tin, và
+  // 2 bài mới không được ưu tiên cào. Nay lấy ngày sửa thật của bài.
   const blogEntries = posts
     .filter((p) => p.slug && !existingTinTuc.has(`/tin-tuc/${p.slug}`))
     .map((p) => ({
       url: `${BASE_URL}/tin-tuc/${p.slug}`,
-      lastModified,
+      lastModified: p.updated_at || p.created_at || lastModified,
       changeFrequency: "weekly" as const,
       priority: 0.5,
     }));

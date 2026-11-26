@@ -21,6 +21,8 @@ export interface BlogPostSummary {
   category: string | null;
   cover_image_url: string | null;
   created_at: string;
+  /** Dùng làm <lastmod> trong sitemap (ngày sửa thật của bài). */
+  updated_at: string | null;
 }
 
 /**
@@ -33,7 +35,7 @@ export interface BlogPostSummary {
 export async function getPublishedPosts(): Promise<BlogPostSummary[]> {
   const { data, error } = await supabase
     .from('blog_posts')
-    .select('title, slug, meta_description, category, cover_image_url, created_at')
+    .select('title, slug, meta_description, category, cover_image_url, created_at, updated_at')
     .eq('published', true)
     .order('created_at', { ascending: false });
 
