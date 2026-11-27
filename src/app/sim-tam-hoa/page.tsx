@@ -10,6 +10,7 @@ import { buildBreadcrumb, BASE_URL } from "@/lib/seo";
 import { getCategorySnapshot } from "@/lib/serverSimData";
 import { getTagInventory, getTagTail3Groups, formatTrieu, MIN_INDEXABLE_INVENTORY } from "@/lib/simDangSo";
 import { formatSIMNumber } from "@/lib/simUtils";
+import { getComboStat, getInStockDauSoCombos } from "@/app/sim-dau-so/inventory";
 
 // ISR như các trang danh mục khác (khớp revalidate của /api/sims).
 export const revalidate = 300;
@@ -93,11 +94,23 @@ const faqJsonLd = {
 };
 
 export default async function SimTamHoaPage() {
-  const [snapshotSims, stats, tailGroups] = await Promise.all([
+  const [snapshotSims, stats, tailGroups, combos] = await Promise.all([
     getCategorySnapshot({ tags: [TAG] }, 8),
     getTagInventory(TAG),
     getTagTail3Groups(TAG),
+    getInStockDauSoCombos(),
   ]);
+
+  // Combo "tam hoa × đầu số" đạt ngưỡng tồn kho (cùng danh sách với sitemap →
+  // không bao giờ link vào trang noindex). GSC 11/2026: 20 trang
+  // /sim-dau-so/*/tam-hoa nằm trong sitemap nhưng trang mẹ không link tới trang nào.
+  const prefixRows = (
+    await Promise.all(
+      combos
+        .filter((c) => c.loai === "tam-hoa")
+        .map(async (c) => ({ dauso: c.dauso, stat: await getComboStat(c.dauso, "tam-hoa") })),
+    )
+  ).sort((a, b) => a.dauso.length - b.dauso.length || b.stat.count - a.stat.count || a.dauso.localeCompare(b.dauso));
 
   return (
     <>
@@ -267,6 +280,48 @@ export default async function SimTamHoaPage() {
                 Theo cách đọc dân gian, 8 là phát và 9 là trường cửu nên hai cụm này thường cao giá nhất; đây chỉ là
                 quan niệm để tham khảo, giá thật vẫn phụ thuộc đầu số và phần thân số.
               </p>
+            </section>
+          )}
+
+          {/* ── 2c. Theo đầu số → link xuống các trang /sim-dau-so/[x]/tam-hoa */}
+          {prefixRows.length > 0 && (
+            <section className="rounded-xl border border-border bg-card p-6 shadow-card md:p-8">
+              <h2 className="mb-4 flex items-center gap-3 text-xl font-bold text-primary md:text-2xl">
+                <span className="h-8 w-1 rounded-full bg-primary" />
+                Sim tam hoa theo đầu số
+              </h2>
+              <p className="mb-4 leading-relaxed text-muted-foreground">
+                Quý khách đã chọn sẵn đầu số quen (090, 093, 07x…) thì vào thẳng trang của đầu số đó: chỉ còn số tam
+                hoa đúng đầu, kèm giá từng số.
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <caption className="sr-only">Số lượng và khoảng giá sim tam hoa theo đầu số</caption>
+                  <thead>
+                    <tr className="border-b border-border text-left">
+                      <th scope="col" className="py-2 pr-4 font-semibold text-foreground">Đầu số</th>
+                      <th scope="col" className="py-2 pr-4 font-semibold text-foreground">Đang có</th>
+                      <th scope="col" className="py-2 font-semibold text-foreground">Giá từ</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-muted-foreground">
+                    {prefixRows.map(({ dauso, stat }) => (
+                      <tr key={dauso} className="border-b border-border last:border-0">
+                        <td className="py-2 pr-4">
+                          <a
+                            href={`/sim-dau-so/${dauso}/tam-hoa`}
+                            className="font-medium text-primary underline-offset-2 hover:underline"
+                          >
+                            Sim tam hoa {dauso}
+                          </a>
+                        </td>
+                        <td className="py-2 pr-4">{stat.count.toLocaleString("vi-VN")} số</td>
+                        <td className="py-2 font-semibold text-foreground">{formatTrieu(stat.minPrice)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </section>
           )}
           {/* ── 3. Chọn cụm số nào ─────────────────────────────────────────── */}

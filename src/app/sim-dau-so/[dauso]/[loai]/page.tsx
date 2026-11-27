@@ -39,6 +39,15 @@ export const dynamicParams = true;
 const ZALO_URL = "https://zalo.me/0933686666";
 const BASE_URL = "https://www.chonsomobifone.com";
 
+// Trang mẹ theo dạng đuôi — combo phải link ngược lên để gom tín hiệu về trang
+// đang được index (GSC 11/2026: /sim-tam-hoa index, 20 combo tam hoa chưa có link vào/ra).
+const LOAI_HUB: Record<keyof typeof LOAI, string> = {
+  "than-tai": "/sim-than-tai",
+  "loc-phat": "/sim-loc-phat",
+  "tu-quy": "/mua-sim-tu-quy",
+  "tam-hoa": "/sim-tam-hoa",
+};
+
 type Props = {
   params: Promise<{ dauso: string; loai: string }>;
 };
@@ -264,6 +273,11 @@ export default async function SimDauSoLoaiPage({ params }: Props) {
               Xem thêm
             </h2>
             <h3 className="mb-2 text-lg font-bold text-foreground">Sim {label} các đầu số khác</h3>
+            <p className="mb-2 text-sm text-muted-foreground">
+              <a href={LOAI_HUB[loai]} className="font-medium text-primary underline-offset-2 hover:underline">
+                Xem toàn bộ sim {label} MobiFone →
+              </a>
+            </p>
             {otherPrefixes.length > 0 ? (
               <ul className="flex flex-wrap gap-3 text-sm">
                 {otherPrefixes.map((p) => (
@@ -318,8 +332,8 @@ export default async function SimDauSoLoaiPage({ params }: Props) {
                 </a>
               </li>
               <li>
-                <a href="/sim-ong-dia" className="font-medium text-primary underline-offset-2 hover:underline">
-                  Sim ông địa
+                <a href="/sim-tam-hoa" className="font-medium text-primary underline-offset-2 hover:underline">
+                  Sim tam hoa
                 </a>
               </li>
             </ul>
